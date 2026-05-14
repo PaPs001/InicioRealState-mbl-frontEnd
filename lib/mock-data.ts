@@ -1,4 +1,4 @@
-import type { User, Property, PropertyLead, Appointment, Notification, Commission } from './types'
+import type { User, Property, PropertyLead, Appointment, Notification, Commission, ActiveRental, Message, Conversation, PropertyEarnings } from './types'
 
 // Usuarios de ejemplo
 export const mockUsers: User[] = [
@@ -61,11 +61,13 @@ export const mockProperties: Property[] = [
     bedrooms: 4,
     bathrooms: 3,
     sqMeters: 350,
+    size: 350,
     description: 'Hermosa casa moderna con acabados de lujo',
-    amenities: ['Jardin', 'Alberca', 'Estacionamiento 3 autos'],
+    amenities: ['Jardin', 'Alberca', 'Estacionamiento 3 autos', 'Cocina integral', 'Cuarto de servicio'],
     features: ['Jardin', 'Alberca', 'Estacionamiento 3 autos'],
     ownerId: 'user-1',
     agentId: 'user-4',
+    purchasedWithUs: true,
     createdAt: '2024-01-20',
   },
   {
@@ -79,10 +81,12 @@ export const mockProperties: Property[] = [
     bedrooms: 2,
     bathrooms: 2,
     sqMeters: 120,
+    size: 120,
     description: 'Departamento con vista panoramica al mar',
     amenities: ['Vista al mar', 'Gimnasio', 'Seguridad 24/7'],
     features: ['Vista al mar', 'Gimnasio', 'Seguridad 24/7'],
     agentId: 'user-4',
+    purchasedWithUs: false,
     createdAt: '2024-02-15',
   },
   {
@@ -96,11 +100,13 @@ export const mockProperties: Property[] = [
     bedrooms: 3,
     bathrooms: 3,
     sqMeters: 280,
+    size: 280,
     monthlyRent: 85000,
     description: 'Penthouse de lujo con terraza privada',
     amenities: ['Terraza', 'Vista panoramica', 'Amenidades'],
     features: ['Terraza', 'Vista panoramica', 'Amenidades'],
     agentId: 'user-4',
+    purchasedWithUs: false,
     createdAt: '2024-03-01',
   },
   {
@@ -112,10 +118,12 @@ export const mockProperties: Property[] = [
     type: 'land',
     status: 'available',
     sqMeters: 1500,
+    size: 1500,
     description: 'Terreno ideal para desarrollo turistico',
     amenities: ['Cerca de la playa', 'Servicios disponibles'],
     features: ['Cerca de la playa', 'Servicios disponibles'],
     agentId: 'user-4',
+    purchasedWithUs: false,
     createdAt: '2024-03-15',
   },
   {
@@ -129,12 +137,14 @@ export const mockProperties: Property[] = [
     bedrooms: 5,
     bathrooms: 4,
     sqMeters: 420,
+    size: 420,
     monthlyRent: 45000,
     description: 'Casa colonial restaurada en el centro historico',
-    amenities: ['Patio interior', 'Techos altos', 'Acabados originales'],
+    amenities: ['Patio interior', 'Techos altos', 'Acabados originales', 'Cocina equipada', 'Bodega'],
     features: ['Patio interior', 'Techos altos', 'Acabados originales'],
     ownerId: 'user-1',
     agentId: 'user-4',
+    purchasedWithUs: true,
     createdAt: '2024-01-10',
   },
 ]
@@ -257,6 +267,170 @@ export const mockCommissions: Commission[] = [
     rate: 5,
     status: 'pending',
     createdDate: '2024-05-01',
+  },
+]
+
+// Renta activa de ejemplo (para inquilinos)
+export const mockActiveRental: ActiveRental = {
+  id: 'rental-1',
+  propertyId: 'prop-5',
+  tenantId: 'user-3',
+  landlordId: 'user-1',
+  agentId: 'user-4',
+  startDate: '2024-01-15',
+  endDate: '2025-01-15',
+  monthlyRent: 45000,
+  paymentDay: 5,
+  depositAmount: 90000,
+  rules: [
+    'No se permiten mascotas grandes',
+    'Horario de silencio de 10pm a 8am',
+    'No se permite subarrendar',
+    'Mantenimiento de jardin incluido',
+    'Maximo 4 ocupantes',
+  ],
+  utilities: {
+    electricity: {
+      provider: 'CFE',
+      phone: '071',
+      accountNumber: '123456789012',
+    },
+    water: {
+      provider: 'SAPAS',
+      phone: '+52 55 5555 1234',
+      accountNumber: '987654321',
+    },
+    gas: {
+      provider: 'Gas Natural',
+      phone: '+52 55 5555 5678',
+      accountNumber: 'GN-456789',
+    },
+    internet: {
+      provider: 'Telmex',
+      phone: '800 123 4567',
+      accountNumber: 'TEL-789012',
+    },
+  },
+  documents: [
+    {
+      id: 'doc-1',
+      name: 'Contrato de arrendamiento',
+      type: 'contract',
+      url: '/documents/contrato.pdf',
+      uploadDate: '2024-01-15',
+      status: 'approved',
+    },
+    {
+      id: 'doc-2',
+      name: 'Inventario inicial',
+      type: 'inventory',
+      url: '/documents/inventario.pdf',
+      uploadDate: '2024-01-15',
+      status: 'approved',
+    },
+  ],
+  status: 'active',
+}
+
+// Conversaciones de ejemplo
+export const mockConversations: Conversation[] = [
+  {
+    id: 'conv-1',
+    participants: ['user-1', 'user-4'],
+    lastMessage: 'Claro, te envio los documentos manana',
+    lastMessageDate: '2024-05-05T14:30:00',
+    unreadCount: 2,
+    propertyId: 'prop-1',
+  },
+  {
+    id: 'conv-2',
+    participants: ['user-1', 'user-3'],
+    lastMessage: 'Ya realice el deposito de este mes',
+    lastMessageDate: '2024-05-04T10:15:00',
+    unreadCount: 0,
+    propertyId: 'prop-5',
+  },
+  {
+    id: 'conv-3',
+    participants: ['user-2', 'user-4'],
+    lastMessage: 'Perfecto, nos vemos el jueves para la visita',
+    lastMessageDate: '2024-05-03T16:45:00',
+    unreadCount: 1,
+    propertyId: 'prop-2',
+  },
+  {
+    id: 'conv-4',
+    participants: ['user-3', 'user-4'],
+    lastMessage: 'El plomero pasara manana entre 10 y 12',
+    lastMessageDate: '2024-05-02T09:20:00',
+    unreadCount: 0,
+    propertyId: 'prop-5',
+  },
+]
+
+// Mensajes de ejemplo
+export const mockMessages: Message[] = [
+  {
+    id: 'msg-1',
+    conversationId: 'conv-1',
+    senderId: 'user-4',
+    receiverId: 'user-1',
+    content: 'Buenos dias, le escribo para informarle sobre el estado de su propiedad',
+    read: true,
+    createdAt: '2024-05-05T14:00:00',
+  },
+  {
+    id: 'msg-2',
+    conversationId: 'conv-1',
+    senderId: 'user-1',
+    receiverId: 'user-4',
+    content: 'Hola Ana, gracias por el seguimiento. Como va todo?',
+    read: true,
+    createdAt: '2024-05-05T14:15:00',
+  },
+  {
+    id: 'msg-3',
+    conversationId: 'conv-1',
+    senderId: 'user-4',
+    receiverId: 'user-1',
+    content: 'Todo muy bien, el inquilino esta al corriente con los pagos. Necesito enviarle los documentos actualizados',
+    read: true,
+    createdAt: '2024-05-05T14:20:00',
+  },
+  {
+    id: 'msg-4',
+    conversationId: 'conv-1',
+    senderId: 'user-1',
+    receiverId: 'user-4',
+    content: 'Claro, te envio los documentos manana',
+    read: false,
+    createdAt: '2024-05-05T14:30:00',
+  },
+]
+
+// Ganancias de propiedades (para inversionistas)
+export const mockPropertyEarnings: PropertyEarnings[] = [
+  {
+    propertyId: 'prop-5',
+    totalEarnings: 540000,
+    monthlyEarnings: 45000,
+    occupancyRate: 100,
+    lastPaymentDate: '2024-05-05',
+    nextPaymentDate: '2024-06-05',
+    paymentHistory: [
+      { month: '2024-05', amount: 45000, status: 'paid' },
+      { month: '2024-04', amount: 45000, status: 'paid' },
+      { month: '2024-03', amount: 45000, status: 'paid' },
+      { month: '2024-02', amount: 45000, status: 'paid' },
+      { month: '2024-01', amount: 45000, status: 'paid' },
+    ],
+  },
+  {
+    propertyId: 'prop-1',
+    totalEarnings: 0,
+    monthlyEarnings: 0,
+    occupancyRate: 0,
+    paymentHistory: [],
   },
 ]
 
