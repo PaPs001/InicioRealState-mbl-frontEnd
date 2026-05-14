@@ -30,6 +30,7 @@ import {
   Megaphone,
   Ruler,
   ShoppingBag,
+  ListPlus,
 } from 'lucide-react-native'
 
 type TabType = 'general' | 'tenant' | 'earnings'
@@ -605,6 +606,19 @@ export default function PropertyDetailScreen() {
         {activeTab === 'tenant' && renderTenantTab()}
         {activeTab === 'earnings' && renderEarningsTab()}
       </ScrollView>
+
+      {/* Boton Enlistar Propiedad - solo si no esta rentada ni en venta/renta */}
+      {property.status !== 'rented' && property.status !== 'for_sale' && property.status !== 'for_rent' && (
+        <View style={styles.listButtonContainer}>
+          <TouchableOpacity 
+            style={styles.listButton}
+            onPress={() => router.push(`/list-property-screen?id=${property.id}`)}
+          >
+            <ListPlus size={20} color={colors.primary} />
+            <Text style={styles.listButtonText}>Enlistar esta propiedad</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   )
 }
@@ -868,5 +882,25 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
+  },
+  listButtonContainer: {
+    padding: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  listButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+  },
+  listButtonText: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: colors.primary,
   },
 })
