@@ -20,7 +20,8 @@ import {
   Users,
   Building2,
   ClipboardCheck,
-  Wallet
+  Wallet,
+  MessageCircle,
 } from 'lucide-react-native'
 
 export default function TabsLayout() {
@@ -53,6 +54,8 @@ export default function TabsLayout() {
         return <ClipboardCheck size={size} color={color} />
       case 'commissions':
         return <Wallet size={size} color={color} />
+      case 'messages':
+        return <MessageCircle size={size} color={color} />
       default:
         return <Home size={size} color={color} />
     }
@@ -83,13 +86,19 @@ export default function TabsLayout() {
         tabBarIcon: ({ color, size }) => renderTabIcon(route.name, size, color),
       })}
     >
-      {/* Pantallas para clientes - solo Inicio y Perfil en navbar */}
+      {/* Pantallas para clientes - Inicio, Mensajes y Perfil */}
       {isClient && (
         <>
           <Tabs.Screen
             name="index"
             options={{
               title: 'Inicio',
+            }}
+          />
+          <Tabs.Screen
+            name="messages"
+            options={{
+              title: 'Mensajes',
             }}
           />
           <Tabs.Screen
@@ -177,6 +186,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="catalog" options={{ href: null }} />
       <Tabs.Screen name="appointments" options={{ href: null }} />
       <Tabs.Screen name="favorites" options={{ href: null }} />
+      <Tabs.Screen name="messages" options={{ href: isClient ? undefined : null }} />
       <Tabs.Screen name="leads" options={{ href: isAgent || isAdmin ? undefined : null }} />
       <Tabs.Screen name="properties" options={{ href: isAgent ? undefined : null }} />
       <Tabs.Screen name="registration" options={{ href: isAgent ? undefined : null }} />

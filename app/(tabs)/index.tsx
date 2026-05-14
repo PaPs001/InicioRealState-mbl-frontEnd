@@ -14,7 +14,10 @@ import {
   Users,
   ClipboardCheck,
   Wallet,
-  Heart
+  Heart,
+  Home,
+  Plus,
+  Bell,
 } from 'lucide-react-native'
 
 export default function HomeScreen() {
@@ -66,7 +69,20 @@ export default function HomeScreen() {
   const pendingAppointments = userAppointments.filter(a => a.status === 'pending').length
   const visibleAvailableProperties = hasLoadedCatalog ? availableProperties : []
 
-  // Panel de cliente
+  // Determinar tipo especifico de cliente
+  const isInvestor = currentUser?.role === 'investor'
+  const isSearching = currentUser?.role === 'searching'
+  const isTenant = currentUser?.role === 'tenant'
+
+  // Subtitulo basado en el rol
+  const getSubGreeting = () => {
+    if (isInvestor) return 'Bienvenido a tu panel de inversiones'
+    if (isSearching) return 'Encuentra tu propiedad ideal'
+    if (isTenant) return 'Bienvenido a tu espacio'
+    return 'Bienvenido'
+  }
+
+  // Panel de cliente - diferenciado por tipo
   if (isClient) {
     return (
       <SafeAreaView style={styles.containerLight} edges={['bottom']}>
@@ -76,106 +92,209 @@ export default function HomeScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Saludo */}
+          {/* Saludo con boton de notificaciones */}
           <View style={styles.header}>
-            <Text style={styles.greeting}>Hola, {currentUser?.name.split(' ')[0]}</Text>
-            <Text style={styles.subGreeting}>Bienvenido a tu panel de inversiones</Text>
+            <View style={styles.headerContent}>
+              <Text style={styles.greeting}>Hola, {currentUser?.name.split(' ')[0]}</Text>
+              <Text style={styles.subGreeting}>{getSubGreeting()}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.notificationButton}
+              onPress={() => router.push('/notifications-screen')}
+            >
+              <Bell size={24} color={colors.text} />
+            </TouchableOpacity>
           </View>
 
-          {/* Stats Cards */}
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Text style={styles.statLabel}>Propiedades</Text>
-                <Building2 size={20} color={colors.textMuted} />
+          {/* Stats Cards - Solo para Inversionista */}
+          {isInvestor && (
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statLabel}>Propiedades</Text>
+                  <Building2 size={20} color={colors.textMuted} />
+                </View>
+                <Text style={styles.statValue}>{userProperties.length}</Text>
+                <Text style={styles.statDescription}>En tu portafolio</Text>
               </View>
-              <Text style={styles.statValue}>{userProperties.length}</Text>
-              <Text style={styles.statDescription}>En tu portafolio</Text>
-            </View>
 
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Text style={styles.statLabel}>Valor Total</Text>
-                <DollarSign size={20} color={colors.textMuted} />
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statLabel}>Valor Total</Text>
+                  <DollarSign size={20} color={colors.textMuted} />
+                </View>
+                <Text style={styles.statValue}>{formatCurrency(totalValue)}</Text>
+                <Text style={styles.statDescription}>Valor actual</Text>
               </View>
-              <Text style={styles.statValue}>{formatCurrency(totalValue)}</Text>
-              <Text style={styles.statDescription}>Valor actual</Text>
-            </View>
 
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Text style={styles.statLabel}>Ganancias</Text>
-                <TrendingUp size={20} color={colors.textMuted} />
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statLabel}>Ganancias</Text>
+                  <TrendingUp size={20} color={colors.textMuted} />
+                </View>
+                <Text style={[styles.statValue, { color: colors.success }]}>
+                  {formatCurrency(totalGains)}
+                </Text>
+                <Text style={styles.statDescription}>Plusvalia</Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.success }]}>
-                {formatCurrency(totalGains)}
-              </Text>
-              <Text style={styles.statDescription}>Plusvalia</Text>
-            </View>
 
-            <View style={[styles.statCard, styles.statCardHighlight]}>
-              <View style={styles.statHeader}>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Proyeccion</Text>
-                <TrendingUp size={20} color={colors.accent} />
+              <View style={[styles.statCard, styles.statCardHighlight]}>
+                <View style={styles.statHeader}>
+                  <Text style={[styles.statLabel, { color: colors.textMuted }]}>Proyeccion</Text>
+                  <TrendingUp size={20} color={colors.accent} />
+                </View>
+                <Text style={[styles.statValue, { color: colors.accent }]}>
+                  {formatCurrency(totalValue * 1.1)}
+                </Text>
+                <Text style={[styles.statDescription, { color: colors.textMuted }]}>Est. 1 ano</Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.accent }]}>
-                {formatCurrency(totalValue * 1.1)}
-              </Text>
-              <Text style={[styles.statDescription, { color: colors.textMuted }]}>Est. 1 ano</Text>
             </View>
-          </View>
+          )}
 
           {/* Acceso rapido */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Acceso Rapido</Text>
             
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/catalog-screen')}
-            >
-              <View style={styles.quickAccessIcon}>
-                <Building2 size={24} color={colors.accent} />
-              </View>
-              <View style={styles.quickAccessContent}>
-                <Text style={styles.quickAccessTitle}>Explorar Catalogo</Text>
-                <Text style={styles.quickAccessSubtitle}>
-                  {availableProperties.length} propiedades disponibles
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textMuted} />
-            </TouchableOpacity>
+            {/* Inversionista: Ver propiedades, agregar, ganancias */}
+            {isInvestor && (
+              <>
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/my-properties-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Home size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Mis Propiedades</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      {userProperties.length} propiedades en portafolio
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/favorites-screen')}
-            >
-              <View style={styles.quickAccessIcon}>
-                <Heart size={24} color={colors.accent} />
-              </View>
-              <View style={styles.quickAccessContent}>
-                <Text style={styles.quickAccessTitle}>Mis Favoritos</Text>
-                <Text style={styles.quickAccessSubtitle}>
-                  Propiedades guardadas
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textMuted} />
-            </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/add-property-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Plus size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Agregar Propiedad</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      Registra una nueva propiedad
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/appointments-screen')}
-            >
-              <View style={styles.quickAccessIcon}>
-                <Calendar size={24} color={colors.accent} />
-              </View>
-              <View style={styles.quickAccessContent}>
-                <Text style={styles.quickAccessTitle}>Mis Citas</Text>
-                <Text style={styles.quickAccessSubtitle}>
-                  {userAppointments.length} citas programadas
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textMuted} />
-            </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/earnings-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <DollarSign size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Ganancias y Proyecciones</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      Revisa tus ingresos
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Buscador: Catalogo, favoritos, citas, agregar propiedad */}
+            {isSearching && (
+              <>
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/catalog-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Building2 size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Explorar Catalogo</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      {availableProperties.length} propiedades disponibles
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/favorites-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Heart size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Mis Favoritos</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      Propiedades guardadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/appointments-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Calendar size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Mis Citas</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      {userAppointments.length} citas programadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/add-property-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Plus size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Agregar Propiedad</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      Tienes una propiedad para vender?
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Inquilino: Mi renta */}
+            {isTenant && (
+              <TouchableOpacity 
+                style={styles.quickAccessCard}
+                onPress={() => router.push('/my-rental-screen')}
+              >
+                <View style={styles.quickAccessIcon}>
+                  <Home size={24} color={colors.accent} />
+                </View>
+                <View style={styles.quickAccessContent}>
+                  <Text style={styles.quickAccessTitle}>Mi Renta</Text>
+                  <Text style={styles.quickAccessSubtitle}>
+                    Informacion de tu arrendamiento
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -318,8 +437,14 @@ const styles = StyleSheet.create({
 
   // Header claro
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: spacing.lg,
     paddingTop: spacing.md,
+  },
+  headerContent: {
+    flex: 1,
   },
   greeting: {
     fontSize: typography.h2.fontSize,
@@ -330,6 +455,16 @@ const styles = StyleSheet.create({
     fontSize: typography.bodySmall.fontSize,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   // Header oscuro
