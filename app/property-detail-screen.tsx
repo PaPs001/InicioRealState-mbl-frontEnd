@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { 
   View, 
   Text, 
@@ -24,13 +24,20 @@ import {
   DollarSign,
   TrendingUp,
   Clock,
-  Users,
   AlertCircle,
+  Info,
+  Users,
+  Megaphone,
+  Ruler,
+  ShoppingBag,
 } from 'lucide-react-native'
+
+type TabType = 'general' | 'tenant' | 'earnings'
 
 export default function PropertyDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
+  const [activeTab, setActiveTab] = useState<TabType>('general')
 
   const property = useMemo(() => {
     return mockProperties.find(p => p.id === id)
@@ -70,6 +77,8 @@ export default function PropertyDetailScreen() {
     }
   }
 
+  const isRented = property?.status === 'rented'
+
   if (!property) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -93,6 +102,440 @@ export default function PropertyDetailScreen() {
 
   const Icon = getPropertyIcon(property.type)
 
+  // Tab de Informacion General
+  const renderGeneralTab = () => (
+    <View style={styles.tabContent}>
+      {/* Informacion basica */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Informacion General</Text>
+        
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Ruler size={20} color={colors.accent} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Tamano</Text>
+              <Text style={styles.infoValue}>{property.size} m²</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <ShoppingBag size={20} color={colors.accent} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Precio de compra</Text>
+              <Text style={styles.infoValue}>{formatCurrency(property.price)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <TrendingUp size={20} color={colors.accent} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Valor actual</Text>
+              <Text style={[styles.infoValue, { color: colors.success }]}>
+                {formatCurrency(property.currentValue || property.price)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <MapPin size={20} color={colors.accent} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Ubicacion</Text>
+              <Text style={styles.infoValue}>{property.address}, {property.city}</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Info size={20} color={colors.accent} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Adquirida</Text>
+              <Text style={styles.infoValue}>
+                {property.purchasedWithUs ? 'Con Inicio Real Estate' : 'De manera externa'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Amenidades */}
+      {property.amenities && property.amenities.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Amenidades</Text>
+          <View style={styles.amenitiesContainer}>
+            {property.amenities.map((amenity, index) => (
+              <View key={index} style={styles.amenityTag}>
+                <Text style={styles.amenityText}>{amenity}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Asesor que rento/gestiono */}
+      {agent && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isRented ? 'Asesor que rento la propiedad' : 'Asesor asignado'}
+          </Text>
+          
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <User size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Nombre</Text>
+                <Text style={styles.infoValue}>{agent.name}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Phone size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Telefono</Text>
+                <Text style={styles.infoValue}>{agent.phone}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Estado de publicidad (si no esta rentada) */}
+      {!isRented && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Estado de Publicidad</Text>
+          
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <Megaphone size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Publicidad</Text>
+                <Text style={[
+                  styles.infoValue, 
+                  { color: property.status === 'for_sale' || property.status === 'for_rent' 
+                    ? colors.success 
+                    : colors.textMuted 
+                  }
+                ]}>
+                  {property.status === 'for_sale' 
+                    ? 'Activa - En venta' 
+                    : property.status === 'for_rent' 
+                      ? 'Activa - En renta'
+                      : 'Sin publicidad activa'}
+                </Text>
+              </View>
+            </View>
+
+            {(property.status === 'for_sale' || property.status === 'for_rent') && (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Calendar size={20} color={colors.accent} />
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Fecha de listado</Text>
+                    <Text style={styles.infoValue}>{formatDate(property.createdAt)}</Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      )}
+    </View>
+  )
+
+  // Tab de Inquilino (solo si esta rentada)
+  const renderTenantTab = () => {
+    if (!isRented || !rental || !tenant) {
+      return (
+        <View style={styles.tabContent}>
+          <View style={styles.emptyTabState}>
+            <Users size={48} color={colors.textMuted} />
+            <Text style={styles.emptyTabTitle}>Sin inquilino</Text>
+            <Text style={styles.emptyTabText}>
+              Esta propiedad no esta rentada actualmente
+            </Text>
+          </View>
+        </View>
+      )
+    }
+
+    return (
+      <View style={styles.tabContent}>
+        {/* Informacion del inquilino */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Datos del Inquilino</Text>
+          
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <User size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Nombre</Text>
+                <Text style={styles.infoValue}>{tenant.name}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Phone size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Telefono</Text>
+                <Text style={styles.infoValue}>{tenant.phone}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Mail size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>{tenant.email}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Detalles del contrato */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Contrato</Text>
+          
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <Calendar size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Inicio del contrato</Text>
+                <Text style={styles.infoValue}>{formatDate(rental.startDate)}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Clock size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Fin del contrato</Text>
+                <Text style={styles.infoValue}>{formatDate(rental.endDate)}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <DollarSign size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Renta mensual</Text>
+                <Text style={styles.infoValue}>{formatCurrency(rental.monthlyRent)}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Calendar size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Dia de pago</Text>
+                <Text style={styles.infoValue}>Dia {rental.paymentDay} de cada mes</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <DollarSign size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Deposito</Text>
+                <Text style={styles.infoValue}>{formatCurrency(rental.depositAmount)}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Documentacion */}
+        {rental.documents && rental.documents.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Documentacion</Text>
+            
+            <View style={styles.infoCard}>
+              {rental.documents.map((doc, index) => (
+                <View key={doc.id}>
+                  {index > 0 && <View style={styles.divider} />}
+                  <TouchableOpacity style={styles.documentRow}>
+                    <FileText size={20} color={colors.accent} />
+                    <View style={styles.documentContent}>
+                      <Text style={styles.documentName}>{doc.name}</Text>
+                      <Text style={styles.documentDate}>{formatDate(doc.uploadDate)}</Text>
+                    </View>
+                    <View style={[
+                      styles.documentStatus,
+                      doc.status === 'approved' && { backgroundColor: colors.success + '20' },
+                      doc.status === 'pending' && { backgroundColor: colors.warning + '20' },
+                      doc.status === 'rejected' && { backgroundColor: colors.error + '20' },
+                    ]}>
+                      <Text style={[
+                        styles.documentStatusText,
+                        doc.status === 'approved' && { color: colors.success },
+                        doc.status === 'pending' && { color: colors.warning },
+                        doc.status === 'rejected' && { color: colors.error },
+                      ]}>
+                        {doc.status === 'approved' ? 'Aprobado' : doc.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+    )
+  }
+
+  // Tab de Ganancias
+  const renderEarningsTab = () => {
+    const hasEarnings = earnings && earnings.totalEarnings > 0
+
+    if (!hasEarnings) {
+      return (
+        <View style={styles.tabContent}>
+          <View style={styles.emptyTabState}>
+            <DollarSign size={48} color={colors.textMuted} />
+            <Text style={styles.emptyTabTitle}>Sin ganancias registradas</Text>
+            <Text style={styles.emptyTabText}>
+              Cuando esta propiedad genere ingresos, apareceran aqui
+            </Text>
+          </View>
+
+          {/* Proyeccion de ganancias */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Proyeccion de Ganancias</Text>
+            
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <TrendingUp size={20} color={colors.accent} />
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Si se renta (estimado)</Text>
+                  <Text style={[styles.infoValue, { color: colors.success }]}>
+                    {formatCurrency((property.currentValue || property.price) * 0.006)}/mes
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.infoRow}>
+                <TrendingUp size={20} color={colors.accent} />
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Plusvalia anual estimada</Text>
+                  <Text style={[styles.infoValue, { color: colors.success }]}>
+                    {formatCurrency((property.currentValue || property.price) * 0.10)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      )
+    }
+
+    return (
+      <View style={styles.tabContent}>
+        {/* Resumen de ganancias */}
+        <View style={styles.earningsGrid}>
+          <View style={styles.earningCard}>
+            <DollarSign size={24} color={colors.success} />
+            <Text style={styles.earningAmount}>
+              {formatCurrency(earnings.totalEarnings)}
+            </Text>
+            <Text style={styles.earningLabel}>Total acumulado</Text>
+          </View>
+
+          <View style={styles.earningCard}>
+            <TrendingUp size={24} color={colors.info} />
+            <Text style={styles.earningAmount}>{earnings.occupancyRate}%</Text>
+            <Text style={styles.earningLabel}>Ocupacion</Text>
+          </View>
+        </View>
+
+        {/* Proximos pagos */}
+        {earnings.nextPaymentDate && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Proximos Pagos</Text>
+            
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Calendar size={20} color={colors.accent} />
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Proximo pago</Text>
+                  <Text style={styles.infoValue}>{formatDate(earnings.nextPaymentDate)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.infoRow}>
+                <DollarSign size={20} color={colors.accent} />
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Monto esperado</Text>
+                  <Text style={[styles.infoValue, { color: colors.success }]}>
+                    {formatCurrency(earnings.monthlyEarnings)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Historial de pagos */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Historial de Pagos</Text>
+          
+          <View style={styles.infoCard}>
+            {earnings.paymentHistory.map((payment, index) => (
+              <View key={index}>
+                {index > 0 && <View style={styles.divider} />}
+                <View style={styles.paymentRow}>
+                  <Text style={styles.paymentMonth}>{payment.month}</Text>
+                  <View style={[
+                    styles.paymentStatus,
+                    payment.status === 'paid' && { backgroundColor: colors.success + '20' },
+                    payment.status === 'pending' && { backgroundColor: colors.warning + '20' },
+                    payment.status === 'late' && { backgroundColor: colors.error + '20' },
+                  ]}>
+                    <Text style={[
+                      styles.paymentStatusText,
+                      payment.status === 'paid' && { color: colors.success },
+                      payment.status === 'pending' && { color: colors.warning },
+                      payment.status === 'late' && { color: colors.error },
+                    ]}>
+                      {payment.status === 'paid' ? 'Pagado' : payment.status === 'pending' ? 'Pendiente' : 'Atrasado'}
+                    </Text>
+                  </View>
+                  <Text style={[
+                    styles.paymentAmount,
+                    payment.status === 'paid' && { color: colors.success },
+                    payment.status === 'pending' && { color: colors.warning },
+                    payment.status === 'late' && { color: colors.error },
+                  ]}>
+                    {formatCurrency(payment.amount)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
@@ -107,233 +550,60 @@ export default function PropertyDetailScreen() {
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView 
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Property Header Card */}
-        <View style={styles.propertyHeader}>
-          <View style={styles.propertyIconLarge}>
-            <Icon size={48} color={colors.accent} />
-          </View>
-          <Text style={styles.propertyTitle}>{property.title}</Text>
+      {/* Property Header Card */}
+      <View style={styles.propertyHeader}>
+        <View style={styles.propertyIconLarge}>
+          <Icon size={40} color={colors.accent} />
+        </View>
+        <View style={styles.propertyInfo}>
+          <Text style={styles.propertyTitle} numberOfLines={2}>{property.title}</Text>
           <View style={styles.locationRow}>
-            <MapPin size={16} color={colors.textMuted} />
-            <Text style={styles.locationText}>{property.address}, {property.city}</Text>
-          </View>
-          <View style={styles.valueRow}>
-            <View style={styles.valueItem}>
-              <Text style={styles.valueLabel}>Valor actual</Text>
-              <Text style={styles.valueAmount}>
-                {formatCurrency(property.currentValue || property.price)}
-              </Text>
-            </View>
-            {property.monthlyRent && (
-              <View style={styles.valueItem}>
-                <Text style={styles.valueLabel}>Renta/mes</Text>
-                <Text style={[styles.valueAmount, { color: colors.success }]}>
-                  {formatCurrency(property.monthlyRent)}
-                </Text>
-              </View>
-            )}
+            <MapPin size={14} color={colors.textMuted} />
+            <Text style={styles.locationText} numberOfLines={1}>{property.city}</Text>
           </View>
         </View>
+      </View>
 
-        {/* Si esta rentado - Info del inquilino */}
-        {property.status === 'rented' && rental && tenant && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informacion del Inquilino</Text>
-            
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <User size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Inquilino</Text>
-                  <Text style={styles.infoValue}>{tenant.name}</Text>
-                </View>
-              </View>
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'general' && styles.tabActive]}
+          onPress={() => setActiveTab('general')}
+        >
+          <Info size={18} color={activeTab === 'general' ? colors.accent : colors.textMuted} />
+          <Text style={[styles.tabText, activeTab === 'general' && styles.tabTextActive]}>
+            General
+          </Text>
+        </TouchableOpacity>
 
-              <View style={styles.divider} />
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'tenant' && styles.tabActive]}
+          onPress={() => setActiveTab('tenant')}
+        >
+          <Users size={18} color={activeTab === 'tenant' ? colors.accent : colors.textMuted} />
+          <Text style={[styles.tabText, activeTab === 'tenant' && styles.tabTextActive]}>
+            Inquilino
+          </Text>
+        </TouchableOpacity>
 
-              <View style={styles.infoRow}>
-                <Phone size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Telefono</Text>
-                  <Text style={styles.infoValue}>{tenant.phone}</Text>
-                </View>
-              </View>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'earnings' && styles.tabActive]}
+          onPress={() => setActiveTab('earnings')}
+        >
+          <DollarSign size={18} color={activeTab === 'earnings' ? colors.accent : colors.textMuted} />
+          <Text style={[styles.tabText, activeTab === 'earnings' && styles.tabTextActive]}>
+            Ganancias
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <Mail size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Email</Text>
-                  <Text style={styles.infoValue}>{tenant.email}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Detalles del contrato */}
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <Calendar size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Inicio del contrato</Text>
-                  <Text style={styles.infoValue}>{formatDate(rental.startDate)}</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <Clock size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Fin del contrato</Text>
-                  <Text style={styles.infoValue}>{formatDate(rental.endDate)}</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <DollarSign size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Dia de pago</Text>
-                  <Text style={styles.infoValue}>Dia {rental.paymentDay} de cada mes</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <Users size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Deposito</Text>
-                  <Text style={styles.infoValue}>{formatCurrency(rental.depositAmount)}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Si esta en venta */}
-        {(property.status === 'for_sale' || property.status === 'available') && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Estado de Venta</Text>
-            
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <Calendar size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Fecha de listado</Text>
-                  <Text style={styles.infoValue}>{formatDate(property.createdAt)}</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <AlertCircle size={20} color={colors.info} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Estado publicidad</Text>
-                  <Text style={[styles.infoValue, { color: colors.info }]}>Activa</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Ganancias */}
-        {earnings && earnings.totalEarnings > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ganancias</Text>
-            
-            <View style={styles.earningsGrid}>
-              <View style={styles.earningCard}>
-                <DollarSign size={24} color={colors.success} />
-                <Text style={styles.earningAmount}>
-                  {formatCurrency(earnings.totalEarnings)}
-                </Text>
-                <Text style={styles.earningLabel}>Total acumulado</Text>
-              </View>
-
-              <View style={styles.earningCard}>
-                <TrendingUp size={24} color={colors.info} />
-                <Text style={styles.earningAmount}>{earnings.occupancyRate}%</Text>
-                <Text style={styles.earningLabel}>Ocupacion</Text>
-              </View>
-            </View>
-
-            {/* Historial de pagos */}
-            <View style={styles.infoCard}>
-              <Text style={styles.cardTitle}>Historial de pagos</Text>
-              {earnings.paymentHistory.slice(0, 3).map((payment, index) => (
-                <View key={index}>
-                  {index > 0 && <View style={styles.divider} />}
-                  <View style={styles.paymentRow}>
-                    <Text style={styles.paymentMonth}>{payment.month}</Text>
-                    <Text style={[
-                      styles.paymentAmount,
-                      payment.status === 'paid' && { color: colors.success },
-                      payment.status === 'pending' && { color: colors.warning },
-                      payment.status === 'late' && { color: colors.error },
-                    ]}>
-                      {formatCurrency(payment.amount)}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Asesor asignado */}
-        {agent && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Asesor Asignado</Text>
-            
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <User size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Nombre</Text>
-                  <Text style={styles.infoValue}>{agent.name}</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.infoRow}>
-                <Phone size={20} color={colors.accent} />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Telefono</Text>
-                  <Text style={styles.infoValue}>{agent.phone}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Documentos */}
-        {rental && rental.documents.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Documentos</Text>
-            
-            <View style={styles.infoCard}>
-              {rental.documents.map((doc, index) => (
-                <View key={doc.id}>
-                  {index > 0 && <View style={styles.divider} />}
-                  <TouchableOpacity style={styles.documentRow}>
-                    <FileText size={20} color={colors.accent} />
-                    <Text style={styles.documentName}>{doc.name}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {activeTab === 'general' && renderGeneralTab()}
+        {activeTab === 'tenant' && renderTenantTab()}
+        {activeTab === 'earnings' && renderEarningsTab()}
       </ScrollView>
     </SafeAreaView>
   )
@@ -369,69 +639,82 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 40,
   },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: spacing.md,
-    gap: spacing.lg,
-  },
   propertyHeader: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   propertyIconLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: borderRadius.xl,
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.lg,
     backgroundColor: colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginRight: spacing.md,
+  },
+  propertyInfo: {
+    flex: 1,
   },
   propertyTitle: {
-    fontSize: typography.h3.fontSize,
+    fontSize: typography.h4.fontSize,
     fontWeight: '700',
     color: colors.text,
-    textAlign: 'center',
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   locationText: {
     fontSize: typography.bodySmall.fontSize,
     color: colors.textSecondary,
+    flex: 1,
   },
-  valueRow: {
+  tabsContainer: {
     flexDirection: 'row',
-    marginTop: spacing.lg,
-    gap: spacing.xl,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  valueItem: {
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  valueLabel: {
-    fontSize: typography.caption.fontSize,
+  tabActive: {
+    borderBottomColor: colors.accent,
+  },
+  tabText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '500',
     color: colors.textMuted,
   },
-  valueAmount: {
-    fontSize: typography.h4.fontSize,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 2,
+  tabTextActive: {
+    color: colors.accent,
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+  },
+  tabContent: {
+    padding: spacing.md,
+    gap: spacing.lg,
   },
   section: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   sectionTitle: {
-    fontSize: typography.h4.fontSize,
+    fontSize: typography.body.fontSize,
     fontWeight: '600',
     color: colors.text,
   },
@@ -441,12 +724,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  cardTitle: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.md,
   },
   infoRow: {
     flexDirection: 'row',
@@ -471,6 +748,49 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border,
     marginVertical: spacing.xs,
+  },
+  amenitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  amenityTag: {
+    backgroundColor: colors.accent + '20',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+  },
+  amenityText: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+    color: colors.accent,
+  },
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  documentContent: {
+    flex: 1,
+  },
+  documentName: {
+    fontSize: typography.body.fontSize,
+    color: colors.text,
+  },
+  documentDate: {
+    fontSize: typography.caption.fontSize,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  documentStatus: {
+    paddingVertical: 2,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+  },
+  documentStatusText: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: '600',
   },
   earningsGrid: {
     flexDirection: 'row',
@@ -498,28 +818,28 @@ const styles = StyleSheet.create({
   },
   paymentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: spacing.sm,
   },
   paymentMonth: {
     fontSize: typography.body.fontSize,
     color: colors.text,
+    flex: 1,
+  },
+  paymentStatus: {
+    paddingVertical: 2,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.md,
+  },
+  paymentStatusText: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: '600',
   },
   paymentAmount: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-  },
-  documentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  documentName: {
-    fontSize: typography.body.fontSize,
-    color: colors.text,
-    flex: 1,
   },
   emptyState: {
     flex: 1,
@@ -530,5 +850,23 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     color: colors.textMuted,
     marginTop: spacing.md,
+  },
+  emptyTabState: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyTabTitle: {
+    fontSize: typography.h4.fontSize,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: spacing.md,
+  },
+  emptyTabText: {
+    fontSize: typography.body.fontSize,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
   },
 })

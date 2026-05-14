@@ -29,12 +29,14 @@ export interface Property {
   bedrooms?: number
   bathrooms?: number
   sqMeters: number
+  size: number // en m² (alias para sqMeters por compatibilidad)
   description?: string
   features?: string[]
   images?: string[]
   ownerId?: string
   agentId?: string
   monthlyRent?: number
+  purchasedWithUs?: boolean // si fue comprada a traves de Inicio
   createdAt: string
 }
 

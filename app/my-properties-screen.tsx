@@ -18,10 +18,8 @@ import {
   Home,
   Building2,
   Map,
+  MapPin,
   ChevronRight,
-  TrendingUp,
-  Users,
-  DollarSign,
 } from 'lucide-react-native'
 
 export default function MyPropertiesScreen() {
@@ -32,18 +30,6 @@ export default function MyPropertiesScreen() {
     if (!currentUser) return []
     return mockProperties.filter(p => p.ownerId === currentUser.id)
   }, [currentUser])
-
-  const stats = useMemo(() => {
-    const rented = myProperties.filter(p => p.status === 'rented').length
-    const forSale = myProperties.filter(p => p.status === 'for_sale').length
-    const forRent = myProperties.filter(p => p.status === 'for_rent').length
-    const totalValue = myProperties.reduce((sum, p) => sum + (p.currentValue || p.price), 0)
-    const monthlyIncome = myProperties
-      .filter(p => p.status === 'rented' && p.monthlyRent)
-      .reduce((sum, p) => sum + (p.monthlyRent || 0), 0)
-
-    return { rented, forSale, forRent, totalValue, monthlyIncome }
-  }, [myProperties])
 
   const getPropertyIcon = (type: Property['type']) => {
     switch (type) {
@@ -97,27 +83,17 @@ export default function MyPropertiesScreen() {
             </View>
           </View>
 
-          <Text style={styles.propertyAddress} numberOfLines={1}>
-            {property.address}, {property.city}
-          </Text>
+          <View style={styles.locationRow}>
+            <MapPin size={14} color={colors.textMuted} />
+            <Text style={styles.propertyAddress} numberOfLines={1}>
+              {property.address}, {property.city}
+            </Text>
+          </View>
 
           <View style={styles.propertyFooter}>
-            <View style={styles.valueContainer}>
-              <Text style={styles.valueLabel}>Valor</Text>
-              <Text style={styles.valueAmount}>
-                {formatCurrency(property.currentValue || property.price)}
-              </Text>
-            </View>
-            
-            {property.status === 'rented' && property.monthlyRent && (
-              <View style={styles.rentContainer}>
-                <Text style={styles.rentLabel}>Renta/mes</Text>
-                <Text style={styles.rentAmount}>
-                  {formatCurrency(property.monthlyRent)}
-                </Text>
-              </View>
-            )}
-
+            <Text style={styles.propertyValue}>
+              {formatCurrency(property.currentValue || property.price)}
+            </Text>
             <ChevronRight size={20} color={colors.textMuted} />
           </View>
         </View>
@@ -144,31 +120,11 @@ export default function MyPropertiesScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: colors.success + '20' }]}>
-            <DollarSign size={20} color={colors.success} />
-          </View>
-          <Text style={styles.statValue}>{formatCurrency(stats.monthlyIncome)}</Text>
-          <Text style={styles.statLabel}>Ingreso/mes</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: colors.info + '20' }]}>
-            <TrendingUp size={20} color={colors.info} />
-          </View>
-          <Text style={styles.statValue}>{formatCurrency(stats.totalValue)}</Text>
-          <Text style={styles.statLabel}>Valor total</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: colors.accent + '20' }]}>
-            <Users size={20} color={colors.accent} />
-          </View>
-          <Text style={styles.statValue}>{stats.rented}</Text>
-          <Text style={styles.statLabel}>Rentadas</Text>
-        </View>
+      {/* Contador */}
+      <View style={styles.counterContainer}>
+        <Text style={styles.counterText}>
+          {myProperties.length} {myProperties.length === 1 ? 'propiedad' : 'propiedades'} en tu portafolio
+        </Text>
       </View>
 
       {/* Lista de propiedades */}
@@ -183,7 +139,7 @@ export default function MyPropertiesScreen() {
             <Building2 size={48} color={colors.textMuted} />
             <Text style={styles.emptyStateTitle}>Sin propiedades</Text>
             <Text style={styles.emptyStateText}>
-              Agrega tu primera propiedad para comenzar a administrar tu portafolio
+              Agrega tu primera propiedad para comenzar a monitorear tu portafolio
             </Text>
             <TouchableOpacity 
               style={styles.emptyStateButton}
@@ -234,38 +190,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.md,
+  counterContainer: {
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    gap: spacing.sm,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  statValue: {
+  counterText: {
     fontSize: typography.bodySmall.fontSize,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  statLabel: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
-    marginTop: 2,
+    color: colors.textSecondary,
   },
   listContent: {
     padding: spacing.md,
@@ -312,40 +243,27 @@ const styles = StyleSheet.create({
     fontSize: typography.caption.fontSize,
     fontWeight: '600',
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
   propertyAddress: {
     fontSize: typography.bodySmall.fontSize,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+    flex: 1,
   },
   propertyFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: spacing.md,
-    gap: spacing.md,
   },
-  valueContainer: {
-    flex: 1,
-  },
-  valueLabel: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
-  },
-  valueAmount: {
-    fontSize: typography.bodySmall.fontSize,
-    fontWeight: '600',
+  propertyValue: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
     color: colors.text,
-  },
-  rentContainer: {
-    flex: 1,
-  },
-  rentLabel: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
-  },
-  rentAmount: {
-    fontSize: typography.bodySmall.fontSize,
-    fontWeight: '600',
-    color: colors.success,
   },
   emptyState: {
     flex: 1,
