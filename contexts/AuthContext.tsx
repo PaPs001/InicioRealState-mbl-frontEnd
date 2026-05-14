@@ -59,14 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Cargar usuario guardado al iniciar
   useEffect(() => {
+    console.log("[v0] AuthProvider mounted, loading stored user...")
     loadStoredUser()
   }, [])
 
   const loadStoredUser = async () => {
+    console.log("[v0] loadStoredUser called")
     try {
       const storedUserId = await AsyncStorage.getItem('currentUserId')
+      console.log("[v0] Stored user ID:", storedUserId)
       if (storedUserId) {
         const user = mockUsers.find(u => u.id === storedUserId)
+        console.log("[v0] Found user:", user?.name)
         if (user) {
           setCurrentUser(user)
           const storedFavorites = await AsyncStorage.getItem(`favorites_${storedUserId}`)
@@ -76,8 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Error loading stored user:', error)
+      console.error('[v0] Error loading stored user:', error)
     } finally {
+      console.log("[v0] Setting isLoading to false")
       setIsLoading(false)
     }
   }
