@@ -17,7 +17,6 @@ import {
   Home,
   Building2,
   Map,
-  Camera,
   MapPin,
   DollarSign,
   Ruler,
@@ -27,19 +26,18 @@ import {
 } from 'lucide-react-native'
 
 type PropertyType = 'house' | 'apartment' | 'land'
-type ListingType = 'sale' | 'rent' | 'both'
+type AcquisitionType = 'inicio' | 'external'
 
 export default function AddPropertyScreen() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null)
-  const [listingType, setListingType] = useState<ListingType | null>(null)
+  const [acquisitionType, setAcquisitionType] = useState<AcquisitionType | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     address: '',
     city: '',
-    price: '',
-    monthlyRent: '',
+    purchasePrice: '',
     sqMeters: '',
     bedrooms: '',
     bathrooms: '',
@@ -52,7 +50,7 @@ export default function AddPropertyScreen() {
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
-      // Submit form
+      // Submit form - guardar propiedad
       router.back()
     }
   }
@@ -70,11 +68,11 @@ export default function AddPropertyScreen() {
       case 1:
         return propertyType !== null
       case 2:
-        return listingType !== null
+        return acquisitionType !== null
       case 3:
         return formData.title && formData.address && formData.city
       case 4:
-        return formData.price || formData.monthlyRent
+        return formData.purchasePrice && formData.sqMeters
       default:
         return true
     }
@@ -83,7 +81,7 @@ export default function AddPropertyScreen() {
   const renderStep1 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Tipo de propiedad</Text>
-      <Text style={styles.stepSubtitle}>Selecciona el tipo de inmueble que deseas agregar</Text>
+      <Text style={styles.stepSubtitle}>Selecciona el tipo de inmueble que deseas registrar</Text>
 
       <View style={styles.optionsGrid}>
         <TouchableOpacity 
@@ -121,58 +119,41 @@ export default function AddPropertyScreen() {
 
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Tipo de listado</Text>
-      <Text style={styles.stepSubtitle}>Como deseas publicar tu propiedad?</Text>
+      <Text style={styles.stepTitle}>Como adquiriste esta propiedad?</Text>
+      <Text style={styles.stepSubtitle}>Esto nos ayuda a dar mejor seguimiento</Text>
 
       <View style={styles.listingOptions}>
         <TouchableOpacity 
-          style={[styles.listingOption, listingType === 'sale' && styles.listingOptionSelected]}
-          onPress={() => setListingType('sale')}
+          style={[styles.listingOption, acquisitionType === 'inicio' && styles.listingOptionSelected]}
+          onPress={() => setAcquisitionType('inicio')}
         >
-          {listingType === 'sale' && (
+          {acquisitionType === 'inicio' && (
             <View style={styles.checkIcon}>
               <Check size={16} color={colors.primary} />
             </View>
           )}
-          <Text style={[styles.listingOptionTitle, listingType === 'sale' && styles.listingOptionTitleSelected]}>
-            Venta
+          <Text style={[styles.listingOptionTitle, acquisitionType === 'inicio' && styles.listingOptionTitleSelected]}>
+            Con Inicio Real Estate
           </Text>
           <Text style={styles.listingOptionDesc}>
-            Publica tu propiedad para vender
+            Compre esta propiedad a traves de Inicio
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.listingOption, listingType === 'rent' && styles.listingOptionSelected]}
-          onPress={() => setListingType('rent')}
+          style={[styles.listingOption, acquisitionType === 'external' && styles.listingOptionSelected]}
+          onPress={() => setAcquisitionType('external')}
         >
-          {listingType === 'rent' && (
+          {acquisitionType === 'external' && (
             <View style={styles.checkIcon}>
               <Check size={16} color={colors.primary} />
             </View>
           )}
-          <Text style={[styles.listingOptionTitle, listingType === 'rent' && styles.listingOptionTitleSelected]}>
-            Renta
+          <Text style={[styles.listingOptionTitle, acquisitionType === 'external' && styles.listingOptionTitleSelected]}>
+            De manera externa
           </Text>
           <Text style={styles.listingOptionDesc}>
-            Publica tu propiedad para rentar
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.listingOption, listingType === 'both' && styles.listingOptionSelected]}
-          onPress={() => setListingType('both')}
-        >
-          {listingType === 'both' && (
-            <View style={styles.checkIcon}>
-              <Check size={16} color={colors.primary} />
-            </View>
-          )}
-          <Text style={[styles.listingOptionTitle, listingType === 'both' && styles.listingOptionTitleSelected]}>
-            Ambos
-          </Text>
-          <Text style={styles.listingOptionDesc}>
-            Disponible para venta y renta
+            Adquiri esta propiedad por otro medio
           </Text>
         </TouchableOpacity>
       </View>
@@ -185,10 +166,10 @@ export default function AddPropertyScreen() {
       <Text style={styles.stepSubtitle}>Ingresa los datos de tu propiedad</Text>
 
       <View style={styles.formGroup}>
-        <Text style={styles.inputLabel}>Titulo de la propiedad</Text>
+        <Text style={styles.inputLabel}>Nombre de la propiedad</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ej: Casa moderna en zona residencial"
+          placeholder="Ej: Casa en Polanco"
           placeholderTextColor={colors.textMuted}
           value={formData.title}
           onChangeText={(text) => setFormData({ ...formData, title: text })}
@@ -218,23 +199,6 @@ export default function AddPropertyScreen() {
           value={formData.city}
           onChangeText={(text) => setFormData({ ...formData, city: text })}
         />
-      </View>
-
-      <View style={styles.formRow}>
-        <View style={[styles.formGroup, { flex: 1 }]}>
-          <Text style={styles.inputLabel}>Metros cuadrados</Text>
-          <View style={styles.inputWithIcon}>
-            <Ruler size={20} color={colors.textMuted} />
-            <TextInput
-              style={styles.inputInner}
-              placeholder="m2"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={formData.sqMeters}
-              onChangeText={(text) => setFormData({ ...formData, sqMeters: text })}
-            />
-          </View>
-        </View>
       </View>
 
       {propertyType !== 'land' && (
@@ -275,44 +239,40 @@ export default function AddPropertyScreen() {
 
   const renderStep4 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Precio</Text>
-      <Text style={styles.stepSubtitle}>Define el precio de tu propiedad</Text>
+      <Text style={styles.stepTitle}>Detalles de la propiedad</Text>
+      <Text style={styles.stepSubtitle}>Informacion sobre precio y tamano</Text>
 
-      {(listingType === 'sale' || listingType === 'both') && (
-        <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Precio de venta</Text>
-          <View style={styles.inputWithIcon}>
-            <DollarSign size={20} color={colors.textMuted} />
-            <TextInput
-              style={styles.inputInner}
-              placeholder="0.00"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={formData.price}
-              onChangeText={(text) => setFormData({ ...formData, price: text })}
-            />
-            <Text style={styles.inputSuffix}>MXN</Text>
-          </View>
+      <View style={styles.formGroup}>
+        <Text style={styles.inputLabel}>Precio de compra</Text>
+        <View style={styles.inputWithIcon}>
+          <DollarSign size={20} color={colors.textMuted} />
+          <TextInput
+            style={styles.inputInner}
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="numeric"
+            value={formData.purchasePrice}
+            onChangeText={(text) => setFormData({ ...formData, purchasePrice: text })}
+          />
+          <Text style={styles.inputSuffix}>MXN</Text>
         </View>
-      )}
+      </View>
 
-      {(listingType === 'rent' || listingType === 'both') && (
-        <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Renta mensual</Text>
-          <View style={styles.inputWithIcon}>
-            <DollarSign size={20} color={colors.textMuted} />
-            <TextInput
-              style={styles.inputInner}
-              placeholder="0.00"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={formData.monthlyRent}
-              onChangeText={(text) => setFormData({ ...formData, monthlyRent: text })}
-            />
-            <Text style={styles.inputSuffix}>MXN/mes</Text>
-          </View>
+      <View style={styles.formGroup}>
+        <Text style={styles.inputLabel}>Metros cuadrados</Text>
+        <View style={styles.inputWithIcon}>
+          <Ruler size={20} color={colors.textMuted} />
+          <TextInput
+            style={styles.inputInner}
+            placeholder="0"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="numeric"
+            value={formData.sqMeters}
+            onChangeText={(text) => setFormData({ ...formData, sqMeters: text })}
+          />
+          <Text style={styles.inputSuffix}>m²</Text>
         </View>
-      )}
+      </View>
 
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Descripcion (opcional)</Text>
@@ -326,11 +286,6 @@ export default function AddPropertyScreen() {
           onChangeText={(text) => setFormData({ ...formData, description: text })}
         />
       </View>
-
-      <TouchableOpacity style={styles.photoButton}>
-        <Camera size={24} color={colors.accent} />
-        <Text style={styles.photoButtonText}>Agregar fotos</Text>
-      </TouchableOpacity>
     </View>
   )
 
@@ -379,7 +334,7 @@ export default function AddPropertyScreen() {
             disabled={!canProceed()}
           >
             <Text style={styles.continueButtonText}>
-              {step === totalSteps ? 'Publicar propiedad' : 'Continuar'}
+              {step === totalSteps ? 'Guardar propiedad' : 'Continuar'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -569,23 +524,6 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
-  },
-  photoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.accent,
-    borderStyle: 'dashed',
-    gap: spacing.sm,
-  },
-  photoButtonText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    color: colors.accent,
   },
   footer: {
     padding: spacing.md,
