@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { colors } from '@/lib/theme'
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native'
+import { Platform } from 'react-native'
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -20,11 +21,19 @@ const navigationTheme = {
 
 export default function RootLayout(){
   useEffect(() => {
-    NavigationBar.setBackgroundColorAsync(colors.primaryDark);
-    NavigationBar.setButtonStyleAsync('light');
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-    
+    const setupNavigationBar = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          await NavigationBar.setBackgroundColorAsync(colors.primaryDark);
+          await NavigationBar.setButtonStyleAsync('light');
+          await NavigationBar.setVisibilityAsync('hidden');
+          await NavigationBar.setBehaviorAsync('overlay-swipe');
+        }
+      } catch (error) {
+        // Navigation bar setup error - non-fatal, continue
+      }
+    }
+    setupNavigationBar()
   }, []);
 
   return (
