@@ -184,7 +184,7 @@ export default function HomeScreen() {
                   <View style={styles.quickAccessContent}>
                     <Text style={styles.quickAccessTitle}>Agregar Propiedad</Text>
                     <Text style={styles.quickAccessSubtitle}>
-                      Registra una nueva propiedad
+                      Registra y monitorea tus inversiones
                     </Text>
                   </View>
                   <ChevronRight size={20} color={colors.textMuted} />
@@ -195,12 +195,12 @@ export default function HomeScreen() {
                   onPress={() => router.push('/earnings-screen')}
                 >
                   <View style={styles.quickAccessIcon}>
-                    <DollarSign size={24} color={colors.accent} />
+                    <TrendingUp size={24} color={colors.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Ganancias y Proyecciones</Text>
+                    <Text style={styles.quickAccessTitle}>Proyecciones</Text>
                     <Text style={styles.quickAccessSubtitle}>
-                      Revisa tus ingresos
+                      Ganancias potenciales de tus propiedades
                     </Text>
                   </View>
                   <ChevronRight size={20} color={colors.textMuted} />
