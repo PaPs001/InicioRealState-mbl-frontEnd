@@ -8,11 +8,16 @@ export default function Index() {
   const { isLoading, isLoggedIn } = useAuth()
   const router = useRouter()
 
+  console.log("[v0] Index rendered - isLoading:", isLoading, "isLoggedIn:", isLoggedIn)
+
   useEffect(() => {
+    console.log("[v0] Index useEffect - isLoading:", isLoading, "isLoggedIn:", isLoggedIn)
     if (!isLoading) {
       if (isLoggedIn) {
+        console.log("[v0] Navigating to (tabs)")
         router.replace('/(tabs)')
       } else {
+        console.log("[v0] Navigating to /login")
         router.replace('/login')
       }
     }
