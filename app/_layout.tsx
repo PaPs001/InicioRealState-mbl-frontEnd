@@ -22,17 +22,15 @@ const navigationTheme = {
 export default function RootLayout(){
   useEffect(() => {
     const setupNavigationBar = async () => {
-      console.log("[v0] RootLayout mounted, setting up navigation bar...")
       try {
         if (Platform.OS === 'android') {
           await NavigationBar.setBackgroundColorAsync(colors.primaryDark);
           await NavigationBar.setButtonStyleAsync('light');
           await NavigationBar.setVisibilityAsync('hidden');
           await NavigationBar.setBehaviorAsync('overlay-swipe');
-          console.log("[v0] Navigation bar setup complete")
         }
       } catch (error) {
-        console.log("[v0] Navigation bar setup error (non-fatal):", error)
+        // Navigation bar setup error - non-fatal, continue
       }
     }
     setupNavigationBar()
