@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Users,
   ClipboardCheck,
-  Wallet
+  Wallet,
+  Heart
 } from 'lucide-react-native'
 
 export default function HomeScreen() {
@@ -130,7 +131,7 @@ export default function HomeScreen() {
             
             <TouchableOpacity 
               style={styles.quickAccessCard}
-              onPress={() => router.push('/(tabs)/catalog')}
+              onPress={() => router.push('/catalog-screen')}
             >
               <View style={styles.quickAccessIcon}>
                 <Building2 size={24} color={colors.accent} />
@@ -146,7 +147,23 @@ export default function HomeScreen() {
 
             <TouchableOpacity 
               style={styles.quickAccessCard}
-              onPress={() => router.push('/(tabs)/appointments')}
+              onPress={() => router.push('/favorites-screen')}
+            >
+              <View style={styles.quickAccessIcon}>
+                <Heart size={24} color={colors.accent} />
+              </View>
+              <View style={styles.quickAccessContent}>
+                <Text style={styles.quickAccessTitle}>Mis Favoritos</Text>
+                <Text style={styles.quickAccessSubtitle}>
+                  Propiedades guardadas
+                </Text>
+              </View>
+              <ChevronRight size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAccessCard}
+              onPress={() => router.push('/appointments-screen')}
             >
               <View style={styles.quickAccessIcon}>
                 <Calendar size={24} color={colors.accent} />

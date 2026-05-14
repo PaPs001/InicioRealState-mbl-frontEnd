@@ -83,31 +83,13 @@ export default function TabsLayout() {
         tabBarIcon: ({ color, size }) => renderTabIcon(route.name, size, color),
       })}
     >
-      {/* Pantallas para clientes */}
+      {/* Pantallas para clientes - solo Inicio y Perfil en navbar */}
       {isClient && (
         <>
           <Tabs.Screen
             name="index"
             options={{
               title: 'Inicio',
-            }}
-          />
-          <Tabs.Screen
-            name="catalog"
-            options={{
-              title: 'Catalogo',
-            }}
-          />
-          <Tabs.Screen
-            name="appointments"
-            options={{
-              title: 'Citas',
-            }}
-          />
-          <Tabs.Screen
-            name="favorites"
-            options={{
-              title: 'Favoritos',
             }}
           />
           <Tabs.Screen
@@ -192,9 +174,9 @@ export default function TabsLayout() {
       )}
 
       {/* Ocultar tabs no usadas */}
-      <Tabs.Screen name="catalog" options={{ href: isClient ? undefined : null }} />
-      <Tabs.Screen name="appointments" options={{ href: isClient ? undefined : null }} />
-      <Tabs.Screen name="favorites" options={{ href: isClient ? undefined : null }} />
+      <Tabs.Screen name="catalog" options={{ href: null }} />
+      <Tabs.Screen name="appointments" options={{ href: null }} />
+      <Tabs.Screen name="favorites" options={{ href: null }} />
       <Tabs.Screen name="leads" options={{ href: isAgent || isAdmin ? undefined : null }} />
       <Tabs.Screen name="properties" options={{ href: isAgent ? undefined : null }} />
       <Tabs.Screen name="registration" options={{ href: isAgent ? undefined : null }} />
