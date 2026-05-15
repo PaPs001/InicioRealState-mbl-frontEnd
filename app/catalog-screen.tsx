@@ -43,7 +43,6 @@ export default function CatalogStandaloneScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
 
-  // Detectar si es inversionista para usar tema oscuro
   const isInvestor = currentUser?.role === 'investor'
   const theme = isInvestor ? clientThemes.investor : null
 

@@ -44,7 +44,6 @@ export default function CatalogScreen() {
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Detectar tipo de usuario para aplicar tema
   const isInvestor = currentUser?.role === 'investor'
   const isSearching = currentUser?.role === 'searching'
   const theme = isInvestor ? clientThemes.investor : isSearching ? clientThemes.searching : null
