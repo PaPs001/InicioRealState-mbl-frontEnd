@@ -1,6 +1,6 @@
 // Paleta de colores para la aplicacion
 export const colors = {
-  // Colores principales
+  // Colores principales (default)
   primary: '#1e2d32',
   primaryDark: '#0c1427',
   accent: '#cbb375',
@@ -44,6 +44,58 @@ export const colors = {
     text: '#1e2d32',
     textSecondary: '#6b7280',
   }
+}
+
+// Temas por tipo de cliente
+export const clientThemes = {
+  // Usuario buscando propiedad
+  searching: {
+    primary: '#083b52',
+    secondary: '#0c74af',
+    accent: '#0c74af',
+    background: '#f5f1ec',
+    surface: '#ffffff',
+    border: '#e5e0d8',
+    text: '#202c38',
+    textSecondary: '#5a6673',
+    textMuted: '#8a949e',
+    textLight: '#f5f1ec',
+  },
+  
+  // Usuario inversionista
+  investor: {
+    primary: '#05185d',
+    secondary: '#1f2b38',
+    accent: '#cbb375',
+    background: '#1f2b38',
+    surface: '#2a3847',
+    border: '#3a4857',
+    text: '#f5f1ec',
+    textSecondary: '#c5c9ce',
+    textMuted: '#8a949e',
+    textLight: '#f5f1ec',
+  },
+  
+  // Usuario inquilino
+  tenant: {
+    primary: '#3d5a40',
+    secondary: '#907a63',
+    accent: '#907a63',
+    background: '#f5f1ec',
+    surface: '#ffffff',
+    border: '#e5e0d8',
+    text: '#202c38',
+    textSecondary: '#5a6673',
+    textMuted: '#8a949e',
+    textLight: '#f5f1ec',
+  },
+}
+
+// Funcion para obtener el tema segun el rol del usuario
+export type ClientRole = 'searching' | 'investor' | 'tenant'
+
+export function getClientTheme(role: ClientRole) {
+  return clientThemes[role] || clientThemes.searching
 }
 
 // Espaciado

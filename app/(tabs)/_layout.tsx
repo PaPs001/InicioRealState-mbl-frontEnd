@@ -10,7 +10,7 @@ import RegistryIcon from '../assets/RegistryIconMobile.svg'
 
 import { Tabs } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors } from '@/lib/theme'
+import { colors, clientThemes, ClientRole } from '@/lib/theme'
 import { 
   Home, 
   Search, 
@@ -25,12 +25,22 @@ import {
 } from 'lucide-react-native'
 
 export default function TabsLayout() {
-  const { isAgent, isAdmin, isClient } = useAuth()
+  const { isAgent, isAdmin, isClient, currentUser } = useAuth()
+  
+  // Obtener tema del cliente basado en su rol
+  const getClientRole = (): ClientRole => {
+    if (currentUser?.role === 'investor') return 'investor'
+    if (currentUser?.role === 'tenant') return 'tenant'
+    return 'searching'
+  }
+  const clientTheme = isClient ? clientThemes[getClientRole()] : null
   
   // Colores basados en el tipo de usuario
-  const tabBarBg = isClient ? colors.surface : colors.primaryDark
-  const tabBarActive = colors.accent
-  const tabBarInactive = isClient ? colors.textMuted : colors.textMuted
+  const tabBarBg = isClient && clientTheme ? clientTheme.surface : colors.primaryDark
+  const tabBarActive = isClient && clientTheme ? clientTheme.primary : colors.accent
+  const tabBarInactive = isClient && clientTheme ? clientTheme.textMuted : colors.textMuted
+  const headerBg = isClient && clientTheme ? clientTheme.primary : colors.primaryDark
+  const tabBarBorder = isClient && clientTheme ? clientTheme.border : colors.borderDark
 
   const renderTabIcon = (routeName: string, size: number, color: string) => {
     switch (routeName) {
@@ -68,7 +78,7 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: tabBarInactive,
         tabBarStyle: {
           backgroundColor: tabBarBg,
-          borderTopColor: isClient ? colors.border : colors.borderDark,
+          borderTopColor: tabBarBorder,
           paddingBottom: 8,
           paddingTop: 8,
           height: 64,
@@ -78,7 +88,7 @@ export default function TabsLayout() {
           fontWeight: '500',
         },
         headerStyle: {
-          backgroundColor: isClient ? colors.primary : colors.primaryDark,
+          backgroundColor: headerBg,
         },
         headerTintColor: colors.textInverse,
         headerTitle: () => <LogoGris width={120} height={40} />,
