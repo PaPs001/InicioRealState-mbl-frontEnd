@@ -711,18 +711,18 @@ const styles = StyleSheet.create({
     borderTopColor: investorColors.border,
   },
   continueButton: {
-    backgroundColor: investorColors.accent,s.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
   },
   continueButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
   },
   continueButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
   emptyState: {
     flex: 1,
@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   successContainer: {
     flex: 1,
@@ -747,17 +747,17 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: typography.h2.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
     textAlign: 'center',
   },
   successText: {
     fontSize: typography.body.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   successButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
@@ -766,6 +766,6 @@ const styles = StyleSheet.create({
   successButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
 })
