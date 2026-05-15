@@ -28,6 +28,7 @@ import {
   Wifi,
   Shield,
   AlertCircle,
+  Megaphone,
 } from 'lucide-react-native'
 import { useMemo } from 'react'
 import { Linking } from 'react-native'
@@ -397,6 +398,22 @@ export default function HomeScreen() {
                     <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
                     <Text style={dynamicStyles.quickAccessSubtitle}>
                       {userAppointments.length} citas programadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/campaigns-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Megaphone size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Campanas</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      Publicidad de tus propiedades
                     </Text>
                   </View>
                   <ChevronRight size={20} color={theme.textMuted} />
