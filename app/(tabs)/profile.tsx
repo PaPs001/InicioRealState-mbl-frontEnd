@@ -1,10 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import RegisterTransition from '@/app/components/Animations/register-transition'
 import { 
   User, 
   Mail, 
@@ -27,7 +25,6 @@ import {
 export default function ProfileScreen() {
   const { currentUser, logout, isClient, isAgent, isAdmin } = useAuth()
   const router = useRouter()
-  const [showLogoutTransition, setShowLogoutTransition] = useState(false)
 
   // Determinar si es inversionista para usar tema oscuro
   const isInvestor = currentUser?.role === 'investor'
@@ -69,8 +66,8 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: () => {
             if (isInvestor) {
-              // Mostrar pantalla de transicion para inversionista
-              setShowLogoutTransition(true)
+              // Navegar a pantalla de transicion fuera de tabs
+              router.replace('/logout-transition')
             } else {
               // Logout directo para otros usuarios
               logout()
@@ -82,33 +79,10 @@ export default function ProfileScreen() {
     )
   }
 
-  const handleLogoutComplete = async () => {
-    await logout()
-    router.replace('/login')
-  }
-
-  // Mostrar pantalla de transicion si esta cerrando sesion
-  if (showLogoutTransition) {
-    return (
-      <View style={styles.transitionOverlay}>
-        <RegisterTransition 
-          durationMs={1500} 
-          onComplete={handleLogoutComplete} 
-        />
-      </View>
-    )
-  }
-
   // Si no hay usuario, redirigir al login
   if (!currentUser) {
-    return (
-      <View style={styles.transitionOverlay}>
-        <RegisterTransition 
-          durationMs={500} 
-          onComplete={() => router.replace('/login')} 
-        />
-      </View>
-    )
+    router.replace('/login')
+    return null
   }
 
   const getRoleLabel = () => {
@@ -503,13 +477,5 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: typography.caption.fontSize,
-  },
-  transitionOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: -100,
-    zIndex: 9999,
   },
 })

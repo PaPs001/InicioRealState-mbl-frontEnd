@@ -103,6 +103,12 @@ function RootNavigator() {
           />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen 
+            name="logout-transition" 
+            options={{ 
+              contentStyle: { backgroundColor: clientThemes.investor.background },
+            }} 
+          />
+          <Stack.Screen 
             name="property/[id]" 
             options={{ 
               headerShown: true,
