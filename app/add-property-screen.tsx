@@ -23,6 +23,19 @@ import {
   Bed,
   Bath,
   Check,
+  Camera,
+  Image as ImageIcon,
+  Wifi,
+  Car,
+  Trees,
+  Dumbbell,
+  Shield,
+  Wind,
+  Waves,
+  Sparkles,
+  Store,
+  TrendingUp,
+  Tag,
 } from 'lucide-react-native'
 
 // Colores del inversionista (negro y dorado)
@@ -31,11 +44,26 @@ const investorColors = clientThemes.investor
 type PropertyType = 'house' | 'apartment' | 'land'
 type AcquisitionType = 'inicio' | 'external'
 
+const AMENITIES = [
+  { id: 'wifi', label: 'Internet/Wifi', icon: Wifi },
+  { id: 'parking', label: 'Estacionamiento', icon: Car },
+  { id: 'garden', label: 'Jardin', icon: Trees },
+  { id: 'gym', label: 'Gimnasio', icon: Dumbbell },
+  { id: 'security', label: 'Seguridad 24/7', icon: Shield },
+  { id: 'ac', label: 'Aire acondicionado', icon: Wind },
+  { id: 'pool', label: 'Alberca', icon: Waves },
+  { id: 'furnished', label: 'Amueblado', icon: Sparkles },
+  { id: 'store', label: 'Cuarto de servicio', icon: Store },
+]
+
 export default function AddPropertyScreen() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null)
   const [acquisitionType, setAcquisitionType] = useState<AcquisitionType | null>(null)
+  const [externalAgency, setExternalAgency] = useState('')
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [photos, setPhotos] = useState<string[]>([])
   const [formData, setFormData] = useState({
     title: '',
     address: '',
@@ -47,7 +75,7 @@ export default function AddPropertyScreen() {
     description: '',
   })
 
-  const totalSteps = 4
+  const totalSteps = 7
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -66,6 +94,20 @@ export default function AddPropertyScreen() {
     }
   }
 
+  const toggleAmenity = (amenityId: string) => {
+    setSelectedAmenities(prev => 
+      prev.includes(amenityId) 
+        ? prev.filter(id => id !== amenityId)
+        : [...prev, amenityId]
+    )
+  }
+
+  const handleAddPhoto = () => {
+    // Simulacion - en produccion usaria expo-image-picker
+    const mockPhoto = `photo_${photos.length + 1}`
+    setPhotos([...photos, mockPhoto])
+  }
+
   const canProceed = () => {
     switch (step) {
       case 1:
@@ -76,6 +118,12 @@ export default function AddPropertyScreen() {
         return formData.title && formData.address && formData.city
       case 4:
         return formData.purchasePrice && formData.sqMeters
+      case 5:
+        return true // Amenidades son opcionales
+      case 6:
+        return true // Fotos son opcionales
+      case 7:
+        return true // Pantalla final informativa
       default:
         return true
     }
@@ -128,7 +176,10 @@ export default function AddPropertyScreen() {
       <View style={styles.listingOptions}>
         <TouchableOpacity 
           style={[styles.listingOption, acquisitionType === 'inicio' && styles.listingOptionSelected]}
-          onPress={() => setAcquisitionType('inicio')}
+          onPress={() => {
+            setAcquisitionType('inicio')
+            setExternalAgency('')
+          }}
         >
           {acquisitionType === 'inicio' && (
             <View style={styles.checkIcon}>
@@ -160,6 +211,23 @@ export default function AddPropertyScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Campo opcional para inmobiliaria externa */}
+      {acquisitionType === 'external' && (
+        <View style={styles.externalAgencyContainer}>
+          <View style={styles.formGroup}>
+            <Text style={styles.inputLabel}>Inmobiliaria (opcional)</Text>
+            <Text style={styles.inputHint}>Si compraste con alguna inmobiliaria, indicanos cual</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ej: Century 21, RE/MAX, etc."
+              placeholderTextColor={investorColors.textMuted}
+              value={externalAgency}
+              onChangeText={setExternalAgency}
+            />
+          </View>
+        </View>
+      )}
     </View>
   )
 
@@ -292,6 +360,115 @@ export default function AddPropertyScreen() {
     </View>
   )
 
+  const renderStep5 = () => (
+    <View style={styles.stepContent}>
+      <Text style={styles.stepTitle}>Amenidades</Text>
+      <Text style={styles.stepSubtitle}>Selecciona las amenidades que tiene tu propiedad (opcional)</Text>
+
+      <View style={styles.amenitiesGrid}>
+        {AMENITIES.map((amenity) => {
+          const Icon = amenity.icon
+          const isSelected = selectedAmenities.includes(amenity.id)
+          return (
+            <TouchableOpacity
+              key={amenity.id}
+              style={[styles.amenityCard, isSelected && styles.amenityCardSelected]}
+              onPress={() => toggleAmenity(amenity.id)}
+            >
+              <Icon size={24} color={isSelected ? investorColors.accent : investorColors.textMuted} />
+              <Text style={[styles.amenityLabel, isSelected && styles.amenityLabelSelected]}>
+                {amenity.label}
+              </Text>
+              {isSelected && (
+                <View style={styles.amenityCheck}>
+                  <Check size={12} color={investorColors.primary} />
+                </View>
+              )}
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
+      <Text style={styles.amenitiesHint}>
+        Puedes agregar o modificar las amenidades despues
+      </Text>
+    </View>
+  )
+
+  const renderStep6 = () => (
+    <View style={styles.stepContent}>
+      <Text style={styles.stepTitle}>Fotos de tu propiedad</Text>
+      <Text style={styles.stepSubtitle}>Agrega fotos para tener un mejor registro (opcional)</Text>
+
+      <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto}>
+        <Camera size={40} color={investorColors.accent} />
+        <Text style={styles.photoButtonText}>Agregar fotos</Text>
+        <Text style={styles.photoButtonSubtext}>Toca para seleccionar imagenes</Text>
+      </TouchableOpacity>
+
+      {photos.length > 0 && (
+        <View style={styles.photosGrid}>
+          {photos.map((photo, index) => (
+            <View key={index} style={styles.photoPreview}>
+              <ImageIcon size={24} color={investorColors.accent} />
+              <Text style={styles.photoPreviewText}>Foto {index + 1}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.infoBox}>
+        <ImageIcon size={20} color={investorColors.accent} />
+        <Text style={styles.infoBoxText}>
+          Las fotos te ayudan a mantener un registro visual de tu propiedad. Puedes agregarlas ahora o despues desde el detalle de la propiedad.
+        </Text>
+      </View>
+    </View>
+  )
+
+  const renderStep7 = () => (
+    <View style={styles.stepContent}>
+      <View style={styles.finalStepContainer}>
+        <View style={styles.finalIconContainer}>
+          <Check size={48} color={investorColors.accent} />
+        </View>
+        
+        <Text style={styles.finalTitle}>Todo listo!</Text>
+        <Text style={styles.finalSubtitle}>
+          Tu propiedad esta lista para ser guardada
+        </Text>
+
+        <View style={styles.finalInfoCard}>
+          <View style={styles.finalInfoRow}>
+            <TrendingUp size={24} color={investorColors.accent} />
+            <View style={styles.finalInfoContent}>
+              <Text style={styles.finalInfoTitle}>Monitorea tu inversion</Text>
+              <Text style={styles.finalInfoDesc}>
+                Podras ver el valor actual, ganancias y proyecciones de tu propiedad
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.finalDivider} />
+
+          <View style={styles.finalInfoRow}>
+            <Tag size={24} color={investorColors.accent} />
+            <View style={styles.finalInfoContent}>
+              <Text style={styles.finalInfoTitle}>Renta o vende cuando quieras</Text>
+              <Text style={styles.finalInfoDesc}>
+                En cualquier momento puedes poner tu propiedad en renta o en venta con solo unos toques
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.finalHint}>
+          Nuestro equipo esta disponible para ayudarte si decides publicar tu propiedad
+        </Text>
+      </View>
+    </View>
+  )
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
@@ -327,6 +504,9 @@ export default function AddPropertyScreen() {
           {step === 2 && renderStep2()}
           {step === 3 && renderStep3()}
           {step === 4 && renderStep4()}
+          {step === 5 && renderStep5()}
+          {step === 6 && renderStep6()}
+          {step === 7 && renderStep7()}
         </ScrollView>
 
         {/* Footer */}
@@ -484,6 +664,12 @@ const styles = StyleSheet.create({
     color: investorColors.textSecondary,
     marginTop: spacing.xs,
   },
+  externalAgencyContainer: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: investorColors.border,
+  },
   formGroup: {
     gap: spacing.xs,
   },
@@ -495,6 +681,11 @@ const styles = StyleSheet.create({
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '500',
     color: investorColors.text,
+  },
+  inputHint: {
+    fontSize: typography.caption.fontSize,
+    color: investorColors.textMuted,
+    marginBottom: spacing.xs,
   },
   input: {
     backgroundColor: investorColors.surface,
@@ -527,6 +718,171 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  // Amenidades
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  amenityCard: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: investorColors.border,
+    position: 'relative',
+  },
+  amenityCardSelected: {
+    borderColor: investorColors.accent,
+    backgroundColor: investorColors.accent + '15',
+  },
+  amenityLabel: {
+    flex: 1,
+    fontSize: typography.bodySmall.fontSize,
+    color: investorColors.textSecondary,
+  },
+  amenityLabelSelected: {
+    color: investorColors.text,
+  },
+  amenityCheck: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+    width: 18,
+    height: 18,
+    borderRadius: borderRadius.full,
+    backgroundColor: investorColors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  amenitiesHint: {
+    fontSize: typography.caption.fontSize,
+    color: investorColors.textMuted,
+    textAlign: 'center',
+  },
+  // Fotos
+  photoButton: {
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: investorColors.accent,
+    borderStyle: 'dashed',
+    gap: spacing.sm,
+  },
+  photoButtonText: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: investorColors.accent,
+  },
+  photoButtonSubtext: {
+    fontSize: typography.caption.fontSize,
+    color: investorColors.textMuted,
+  },
+  photosGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  photoPreview: {
+    width: 80,
+    height: 80,
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: investorColors.border,
+  },
+  photoPreviewText: {
+    fontSize: typography.caption.fontSize,
+    color: investorColors.textMuted,
+    marginTop: spacing.xs,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: investorColors.accent + '15',
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    gap: spacing.md,
+    alignItems: 'flex-start',
+  },
+  infoBoxText: {
+    flex: 1,
+    fontSize: typography.bodySmall.fontSize,
+    color: investorColors.textSecondary,
+    lineHeight: 20,
+  },
+  // Paso final
+  finalStepContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+  },
+  finalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: borderRadius.full,
+    backgroundColor: investorColors.accent + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  finalTitle: {
+    fontSize: typography.h2.fontSize,
+    fontWeight: '700',
+    color: investorColors.text,
+    marginBottom: spacing.xs,
+  },
+  finalSubtitle: {
+    fontSize: typography.body.fontSize,
+    color: investorColors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  finalInfoCard: {
+    width: '100%',
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: investorColors.border,
+  },
+  finalInfoRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'flex-start',
+  },
+  finalInfoContent: {
+    flex: 1,
+  },
+  finalInfoTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: investorColors.text,
+  },
+  finalInfoDesc: {
+    fontSize: typography.bodySmall.fontSize,
+    color: investorColors.textSecondary,
+    marginTop: spacing.xs,
+    lineHeight: 20,
+  },
+  finalDivider: {
+    height: 1,
+    backgroundColor: investorColors.border,
+    marginVertical: spacing.md,
+  },
+  finalHint: {
+    fontSize: typography.caption.fontSize,
+    color: investorColors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   footer: {
     padding: spacing.md,
