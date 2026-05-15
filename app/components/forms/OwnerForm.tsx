@@ -453,20 +453,21 @@ export default function OwnerForm() {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      {/* Logo de fondo centrado y transparente */}
+    <View style={styles.container}>
+      {/* Logo de fondo centrado y transparente - fuera del KeyboardAvoidingView para que no se mueva */}
       <View style={styles.backgroundLogoContainer}>
         <LogoGris width={280} height={280} style={styles.backgroundLogo} />
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Header sin logo */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -508,7 +509,8 @@ export default function OwnerForm() {
           </View>
         )}
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -516,6 +518,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: investorColors.background,
+  },
+  keyboardView: {
+    flex: 1,
   },
   backgroundLogoContainer: {
     position: 'absolute',
