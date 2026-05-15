@@ -34,6 +34,7 @@ import {
   ArrowLeft,
   Clock,
   ChevronRight,
+  ChevronLeft,
   DollarSign,
   BarChart3,
 } from 'lucide-react-native'
@@ -49,6 +50,8 @@ export default function PropertyDetailScreen() {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [notes, setNotes] = useState('')
+  const [calendarView, setCalendarView] = useState<'month' | 'week' | 'day'>('week')
+  const [currentMonth, setCurrentMonth] = useState(new Date())
 
   const property = getPropertyById(id || '')
   const favorite = property ? isFavorite(property.id) : false
@@ -135,22 +138,79 @@ export default function PropertyDetailScreen() {
 
   const timeSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00']
   
-  // Generar proximos 7 dias para el calendario
-  const getNextDays = () => {
+  // Funciones para el calendario
+  const getMonthDays = () => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const days = []
+    
+    // Dias del mes anterior para completar la semana
+    const firstDayWeekday = firstDay.getDay()
+    for (let i = firstDayWeekday - 1; i >= 0; i--) {
+      const date = new Date(year, month, -i)
+      days.push({ date, isCurrentMonth: false })
+    }
+    
+    // Dias del mes actual
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const date = new Date(year, month, i)
+      days.push({ date, isCurrentMonth: true })
+    }
+    
+    // Dias del siguiente mes para completar
+    const remaining = 42 - days.length
+    for (let i = 1; i <= remaining; i++) {
+      const date = new Date(year, month + 1, i)
+      days.push({ date, isCurrentMonth: false })
+    }
+    
+    return days
+  }
+
+  const getWeekDays = () => {
     const days = []
     const today = new Date()
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      const dateStr = date.toISOString().split('T')[0]
-      const dayName = date.toLocaleDateString('es-MX', { weekday: 'short' })
-      const dayNum = date.getDate()
-      days.push({ dateStr, dayName, dayNum })
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek)
+      date.setDate(startOfWeek.getDate() + i)
+      days.push(date)
     }
     return days
   }
 
-  const nextDays = getNextDays()
+  const formatDateStr = (date: Date) => date.toISOString().split('T')[0]
+  
+  const isToday = (date: Date) => {
+    const today = new Date()
+    return date.toDateString() === today.toDateString()
+  }
+
+  const isPast = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return date < today
+  }
+
+  const hasAppointments = (date: Date) => {
+    const dateStr = formatDateStr(date)
+    return bookedAppointments.some(apt => apt.date === dateStr)
+  }
+
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  const dayNames = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab']
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+  }
 
   // Tab de Informacion General
   const renderInfoTab = () => (
@@ -352,107 +412,251 @@ export default function PropertyDetailScreen() {
   }
 
   // Tab de Calendario
-  const renderCalendarTab = () => (
-    <View style={styles.tabContent}>
-      {/* Seleccion de fecha */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Selecciona un dia</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daysScroll}>
-          {nextDays.map((day) => (
-            <TouchableOpacity
-              key={day.dateStr}
+  const renderCalendarTab = () => {
+    const monthDays = getMonthDays()
+    const weekDays = getWeekDays()
+
+    return (
+      <View style={styles.tabContent}>
+        {/* Filtros de vista */}
+        <View style={styles.section}>
+          <View style={[styles.viewFilters, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity 
               style={[
-                styles.dayCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                selectedDate === day.dateStr && { backgroundColor: theme.accent, borderColor: theme.accent }
+                styles.viewFilterBtn,
+                calendarView === 'month' && { backgroundColor: theme.accent }
               ]}
-              onPress={() => setSelectedDate(day.dateStr)}
+              onPress={() => setCalendarView('month')}
             >
               <Text style={[
-                styles.dayName,
+                styles.viewFilterText,
                 { color: theme.textMuted },
-                selectedDate === day.dateStr && { color: theme.textLight }
-              ]}>
-                {day.dayName}
-              </Text>
-              <Text style={[
-                styles.dayNum,
-                { color: theme.text },
-                selectedDate === day.dateStr && { color: theme.textLight }
-              ]}>
-                {day.dayNum}
-              </Text>
+                calendarView === 'month' && { color: theme.textLight }
+              ]}>Mes</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Horarios disponibles */}
-      {selectedDate && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Horarios disponibles</Text>
-          <View style={styles.timeSlotsGrid}>
-            {timeSlots.map(time => {
-              const isBooked = isTimeBooked(selectedDate, time)
-              return (
-                <TouchableOpacity
-                  key={time}
-                  style={[
-                    styles.timeSlotCard,
-                    { backgroundColor: theme.surface, borderColor: theme.border },
-                    selectedTime === time && { backgroundColor: theme.accent, borderColor: theme.accent },
-                    isBooked && { backgroundColor: theme.border, borderColor: theme.border }
-                  ]}
-                  onPress={() => !isBooked && setSelectedTime(time)}
-                  disabled={isBooked}
-                >
-                  <Clock size={16} color={isBooked ? theme.textMuted : (selectedTime === time ? theme.textLight : theme.accent)} />
-                  <Text style={[
-                    styles.timeSlotText,
-                    { color: theme.text },
-                    selectedTime === time && { color: theme.textLight },
-                    isBooked && { color: theme.textMuted, textDecorationLine: 'line-through' }
-                  ]}>
-                    {time}
-                  </Text>
-                  {isBooked && (
-                    <Text style={[styles.bookedText, { color: theme.textMuted }]}>Ocupado</Text>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
+            <TouchableOpacity 
+              style={[
+                styles.viewFilterBtn,
+                calendarView === 'week' && { backgroundColor: theme.accent }
+              ]}
+              onPress={() => setCalendarView('week')}
+            >
+              <Text style={[
+                styles.viewFilterText,
+                { color: theme.textMuted },
+                calendarView === 'week' && { color: theme.textLight }
+              ]}>Semana</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[
+                styles.viewFilterBtn,
+                calendarView === 'day' && { backgroundColor: theme.accent }
+              ]}
+              onPress={() => setCalendarView('day')}
+            >
+              <Text style={[
+                styles.viewFilterText,
+                { color: theme.textMuted },
+                calendarView === 'day' && { color: theme.textLight }
+              ]}>Dia</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      )}
 
-      {/* Notas */}
-      {selectedDate && selectedTime && (
+        {/* Vista de Mes */}
+        {calendarView === 'month' && (
+          <View style={styles.section}>
+            <View style={styles.monthHeader}>
+              <TouchableOpacity onPress={prevMonth} style={[styles.monthNavBtn, { backgroundColor: theme.surface }]}>
+                <ChevronLeft size={20} color={theme.text} />
+              </TouchableOpacity>
+              <Text style={[styles.monthTitle, { color: theme.text }]}>
+                {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+              </Text>
+              <TouchableOpacity onPress={nextMonth} style={[styles.monthNavBtn, { backgroundColor: theme.surface }]}>
+                <ChevronRight size={20} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Dias de la semana */}
+            <View style={styles.weekDaysHeader}>
+              {dayNames.map(day => (
+                <Text key={day} style={[styles.weekDayLabel, { color: theme.textMuted }]}>{day}</Text>
+              ))}
+            </View>
+
+            {/* Grid de dias */}
+            <View style={styles.monthGrid}>
+              {monthDays.map((dayObj, index) => {
+                const dateStr = formatDateStr(dayObj.date)
+                const isSelected = selectedDate === dateStr
+                const today = isToday(dayObj.date)
+                const past = isPast(dayObj.date)
+                const hasApts = hasAppointments(dayObj.date)
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.monthDayCell,
+                      { backgroundColor: theme.background },
+                      !dayObj.isCurrentMonth && { opacity: 0.4 },
+                      isSelected && { backgroundColor: theme.accent },
+                      today && !isSelected && { borderColor: theme.accent, borderWidth: 2 },
+                    ]}
+                    onPress={() => !past && setSelectedDate(dateStr)}
+                    disabled={past}
+                  >
+                    <Text style={[
+                      styles.monthDayText,
+                      { color: theme.text },
+                      past && { color: theme.textMuted },
+                      isSelected && { color: theme.textLight }
+                    ]}>
+                      {dayObj.date.getDate()}
+                    </Text>
+                    {hasApts && !isSelected && (
+                      <View style={[styles.aptDot, { backgroundColor: theme.accent }]} />
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Vista de Semana */}
+        {calendarView === 'week' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Esta semana</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daysScroll}>
+              {weekDays.map((date) => {
+                const dateStr = formatDateStr(date)
+                const isSelected = selectedDate === dateStr
+                const today = isToday(date)
+                const past = isPast(date)
+                const hasApts = hasAppointments(date)
+
+                return (
+                  <TouchableOpacity
+                    key={dateStr}
+                    style={[
+                      styles.dayCard,
+                      { backgroundColor: theme.surface, borderColor: theme.border },
+                      isSelected && { backgroundColor: theme.accent, borderColor: theme.accent },
+                      today && !isSelected && { borderColor: theme.accent, borderWidth: 2 },
+                      past && { opacity: 0.5 }
+                    ]}
+                    onPress={() => !past && setSelectedDate(dateStr)}
+                    disabled={past}
+                  >
+                    <Text style={[
+                      styles.dayName,
+                      { color: theme.textMuted },
+                      isSelected && { color: theme.textLight }
+                    ]}>
+                      {dayNames[date.getDay()]}
+                    </Text>
+                    <Text style={[
+                      styles.dayNum,
+                      { color: theme.text },
+                      isSelected && { color: theme.textLight }
+                    ]}>
+                      {date.getDate()}
+                    </Text>
+                    {hasApts && !isSelected && (
+                      <View style={[styles.aptDotSmall, { backgroundColor: theme.accent }]} />
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Vista de Dia - Solo muestra horarios */}
+        {calendarView === 'day' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              {selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Selecciona una fecha primero'}
+            </Text>
+          </View>
+        )}
+
+        {/* Horarios disponibles */}
+        {selectedDate && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Horarios disponibles</Text>
+            <View style={styles.timeSlotsGrid}>
+              {timeSlots.map(time => {
+                const isBooked = isTimeBooked(selectedDate, time)
+                return (
+                  <TouchableOpacity
+                    key={time}
+                    style={[
+                      styles.timeSlotCard,
+                      { backgroundColor: theme.surface, borderColor: theme.border },
+                      selectedTime === time && { backgroundColor: theme.accent, borderColor: theme.accent },
+                      isBooked && { backgroundColor: theme.border, borderColor: theme.border }
+                    ]}
+                    onPress={() => !isBooked && setSelectedTime(time)}
+                    disabled={isBooked}
+                  >
+                    <Clock size={16} color={isBooked ? theme.textMuted : (selectedTime === time ? theme.textLight : theme.accent)} />
+                    <Text style={[
+                      styles.timeSlotText,
+                      { color: theme.text },
+                      selectedTime === time && { color: theme.textLight },
+                      isBooked && { color: theme.textMuted, textDecorationLine: 'line-through' }
+                    ]}>
+                      {time}
+                    </Text>
+                    {isBooked && (
+                      <Text style={[styles.bookedText, { color: theme.textMuted }]}>Ocupado</Text>
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Notas */}
+        {selectedDate && selectedTime && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Notas adicionales</Text>
+            <TextInput
+              style={[styles.notesInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+              placeholder="Escribe algun comentario o pregunta..."
+              placeholderTextColor={theme.textMuted}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+        )}
+
+        {/* Leyenda */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Notas adicionales</Text>
-          <TextInput
-            style={[styles.notesInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
-            placeholder="Escribe algun comentario o pregunta..."
-            placeholderTextColor={theme.textMuted}
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-      )}
-
-      {/* Citas ya agendadas */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Citas programadas</Text>
-        <View style={[styles.bookedInfo, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Calendar size={20} color={theme.accent} />
-          <Text style={[styles.bookedInfoText, { color: theme.textSecondary }]}>
-            Los horarios marcados como ocupados ya tienen cita agendada
-          </Text>
+          <View style={[styles.legendCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: theme.accent }]} />
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>Tiene citas</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDotOutline, { borderColor: theme.accent }]} />
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>Hoy</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: theme.textMuted }]} />
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>No disponible</Text>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
-  )
+    )
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -863,6 +1067,102 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   // Calendar tab styles
+  viewFilters: {
+    flexDirection: 'row',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: 4,
+  },
+  viewFilterBtn: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  viewFilterText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  monthNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  monthTitle: {
+    fontSize: typography.h4.fontSize,
+    fontWeight: '600',
+  },
+  weekDaysHeader: {
+    flexDirection: 'row',
+    marginBottom: spacing.sm,
+  },
+  weekDayLabel: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+  monthGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  monthDayCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.sm,
+  },
+  monthDayText: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+  },
+  aptDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 2,
+  },
+  aptDotSmall: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: spacing.xs,
+  },
+  legendCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendDotOutline: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 2,
+  },
+  legendText: {
+    fontSize: typography.caption.fontSize,
+  },
   daysScroll: {
     marginHorizontal: -spacing.md,
     paddingHorizontal: spacing.md,
