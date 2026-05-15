@@ -2,13 +2,17 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { formatDate } from '@/lib/mock-data'
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle, ArrowLeft } from 'lucide-react-native'
 
 export default function AppointmentsStandaloneScreen() {
-  const { userAppointments, getPropertyById } = useAuth()
+  const { userAppointments, getPropertyById, currentUser } = useAuth()
   const router = useRouter()
+  
+  // Detectar si es inversionista para usar tema oscuro
+  const isInvestor = currentUser?.role === 'investor'
+  const theme = isInvestor ? clientThemes.investor : null
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -31,25 +35,35 @@ export default function AppointmentsStandaloneScreen() {
     const StatusIcon = statusInfo.Icon
 
     return (
-      <View style={styles.appointmentCard}>
+      <View style={[
+        styles.appointmentCard,
+        isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border }
+      ]}>
         <View style={styles.dateContainer}>
-          <Calendar size={20} color={colors.accent} />
-          <Text style={styles.dateText}>{formatDate(item.date)}</Text>
-          <View style={styles.timeContainer}>
-            <Clock size={14} color={colors.textMuted} />
-            <Text style={styles.timeText}>{item.time}</Text>
+          <Calendar size={20} color={isInvestor ? theme!.accent : colors.accent} />
+          <Text style={[styles.dateText, isInvestor && { color: theme!.text }]}>
+            {formatDate(item.date)}
+          </Text>
+          <View style={[
+            styles.timeContainer,
+            isInvestor && { backgroundColor: theme!.background }
+          ]}>
+            <Clock size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+            <Text style={[styles.timeText, isInvestor && { color: theme!.textSecondary }]}>
+              {item.time}
+            </Text>
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, isInvestor && { backgroundColor: theme!.border }]} />
 
         <View style={styles.propertyInfo}>
-          <Text style={styles.propertyTitle} numberOfLines={1}>
+          <Text style={[styles.propertyTitle, isInvestor && { color: theme!.text }]} numberOfLines={1}>
             {property?.title || 'Propiedad'}
           </Text>
           <View style={styles.addressRow}>
-            <MapPin size={14} color={colors.textMuted} />
-            <Text style={styles.addressText} numberOfLines={1}>
+            <MapPin size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+            <Text style={[styles.addressText, isInvestor && { color: theme!.textSecondary }]} numberOfLines={1}>
               {property?.address || 'Direccion no disponible'}
             </Text>
           </View>
@@ -66,16 +80,22 @@ export default function AppointmentsStandaloneScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView 
+      style={[styles.container, isInvestor && { backgroundColor: theme!.background }]} 
+      edges={['top', 'bottom']}
+    >
       {/* Header personalizado */}
-      <View style={styles.header}>
+      <View style={[
+        styles.header,
+        isInvestor && { borderBottomColor: theme!.border }
+      ]}>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={[styles.backButton, isInvestor && { backgroundColor: theme!.surface }]}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={isInvestor ? theme!.text : colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mis Citas</Text>
+        <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>Mis Citas</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -87,16 +107,20 @@ export default function AppointmentsStandaloneScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Calendar size={48} color={colors.textMuted} />
-            <Text style={styles.emptyStateTitle}>Sin citas programadas</Text>
-            <Text style={styles.emptyStateText}>
+            <Calendar size={48} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+            <Text style={[styles.emptyStateTitle, isInvestor && { color: theme!.text }]}>
+              Sin citas programadas
+            </Text>
+            <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textSecondary }]}>
               Explora el catalogo y agenda una visita a las propiedades que te interesen
             </Text>
             <TouchableOpacity 
-              style={styles.exploreButton}
+              style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}
               onPress={() => router.push('/catalog-screen')}
             >
-              <Text style={styles.exploreButtonText}>Explorar Catalogo</Text>
+              <Text style={[styles.exploreButtonText, isInvestor && { color: theme!.primary }]}>
+                Explorar Catalogo
+              </Text>
             </TouchableOpacity>
           </View>
         }
