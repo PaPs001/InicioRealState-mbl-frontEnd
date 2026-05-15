@@ -13,6 +13,13 @@ import {
   HelpCircle, 
   LogOut,
   ChevronRight,
+  MapPin,
+  Calendar,
+  Shield,
+  CreditCard,
+  Building2,
+  Settings,
+  Edit3,
 } from 'lucide-react-native'
 
 export default function ProfileScreen() {
@@ -77,15 +84,23 @@ export default function ProfileScreen() {
     }
   }
 
+  // Fecha de registro simulada
+  const memberSince = 'Enero 2024'
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Avatar y nombre */}
         <View style={styles.header}>
-          <View style={[styles.avatar, { backgroundColor: theme.accent }]}>
-            <Text style={[styles.avatarText, { color: theme.background }]}>
-              {currentUser?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </Text>
+          <View style={[styles.avatarContainer]}>
+            <View style={[styles.avatar, { backgroundColor: theme.accent }]}>
+              <Text style={[styles.avatarText, { color: isInvestor ? theme.background : theme.background }]}>
+                {currentUser?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </Text>
+            </View>
+            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Edit3 size={14} color={theme.accent} />
+            </TouchableOpacity>
           </View>
           <Text style={[styles.userName, { color: theme.text }]}>{currentUser?.name}</Text>
           <View style={[styles.roleBadge, { backgroundColor: theme.accent + '20' }]}>
@@ -95,64 +110,165 @@ export default function ProfileScreen() {
 
         {/* Informacion de contacto */}
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Informacion de Contacto</Text>
-          
-          <View style={styles.infoRow}>
-            <Mail size={20} color={theme.accent} />
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{currentUser?.email}</Text>
+          <View style={styles.cardHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Informacion Personal</Text>
+            <TouchableOpacity>
+              <Text style={[styles.editLink, { color: theme.accent }]}>Editar</Text>
+            </TouchableOpacity>
           </View>
           
           <View style={styles.infoRow}>
-            <Phone size={20} color={theme.accent} />
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{currentUser?.phone}</Text>
+            <View style={[styles.infoIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Mail size={18} color={theme.accent} />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Correo electronico</Text>
+              <Text style={[styles.infoText, { color: theme.text }]}>{currentUser?.email}</Text>
+            </View>
+          </View>
+          
+          <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
+          
+          <View style={styles.infoRow}>
+            <View style={[styles.infoIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Phone size={18} color={theme.accent} />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Telefono</Text>
+              <Text style={[styles.infoText, { color: theme.text }]}>{currentUser?.phone}</Text>
+            </View>
+          </View>
+
+          <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
+          
+          <View style={styles.infoRow}>
+            <View style={[styles.infoIcon, { backgroundColor: theme.accent + '15' }]}>
+              <MapPin size={18} color={theme.accent} />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Ubicacion</Text>
+              <Text style={[styles.infoText, { color: theme.text }]}>Monterrey, NL</Text>
+            </View>
+          </View>
+
+          <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
+          
+          <View style={styles.infoRow}>
+            <View style={[styles.infoIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Calendar size={18} color={theme.accent} />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Miembro desde</Text>
+              <Text style={[styles.infoText, { color: theme.text }]}>{memberSince}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Codigo de referido (solo clientes) */}
-        {isClient && currentUser?.referralCode && (
+        {/* Stats del inversionista */}
+        {isInvestor && (
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
-            <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
-              <Gift size={24} color={theme.accent} />
-              <View style={styles.referralContent}>
-                <Text style={[styles.referralCode, { color: theme.accent }]}>
-                  {currentUser.referralCode}
-                </Text>
-                <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
-                  Comparte tu codigo y gana recompensas
-                </Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Resumen de Portafolio</Text>
+            
+            <View style={styles.statsGrid}>
+              <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                <Building2 size={20} color={theme.accent} />
+                <Text style={[styles.statValue, { color: theme.text }]}>3</Text>
+                <Text style={[styles.statLabel, { color: theme.textMuted }]}>Propiedades</Text>
+              </View>
+              
+              <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                <CreditCard size={20} color={theme.accent} />
+                <Text style={[styles.statValue, { color: theme.text }]}>$4.2M</Text>
+                <Text style={[styles.statLabel, { color: theme.textMuted }]}>Valor total</Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* Opciones de menu */}
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Bell size={20} color={theme.accent} />
-            <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
-            <ChevronRight size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
+        {/* Opciones del inversionista */}
+        {isInvestor && (
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Configuracion</Text>
+            
+            <TouchableOpacity style={styles.menuItem}>
+              <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
+                <Shield size={18} color={theme.accent} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Seguridad</Text>
+                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Contrasena y autenticacion</Text>
+              </View>
+              <ChevronRight size={20} color={theme.textMuted} />
+            </TouchableOpacity>
 
-          <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
 
-          <TouchableOpacity style={styles.menuItem}>
-            <FileText size={20} color={theme.accent} />
-            <Text style={[styles.menuItemText, { color: theme.text }]}>Mis Documentos</Text>
-            <ChevronRight size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
+                <Settings size={18} color={theme.accent} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Preferencias</Text>
+                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Moneda, idioma y mas</Text>
+              </View>
+              <ChevronRight size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+          </View>
+        )}
 
-          <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+        {/* Opciones para otros usuarios (no inversionista) */}
+        {!isInvestor && (
+          <>
+            {/* Codigo de referido (solo clientes no inversionistas) */}
+            {isClient && currentUser?.referralCode && (
+              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
+                <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
+                  <Gift size={24} color={theme.accent} />
+                  <View style={styles.referralContent}>
+                    <Text style={[styles.referralCode, { color: theme.accent }]}>
+                      {currentUser.referralCode}
+                    </Text>
+                    <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
+                      Comparte tu codigo y gana recompensas
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
-          <TouchableOpacity style={styles.menuItem}>
-            <HelpCircle size={20} color={theme.accent} />
-            <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
-            <ChevronRight size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
-        </View>
+            {/* Menu de opciones */}
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <TouchableOpacity style={styles.menuItem}>
+                <Bell size={20} color={theme.accent} />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
+                <ChevronRight size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+
+              <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+
+              <TouchableOpacity style={styles.menuItem}>
+                <FileText size={20} color={theme.accent} />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Mis Documentos</Text>
+                <ChevronRight size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+
+              <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+
+              <TouchableOpacity style={styles.menuItem}>
+                <HelpCircle size={20} color={theme.accent} />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
+                <ChevronRight size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
 
         {/* Cerrar sesion */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity 
+          style={[styles.logoutButton, { backgroundColor: isInvestor ? colors.error + '15' : colors.error + '10' }]} 
+          onPress={handleLogout}
+        >
           <LogOut size={20} color={colors.error} />
           <Text style={styles.logoutText}>Cerrar Sesion</Text>
         </TouchableOpacity>
@@ -173,16 +289,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xl,
   },
+  avatarContainer: {
+    position: 'relative',
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: typography.h2.fontSize,
+    fontSize: typography.h1.fontSize,
     fontWeight: '700',
+  },
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
   },
   userName: {
     fontSize: typography.h3.fontSize,
@@ -206,10 +336,19 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    marginBottom: spacing.md,
+  },
+  editLink: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '500',
   },
   infoRow: {
     flexDirection: 'row',
@@ -217,8 +356,46 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
+  infoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: typography.caption.fontSize,
+    marginBottom: 2,
+  },
   infoText: {
     fontSize: typography.body.fontSize,
+    fontWeight: '500',
+  },
+  infoDivider: {
+    height: 1,
+    marginLeft: 52,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.xs,
+  },
+  statValue: {
+    fontSize: typography.h4.fontSize,
+    fontWeight: '700',
+  },
+  statLabel: {
+    fontSize: typography.caption.fontSize,
   },
   referralContainer: {
     flexDirection: 'row',
@@ -245,12 +422,27 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.md,
   },
-  menuItemText: {
+  menuIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContent: {
     flex: 1,
+  },
+  menuItemText: {
     fontSize: typography.body.fontSize,
+    fontWeight: '500',
+  },
+  menuItemHint: {
+    fontSize: typography.caption.fontSize,
+    marginTop: 2,
   },
   menuDivider: {
     height: 1,
+    marginLeft: 52,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -261,7 +453,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.error + '10',
   },
   logoutText: {
     fontSize: typography.body.fontSize,
