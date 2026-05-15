@@ -147,29 +147,12 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       }
       animateDots()
 
-      // Cargar propiedades del catálogo real si no están cargadas
+      // Cargar propiedades del catálogo real
       const loadAndFilter = async () => {
+        // Siempre cargar las propiedades si no están cargadas
         if (!hasLoadedCatalog && !isCatalogLoading) {
           await loadCatalogProperties()
         }
-        
-        // Esperar un momento para la animación
-        setTimeout(() => {
-          // Filtrar propiedades disponibles según preferencias (renta o venta)
-          let filtered = availableProperties.filter(p => 
-            p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
-          )
-          
-          if (formData.searchType === 'rent') {
-            filtered = filtered.filter(p => p.status === 'for_rent' || p.status === 'available')
-          } else if (formData.searchType === 'buy') {
-            filtered = filtered.filter(p => p.status === 'for_sale' || p.status === 'available')
-          }
-
-          // Tomar las primeras 4 propiedades del catálogo real
-          setSuggestedProperties(filtered.slice(0, 4))
-          setStep('suggestions')
-        }, 2000)
       }
       
       loadAndFilter()
@@ -178,7 +161,32 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         pulseLoop.stop()
       }
     }
-  }, [step, hasLoadedCatalog, isCatalogLoading, availableProperties, formData.searchType])
+  }, [step, hasLoadedCatalog, isCatalogLoading])
+
+  // Efecto separado para filtrar propiedades cuando estén cargadas
+  useEffect(() => {
+    if (step === 'loading' && hasLoadedCatalog && availableProperties.length > 0) {
+      // Esperar un momento para la animación
+      const timer = setTimeout(() => {
+        // Filtrar propiedades disponibles según preferencias (renta o venta)
+        let filtered = availableProperties.filter(p => 
+          p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
+        )
+        
+        if (formData.searchType === 'rent') {
+          filtered = filtered.filter(p => p.status === 'for_rent' || p.status === 'available')
+        } else if (formData.searchType === 'buy') {
+          filtered = filtered.filter(p => p.status === 'for_sale' || p.status === 'available')
+        }
+
+        // Tomar las primeras 4 propiedades del catálogo real
+        setSuggestedProperties(filtered.slice(0, 4))
+        setStep('suggestions')
+      }, 2000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [step, hasLoadedCatalog, availableProperties, formData.searchType])
 
   const handleNext = () => {
     switch (step) {
