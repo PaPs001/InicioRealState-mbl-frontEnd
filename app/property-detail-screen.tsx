@@ -765,42 +765,21 @@ const styles = StyleSheet.create({
     backgroundColor: investorColors.border,
     marginVertical: spacing.xs,
   },
-  infoValue: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    color: colors.text,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.xs,
-  },
   amenitiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
   amenityTag: {
-    backgroundColor: investorColors.accent + '15',
+    backgroundColor: investorColors.accent + '20',
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
   },
   amenityText: {
     fontSize: typography.bodySmall.fontSize,
-    color: investorColors.accent,
-  },
-  amenityTag: {
-    backgroundColor: colors.accent + '20',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-  },
-  amenityText: {
-    fontSize: typography.caption.fontSize,
     fontWeight: '500',
-    color: colors.accent,
+    color: investorColors.accent,
   },
   documentRow: {
     flexDirection: 'row',
@@ -819,18 +798,6 @@ const styles = StyleSheet.create({
   documentDate: {
     fontSize: typography.caption.fontSize,
     color: investorColors.textMuted,
-    marginTop: 2,
-  },
-  documentContent: {
-    flex: 1,
-  },
-  documentName: {
-    fontSize: typography.body.fontSize,
-    color: colors.text,
-  },
-  documentDate: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
     marginTop: 2,
   },
   documentStatus: {
@@ -916,29 +883,6 @@ const styles = StyleSheet.create({
   emptyTabText: {
     fontSize: typography.body.fontSize,
     color: investorColors.textMuted,
-    marginTop: spacing.xs,
-    textAlign: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  emptyStateText: {
-    fontSize: typography.body.fontSize,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-  },
-  emptyTabState: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-  },
-  emptyTabTitle: {
-    fontSize: typography.h4.fontSize,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: spacing.md,
-  },
-  emptyTabText: {
-    fontSize: typography.body.fontSize,
-    color: colors.textMuted,
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
