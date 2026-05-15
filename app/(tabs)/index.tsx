@@ -494,17 +494,90 @@ export default function HomeScreen() {
               </>
             )}
 
-            {/* Inquilino: Tabs de navegacion */}
-            {isTenant && tenantRental && tenantProperty && (
+            {/* Inquilino: Accesos rapidos + Tabs de navegacion */}
+            {isTenant && (
               <>
-                {/* Tab Buttons */}
-                <View style={[styles.tenantTabsContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.tenantTabButton,
-                      tenantActiveTab === 'general' && { backgroundColor: theme.accent }
-                    ]}
-                    onPress={() => setTenantActiveTab('general')}
+                {/* Accesos rapidos del inquilino */}
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/catalog-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Building2 size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Explorar Catalogo</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      {availableProperties.length} propiedades disponibles
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/favorites-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Heart size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Favoritos</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      Propiedades guardadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/appointments-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Calendar size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      {userAppointments.length} citas programadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/add-property-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Plus size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Agregar Propiedad</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      Registra una propiedad para invertir
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+
+          {/* Seccion Mi Renta - Solo para Inquilino */}
+          {isTenant && tenantRental && tenantProperty && (
+            <View style={styles.section}>
+              <Text style={dynamicStyles.sectionTitle}>Mi Renta</Text>
+              
+              {/* Tab Buttons */}
+              <View style={[styles.tenantTabsContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <TouchableOpacity 
+                  style={[
+                    styles.tenantTabButton,
+                    tenantActiveTab === 'general' && { backgroundColor: theme.accent }
+                  ]}
+                  onPress={() => setTenantActiveTab('general')}
                   >
                     <Home size={18} color={tenantActiveTab === 'general' ? theme.background : theme.textMuted} />
                     <Text style={[
@@ -758,10 +831,12 @@ export default function HomeScreen() {
                   </>
                 )}
               </>
-            )}
+            </View>
+          )}
 
-            {/* Inquilino sin renta activa */}
-            {isTenant && !tenantRental && (
+          {/* Inquilino sin renta activa */}
+          {isTenant && !tenantRental && (
+            <View style={styles.section}>
               <View style={styles.tenantEmptyState}>
                 <Home size={48} color={theme.textMuted} />
                 <Text style={[styles.tenantEmptyTitle, { color: theme.text }]}>Sin renta activa</Text>
@@ -769,8 +844,8 @@ export default function HomeScreen() {
                   No tienes una renta activa en este momento
                 </Text>
               </View>
-            )}
-          </View>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     )
