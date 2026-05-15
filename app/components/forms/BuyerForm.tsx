@@ -65,11 +65,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const slideAnim = useRef(new Animated.Value(30)).current
   const progressAnim = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
-  const dotsAnim = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current
 
   const steps: Step[] = ['name', 'email', 'phone', 'password', 'search-preferences', 'loading', 'suggestions']
   const currentStepIndex = steps.indexOf(step)
@@ -123,36 +118,9 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       )
       pulseLoop.start()
 
-      // Animación de puntos
-      const animateDots = () => {
-        dotsAnim.forEach((dot, index) => {
-          Animated.sequence([
-            Animated.delay(index * 200),
-            Animated.loop(
-              Animated.sequence([
-                Animated.timing(dot, {
-                  toValue: 1,
-                  duration: 400,
-                  useNativeDriver: true,
-                }),
-                Animated.timing(dot, {
-                  toValue: 0,
-                  duration: 400,
-                  useNativeDriver: true,
-                }),
-              ])
-            ),
-          ]).start()
-        })
-      }
-      animateDots()
-
       // Cargar propiedades del catálogo real
       const loadAndFilter = async () => {
-        // Siempre cargar las propiedades si no están cargadas
-        if (!hasLoadedCatalog && !isCatalogLoading) {
-          await loadCatalogProperties()
-        }
+        await loadCatalogProperties()
       }
       
       loadAndFilter()
@@ -161,17 +129,15 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         pulseLoop.stop()
       }
     }
-  }, [step, hasLoadedCatalog, isCatalogLoading])
+  }, [step])
 
   // Efecto separado para filtrar propiedades cuando estén cargadas
   useEffect(() => {
-    if (step === 'loading' && hasLoadedCatalog && availableProperties.length > 0) {
+    if (step === 'loading' && hasLoadedCatalog && !isCatalogLoading) {
       // Esperar un momento para la animación
       const timer = setTimeout(() => {
-        // Filtrar propiedades disponibles según preferencias (renta o venta)
-        let filtered = availableProperties.filter(p => 
-          p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
-        )
+        // Usar availableProperties del contexto
+        let filtered = [...availableProperties]
         
         if (formData.searchType === 'rent') {
           filtered = filtered.filter(p => p.status === 'for_rent' || p.status === 'available')
@@ -182,11 +148,11 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         // Tomar las primeras 4 propiedades del catálogo real
         setSuggestedProperties(filtered.slice(0, 4))
         setStep('suggestions')
-      }, 2000)
+      }, 2500)
 
       return () => clearTimeout(timer)
     }
-  }, [step, hasLoadedCatalog, availableProperties, formData.searchType])
+  }, [step, hasLoadedCatalog, isCatalogLoading, availableProperties])
 
   const handleNext = () => {
     switch (step) {
@@ -496,38 +462,10 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const renderLoading = () => (
     <View style={styles.loadingContainer}>
       <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <LogoGris width={200} height={70} />
+        <LogoGris width={280} height={95} />
       </Animated.View>
 
-      <View style={styles.loadingTextContainer}>
-        <Text style={styles.loadingText}>Buscando las mejores opciones</Text>
-        <View style={styles.dotsContainer}>
-          {dotsAnim.map((anim, index) => (
-            <Animated.View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  opacity: anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.3, 1],
-                  }),
-                  transform: [{
-                    scale: anim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.8, 1.2],
-                    }),
-                  }],
-                },
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-
-      <Text style={styles.loadingSubtext}>
-        {formData.searchType === 'buy' ? 'Propiedades en venta' : 'Propiedades en renta'}
-      </Text>
+      <Text style={styles.loadingText}>Buscando las mejores opciones...</Text>
     </View>
   )
 
@@ -834,29 +772,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xl,
   },
-  loadingTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
   loadingText: {
     fontSize: typography.h4.fontSize,
     fontWeight: '500',
     color: theme.text,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.primary,
-  },
-  loadingSubtext: {
-    fontSize: typography.body.fontSize,
-    color: theme.textMuted,
+    marginTop: spacing.lg,
   },
   // Suggestions
   suggestionsContainer: {
