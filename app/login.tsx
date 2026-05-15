@@ -1,6 +1,7 @@
 //Imagenes
 import LogoGris from './assets/LogoInicioSVGris.svg';
 import LogoNegro from './assets/LogoInicioSVGNegro.svg';
+import TextoLogoInicio from './assets/TextoLogoInicio.svg';
 
 //configuraciones
 import { useState } from 'react'
@@ -120,7 +121,7 @@ export default function LoginScreen() {
             style={styles.logoContainer}
             onPress={() => setIsAgentMode(true)}
           >
-            <LogoNegro width={150} height={150} />
+            <TextoLogoInicio width={200} height={80} />
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
