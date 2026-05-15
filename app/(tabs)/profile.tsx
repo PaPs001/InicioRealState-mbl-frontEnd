@@ -9,7 +9,6 @@ import {
   Phone, 
   Gift, 
   Bell, 
-  FileText, 
   HelpCircle, 
   LogOut,
   ChevronRight,
@@ -26,13 +25,17 @@ export default function ProfileScreen() {
   const { currentUser, logout, isClient, isAgent, isAdmin } = useAuth()
   const router = useRouter()
 
-  // Determinar si es inversionista para usar tema oscuro
+  // Determinar tipo de cliente
   const isInvestor = currentUser?.role === 'investor'
+  const isSearching = currentUser?.role === 'searching'
+  const isTenant = currentUser?.role === 'tenant'
   const isDark = isAgent || isAdmin || isInvestor
 
-  // Obtener colores segun el tipo de usuario
+  // Obtener colores segun el tipo de usuario cliente
   const getThemeColors = () => {
     if (isInvestor) return clientThemes.investor
+    if (isSearching) return clientThemes.searching
+    if (isTenant) return clientThemes.tenant
     if (isAgent || isAdmin) return {
       background: colors.primaryDark,
       surface: colors.surfaceDark,
@@ -42,15 +45,7 @@ export default function ProfileScreen() {
       textMuted: colors.textMuted,
       accent: colors.accent,
     }
-    return {
-      background: colors.background,
-      surface: colors.surface,
-      border: colors.border,
-      text: colors.text,
-      textSecondary: colors.textSecondary,
-      textMuted: colors.textMuted,
-      accent: colors.accent,
-    }
+    return clientThemes.searching // Default para clientes
   }
   
   const theme = getThemeColors()
@@ -176,32 +171,83 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Stats del inversionista */}
-        {isInvestor && (
+        {/* Stats segun tipo de cliente */}
+        {isClient && (
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Resumen de Portafolio</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              {isInvestor ? 'Resumen de Portafolio' : isSearching ? 'Tu Busqueda' : 'Tu Renta'}
+            </Text>
             
             <View style={styles.statsGrid}>
-              <View style={[styles.statItem, { backgroundColor: theme.background }]}>
-                <Building2 size={20} color={theme.accent} />
-                <Text style={[styles.statValue, { color: theme.text }]}>3</Text>
-                <Text style={[styles.statLabel, { color: theme.textMuted }]}>Propiedades</Text>
-              </View>
+              {isInvestor && (
+                <>
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <Building2 size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>3</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Propiedades</Text>
+                  </View>
+                  
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <CreditCard size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>$4.2M</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Valor total</Text>
+                  </View>
+                </>
+              )}
               
-              <View style={[styles.statItem, { backgroundColor: theme.background }]}>
-                <CreditCard size={20} color={theme.accent} />
-                <Text style={[styles.statValue, { color: theme.text }]}>$4.2M</Text>
-                <Text style={[styles.statLabel, { color: theme.textMuted }]}>Valor total</Text>
-              </View>
+              {isSearching && (
+                <>
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <Building2 size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>12</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Visitas</Text>
+                  </View>
+                  
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <Calendar size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>2</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Citas</Text>
+                  </View>
+                </>
+              )}
+              
+              {isTenant && (
+                <>
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <Building2 size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>1</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Propiedad</Text>
+                  </View>
+                  
+                  <View style={[styles.statItem, { backgroundColor: theme.background }]}>
+                    <CreditCard size={20} color={theme.accent} />
+                    <Text style={[styles.statValue, { color: theme.text }]}>$18,500</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>Renta mensual</Text>
+                  </View>
+                </>
+              )}
             </View>
           </View>
         )}
 
-        {/* Opciones del inversionista */}
-        {isInvestor && (
+        {/* Configuracion - para todos los clientes */}
+        {isClient && (
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Configuracion</Text>
             
+            <TouchableOpacity style={styles.menuItem}>
+              <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
+                <Bell size={18} color={theme.accent} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
+                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Alertas y recordatorios</Text>
+              </View>
+              <ChevronRight size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
                 <Shield size={18} color={theme.accent} />
@@ -221,59 +267,42 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.menuContent}>
                 <Text style={[styles.menuItemText, { color: theme.text }]}>Preferencias</Text>
-                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Moneda, idioma y mas</Text>
+                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Idioma, moneda y mas</Text>
+              </View>
+              <ChevronRight size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+
+            <TouchableOpacity style={styles.menuItem}>
+              <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
+                <HelpCircle size={18} color={theme.accent} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
+                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Centro de ayuda</Text>
               </View>
               <ChevronRight size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Opciones para otros usuarios (no inversionista) */}
-        {!isInvestor && (
-          <>
-            {/* Codigo de referido (solo clientes no inversionistas) */}
-            {isClient && currentUser?.referralCode && (
-              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
-                <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
-                  <Gift size={24} color={theme.accent} />
-                  <View style={styles.referralContent}>
-                    <Text style={[styles.referralCode, { color: theme.accent }]}>
-                      {currentUser.referralCode}
-                    </Text>
-                    <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
-                      Comparte tu codigo y gana recompensas
-                    </Text>
-                  </View>
-                </View>
+        {/* Codigo de referido - para todos los clientes */}
+        {isClient && currentUser?.referralCode && (
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
+            <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
+              <Gift size={24} color={theme.accent} />
+              <View style={styles.referralContent}>
+                <Text style={[styles.referralCode, { color: theme.accent }]}>
+                  {currentUser.referralCode}
+                </Text>
+                <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
+                  Comparte tu codigo y gana recompensas
+                </Text>
               </View>
-            )}
-
-            {/* Menu de opciones */}
-            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <TouchableOpacity style={styles.menuItem}>
-                <Bell size={20} color={theme.accent} />
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
-                <ChevronRight size={20} color={theme.textSecondary} />
-              </TouchableOpacity>
-
-              <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
-
-              <TouchableOpacity style={styles.menuItem}>
-                <FileText size={20} color={theme.accent} />
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Mis Documentos</Text>
-                <ChevronRight size={20} color={theme.textSecondary} />
-              </TouchableOpacity>
-
-              <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
-
-              <TouchableOpacity style={styles.menuItem}>
-                <HelpCircle size={20} color={theme.accent} />
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
-                <ChevronRight size={20} color={theme.textSecondary} />
-              </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
 
         {/* Cerrar sesion */}
