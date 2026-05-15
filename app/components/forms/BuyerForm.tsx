@@ -30,7 +30,7 @@ import {
 } from 'lucide-react-native'
 import { useAuth } from '@/contexts/AuthContext'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { mockProperties } from '@/lib/mock-data'
+import type { Property } from '@/lib/types'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 const { width } = Dimensions.get('window')
@@ -46,7 +46,7 @@ type Step = 'name' | 'email' | 'phone' | 'password' | 'search-preferences' | 'lo
 
 export default function BuyerForm({ onBack }: BuyerFormProps) {
   const router = useRouter()
-  const { setCurrentUser } = useAuth()
+  const { setCurrentUser, availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = useAuth()
   
   // Estados del formulario
   const [step, setStep] = useState<Step>('name')
@@ -58,7 +58,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     searchType: '' as 'buy' | 'rent' | '',
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [suggestedProperties, setSuggestedProperties] = useState<typeof mockProperties>([])
+  const [suggestedProperties, setSuggestedProperties] = useState<Property[]>([])
   
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -147,31 +147,38 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       }
       animateDots()
 
-      // Simular búsqueda y pasar a sugerencias
-      const timer = setTimeout(() => {
-        // Filtrar propiedades disponibles según preferencias (renta o venta)
-        const availableProperties = mockProperties.filter(p => 
-          p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
-        )
-        
-        let filtered = availableProperties
-        if (formData.searchType === 'rent') {
-          filtered = availableProperties.filter(p => p.status === 'for_rent' || p.status === 'available')
-        } else if (formData.searchType === 'buy') {
-          filtered = availableProperties.filter(p => p.status === 'for_sale' || p.status === 'available')
+      // Cargar propiedades del catálogo real si no están cargadas
+      const loadAndFilter = async () => {
+        if (!hasLoadedCatalog && !isCatalogLoading) {
+          await loadCatalogProperties()
         }
+        
+        // Esperar un momento para la animación
+        setTimeout(() => {
+          // Filtrar propiedades disponibles según preferencias (renta o venta)
+          let filtered = availableProperties.filter(p => 
+            p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
+          )
+          
+          if (formData.searchType === 'rent') {
+            filtered = filtered.filter(p => p.status === 'for_rent' || p.status === 'available')
+          } else if (formData.searchType === 'buy') {
+            filtered = filtered.filter(p => p.status === 'for_sale' || p.status === 'available')
+          }
 
-        // Tomar las primeras 4 propiedades del catálogo real
-        setSuggestedProperties(filtered.slice(0, 4))
-        setStep('suggestions')
-      }, 2500)
+          // Tomar las primeras 4 propiedades del catálogo real
+          setSuggestedProperties(filtered.slice(0, 4))
+          setStep('suggestions')
+        }, 2000)
+      }
+      
+      loadAndFilter()
 
       return () => {
-        clearTimeout(timer)
         pulseLoop.stop()
       }
     }
-  }, [step])
+  }, [step, hasLoadedCatalog, isCatalogLoading, availableProperties, formData.searchType])
 
   const handleNext = () => {
     switch (step) {
@@ -233,7 +240,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handlePropertySelect = (propertyId: string) => {
-    // Completar registro y navegar a la propiedad
+    // Completar registro y navegar al dashboard, luego a la propiedad
     setCurrentUser({
       id: 'new-buyer',
       name: formData.name,
@@ -243,11 +250,12 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       avatar: undefined,
       createdAt: new Date().toISOString(),
     })
-    router.replace(`/catalog-screen?propertyId=${propertyId}`)
+    // Navegar al dashboard (tabs) y luego redirigir a la propiedad
+    router.replace(`/(tabs)/catalog`)
   }
 
   const handleExploreAll = () => {
-    // Completar registro y navegar al catálogo
+    // Completar registro y navegar al catálogo dentro del dashboard
     setCurrentUser({
       id: 'new-buyer',
       name: formData.name,
@@ -257,7 +265,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       avatar: undefined,
       createdAt: new Date().toISOString(),
     })
-    router.replace('/catalog-screen')
+    router.replace('/(tabs)/catalog')
   }
 
   const canContinue = () => {
