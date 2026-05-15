@@ -62,17 +62,17 @@ export const clientThemes = {
     textLight: '#f5f1ec',
   },
   
-  // Usuario inversionista
+  // Usuario inversionista (negro y dorado - igual que registro)
   investor: {
-    primary: '#05185d',
-    secondary: '#1f2b38',
-    accent: '#cbb375',
-    background: '#1f2b38',
-    surface: '#2a3847',
-    border: '#3a4857',
+    primary: '#0a0a0a',
+    secondary: '#1a1a1a',
+    accent: '#c9a227',
+    background: '#0a0a0a',
+    surface: '#1a1a1a',
+    border: '#2a2a2a',
     text: '#f5f1ec',
-    textSecondary: '#c5c9ce',
-    textMuted: '#8a949e',
+    textSecondary: '#a0a0a0',
+    textMuted: '#707070',
     textLight: '#f5f1ec',
   },
   

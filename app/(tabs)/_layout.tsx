@@ -91,8 +91,7 @@ export default function TabsLayout() {
           backgroundColor: headerBg,
         },
         headerTintColor: colors.textInverse,
-        headerTitle: () => <LogoGris width={120} height={40} />,
-        headerTitleAlign: 'center',
+        headerShown: false,
         tabBarIcon: ({ color, size }) => renderTabIcon(route.name, size, color),
       })}
     >
