@@ -7,8 +7,6 @@ import {
   User, 
   Mail, 
   Phone, 
-  Gift, 
-  Bell, 
   HelpCircle, 
   LogOut,
   ChevronRight,
@@ -237,19 +235,6 @@ export default function ProfileScreen() {
             
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
-                <Bell size={18} color={theme.accent} />
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
-                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Alertas y recordatorios</Text>
-              </View>
-              <ChevronRight size={20} color={theme.textMuted} />
-            </TouchableOpacity>
-
-            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
-
-            <TouchableOpacity style={styles.menuItem}>
-              <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
                 <Shield size={18} color={theme.accent} />
               </View>
               <View style={styles.menuContent}>
@@ -284,24 +269,6 @@ export default function ProfileScreen() {
               </View>
               <ChevronRight size={20} color={theme.textMuted} />
             </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Codigo de referido - para todos los clientes */}
-        {isClient && currentUser?.referralCode && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
-            <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
-              <Gift size={24} color={theme.accent} />
-              <View style={styles.referralContent}>
-                <Text style={[styles.referralCode, { color: theme.accent }]}>
-                  {currentUser.referralCode}
-                </Text>
-                <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
-                  Comparte tu codigo y gana recompensas
-                </Text>
-              </View>
-            </View>
           </View>
         )}
 
