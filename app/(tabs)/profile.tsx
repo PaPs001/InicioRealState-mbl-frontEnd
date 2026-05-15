@@ -87,13 +87,27 @@ export default function ProfileScreen() {
     router.replace('/login')
   }
 
-  // Mostrar pantalla de transicion si esta cerrando sesion o no hay usuario
-  if (showLogoutTransition || !currentUser) {
+  // Mostrar pantalla de transicion si esta cerrando sesion
+  if (showLogoutTransition) {
     return (
-      <RegisterTransition 
-        durationMs={1500} 
-        onComplete={currentUser ? undefined : () => router.replace('/login')} 
-      />
+      <View style={styles.transitionOverlay}>
+        <RegisterTransition 
+          durationMs={1500} 
+          onComplete={handleLogoutComplete} 
+        />
+      </View>
+    )
+  }
+
+  // Si no hay usuario, redirigir al login
+  if (!currentUser) {
+    return (
+      <View style={styles.transitionOverlay}>
+        <RegisterTransition 
+          durationMs={500} 
+          onComplete={() => router.replace('/login')} 
+        />
+      </View>
     )
   }
 
@@ -489,5 +503,13 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: typography.caption.fontSize,
+  },
+  transitionOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: -100,
+    zIndex: 9999,
   },
 })
