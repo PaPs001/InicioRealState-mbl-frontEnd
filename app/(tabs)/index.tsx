@@ -250,47 +250,51 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Stats Cards - Solo para Inversionista */}
+          {/* Stats Cards - Solo para Inversionista (grid 2x2) */}
           {isInvestor && (
-            <View style={styles.statsGrid}>
-              <View style={dynamicStyles.statCard}>
-                <View style={styles.statHeader}>
-                  <Text style={dynamicStyles.statLabel}>Propiedades</Text>
-                  <Building2 size={20} color={theme.textMuted} />
+            <View style={styles.statsGridInvestor}>
+              <View style={styles.statsRow}>
+                <View style={[dynamicStyles.statCard, styles.statCardHalf]}>
+                  <View style={styles.statHeader}>
+                    <Text style={dynamicStyles.statLabel}>Propiedades</Text>
+                    <Building2 size={20} color={theme.accent} />
+                  </View>
+                  <Text style={dynamicStyles.statValue}>{userProperties.length}</Text>
+                  <Text style={dynamicStyles.statDescription}>En tu portafolio</Text>
                 </View>
-                <Text style={dynamicStyles.statValue}>{userProperties.length}</Text>
-                <Text style={dynamicStyles.statDescription}>En tu portafolio</Text>
+
+                <View style={[dynamicStyles.statCard, styles.statCardHalf]}>
+                  <View style={styles.statHeader}>
+                    <Text style={dynamicStyles.statLabel}>Valor Total</Text>
+                    <DollarSign size={20} color={theme.accent} />
+                  </View>
+                  <Text style={dynamicStyles.statValue}>{formatCurrency(totalValue)}</Text>
+                  <Text style={dynamicStyles.statDescription}>Valor actual</Text>
+                </View>
               </View>
 
-              <View style={dynamicStyles.statCard}>
-                <View style={styles.statHeader}>
-                  <Text style={dynamicStyles.statLabel}>Valor Total</Text>
-                  <DollarSign size={20} color={theme.textMuted} />
+              <View style={styles.statsRow}>
+                <View style={[dynamicStyles.statCard, styles.statCardHalf]}>
+                  <View style={styles.statHeader}>
+                    <Text style={dynamicStyles.statLabel}>Ganancias</Text>
+                    <TrendingUp size={20} color={theme.accent} />
+                  </View>
+                  <Text style={[dynamicStyles.statValue, { color: colors.success }]}>
+                    {formatCurrency(totalGains)}
+                  </Text>
+                  <Text style={dynamicStyles.statDescription}>Plusvalia</Text>
                 </View>
-                <Text style={dynamicStyles.statValue}>{formatCurrency(totalValue)}</Text>
-                <Text style={dynamicStyles.statDescription}>Valor actual</Text>
-              </View>
 
-              <View style={dynamicStyles.statCard}>
-                <View style={styles.statHeader}>
-                  <Text style={dynamicStyles.statLabel}>Ganancias</Text>
-                  <TrendingUp size={20} color={theme.textMuted} />
+                <View style={[dynamicStyles.statCard, styles.statCardHalf, { backgroundColor: theme.accent }]}>
+                  <View style={styles.statHeader}>
+                    <Text style={[dynamicStyles.statLabel, { color: theme.primary }]}>Proyeccion</Text>
+                    <TrendingUp size={20} color={theme.primary} />
+                  </View>
+                  <Text style={[dynamicStyles.statValue, { color: theme.primary }]}>
+                    {formatCurrency(totalValue * 1.1)}
+                  </Text>
+                  <Text style={[dynamicStyles.statDescription, { color: theme.primary + 'cc' }]}>Est. 1 ano</Text>
                 </View>
-                <Text style={[dynamicStyles.statValue, { color: colors.success }]}>
-                  {formatCurrency(totalGains)}
-                </Text>
-                <Text style={dynamicStyles.statDescription}>Plusvalia</Text>
-              </View>
-
-              <View style={[dynamicStyles.statCard, { backgroundColor: theme.primary }]}>
-                <View style={styles.statHeader}>
-                  <Text style={[dynamicStyles.statLabel, { color: theme.textLight + '80' }]}>Proyeccion</Text>
-                  <TrendingUp size={20} color={theme.accent} />
-                </View>
-                <Text style={[dynamicStyles.statValue, { color: theme.accent }]}>
-                  {formatCurrency(totalValue * 1.1)}
-                </Text>
-                <Text style={[dynamicStyles.statDescription, { color: theme.textLight + '80' }]}>Est. 1 ano</Text>
               </View>
             </View>
           )}
@@ -299,7 +303,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
             
-            {/* Inversionista: Ver propiedades, agregar, ganancias */}
+            {/* Inversionista: Ver propiedades, agregar, ganancias + catalogo, favoritos, citas */}
             {isInvestor && (
               <>
                 <TouchableOpacity 
@@ -345,6 +349,54 @@ export default function HomeScreen() {
                     <Text style={dynamicStyles.quickAccessTitle}>Proyecciones</Text>
                     <Text style={dynamicStyles.quickAccessSubtitle}>
                       Ganancias potenciales de tus propiedades
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/catalog-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Building2 size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Explorar Catalogo</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      {availableProperties.length} propiedades disponibles
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/favorites-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Heart size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Favoritos</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      Propiedades guardadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={theme.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={dynamicStyles.quickAccessCard}
+                  onPress={() => router.push('/appointments-screen')}
+                >
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Calendar size={24} color={theme.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
+                      {userAppointments.length} citas programadas
                     </Text>
                   </View>
                   <ChevronRight size={20} color={theme.textMuted} />
@@ -829,6 +881,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: spacing.md,
     gap: spacing.md,
+  },
+  // Stats Grid Inversionista (2x2)
+  statsGridInvestor: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  statCardHalf: {
+    flex: 1,
   },
   statCardDark: {
     width: '47%',
