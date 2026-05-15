@@ -160,9 +160,12 @@ export default function LoginScreen() {
               <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
             </TouchableOpacity>
           </View>
-          <View>
-            <TouchableOpacity>
-              
+          <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+              onPress={() => router.push('/animation-demo-screen')}
+            >
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Ver demos de animacion</Text>
             </TouchableOpacity>
           </View>
 
