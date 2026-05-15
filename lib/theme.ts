@@ -78,20 +78,22 @@ export const clientThemes = {
     accentLight: '#e5d4a8',
   },
   
-  // Usuario inquilino (verde, blanco, tonos calidos)
+  // Usuario inquilino (oscuro elegante pero mas calido - nivel debajo del inversionista)
   tenant: {
-    primary: '#2d5a3d',
-    secondary: '#3d7a50',
-    accent: '#2d5a3d',
-    background: '#faf8f5',
-    surface: '#ffffff',
-    border: '#e8e2d9',
-    text: '#2c3e2d',
-    textSecondary: '#5a6b5c',
+    primary: '#3d5a40',
+    secondary: '#4a6d4d',
+    accent: '#907a63',
+    accentGold: '#cbb375',
+    background: '#1f2b38',
+    surface: '#2a3847',
+    surfaceLight: '#354555',
+    border: '#3d5a40',
+    text: '#f5f1ec',
+    textSecondary: '#c4bdb4',
     textMuted: '#8a9a8c',
-    textLight: '#faf8f5',
-    warm: '#c4a77d',
-    warmLight: '#f5efe6',
+    textLight: '#f5f1ec',
+    green: '#3d5a40',
+    warm: '#907a63',
   },
   
   // Asesor (fondo oscuro azul)
