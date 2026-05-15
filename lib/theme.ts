@@ -64,13 +64,13 @@ export const clientThemes = {
   
   // Usuario inversionista (azul oscuro elegante y dorado)
   investor: {
-    primary: '#05185d',
-    secondary: '#0a2470',
+    primary: '#000911',
+    secondary: '#0a1525',
     accent: '#cbb375',
-    background: '#000911',
-    surface: '#05185d',
-    surfaceLight: '#0a2470',
-    border: '#1a3080',
+    background: '#05185d',
+    surface: '#000911',
+    surfaceLight: '#0a1525',
+    border: '#0a2470',
     text: '#f5f1ec',
     textSecondary: '#b8c4d9',
     textMuted: '#7a8aa8',
