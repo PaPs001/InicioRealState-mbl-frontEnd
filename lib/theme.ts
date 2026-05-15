@@ -48,18 +48,20 @@ export const colors = {
 
 // Temas por tipo de cliente
 export const clientThemes = {
-  // Usuario buscando propiedad
+  // Usuario buscando propiedad (verde, blanco, tonos cálidos)
   searching: {
-    primary: '#083b52',
-    secondary: '#0c74af',
-    accent: '#0c74af',
-    background: '#f5f1ec',
+    primary: '#2d5a3d',
+    secondary: '#3d7a50',
+    accent: '#2d5a3d',
+    background: '#faf8f5',
     surface: '#ffffff',
-    border: '#e5e0d8',
-    text: '#202c38',
-    textSecondary: '#5a6673',
-    textMuted: '#8a949e',
-    textLight: '#f5f1ec',
+    border: '#e8e2d9',
+    text: '#2c3e2d',
+    textSecondary: '#5a6b5c',
+    textMuted: '#8a9a8c',
+    textLight: '#faf8f5',
+    warm: '#c4a77d',
+    warmLight: '#f5efe6',
   },
   
   // Usuario inversionista (negro y dorado - igual que registro)
