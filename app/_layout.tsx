@@ -80,7 +80,7 @@ function RootNavigator() {
           <Stack.Screen 
             name="index" 
             options={{ 
-              contentStyle: { backgroundColor: colors.background },
+              contentStyle: { backgroundColor: clientThemes.investor.background },
             }} 
           />
           <Stack.Screen 
