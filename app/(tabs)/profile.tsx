@@ -87,12 +87,12 @@ export default function ProfileScreen() {
     router.replace('/login')
   }
 
-  // Mostrar pantalla de transicion si esta cerrando sesion
-  if (showLogoutTransition && isInvestor) {
+  // Mostrar pantalla de transicion si esta cerrando sesion o no hay usuario
+  if (showLogoutTransition || !currentUser) {
     return (
       <RegisterTransition 
         durationMs={1500} 
-        onComplete={handleLogoutComplete} 
+        onComplete={currentUser ? undefined : () => router.replace('/login')} 
       />
     )
   }
