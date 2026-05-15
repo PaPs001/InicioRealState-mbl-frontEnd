@@ -247,7 +247,17 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handleExploreAll = () => {
-    completeRegistration()
+    // Completar registro y navegar al catálogo
+    setCurrentUser({
+      id: 'new-buyer',
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      role: 'searching',
+      avatar: undefined,
+      createdAt: new Date().toISOString(),
+    })
+    router.replace('/catalog-screen')
   }
 
   const canContinue = () => {
