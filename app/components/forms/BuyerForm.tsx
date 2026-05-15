@@ -28,7 +28,7 @@ import {
   Check,
   Building2,
 } from 'lucide-react-native'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/contexts/AuthContext'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { mockProperties } from '@/lib/mock-data'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
