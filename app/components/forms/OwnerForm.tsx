@@ -461,21 +461,22 @@ export default function OwnerForm() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Logo de fondo centrado y transparente */}
+      <View style={styles.backgroundLogoContainer}>
+        <LogoGris width={280} height={280} style={styles.backgroundLogo} />
+      </View>
+
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header con logo */}
+        {/* Header sin logo */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={20} color={investorColors.gold} />
             <Text style={styles.backButtonText}>Regresar</Text>
           </TouchableOpacity>
-
-          <Animated.View style={[styles.logoWrapper, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
-            <LogoGris width={120} height={40} />
-          </Animated.View>
         </View>
 
         {/* Indicador de progreso (solo para pasos 1-4) */}
@@ -520,9 +521,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: investorColors.background,
   },
+  backgroundLogoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  backgroundLogo: {
+    opacity: 0.06,
+  },
   scrollContent: {
     flexGrow: 1,
     padding: spacing.lg,
+    zIndex: 1,
   },
   header: {
     marginBottom: spacing.xl,
@@ -537,10 +552,6 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     fontWeight: '500',
     marginLeft: spacing.xs,
-  },
-  logoWrapper: {
-    alignItems: 'center',
-    marginTop: spacing.sm,
   },
   progressContainer: {
     marginBottom: spacing.xl,
