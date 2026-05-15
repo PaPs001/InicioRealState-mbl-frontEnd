@@ -1,12 +1,35 @@
 import { useEffect } from 'react'
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors } from '@/lib/theme'
+import { clientThemes } from '@/lib/theme'
+import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import { Animated } from 'react-native'
 
 export default function Index() {
-  const { isLoading, isLoggedIn } = useAuth()
+  const { isLoading, isLoggedIn, currentUser } = useAuth()
   const router = useRouter()
+  const pulseAnim = new Animated.Value(1)
+
+  useEffect(() => {
+    // Animacion de pulso del logo
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    )
+    pulse.start()
+    return () => pulse.stop()
+  }, [])
 
   useEffect(() => {
     if (!isLoading) {
@@ -18,9 +41,14 @@ export default function Index() {
     }
   }, [isLoading, isLoggedIn])
 
+  // Usar tema del inversionista para la pantalla de carga (azul oscuro elegante)
+  const theme = clientThemes.investor
+
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color={colors.accent} />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+        <LogoGris width={200} height={70} />
+      </Animated.View>
     </View>
   )
 }
@@ -30,6 +58,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
   },
 })
