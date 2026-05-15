@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { mockProperties, mockPropertyEarnings, formatCurrency } from '@/lib/mock-data'
 import { 
   ArrowLeft,
@@ -21,6 +21,9 @@ import {
   ChevronRight,
   PieChart,
 } from 'lucide-react-native'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 
 export default function EarningsScreen() {
   const { currentUser } = useAuth()
@@ -75,7 +78,7 @@ export default function EarningsScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={investorColors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ganancias</Text>
         <View style={styles.headerPlaceholder} />
@@ -119,7 +122,7 @@ export default function EarningsScreen() {
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <PieChart size={24} color={colors.accent} />
+            <PieChart size={24} color={investorColors.accent} />
             <Text style={styles.statValue}>{myProperties.length}</Text>
             <Text style={styles.statLabel}>Propiedades</Text>
           </View>
@@ -153,9 +156,9 @@ export default function EarningsScreen() {
             >
               <View style={styles.propertyIconContainer}>
                 {property.type === 'house' ? (
-                  <Home size={24} color={colors.accent} />
+                  <Home size={24} color={investorColors.accent} />
                 ) : (
-                  <Building2 size={24} color={colors.accent} />
+                  <Building2 size={24} color={investorColors.accent} />
                 )}
               </View>
 
@@ -189,13 +192,13 @@ export default function EarningsScreen() {
                 </View>
               </View>
 
-              <ChevronRight size={20} color={colors.textMuted} />
+              <ChevronRight size={20} color={investorColors.textMuted} />
             </TouchableOpacity>
           ))}
 
           {propertyEarningsData.length === 0 && (
             <View style={styles.emptyState}>
-              <DollarSign size={48} color={colors.textMuted} />
+              <DollarSign size={48} color={investorColors.textMuted} />
               <Text style={styles.emptyStateText}>
                 Agrega propiedades para ver tus ganancias
               </Text>
@@ -227,7 +230,7 @@ export default function EarningsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -236,20 +239,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   headerPlaceholder: {
     width: 40,
@@ -262,23 +265,23 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   summaryCard: {
-    backgroundColor: colors.primary,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
   },
   summaryLabel: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textLight + '80',
+    color: investorColors.primary + 'cc',
   },
   summaryAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: colors.accent,
+    color: investorColors.primary,
     marginTop: spacing.xs,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: colors.borderDark,
+    backgroundColor: investorColors.primary + '30',
     marginVertical: spacing.lg,
   },
   summaryRow: {
@@ -300,12 +303,12 @@ const styles = StyleSheet.create({
   },
   summaryItemLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textLight + '80',
+    color: investorColors.primary + 'cc',
   },
   summaryItemValue: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.textLight,
+    color: investorColors.primary,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -313,22 +316,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   statValue: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.sm,
   },
   statLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
   },
   section: {
@@ -337,22 +340,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   propertyCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   propertyIconContainer: {
     width: 50,
     height: 50,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: investorColors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -363,11 +366,11 @@ const styles = StyleSheet.create({
   propertyTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   propertyCity: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
   },
   propertyStats: {
@@ -378,12 +381,12 @@ const styles = StyleSheet.create({
   propertyStat: {},
   propertyStatLabel: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   propertyStatValue: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   emptyState: {
     alignItems: 'center',
@@ -391,21 +394,21 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: spacing.md,
     textAlign: 'center',
   },
   tipsCard: {
-    backgroundColor: colors.accent + '15',
+    backgroundColor: investorColors.accent + '15',
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accent + '30',
+    borderColor: investorColors.accent + '30',
   },
   tipsTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.accent,
     marginBottom: spacing.md,
   },
   tipItem: {
@@ -418,13 +421,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     marginTop: 6,
   },
   tipText: {
     flex: 1,
     fontSize: typography.bodySmall.fontSize,
-    color: colors.text,
+    color: investorColors.text,
     lineHeight: 20,
   },
 })

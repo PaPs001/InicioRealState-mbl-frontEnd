@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { 
   ArrowLeft,
   Home,
@@ -24,6 +24,9 @@ import {
   Bath,
   Check,
 } from 'lucide-react-native'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 
 type PropertyType = 'house' | 'apartment' | 'land'
 type AcquisitionType = 'inicio' | 'external'
@@ -88,7 +91,7 @@ export default function AddPropertyScreen() {
           style={[styles.optionCard, propertyType === 'house' && styles.optionCardSelected]}
           onPress={() => setPropertyType('house')}
         >
-          <Home size={32} color={propertyType === 'house' ? colors.accent : colors.textMuted} />
+          <Home size={32} color={propertyType === 'house' ? investorColors.accent : investorColors.textMuted} />
           <Text style={[styles.optionLabel, propertyType === 'house' && styles.optionLabelSelected]}>
             Casa
           </Text>
@@ -98,7 +101,7 @@ export default function AddPropertyScreen() {
           style={[styles.optionCard, propertyType === 'apartment' && styles.optionCardSelected]}
           onPress={() => setPropertyType('apartment')}
         >
-          <Building2 size={32} color={propertyType === 'apartment' ? colors.accent : colors.textMuted} />
+          <Building2 size={32} color={propertyType === 'apartment' ? investorColors.accent : investorColors.textMuted} />
           <Text style={[styles.optionLabel, propertyType === 'apartment' && styles.optionLabelSelected]}>
             Departamento
           </Text>
@@ -108,7 +111,7 @@ export default function AddPropertyScreen() {
           style={[styles.optionCard, propertyType === 'land' && styles.optionCardSelected]}
           onPress={() => setPropertyType('land')}
         >
-          <Map size={32} color={propertyType === 'land' ? colors.accent : colors.textMuted} />
+          <Map size={32} color={propertyType === 'land' ? investorColors.accent : investorColors.textMuted} />
           <Text style={[styles.optionLabel, propertyType === 'land' && styles.optionLabelSelected]}>
             Terreno
           </Text>
@@ -129,7 +132,7 @@ export default function AddPropertyScreen() {
         >
           {acquisitionType === 'inicio' && (
             <View style={styles.checkIcon}>
-              <Check size={16} color={colors.primary} />
+              <Check size={16} color={investorColors.primary} />
             </View>
           )}
           <Text style={[styles.listingOptionTitle, acquisitionType === 'inicio' && styles.listingOptionTitleSelected]}>
@@ -146,7 +149,7 @@ export default function AddPropertyScreen() {
         >
           {acquisitionType === 'external' && (
             <View style={styles.checkIcon}>
-              <Check size={16} color={colors.primary} />
+              <Check size={16} color={investorColors.primary} />
             </View>
           )}
           <Text style={[styles.listingOptionTitle, acquisitionType === 'external' && styles.listingOptionTitleSelected]}>
@@ -170,7 +173,7 @@ export default function AddPropertyScreen() {
         <TextInput
           style={styles.input}
           placeholder="Ej: Casa en Polanco"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={investorColors.textMuted}
           value={formData.title}
           onChangeText={(text) => setFormData({ ...formData, title: text })}
         />
@@ -179,11 +182,11 @@ export default function AddPropertyScreen() {
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Direccion</Text>
         <View style={styles.inputWithIcon}>
-          <MapPin size={20} color={colors.textMuted} />
+          <MapPin size={20} color={investorColors.textMuted} />
           <TextInput
             style={styles.inputInner}
             placeholder="Calle, numero, colonia"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={investorColors.textMuted}
             value={formData.address}
             onChangeText={(text) => setFormData({ ...formData, address: text })}
           />
@@ -195,7 +198,7 @@ export default function AddPropertyScreen() {
         <TextInput
           style={styles.input}
           placeholder="Ciudad"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={investorColors.textMuted}
           value={formData.city}
           onChangeText={(text) => setFormData({ ...formData, city: text })}
         />
@@ -206,11 +209,11 @@ export default function AddPropertyScreen() {
           <View style={[styles.formGroup, { flex: 1 }]}>
             <Text style={styles.inputLabel}>Recamaras</Text>
             <View style={styles.inputWithIcon}>
-              <Bed size={20} color={colors.textMuted} />
+              <Bed size={20} color={investorColors.textMuted} />
               <TextInput
                 style={styles.inputInner}
                 placeholder="0"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={investorColors.textMuted}
                 keyboardType="numeric"
                 value={formData.bedrooms}
                 onChangeText={(text) => setFormData({ ...formData, bedrooms: text })}
@@ -221,11 +224,11 @@ export default function AddPropertyScreen() {
           <View style={[styles.formGroup, { flex: 1 }]}>
             <Text style={styles.inputLabel}>Banos</Text>
             <View style={styles.inputWithIcon}>
-              <Bath size={20} color={colors.textMuted} />
+              <Bath size={20} color={investorColors.textMuted} />
               <TextInput
                 style={styles.inputInner}
                 placeholder="0"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={investorColors.textMuted}
                 keyboardType="numeric"
                 value={formData.bathrooms}
                 onChangeText={(text) => setFormData({ ...formData, bathrooms: text })}
@@ -245,11 +248,11 @@ export default function AddPropertyScreen() {
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Precio de compra</Text>
         <View style={styles.inputWithIcon}>
-          <DollarSign size={20} color={colors.textMuted} />
+          <DollarSign size={20} color={investorColors.textMuted} />
           <TextInput
             style={styles.inputInner}
             placeholder="0.00"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={investorColors.textMuted}
             keyboardType="numeric"
             value={formData.purchasePrice}
             onChangeText={(text) => setFormData({ ...formData, purchasePrice: text })}
@@ -261,16 +264,16 @@ export default function AddPropertyScreen() {
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Metros cuadrados</Text>
         <View style={styles.inputWithIcon}>
-          <Ruler size={20} color={colors.textMuted} />
+          <Ruler size={20} color={investorColors.textMuted} />
           <TextInput
             style={styles.inputInner}
             placeholder="0"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={investorColors.textMuted}
             keyboardType="numeric"
             value={formData.sqMeters}
             onChangeText={(text) => setFormData({ ...formData, sqMeters: text })}
           />
-          <Text style={styles.inputSuffix}>m²</Text>
+          <Text style={styles.inputSuffix}>m2</Text>
         </View>
       </View>
 
@@ -279,7 +282,7 @@ export default function AddPropertyScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Describe las caracteristicas de tu propiedad..."
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={investorColors.textMuted}
           multiline
           numberOfLines={4}
           value={formData.description}
@@ -297,7 +300,7 @@ export default function AddPropertyScreen() {
           style={styles.backButton}
           onPress={handleBack}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={investorColors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Agregar Propiedad</Text>
         <View style={styles.headerPlaceholder} />
@@ -346,7 +349,7 @@ export default function AddPropertyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -355,20 +358,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   headerPlaceholder: {
     width: 40,
@@ -379,18 +382,18 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.full,
   },
   progressText: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
@@ -409,11 +412,11 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   stepSubtitle: {
     fontSize: typography.body.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     marginTop: -spacing.sm,
   },
   optionsGrid: {
@@ -422,40 +425,40 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   optionCardSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent + '10',
+    borderColor: investorColors.accent,
+    backgroundColor: investorColors.accent + '15',
   },
   optionLabel: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     marginTop: spacing.sm,
     fontWeight: '500',
   },
   optionLabelSelected: {
-    color: colors.text,
+    color: investorColors.text,
   },
   listingOptions: {
     gap: spacing.md,
   },
   listingOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
     position: 'relative',
   },
   listingOptionSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent + '10',
+    borderColor: investorColors.accent,
+    backgroundColor: investorColors.accent + '15',
   },
   checkIcon: {
     position: 'absolute',
@@ -464,21 +467,21 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   listingOptionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   listingOptionTitleSelected: {
-    color: colors.primary,
+    color: investorColors.accent,
   },
   listingOptionDesc: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     marginTop: spacing.xs,
   },
   formGroup: {
@@ -491,35 +494,35 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '500',
-    color: colors.text,
+    color: investorColors.text,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   inputWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   inputInner: {
     flex: 1,
     padding: spacing.md,
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
   },
   inputSuffix: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   textArea: {
     height: 100,
@@ -528,20 +531,20 @@ const styles = StyleSheet.create({
   footer: {
     padding: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: investorColors.border,
   },
   continueButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
   },
   continueButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
   },
   continueButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
 })

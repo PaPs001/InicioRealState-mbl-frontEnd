@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { 
   User, 
   Mail, 
@@ -13,14 +13,40 @@ import {
   HelpCircle, 
   LogOut,
   ChevronRight,
-  Shield
 } from 'lucide-react-native'
 
 export default function ProfileScreen() {
   const { currentUser, logout, isClient, isAgent, isAdmin } = useAuth()
   const router = useRouter()
 
-  const isDark = isAgent || isAdmin
+  // Determinar si es inversionista para usar tema oscuro
+  const isInvestor = currentUser?.role === 'investor'
+  const isDark = isAgent || isAdmin || isInvestor
+
+  // Obtener colores segun el tipo de usuario
+  const getThemeColors = () => {
+    if (isInvestor) return clientThemes.investor
+    if (isAgent || isAdmin) return {
+      background: colors.primaryDark,
+      surface: colors.surfaceDark,
+      border: colors.borderDark,
+      text: colors.textLight,
+      textSecondary: colors.textMuted,
+      textMuted: colors.textMuted,
+      accent: colors.accent,
+    }
+    return {
+      background: colors.background,
+      surface: colors.surface,
+      border: colors.border,
+      text: colors.text,
+      textSecondary: colors.textSecondary,
+      textMuted: colors.textMuted,
+      accent: colors.accent,
+    }
+  }
+  
+  const theme = getThemeColors()
 
   const handleLogout = () => {
     Alert.alert(
@@ -51,53 +77,48 @@ export default function ProfileScreen() {
     }
   }
 
-  const containerStyle = isDark ? styles.containerDark : styles.container
-  const cardStyle = isDark ? styles.cardDark : styles.card
-  const textColor = isDark ? colors.textLight : colors.text
-  const textSecondaryColor = isDark ? colors.textMuted : colors.textSecondary
-
   return (
-    <SafeAreaView style={containerStyle} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Avatar y nombre */}
         <View style={styles.header}>
-          <View style={[styles.avatar, isDark && styles.avatarDark]}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, { backgroundColor: theme.accent }]}>
+            <Text style={[styles.avatarText, { color: theme.background }]}>
               {currentUser?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </Text>
           </View>
-          <Text style={[styles.userName, { color: textColor }]}>{currentUser?.name}</Text>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{getRoleLabel()}</Text>
+          <Text style={[styles.userName, { color: theme.text }]}>{currentUser?.name}</Text>
+          <View style={[styles.roleBadge, { backgroundColor: theme.accent + '20' }]}>
+            <Text style={[styles.roleText, { color: theme.accent }]}>{getRoleLabel()}</Text>
           </View>
         </View>
 
         {/* Informacion de contacto */}
-        <View style={cardStyle}>
-          <Text style={[styles.sectionTitle, { color: textColor }]}>Informacion de Contacto</Text>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Informacion de Contacto</Text>
           
           <View style={styles.infoRow}>
-            <Mail size={20} color={colors.accent} />
-            <Text style={[styles.infoText, { color: textSecondaryColor }]}>{currentUser?.email}</Text>
+            <Mail size={20} color={theme.accent} />
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{currentUser?.email}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Phone size={20} color={colors.accent} />
-            <Text style={[styles.infoText, { color: textSecondaryColor }]}>{currentUser?.phone}</Text>
+            <Phone size={20} color={theme.accent} />
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{currentUser?.phone}</Text>
           </View>
         </View>
 
         {/* Codigo de referido (solo clientes) */}
         {isClient && currentUser?.referralCode && (
-          <View style={cardStyle}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Codigo de Referido</Text>
-            <View style={styles.referralContainer}>
-              <Gift size={24} color={colors.accent} />
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Codigo de Referido</Text>
+            <View style={[styles.referralContainer, { backgroundColor: theme.background }]}>
+              <Gift size={24} color={theme.accent} />
               <View style={styles.referralContent}>
-                <Text style={[styles.referralCode, { color: colors.accent }]}>
+                <Text style={[styles.referralCode, { color: theme.accent }]}>
                   {currentUser.referralCode}
                 </Text>
-                <Text style={[styles.referralHint, { color: textSecondaryColor }]}>
+                <Text style={[styles.referralHint, { color: theme.textSecondary }]}>
                   Comparte tu codigo y gana recompensas
                 </Text>
               </View>
@@ -106,27 +127,27 @@ export default function ProfileScreen() {
         )}
 
         {/* Opciones de menu */}
-        <View style={cardStyle}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={styles.menuItem}>
-            <Bell size={20} color={colors.accent} />
-            <Text style={[styles.menuItemText, { color: textColor }]}>Notificaciones</Text>
-            <ChevronRight size={20} color={textSecondaryColor} />
+            <Bell size={20} color={theme.accent} />
+            <Text style={[styles.menuItemText, { color: theme.text }]}>Notificaciones</Text>
+            <ChevronRight size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
 
           <TouchableOpacity style={styles.menuItem}>
-            <FileText size={20} color={colors.accent} />
-            <Text style={[styles.menuItemText, { color: textColor }]}>Mis Documentos</Text>
-            <ChevronRight size={20} color={textSecondaryColor} />
+            <FileText size={20} color={theme.accent} />
+            <Text style={[styles.menuItemText, { color: theme.text }]}>Mis Documentos</Text>
+            <ChevronRight size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
 
           <TouchableOpacity style={styles.menuItem}>
-            <HelpCircle size={20} color={colors.accent} />
-            <Text style={[styles.menuItemText, { color: textColor }]}>Ayuda y Soporte</Text>
-            <ChevronRight size={20} color={textSecondaryColor} />
+            <HelpCircle size={20} color={theme.accent} />
+            <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
+            <ChevronRight size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -137,7 +158,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.version}>Version 1.0.0</Text>
+          <Text style={[styles.version, { color: theme.textMuted }]}>Version 1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -147,11 +168,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  containerDark: {
-    flex: 1,
-    backgroundColor: colors.primaryDark,
   },
   header: {
     alignItems: 'center',
@@ -161,17 +177,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  avatarDark: {
-    backgroundColor: colors.accent,
   },
   avatarText: {
     fontSize: typography.h2.fontSize,
     fontWeight: '700',
-    color: colors.primary,
   },
   userName: {
     fontSize: typography.h3.fontSize,
@@ -179,7 +190,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   roleBadge: {
-    backgroundColor: colors.accent + '20',
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
@@ -187,26 +197,14 @@ const styles = StyleSheet.create({
   },
   roleText: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.accent,
     fontWeight: '500',
   },
   card: {
-    backgroundColor: colors.surface,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardDark: {
-    backgroundColor: colors.surfaceDark,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
   },
   sectionTitle: {
     fontSize: typography.body.fontSize,
@@ -226,7 +224,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.background,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
   },
@@ -254,7 +251,6 @@ const styles = StyleSheet.create({
   },
   menuDivider: {
     height: 1,
-    backgroundColor: colors.border,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -278,6 +274,5 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
   },
 })

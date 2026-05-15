@@ -11,7 +11,10 @@ import {
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 import { mockProperties, formatCurrency } from '@/lib/mock-data'
 import { 
   ArrowLeft,
@@ -85,13 +88,13 @@ export default function ListPropertyScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={24} color={colors.text} />
+            <ArrowLeft size={24} color={investorColors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Enlistar Propiedad</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.emptyState}>
-          <AlertCircle size={48} color={colors.textMuted} />
+          <AlertCircle size={48} color={investorColors.textMuted} />
           <Text style={styles.emptyStateText}>Propiedad no encontrada</Text>
         </View>
       </SafeAreaView>
@@ -131,7 +134,7 @@ export default function ListPropertyScreen() {
         >
           {listingType === 'sale' && (
             <View style={styles.checkIcon}>
-              <Check size={16} color={colors.primary} />
+              <Check size={16} color={investorColors.primary} />
             </View>
           )}
           <Text style={[styles.listingOptionTitle, listingType === 'sale' && styles.listingOptionTitleSelected]}>
@@ -148,7 +151,7 @@ export default function ListPropertyScreen() {
         >
           {listingType === 'rent' && (
             <View style={styles.checkIcon}>
-              <Check size={16} color={colors.primary} />
+              <Check size={16} color={investorColors.primary} />
             </View>
           )}
           <Text style={[styles.listingOptionTitle, listingType === 'rent' && styles.listingOptionTitleSelected]}>
@@ -180,7 +183,7 @@ export default function ListPropertyScreen() {
           {listingType === 'sale' ? 'Precio de venta' : 'Renta mensual'}
         </Text>
         <View style={styles.inputWithIcon}>
-          <DollarSign size={20} color={colors.textMuted} />
+          <DollarSign size={20} color={investorColors.textMuted} />
           <TextInput
             style={styles.inputInner}
             placeholder="0.00"
@@ -213,7 +216,7 @@ export default function ListPropertyScreen() {
       </Text>
 
       <TouchableOpacity style={styles.photoButton}>
-        <Camera size={32} color={colors.accent} />
+        <Camera size={32} color={investorColors.accent} />
         <Text style={styles.photoButtonText}>Agregar fotos</Text>
         <Text style={styles.photoButtonSubtext}>Toca para seleccionar imagenes</Text>
       </TouchableOpacity>
@@ -230,7 +233,7 @@ export default function ListPropertyScreen() {
         onPress={() => setSkipPhotos(!skipPhotos)}
       >
         <View style={[styles.checkbox, skipPhotos && styles.checkboxSelected]}>
-          {skipPhotos && <Check size={14} color={colors.primary} />}
+          {skipPhotos && <Check size={14} color={investorColors.primary} />}
         </View>
         <Text style={styles.skipOptionText}>
           Omitir por ahora, los asesores se encargaran
@@ -250,7 +253,7 @@ export default function ListPropertyScreen() {
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Direccion completa</Text>
         <View style={styles.inputWithIcon}>
-          <MapPin size={20} color={colors.textMuted} />
+          <MapPin size={20} color={investorColors.textMuted} />
           <TextInput
             style={styles.inputInner}
             placeholder={property.address}
@@ -279,7 +282,7 @@ export default function ListPropertyScreen() {
 
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
-          <Home size={24} color={colors.accent} />
+          <Home size={24} color={investorColors.accent} />
           <Text style={styles.summaryTitle}>{property.title}</Text>
         </View>
 
@@ -296,7 +299,7 @@ export default function ListPropertyScreen() {
           <Text style={styles.summaryLabel}>
             {listingType === 'sale' ? 'Precio' : 'Renta mensual'}
           </Text>
-          <Text style={[styles.summaryValue, { color: colors.accent }]}>
+          <Text style={[styles.summaryValue, { color: investorColors.accent }]}>
             {formatCurrency(Number(price))}
             {listingType === 'rent' && '/mes'}
           </Text>
@@ -392,7 +395,7 @@ export default function ListPropertyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -401,20 +404,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   headerPlaceholder: {
     width: 40,
@@ -425,18 +428,18 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.full,
   },
   progressText: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
@@ -455,27 +458,27 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   stepSubtitle: {
     fontSize: typography.body.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     marginTop: -spacing.sm,
   },
   listingOptions: {
     gap: spacing.md,
   },
   listingOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
     position: 'relative',
   },
   listingOptionSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent + '10',
+    borderColor: investorColors.accent,
+    backgroundColor: investorColors.accent + '15',
   },
   checkIcon: {
     position: 'absolute',
@@ -484,21 +487,21 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   listingOptionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   listingOptionTitleSelected: {
-    color: colors.primary,
+    color: investorColors.accent,
   },
   listingOptionDesc: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     marginTop: spacing.xs,
   },
   formGroup: {
@@ -507,62 +510,62 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '500',
-    color: colors.text,
+    color: investorColors.text,
   },
   inputWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   inputInner: {
     flex: 1,
     padding: spacing.md,
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
   },
   inputSuffix: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   suggestionCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accent + '40',
+    borderColor: investorColors.accent + '40',
   },
   suggestionLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   suggestionValue: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.accent,
+    color: investorColors.accent,
     marginTop: spacing.xs,
   },
   photoButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.accent,
+    borderColor: investorColors.accent,
     borderStyle: 'dashed',
     gap: spacing.sm,
   },
   photoButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.accent,
+    color: investorColors.accent,
   },
   photoButtonSubtext: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   infoBox: {
     flexDirection: 'row',
@@ -583,55 +586,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   skipOptionSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent + '10',
+    borderColor: investorColors.accent,
+    backgroundColor: investorColors.accent + '15',
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxSelected: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: investorColors.accent,
+    borderColor: investorColors.accent,
   },
   skipOptionText: {
     flex: 1,
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
   },
   currentAddressCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   currentAddressLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   currentAddressValue: {
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.xs,
   },
   summaryCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -642,11 +645,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
     marginVertical: spacing.md,
   },
   summaryRow: {
@@ -657,19 +660,19 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: typography.body.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
   },
   summaryValue: {
     fontSize: typography.body.fontSize,
     fontWeight: '500',
-    color: colors.text,
+    color: investorColors.text,
     maxWidth: '60%',
     textAlign: 'right',
   },
   confirmQuestion: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
     textAlign: 'center',
   },
   confirmButtons: {
@@ -678,21 +681,21 @@ const styles = StyleSheet.create({
   },
   confirmButtonNo: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   confirmButtonNoText: {
     fontSize: typography.body.fontSize,
     fontWeight: '500',
-    color: colors.text,
+    color: investorColors.text,
   },
   confirmButtonYes: {
     flex: 1,
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
@@ -700,15 +703,15 @@ const styles = StyleSheet.create({
   confirmButtonYesText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
   footer: {
     padding: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: investorColors.border,
   },
   continueButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,s.accent,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
