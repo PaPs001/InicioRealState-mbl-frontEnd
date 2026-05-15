@@ -58,7 +58,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [suggestedProperties, setSuggestedProperties] = useState<Property[]>([])
   
-  // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
   const progressAnim = useRef(new Animated.Value(0)).current
