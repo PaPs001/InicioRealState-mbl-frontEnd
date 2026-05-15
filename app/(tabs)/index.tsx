@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, shadows, clientThemes, ClientRole } from '@/lib/theme'
 import { formatCurrency, mockActiveRental, mockUsers, mockProperties, formatDate } from '@/lib/mock-data'
 import { 
   Building2, 
@@ -86,6 +86,14 @@ export default function HomeScreen() {
   const isSearching = currentUser?.role === 'searching'
   const isTenant = currentUser?.role === 'tenant'
 
+  // Obtener tema segun el rol del cliente
+  const getClientRole = (): ClientRole => {
+    if (isInvestor) return 'investor'
+    if (isTenant) return 'tenant'
+    return 'searching'
+  }
+  const theme = isClient ? clientThemes[getClientRole()] : null
+
   // Subtitulo basado en el rol
   const getSubGreeting = () => {
     if (isInvestor) return 'Bienvenido a tu panel de inversiones'
@@ -134,9 +142,94 @@ export default function HomeScreen() {
   }
 
   // Panel de cliente - diferenciado por tipo
-  if (isClient) {
+  if (isClient && theme) {
+    // Estilos dinamicos para el tema del cliente
+    const dynamicStyles = {
+      container: {
+        flex: 1,
+        backgroundColor: theme.background,
+      },
+      greeting: {
+        fontSize: typography.h2.fontSize,
+        fontWeight: '700' as const,
+        color: theme.text,
+      },
+      subGreeting: {
+        fontSize: typography.bodySmall.fontSize,
+        color: theme.textSecondary,
+        marginTop: spacing.xs,
+      },
+      notificationButton: {
+        width: 44,
+        height: 44,
+        borderRadius: borderRadius.full,
+        backgroundColor: theme.surface,
+        justifyContent: 'center' as const,
+        alignItems: 'center' as const,
+        borderWidth: 1,
+        borderColor: theme.border,
+      },
+      sectionTitle: {
+        fontSize: typography.h4.fontSize,
+        fontWeight: '600' as const,
+        color: theme.text,
+        marginBottom: spacing.md,
+      },
+      quickAccessCard: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        backgroundColor: theme.surface,
+        borderRadius: borderRadius.lg,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
+        borderWidth: 1,
+        borderColor: theme.border,
+      },
+      quickAccessIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: borderRadius.lg,
+        backgroundColor: theme.primary + '15',
+        justifyContent: 'center' as const,
+        alignItems: 'center' as const,
+      },
+      quickAccessTitle: {
+        fontSize: typography.body.fontSize,
+        fontWeight: '600' as const,
+        color: theme.text,
+      },
+      quickAccessSubtitle: {
+        fontSize: typography.bodySmall.fontSize,
+        color: theme.textSecondary,
+        marginTop: 2,
+      },
+      statCard: {
+        flex: 1,
+        backgroundColor: theme.surface,
+        borderRadius: borderRadius.lg,
+        padding: spacing.md,
+        borderWidth: 1,
+        borderColor: theme.border,
+      },
+      statLabel: {
+        fontSize: typography.bodySmall.fontSize,
+        color: theme.textSecondary,
+      },
+      statValue: {
+        fontSize: typography.h3.fontSize,
+        fontWeight: '700' as const,
+        color: theme.text,
+        marginTop: spacing.xs,
+      },
+      statDescription: {
+        fontSize: typography.caption.fontSize,
+        color: theme.textMuted,
+        marginTop: 2,
+      },
+    }
+
     return (
-      <SafeAreaView style={styles.containerLight} edges={['bottom']}>
+      <SafeAreaView style={dynamicStyles.container} edges={['bottom']}>
         <ScrollView 
           style={styles.scrollView}
           refreshControl={
@@ -146,115 +239,115 @@ export default function HomeScreen() {
           {/* Saludo con boton de notificaciones */}
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <Text style={styles.greeting}>Hola, {currentUser?.name.split(' ')[0]}</Text>
-              <Text style={styles.subGreeting}>{getSubGreeting()}</Text>
+              <Text style={dynamicStyles.greeting}>Hola, {currentUser?.name.split(' ')[0]}</Text>
+              <Text style={dynamicStyles.subGreeting}>{getSubGreeting()}</Text>
             </View>
             <TouchableOpacity 
-              style={styles.notificationButton}
+              style={dynamicStyles.notificationButton}
               onPress={() => router.push('/notifications-screen')}
             >
-              <Bell size={24} color={colors.text} />
+              <Bell size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
 
           {/* Stats Cards - Solo para Inversionista */}
           {isInvestor && (
             <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
+              <View style={dynamicStyles.statCard}>
                 <View style={styles.statHeader}>
-                  <Text style={styles.statLabel}>Propiedades</Text>
-                  <Building2 size={20} color={colors.textMuted} />
+                  <Text style={dynamicStyles.statLabel}>Propiedades</Text>
+                  <Building2 size={20} color={theme.textMuted} />
                 </View>
-                <Text style={styles.statValue}>{userProperties.length}</Text>
-                <Text style={styles.statDescription}>En tu portafolio</Text>
+                <Text style={dynamicStyles.statValue}>{userProperties.length}</Text>
+                <Text style={dynamicStyles.statDescription}>En tu portafolio</Text>
               </View>
 
-              <View style={styles.statCard}>
+              <View style={dynamicStyles.statCard}>
                 <View style={styles.statHeader}>
-                  <Text style={styles.statLabel}>Valor Total</Text>
-                  <DollarSign size={20} color={colors.textMuted} />
+                  <Text style={dynamicStyles.statLabel}>Valor Total</Text>
+                  <DollarSign size={20} color={theme.textMuted} />
                 </View>
-                <Text style={styles.statValue}>{formatCurrency(totalValue)}</Text>
-                <Text style={styles.statDescription}>Valor actual</Text>
+                <Text style={dynamicStyles.statValue}>{formatCurrency(totalValue)}</Text>
+                <Text style={dynamicStyles.statDescription}>Valor actual</Text>
               </View>
 
-              <View style={styles.statCard}>
+              <View style={dynamicStyles.statCard}>
                 <View style={styles.statHeader}>
-                  <Text style={styles.statLabel}>Ganancias</Text>
-                  <TrendingUp size={20} color={colors.textMuted} />
+                  <Text style={dynamicStyles.statLabel}>Ganancias</Text>
+                  <TrendingUp size={20} color={theme.textMuted} />
                 </View>
-                <Text style={[styles.statValue, { color: colors.success }]}>
+                <Text style={[dynamicStyles.statValue, { color: colors.success }]}>
                   {formatCurrency(totalGains)}
                 </Text>
-                <Text style={styles.statDescription}>Plusvalia</Text>
+                <Text style={dynamicStyles.statDescription}>Plusvalia</Text>
               </View>
 
-              <View style={[styles.statCard, styles.statCardHighlight]}>
+              <View style={[dynamicStyles.statCard, { backgroundColor: theme.primary }]}>
                 <View style={styles.statHeader}>
-                  <Text style={[styles.statLabel, { color: colors.textMuted }]}>Proyeccion</Text>
-                  <TrendingUp size={20} color={colors.accent} />
+                  <Text style={[dynamicStyles.statLabel, { color: theme.textLight + '80' }]}>Proyeccion</Text>
+                  <TrendingUp size={20} color={theme.accent} />
                 </View>
-                <Text style={[styles.statValue, { color: colors.accent }]}>
+                <Text style={[dynamicStyles.statValue, { color: theme.accent }]}>
                   {formatCurrency(totalValue * 1.1)}
                 </Text>
-                <Text style={[styles.statDescription, { color: colors.textMuted }]}>Est. 1 ano</Text>
+                <Text style={[dynamicStyles.statDescription, { color: theme.textLight + '80' }]}>Est. 1 ano</Text>
               </View>
             </View>
           )}
 
           {/* Acceso rapido */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Acceso Rapido</Text>
+            <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
             
             {/* Inversionista: Ver propiedades, agregar, ganancias */}
             {isInvestor && (
               <>
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/my-properties-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Home size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Home size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Mis Propiedades</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Propiedades</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       {userProperties.length} propiedades en portafolio
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/add-property-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Plus size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Plus size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Agregar Propiedad</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Agregar Propiedad</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       Registra y monitorea tus inversiones
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/earnings-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <TrendingUp size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <TrendingUp size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Proyecciones</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Proyecciones</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       Ganancias potenciales de tus propiedades
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
               </>
             )}
@@ -263,67 +356,67 @@ export default function HomeScreen() {
             {isSearching && (
               <>
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/catalog-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Building2 size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Building2 size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Explorar Catalogo</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Explorar Catalogo</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       {availableProperties.length} propiedades disponibles
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/favorites-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Heart size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Heart size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Mis Favoritos</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Favoritos</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       Propiedades guardadas
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/appointments-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Calendar size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Calendar size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Mis Citas</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       {userAppointments.length} citas programadas
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.quickAccessCard}
+                  style={dynamicStyles.quickAccessCard}
                   onPress={() => router.push('/add-property-screen')}
                 >
-                  <View style={styles.quickAccessIcon}>
-                    <Plus size={24} color={colors.accent} />
+                  <View style={dynamicStyles.quickAccessIcon}>
+                    <Plus size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={styles.quickAccessTitle}>Agregar Propiedad</Text>
-                    <Text style={styles.quickAccessSubtitle}>
+                    <Text style={dynamicStyles.quickAccessTitle}>Agregar Propiedad</Text>
+                    <Text style={dynamicStyles.quickAccessSubtitle}>
                       Tienes una propiedad para vender?
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <ChevronRight size={20} color={theme.textMuted} />
                 </TouchableOpacity>
               </>
             )}
@@ -332,24 +425,24 @@ export default function HomeScreen() {
             {isTenant && tenantRental && tenantProperty && (
               <>
                 {/* Property Card */}
-                <View style={styles.tenantPropertyCard}>
-                  <View style={styles.tenantPropertyIcon}>
-                    <Home size={32} color={colors.accent} />
+                <View style={[styles.tenantPropertyCard, { backgroundColor: theme.primary }]}>
+                  <View style={[styles.tenantPropertyIcon, { backgroundColor: theme.primary + '80' }]}>
+                    <Home size={32} color={theme.accent} />
                   </View>
-                  <Text style={styles.tenantPropertyTitle}>{tenantProperty.title}</Text>
+                  <Text style={[styles.tenantPropertyTitle, { color: theme.textLight }]}>{tenantProperty.title}</Text>
                   <View style={styles.tenantLocationRow}>
-                    <MapPin size={16} color={colors.textMuted} />
-                    <Text style={styles.tenantLocationText}>{tenantProperty.address}, {tenantProperty.city}</Text>
+                    <MapPin size={16} color={theme.textLight + '80'} />
+                    <Text style={[styles.tenantLocationText, { color: theme.textLight + '80' }]}>{tenantProperty.address}, {tenantProperty.city}</Text>
                   </View>
                   
-                  <View style={styles.tenantRentInfo}>
+                  <View style={[styles.tenantRentInfo, { backgroundColor: theme.primary + '60' }]}>
                     <View style={styles.tenantRentItem}>
-                      <Text style={styles.tenantRentLabel}>Renta mensual</Text>
-                      <Text style={styles.tenantRentAmount}>{formatCurrency(tenantRental.monthlyRent)}</Text>
+                      <Text style={[styles.tenantRentLabel, { color: theme.textLight + '80' }]}>Renta mensual</Text>
+                      <Text style={[styles.tenantRentAmount, { color: theme.accent }]}>{formatCurrency(tenantRental.monthlyRent)}</Text>
                     </View>
-                    <View style={styles.tenantRentDivider} />
+                    <View style={[styles.tenantRentDivider, { backgroundColor: theme.textLight + '30' }]} />
                     <View style={styles.tenantRentItem}>
-                      <Text style={styles.tenantRentLabel}>Proximo pago</Text>
+                      <Text style={[styles.tenantRentLabel, { color: theme.textLight + '80' }]}>Proximo pago</Text>
                       <Text style={styles.tenantRentDays}>{daysUntilPayment} dias</Text>
                     </View>
                   </View>
@@ -357,22 +450,22 @@ export default function HomeScreen() {
 
                 {/* Contrato Info */}
                 <View style={styles.tenantSection}>
-                  <Text style={styles.tenantSectionTitle}>Contrato</Text>
-                  <View style={styles.tenantInfoCard}>
+                  <Text style={[styles.tenantSectionTitle, { color: theme.text }]}>Contrato</Text>
+                  <View style={[styles.tenantInfoCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                     <View style={styles.tenantInfoRow}>
-                      <Calendar size={18} color={colors.accent} />
-                      <Text style={styles.tenantInfoLabel}>Inicio:</Text>
-                      <Text style={styles.tenantInfoValue}>{formatDate(tenantRental.startDate)}</Text>
+                      <Calendar size={18} color={theme.primary} />
+                      <Text style={[styles.tenantInfoLabel, { color: theme.textMuted }]}>Inicio:</Text>
+                      <Text style={[styles.tenantInfoValue, { color: theme.text }]}>{formatDate(tenantRental.startDate)}</Text>
                     </View>
                     <View style={styles.tenantInfoRow}>
-                      <Clock size={18} color={colors.accent} />
-                      <Text style={styles.tenantInfoLabel}>Fin:</Text>
-                      <Text style={styles.tenantInfoValue}>{formatDate(tenantRental.endDate)}</Text>
+                      <Clock size={18} color={theme.primary} />
+                      <Text style={[styles.tenantInfoLabel, { color: theme.textMuted }]}>Fin:</Text>
+                      <Text style={[styles.tenantInfoValue, { color: theme.text }]}>{formatDate(tenantRental.endDate)}</Text>
                     </View>
                     <View style={styles.tenantInfoRow}>
-                      <Shield size={18} color={colors.accent} />
-                      <Text style={styles.tenantInfoLabel}>Deposito:</Text>
-                      <Text style={styles.tenantInfoValue}>{formatCurrency(tenantRental.depositAmount)}</Text>
+                      <Shield size={18} color={theme.primary} />
+                      <Text style={[styles.tenantInfoLabel, { color: theme.textMuted }]}>Deposito:</Text>
+                      <Text style={[styles.tenantInfoValue, { color: theme.text }]}>{formatCurrency(tenantRental.depositAmount)}</Text>
                     </View>
                   </View>
                 </View>
@@ -380,21 +473,21 @@ export default function HomeScreen() {
                 {/* Arrendador */}
                 {tenantLandlord && (
                   <View style={styles.tenantSection}>
-                    <Text style={styles.tenantSectionTitle}>Arrendador</Text>
-                    <View style={styles.tenantContactCard}>
+                    <Text style={[styles.tenantSectionTitle, { color: theme.text }]}>Arrendador</Text>
+                    <View style={[styles.tenantContactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                       <View style={styles.tenantContactHeader}>
-                        <View style={styles.tenantContactAvatar}>
-                          <User size={20} color={colors.accent} />
+                        <View style={[styles.tenantContactAvatar, { backgroundColor: theme.primary + '20' }]}>
+                          <User size={20} color={theme.primary} />
                         </View>
                         <View style={styles.tenantContactInfo}>
-                          <Text style={styles.tenantContactName}>{tenantLandlord.name}</Text>
-                          <Text style={styles.tenantContactRole}>Propietario</Text>
+                          <Text style={[styles.tenantContactName, { color: theme.text }]}>{tenantLandlord.name}</Text>
+                          <Text style={[styles.tenantContactRole, { color: theme.textMuted }]}>Propietario</Text>
                         </View>
                         <TouchableOpacity 
-                          style={styles.tenantCallButton}
+                          style={[styles.tenantCallButton, { backgroundColor: theme.primary + '15' }]}
                           onPress={() => handleCall(tenantLandlord.phone)}
                         >
-                          <Phone size={18} color={colors.accent} />
+                          <Phone size={18} color={theme.primary} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -404,21 +497,21 @@ export default function HomeScreen() {
                 {/* Asesor */}
                 {tenantAgent && (
                   <View style={styles.tenantSection}>
-                    <Text style={styles.tenantSectionTitle}>Asesor</Text>
-                    <View style={styles.tenantContactCard}>
+                    <Text style={[styles.tenantSectionTitle, { color: theme.text }]}>Asesor</Text>
+                    <View style={[styles.tenantContactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                       <View style={styles.tenantContactHeader}>
-                        <View style={[styles.tenantContactAvatar, { backgroundColor: colors.info + '20' }]}>
-                          <User size={20} color={colors.info} />
+                        <View style={[styles.tenantContactAvatar, { backgroundColor: theme.accent + '20' }]}>
+                          <User size={20} color={theme.accent} />
                         </View>
                         <View style={styles.tenantContactInfo}>
-                          <Text style={styles.tenantContactName}>{tenantAgent.name}</Text>
-                          <Text style={styles.tenantContactRole}>Asesor Inicio</Text>
+                          <Text style={[styles.tenantContactName, { color: theme.text }]}>{tenantAgent.name}</Text>
+                          <Text style={[styles.tenantContactRole, { color: theme.textMuted }]}>Asesor Inicio</Text>
                         </View>
                         <TouchableOpacity 
-                          style={styles.tenantCallButton}
+                          style={[styles.tenantCallButton, { backgroundColor: theme.accent + '15' }]}
                           onPress={() => handleCall(tenantAgent.phone)}
                         >
-                          <Phone size={18} color={colors.accent} />
+                          <Phone size={18} color={theme.accent} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -427,51 +520,51 @@ export default function HomeScreen() {
 
                 {/* Servicios */}
                 <View style={styles.tenantSection}>
-                  <Text style={styles.tenantSectionTitle}>Servicios</Text>
+                  <Text style={[styles.tenantSectionTitle, { color: theme.text }]}>Servicios</Text>
                   <View style={styles.tenantServicesGrid}>
                     <TouchableOpacity 
-                      style={styles.tenantServiceCard}
+                      style={[styles.tenantServiceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                       onPress={() => handleCall(tenantRental.utilities.electricity.phone)}
                     >
                       <View style={[styles.tenantServiceIcon, { backgroundColor: colors.warning + '20' }]}>
                         <Zap size={20} color={colors.warning} />
                       </View>
-                      <Text style={styles.tenantServiceName}>Luz</Text>
-                      <Text style={styles.tenantServiceProvider}>{tenantRental.utilities.electricity.provider}</Text>
+                      <Text style={[styles.tenantServiceName, { color: theme.text }]}>Luz</Text>
+                      <Text style={[styles.tenantServiceProvider, { color: theme.textMuted }]}>{tenantRental.utilities.electricity.provider}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
-                      style={styles.tenantServiceCard}
+                      style={[styles.tenantServiceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                       onPress={() => handleCall(tenantRental.utilities.water.phone)}
                     >
                       <View style={[styles.tenantServiceIcon, { backgroundColor: colors.info + '20' }]}>
                         <Droplets size={20} color={colors.info} />
                       </View>
-                      <Text style={styles.tenantServiceName}>Agua</Text>
-                      <Text style={styles.tenantServiceProvider}>{tenantRental.utilities.water.provider}</Text>
+                      <Text style={[styles.tenantServiceName, { color: theme.text }]}>Agua</Text>
+                      <Text style={[styles.tenantServiceProvider, { color: theme.textMuted }]}>{tenantRental.utilities.water.provider}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
-                      style={styles.tenantServiceCard}
+                      style={[styles.tenantServiceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                       onPress={() => handleCall(tenantRental.utilities.gas.phone)}
                     >
                       <View style={[styles.tenantServiceIcon, { backgroundColor: colors.error + '20' }]}>
                         <Flame size={20} color={colors.error} />
                       </View>
-                      <Text style={styles.tenantServiceName}>Gas</Text>
-                      <Text style={styles.tenantServiceProvider}>{tenantRental.utilities.gas.provider}</Text>
+                      <Text style={[styles.tenantServiceName, { color: theme.text }]}>Gas</Text>
+                      <Text style={[styles.tenantServiceProvider, { color: theme.textMuted }]}>{tenantRental.utilities.gas.provider}</Text>
                     </TouchableOpacity>
 
                     {tenantRental.utilities.internet && (
                       <TouchableOpacity 
-                        style={styles.tenantServiceCard}
+                        style={[styles.tenantServiceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                         onPress={() => handleCall(tenantRental.utilities.internet!.phone)}
                       >
                         <View style={[styles.tenantServiceIcon, { backgroundColor: colors.success + '20' }]}>
                           <Wifi size={20} color={colors.success} />
                         </View>
-                        <Text style={styles.tenantServiceName}>Internet</Text>
-                        <Text style={styles.tenantServiceProvider}>{tenantRental.utilities.internet.provider}</Text>
+                        <Text style={[styles.tenantServiceName, { color: theme.text }]}>Internet</Text>
+                        <Text style={[styles.tenantServiceProvider, { color: theme.textMuted }]}>{tenantRental.utilities.internet.provider}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -479,12 +572,12 @@ export default function HomeScreen() {
 
                 {/* Reglas */}
                 <View style={styles.tenantSection}>
-                  <Text style={styles.tenantSectionTitle}>Reglas del Inmueble</Text>
-                  <View style={styles.tenantRulesCard}>
+                  <Text style={[styles.tenantSectionTitle, { color: theme.text }]}>Reglas del Inmueble</Text>
+                  <View style={[styles.tenantRulesCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                     {tenantRental.rules.map((rule, index) => (
                       <View key={index} style={styles.tenantRuleItem}>
-                        <AlertCircle size={14} color={colors.accent} />
-                        <Text style={styles.tenantRuleText}>{rule}</Text>
+                        <AlertCircle size={14} color={theme.primary} />
+                        <Text style={[styles.tenantRuleText, { color: theme.text }]}>{rule}</Text>
                       </View>
                     ))}
                   </View>
@@ -495,9 +588,9 @@ export default function HomeScreen() {
             {/* Inquilino sin renta activa */}
             {isTenant && !tenantRental && (
               <View style={styles.tenantEmptyState}>
-                <Home size={48} color={colors.textMuted} />
-                <Text style={styles.tenantEmptyTitle}>Sin renta activa</Text>
-                <Text style={styles.tenantEmptyText}>
+                <Home size={48} color={theme.textMuted} />
+                <Text style={[styles.tenantEmptyTitle, { color: theme.text }]}>Sin renta activa</Text>
+                <Text style={[styles.tenantEmptyText, { color: theme.textMuted }]}>
                   No tienes una renta activa en este momento
                 </Text>
               </View>
