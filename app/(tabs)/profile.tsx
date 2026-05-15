@@ -1,8 +1,10 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+import RegisterTransition from '@/app/components/Animations/register-transition'
 import { 
   User, 
   Mail, 
@@ -25,6 +27,7 @@ import {
 export default function ProfileScreen() {
   const { currentUser, logout, isClient, isAgent, isAdmin } = useAuth()
   const router = useRouter()
+  const [showLogoutTransition, setShowLogoutTransition] = useState(false)
 
   // Determinar si es inversionista para usar tema oscuro
   const isInvestor = currentUser?.role === 'investor'
@@ -64,12 +67,33 @@ export default function ProfileScreen() {
         { 
           text: 'Cerrar Sesion', 
           style: 'destructive',
-          onPress: async () => {
-            await logout()
-            router.replace('/login')
+          onPress: () => {
+            if (isInvestor) {
+              // Mostrar pantalla de transicion para inversionista
+              setShowLogoutTransition(true)
+            } else {
+              // Logout directo para otros usuarios
+              logout()
+              router.replace('/login')
+            }
           }
         }
       ]
+    )
+  }
+
+  const handleLogoutComplete = async () => {
+    await logout()
+    router.replace('/login')
+  }
+
+  // Mostrar pantalla de transicion si esta cerrando sesion
+  if (showLogoutTransition && isInvestor) {
+    return (
+      <RegisterTransition 
+        durationMs={1500} 
+        onComplete={handleLogoutComplete} 
+      />
     )
   }
 

@@ -324,11 +324,9 @@ export default function OwnerForm() {
           </Animated.View>
         )
 
-      // Pantalla de busqueda (loader)
-      case -1: // Este caso se maneja con isSearching
+      case -1: 
         return null
 
-      // Propiedades encontradas
       case 6:
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -382,7 +380,6 @@ export default function OwnerForm() {
           </Animated.View>
         )
 
-      // Pantalla de beneficios (usuario nuevo)
       case 8:
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -436,7 +433,6 @@ export default function OwnerForm() {
     }
   }
 
-  // Pantalla de busqueda de propiedades
   if (isSearching) {
     return (
       <View style={styles.container}>
@@ -532,7 +528,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   backgroundLogo: {
-    opacity: 0.06,
+    opacity: .4,
   },
   scrollContent: {
     flexGrow: 1,
