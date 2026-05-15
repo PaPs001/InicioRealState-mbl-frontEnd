@@ -12,25 +12,25 @@ import {
   Platform,
   ScrollView,
 } from 'react-native'
-import { spacing, typography, borderRadius } from '@/lib/theme'
+import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { ArrowLeft, Check, Building2, Plus, ChevronRight } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import LogoInicio from '@/app/assets/LogoInicioSVGNegro.svg'
+import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 const { width, height } = Dimensions.get('window')
 
-// Colores exclusivos para inversionistas - Negro y Dorado gastado
+// Colores exclusivos para inversionistas - Azul profundo elegante y Dorado
 const investorColors = {
-  background: '#0a0a0a',
-  surface: '#1a1a1a',
-  surfaceLight: '#252525',
-  gold: '#c9a227',
+  background: clientThemes.investor.background,
+  surface: clientThemes.investor.surface,
+  surfaceLight: clientThemes.investor.surfaceLight,
+  gold: clientThemes.investor.accent,
   goldMuted: '#8b7355',
-  goldLight: '#d4af37',
-  text: '#f5f5f5',
-  textSecondary: '#a0a0a0',
-  textMuted: '#666666',
-  border: '#333333',
+  goldLight: clientThemes.investor.accentLight,
+  text: clientThemes.investor.text,
+  textSecondary: clientThemes.investor.textSecondary,
+  textMuted: clientThemes.investor.textMuted,
+  border: clientThemes.investor.border,
   success: '#4ade80',
   error: '#ef4444',
 }
@@ -442,7 +442,7 @@ export default function OwnerForm() {
       <View style={styles.container}>
         <View style={styles.searchingContainer}>
           <Animated.View style={[styles.searchingLogo, { transform: [{ scale: pulseAnim }] }]}>
-            <LogoInicio width={80} height={80} />
+            <LogoGris width={80} height={80} />
           </Animated.View>
           
           <Text style={styles.searchingTitle}>Buscando tus propiedades...</Text>
@@ -474,7 +474,7 @@ export default function OwnerForm() {
           </TouchableOpacity>
 
           <Animated.View style={[styles.logoWrapper, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
-            <LogoInicio width={120} height={40} />
+            <LogoGris width={120} height={40} />
           </Animated.View>
         </View>
 
