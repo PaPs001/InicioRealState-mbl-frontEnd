@@ -36,11 +36,13 @@ export default function TabsLayout() {
   const clientTheme = isClient ? clientThemes[getClientRole()] : null
   
   // Colores basados en el tipo de usuario
+  const isInvestor = currentUser?.role === 'investor'
   const tabBarBg = isClient && clientTheme ? clientTheme.surface : colors.primaryDark
-  const tabBarActive = isClient && clientTheme ? clientTheme.primary : colors.accent
+  const tabBarActive = isInvestor ? clientTheme?.accent : (isClient && clientTheme ? clientTheme.primary : colors.accent)
   const tabBarInactive = isClient && clientTheme ? clientTheme.textMuted : colors.textMuted
   const headerBg = isClient && clientTheme ? clientTheme.primary : colors.primaryDark
   const tabBarBorder = isClient && clientTheme ? clientTheme.border : colors.borderDark
+  const sceneBg = isClient && clientTheme ? clientTheme.background : colors.primaryDark
 
   const renderTabIcon = (routeName: string, size: number, color: string) => {
     switch (routeName) {
@@ -73,6 +75,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      sceneContainerStyle={{ backgroundColor: sceneBg }}
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: tabBarActive,
         tabBarInactiveTintColor: tabBarInactive,
