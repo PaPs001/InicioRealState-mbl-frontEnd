@@ -160,6 +160,11 @@ export default function LoginScreen() {
               <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
             </TouchableOpacity>
           </View>
+          <View>
+            <TouchableOpacity>
+              
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.quickAccessContainer}>
             <Text style={styles.quickAccessLabelLight}>Acceso rapido (Demo)</Text>
