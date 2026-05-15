@@ -1,22 +1,18 @@
 import { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native'
+import { View, StyleSheet, Animated, Easing } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { spacing, typography, clientThemes } from '@/lib/theme'
+import { clientThemes } from '@/lib/theme'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 // Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor
 
 type RegisterTransitionProps = {
-  title?: string
-  subtitle?: string
   durationMs?: number
   onComplete?: () => void | Promise<void>
 }
 
 export default function RegisterTransition({
-  title = 'Perfil listo',
-  subtitle = 'Estamos preparando tu sesion de inversionista.',
   durationMs = 3000,
   onComplete,
 }: RegisterTransitionProps) {
@@ -104,9 +100,6 @@ export default function RegisterTransition({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Glow de fondo dorado sutil */}
-      <View style={styles.backgroundGlow} />
-      
       <Animated.View
         style={[
           styles.content,
@@ -116,7 +109,7 @@ export default function RegisterTransition({
           },
         ]}
       >
-        {/* Logo con animaciones de pulse y fade */}
+        {/* Logo grande con animaciones de pulse y fade */}
         <Animated.View
           style={[
             styles.logoContainer,
@@ -126,23 +119,7 @@ export default function RegisterTransition({
             },
           ]}
         >
-          <LogoGris width={180} height={60} />
-        </Animated.View>
-        
-        {/* Texto */}
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        
-        {/* Indicador de carga */}
-        <Animated.View 
-          style={[
-            styles.loadingDots,
-            { opacity: fadeLoopAnim }
-          ]}
-        >
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+          <LogoGris width={280} height={95} />
         </Animated.View>
       </Animated.View>
     </SafeAreaView>
@@ -155,45 +132,13 @@ const styles = StyleSheet.create({
     backgroundColor: investorColors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  backgroundGlow: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 999,
-    backgroundColor: investorColors.accent,
-    opacity: 0.08,
   },
   content: {
     alignItems: 'center',
-    gap: spacing.lg,
+    justifyContent: 'center',
   },
   logoContainer: {
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: investorColors.text,
-    fontSize: typography.h2.fontSize,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: investorColors.textSecondary,
-    fontSize: typography.body.fontSize,
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: spacing.xl,
-  },
-  loadingDots: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: investorColors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
