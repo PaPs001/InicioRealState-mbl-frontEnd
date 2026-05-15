@@ -29,9 +29,9 @@ import {
   MapPin,
 } from 'lucide-react-native'
 import { useAuth } from '@/contexts/AuthContext'
-import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+import { spacing, typography, borderRadius, clientThemes, colors } from '@/lib/theme'
 import type { Property } from '@/lib/types'
-import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
 
 const { width } = Dimensions.get('window')
 
@@ -462,7 +462,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const renderLoading = () => (
     <View style={styles.loadingContainer}>
       <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <LogoGris width={280} height={95} />
+        <LogoNegro width={280} height={95} />
       </Animated.View>
 
       <Text style={styles.loadingText}>Buscando las mejores opciones...</Text>

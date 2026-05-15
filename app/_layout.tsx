@@ -11,11 +11,31 @@ import { Platform, View } from 'react-native'
 function RootNavigator() {
   const { currentUser, isClient } = useAuth()
   
-  // Determinar si es inversionista
-  const isInvestor = currentUser?.role === 'investor'
+  // Determinar tipo de usuario
+  const userRole = currentUser?.role
+  const isInvestor = userRole === 'investor'
+  const isAdvisor = userRole === 'advisor' || userRole === 'coordinator'
+  
+  // Usuarios con fondo oscuro: inversionista y asesor
+  // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)
+  const isDarkTheme = isInvestor || isAdvisor
   
   // Color de fondo basado en el tipo de usuario
-  const backgroundColor = isInvestor ? clientThemes.investor.background : colors.primaryDark
+  let backgroundColor = colors.background // Default claro para login/registro
+  
+  if (currentUser) {
+    if (isInvestor) {
+      backgroundColor = clientThemes.investor.background
+    } else if (isAdvisor) {
+      backgroundColor = clientThemes.advisor.background
+    } else if (userRole === 'tenant') {
+      backgroundColor = clientThemes.tenant.background
+    } else if (userRole === 'searching') {
+      backgroundColor = clientThemes.searching.background
+    } else {
+      backgroundColor = colors.background
+    }
+  }
   
   const navigationTheme = {
     ...DefaultTheme,
@@ -24,8 +44,8 @@ function RootNavigator() {
       background: backgroundColor,
       card: backgroundColor,
       border: backgroundColor,
-      primary: isInvestor ? clientThemes.investor.accent : colors.accent,
-      text: isInvestor ? clientThemes.investor.text : colors.textLight,
+      primary: isInvestor ? clientThemes.investor.accent : isAdvisor ? clientThemes.advisor.accent : colors.accent,
+      text: isDarkTheme ? colors.textLight : colors.text,
     },
   }
 
@@ -34,7 +54,7 @@ function RootNavigator() {
       try {
         if (Platform.OS === 'android') {
           await NavigationBar.setBackgroundColorAsync(backgroundColor);
-          await NavigationBar.setButtonStyleAsync('light');
+          await NavigationBar.setButtonStyleAsync(isDarkTheme ? 'light' : 'dark');
           await NavigationBar.setVisibilityAsync('hidden');
           await NavigationBar.setBehaviorAsync('overlay-swipe');
         }
@@ -43,12 +63,12 @@ function RootNavigator() {
       }
     }
     setupNavigationBar()
-  }, [backgroundColor]);
+  }, [backgroundColor, isDarkTheme]);
 
   return (
     <ThemeProvider value={navigationTheme}>
       <View style={{ flex: 1, backgroundColor }}>
-        <StatusBar hidden={true} style="light" />
+        <StatusBar hidden={true} style={isDarkTheme ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,
@@ -57,8 +77,30 @@ function RootNavigator() {
             animationDuration: 150,
           }}
         >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="login" />
+          <Stack.Screen 
+            name="index" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="login" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="create-account" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="registerScreen" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen 
             name="property/[id]" 
@@ -119,6 +161,12 @@ function RootNavigator() {
           />
           <Stack.Screen 
             name="notifications-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="campaigns-screen" 
             options={{ 
               contentStyle: { backgroundColor },
             }} 

@@ -48,8 +48,36 @@ export const colors = {
 
 // Temas por tipo de cliente
 export const clientThemes = {
-  // Usuario buscando propiedad (verde, blanco, tonos cálidos)
+  // Usuario buscando propiedad (colores originales claros)
   searching: {
+    primary: '#083b52',
+    secondary: '#0c74af',
+    accent: '#0c74af',
+    background: '#f5f1ec',
+    surface: '#ffffff',
+    border: '#e5e0d8',
+    text: '#202c38',
+    textSecondary: '#5a6673',
+    textMuted: '#8a949e',
+    textLight: '#f5f1ec',
+  },
+  
+  // Usuario inversionista (negro y dorado)
+  investor: {
+    primary: '#0a0a0a',
+    secondary: '#1a1a1a',
+    accent: '#c9a227',
+    background: '#0a0a0a',
+    surface: '#1a1a1a',
+    border: '#2a2a2a',
+    text: '#f5f1ec',
+    textSecondary: '#a0a0a0',
+    textMuted: '#707070',
+    textLight: '#f5f1ec',
+  },
+  
+  // Usuario inquilino (verde, blanco, tonos calidos)
+  tenant: {
     primary: '#2d5a3d',
     secondary: '#3d7a50',
     accent: '#2d5a3d',
@@ -64,32 +92,18 @@ export const clientThemes = {
     warmLight: '#f5efe6',
   },
   
-  // Usuario inversionista (negro y dorado - igual que registro)
-  investor: {
-    primary: '#0a0a0a',
-    secondary: '#1a1a1a',
-    accent: '#c9a227',
-    background: '#0a0a0a',
-    surface: '#1a1a1a',
-    border: '#2a2a2a',
-    text: '#f5f1ec',
-    textSecondary: '#a0a0a0',
-    textMuted: '#707070',
-    textLight: '#f5f1ec',
-  },
-  
-  // Usuario inquilino
-  tenant: {
-    primary: '#3d5a40',
-    secondary: '#907a63',
-    accent: '#907a63',
-    background: '#f5f1ec',
-    surface: '#ffffff',
-    border: '#e5e0d8',
-    text: '#202c38',
-    textSecondary: '#5a6673',
-    textMuted: '#8a949e',
-    textLight: '#f5f1ec',
+  // Asesor (fondo oscuro azul)
+  advisor: {
+    primary: '#0c1427',
+    secondary: '#1f2b38',
+    accent: '#cbb375',
+    background: '#0c1427',
+    surface: '#1f2b38',
+    border: '#3a4857',
+    text: '#e5e5e5',
+    textSecondary: '#9ca3af',
+    textMuted: '#6b7280',
+    textLight: '#e5e5e5',
   },
 }
 
