@@ -20,13 +20,13 @@ import {
   Eye, 
   EyeOff, 
   ArrowLeft,
-  MapPin,
   Home,
   Key,
   Search,
   ChevronRight,
   Check,
   Building2,
+  MapPin,
 } from 'lucide-react-native'
 import { useAuth } from '@/contexts/AuthContext'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
@@ -55,7 +55,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     email: '',
     phone: '',
     password: '',
-    location: '',
     searchType: '' as 'buy' | 'rent' | '',
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -71,16 +70,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     new Animated.Value(0),
     new Animated.Value(0),
   ]).current
-
-  // Ubicaciones sugeridas
-  const suggestedLocations = [
-    'Ciudad de Mexico',
-    'Monterrey',
-    'Guadalajara',
-    'Merida',
-    'Queretaro',
-    'Cancun',
-  ]
 
   const steps: Step[] = ['name', 'email', 'phone', 'password', 'search-preferences', 'loading', 'suggestions']
   const currentStepIndex = steps.indexOf(step)
@@ -160,26 +149,19 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
 
       // Simular búsqueda y pasar a sugerencias
       const timer = setTimeout(() => {
-        // Filtrar propiedades según preferencias
-        let filtered = mockProperties.filter(p => {
-          if (formData.searchType === 'rent') {
-            return p.status === 'for_rent' || p.status === 'available'
-          } else if (formData.searchType === 'buy') {
-            return p.status === 'for_sale' || p.status === 'available'
-          }
-          return true
-        })
+        // Filtrar propiedades disponibles según preferencias (renta o venta)
+        const availableProperties = mockProperties.filter(p => 
+          p.status === 'for_rent' || p.status === 'for_sale' || p.status === 'available'
+        )
         
-        // Si hay ubicación, filtrar por ciudad
-        if (formData.location) {
-          const locationLower = formData.location.toLowerCase()
-          filtered = filtered.filter(p => 
-            p.city?.toLowerCase().includes(locationLower) ||
-            p.address?.toLowerCase().includes(locationLower)
-          )
+        let filtered = availableProperties
+        if (formData.searchType === 'rent') {
+          filtered = availableProperties.filter(p => p.status === 'for_rent' || p.status === 'available')
+        } else if (formData.searchType === 'buy') {
+          filtered = availableProperties.filter(p => p.status === 'for_sale' || p.status === 'available')
         }
 
-        // Tomar las primeras 3-4 propiedades
+        // Tomar las primeras 4 propiedades del catálogo real
         setSuggestedProperties(filtered.slice(0, 4))
         setStep('suggestions')
       }, 2500)
@@ -468,47 +450,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         </TouchableOpacity>
       </View>
 
-      {/* Input de ubicación */}
-      <View style={styles.locationSection}>
-        <Text style={styles.locationLabel}>Donde te gustaria buscar?</Text>
-        <View style={styles.locationInputWrapper}>
-          <MapPin size={20} color={theme.textMuted} />
-          <TextInput
-            style={styles.locationInput}
-            placeholder="Ciudad, zona o colonia..."
-            placeholderTextColor={theme.textMuted}
-            value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
-          />
-          {formData.location && (
-            <TouchableOpacity onPress={() => setFormData({ ...formData, location: '' })}>
-              <Text style={styles.clearButton}>Limpiar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Sugerencias de ubicación */}
-        <View style={styles.suggestedLocations}>
-          {suggestedLocations.slice(0, 4).map((loc) => (
-            <TouchableOpacity
-              key={loc}
-              style={[
-                styles.locationChip,
-                formData.location === loc && styles.locationChipSelected,
-              ]}
-              onPress={() => setFormData({ ...formData, location: loc })}
-            >
-              <Text style={[
-                styles.locationChipText,
-                formData.location === loc && styles.locationChipTextSelected,
-              ]}>
-                {loc}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       <View style={styles.preferencesButtons}>
         <TouchableOpacity
           style={[styles.continueButton, !canContinue() && styles.continueButtonDisabled]}
@@ -560,7 +501,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
 
       <Text style={styles.loadingSubtext}>
         {formData.searchType === 'buy' ? 'Propiedades en venta' : 'Propiedades en renta'}
-        {formData.location ? ` en ${formData.location}` : ''}
       </Text>
     </View>
   )
@@ -848,64 +788,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  locationSection: {
-    gap: spacing.sm,
-  },
-  locationLabel: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    color: theme.text,
-  },
-  locationInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.surface,
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: theme.border,
-    gap: spacing.sm,
-  },
-  locationInput: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    fontSize: typography.body.fontSize,
-    color: theme.text,
-  },
-  clearButton: {
-    fontSize: typography.caption.fontSize,
-    color: theme.primary,
-    fontWeight: '500',
-  },
-  suggestedLocations: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  locationChip: {
-    backgroundColor: theme.warmLight,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: theme.warm,
-  },
-  locationChipSelected: {
-    backgroundColor: theme.primary,
-    borderColor: theme.primary,
-  },
-  locationChipText: {
-    fontSize: typography.caption.fontSize,
-    color: theme.warm,
-    fontWeight: '500',
-  },
-  locationChipTextSelected: {
-    color: theme.textLight,
-  },
   preferencesButtons: {
     gap: spacing.md,
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
   },
   skipButton: {
     alignItems: 'center',
