@@ -35,7 +35,6 @@ import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
 
 const { width } = Dimensions.get('window')
 
-// Colores del tema buscador (verde, blanco, tonos cálidos)
 const theme = clientThemes.searching
 
 interface BuyerFormProps {
@@ -48,7 +47,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const router = useRouter()
   const { setCurrentUser, availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = useAuth()
   
-  // Estados del formulario
   const [step, setStep] = useState<Step>('name')
   const [formData, setFormData] = useState({
     name: '',
@@ -68,10 +66,9 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
 
   const steps: Step[] = ['name', 'email', 'phone', 'password', 'search-preferences', 'loading', 'suggestions']
   const currentStepIndex = steps.indexOf(step)
-  const totalSteps = 5 // Solo contamos hasta search-preferences para el progreso
+  const totalSteps = 5 
 
   useEffect(() => {
-    // Animación de entrada
     fadeAnim.setValue(0)
     slideAnim.setValue(30)
     
@@ -89,7 +86,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       }),
     ]).start()
 
-    // Actualizar barra de progreso
     const progress = Math.min(currentStepIndex + 1, totalSteps) / totalSteps
     Animated.timing(progressAnim, {
       toValue: progress,
@@ -98,10 +94,8 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     }).start()
   }, [step])
 
-  // Animación de carga
   useEffect(() => {
     if (step === 'loading') {
-      // Pulso del logo
       const pulseLoop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -118,7 +112,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       )
       pulseLoop.start()
 
-      // Cargar propiedades del catálogo real
       const loadAndFilter = async () => {
         await loadCatalogProperties()
       }
@@ -131,12 +124,9 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     }
   }, [step])
 
-  // Efecto separado para filtrar propiedades cuando estén cargadas
   useEffect(() => {
     if (step === 'loading' && hasLoadedCatalog && !isCatalogLoading) {
-      // Esperar un momento para la animación
       const timer = setTimeout(() => {
-        // Usar availableProperties del contexto
         let filtered = [...availableProperties]
         
         if (formData.searchType === 'rent') {
@@ -145,7 +135,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
           filtered = filtered.filter(p => p.status === 'for_sale' || p.status === 'available')
         }
 
-        // Tomar las primeras 4 propiedades del catálogo real
         setSuggestedProperties(filtered.slice(0, 4))
         setStep('suggestions')
       }, 2500)
@@ -196,7 +185,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handleSkipPreferences = () => {
-    // Ir directo al dashboard sin preferencias
     completeRegistration()
   }
 
@@ -214,7 +202,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handlePropertySelect = (propertyId: string) => {
-    // Completar registro y navegar al dashboard, luego a la propiedad
     setCurrentUser({
       id: 'new-buyer',
       name: formData.name,
@@ -224,12 +211,10 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       avatar: undefined,
       createdAt: new Date().toISOString(),
     })
-    // Navegar al dashboard (tabs) y luego redirigir a la propiedad
     router.replace(`/(tabs)/catalog`)
   }
 
   const handleExploreAll = () => {
-    // Completar registro y navegar al catálogo dentro del dashboard
     setCurrentUser({
       id: 'new-buyer',
       name: formData.name,
