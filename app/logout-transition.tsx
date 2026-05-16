@@ -1,18 +1,36 @@
 import { useEffect } from 'react'
 import { View, StyleSheet, Animated } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
-import { clientThemes } from '@/lib/theme'
+import { clientThemes, colors } from '@/lib/theme'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
 
 export default function LogoutTransition() {
   const router = useRouter()
   const { logout } = useAuth()
+  const { role } = useLocalSearchParams<{ role: string }>()
   const pulseAnim = new Animated.Value(1)
-  const theme = clientThemes.investor
+
+  // Determinar colores segun el rol
+  const getTheme = () => {
+    switch (role) {
+      case 'investor':
+        return { bg: clientThemes.investor.background, useDarkLogo: true }
+      case 'tenant':
+        return { bg: clientThemes.tenant.background, useDarkLogo: true }
+      case 'agent':
+      case 'admin':
+        return { bg: clientThemes.advisor.background, useDarkLogo: true }
+      case 'searching':
+      default:
+        return { bg: clientThemes.searching.background, useDarkLogo: false }
+    }
+  }
+
+  const theme = getTheme()
 
   useEffect(() => {
-    // Animacion de pulso del logo
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -29,7 +47,6 @@ export default function LogoutTransition() {
     )
     pulse.start()
 
-    // Ejecutar logout y navegar despues de la animacion
     const timer = setTimeout(async () => {
       await logout()
       router.replace('/login')
@@ -42,9 +59,13 @@ export default function LogoutTransition() {
   }, [])
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <LogoGris width={200} height={70} />
+        {theme.useDarkLogo ? (
+          <LogoGris width={200} height={70} />
+        ) : (
+          <LogoNegro width={200} height={70} />
+        )}
       </Animated.View>
     </View>
   )

@@ -58,14 +58,8 @@ export default function ProfileScreen() {
           text: 'Cerrar Sesion', 
           style: 'destructive',
           onPress: () => {
-            if (isInvestor) {
-              // Navegar a pantalla de transicion fuera de tabs
-              router.replace('/logout-transition')
-            } else {
-              // Logout directo para otros usuarios
-              logout()
-              router.replace('/login')
-            }
+            // Navegar a pantalla de transicion con el rol del usuario
+            router.replace(`/logout-transition?role=${currentUser?.role || 'searching'}`)
           }
         }
       ]
