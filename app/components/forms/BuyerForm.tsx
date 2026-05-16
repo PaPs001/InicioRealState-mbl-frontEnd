@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   backgroundLogo: {
-    opacity: 0.04,
+    opacity: 0.06,
   },
   keyboardView: {
     flex: 1,
