@@ -521,22 +521,28 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   )
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      {/* Header con progreso */}
-      {step !== 'loading' && step !== 'suggestions' && (
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={24} color={theme.text} />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Logo de fondo centrado y transparente */}
+      <View style={styles.backgroundLogoContainer}>
+        <LogoNegro width={280} height={280} style={styles.backgroundLogo} />
+      </View>
 
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <Animated.View 
-                style={[
-                  styles.progressFill,
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {/* Header con progreso */}
+        {step !== 'loading' && step !== 'suggestions' && (
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={24} color={theme.text} />
+            </TouchableOpacity>
+
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <Animated.View 
+                  style={[
+                    styles.progressFill,
                   {
                     width: progressAnim.interpolate({
                       inputRange: [0, 1],
@@ -566,7 +572,8 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         {step === 'search-preferences' && renderSearchPreferences()}
         {['name', 'email', 'phone', 'password'].includes(step) && renderInputStep()}
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -574,6 +581,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
+  },
+  backgroundLogoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  backgroundLogo: {
+    opacity: 0.04,
+  },
+  keyboardView: {
+    flex: 1,
+    zIndex: 1,
   },
   header: {
     flexDirection: 'row',
