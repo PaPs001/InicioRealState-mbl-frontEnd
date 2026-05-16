@@ -148,7 +148,6 @@ export default function HomeScreen() {
 
   // Panel de cliente - diferenciado por tipo
   if (isClient && theme) {
-    // Estilos dinamicos para el tema del cliente
     const dynamicStyles = {
       container: {
         flex: 1,
@@ -306,7 +305,9 @@ export default function HomeScreen() {
 
           {/* Acceso rapido */}
           <View style={styles.section}>
-            <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
+            {!isTenant && (
+              <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
+            )}
             
             {/* Inversionista: Ver propiedades, agregar, ganancias + catalogo, favoritos, citas */}
             {isInvestor && (

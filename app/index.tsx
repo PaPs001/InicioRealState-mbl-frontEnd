@@ -12,7 +12,6 @@ export default function Index() {
   const pulseAnim = new Animated.Value(1)
 
   useEffect(() => {
-    // Animacion de pulso del logo
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -41,7 +40,6 @@ export default function Index() {
     }
   }, [isLoading, isLoggedIn])
 
-  // Usar tema del inversionista para la pantalla de carga (azul oscuro elegante)
   const theme = clientThemes.investor
 
   return (
