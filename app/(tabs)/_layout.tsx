@@ -27,7 +27,6 @@ import {
 export default function TabsLayout() {
   const { isAgent, isAdmin, isClient, currentUser } = useAuth()
   
-  // Obtener tema del cliente basado en su rol
   const getClientRole = (): ClientRole => {
     if (currentUser?.role === 'investor') return 'investor'
     if (currentUser?.role === 'tenant') return 'tenant'
@@ -35,7 +34,6 @@ export default function TabsLayout() {
   }
   const clientTheme = isClient ? clientThemes[getClientRole()] : null
   
-  // Colores basados en el tipo de usuario
   const isInvestor = currentUser?.role === 'investor'
   const tabBarBg = isClient && clientTheme ? clientTheme.surface : colors.primaryDark
   const tabBarActive = isInvestor ? clientTheme?.accent : (isClient && clientTheme ? clientTheme.primary : colors.accent)
