@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
@@ -49,7 +49,7 @@ export default function AsesorForm() {
         pathname: '/register-transition',
         params: {
           title: 'Registro completado',
-          subtitle: 'Estamos preparando tu sesión de asesor.',
+          subtitle: 'Estamos preparando tu sesion de asesor.',
           loginUserId: 'user-4',
           nextRoute: '/(tabs)',
           durationMs: '1900',
@@ -73,109 +73,131 @@ export default function AsesorForm() {
         <LogoGris width={280} height={280} style={styles.backgroundLogo} />
       </View>
 
-      <View style={styles.content}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <ArrowLeft size={20} color={colors.primary} />
-          <Text style={styles.backButtonText}>Regresar</Text>
-        </TouchableOpacity>
-
-        <View style={styles.card}>
-        {step === 1 ? (
-          <>
-            <Text style={styles.title}>¿Cómo te gustaría que te llamemos?</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nombre</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Escribe tu nombre"
-                placeholderTextColor={colors.textMuted}
-                value={firstName}
-                onChangeText={setFirstName}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Apellido</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Escribe tu apellido"
-                placeholderTextColor={colors.textMuted}
-                value={lastName}
-                onChangeText={setLastName}
-              />
-            </View>
-          </>
-        ) : null}
-
-        {step === 2 ? (
-          <>
-            <Text style={styles.title}>Ahora escribe tu correo electrónico.</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Correo electrónico</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="correo@ejemplo.com"
-                placeholderTextColor={colors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          </>
-        ) : null}
-
-        {step === 3 ? (
-          <>
-            <Text style={styles.title}>Agrega tu número de teléfono.</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Número de teléfono</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Escribe tu número"
-                placeholderTextColor={colors.textMuted}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
-          </>
-        ) : null}
-
-        {step === 4 ? (
-          <>
-            <Text style={styles.title}>Por último, crea tu contraseña.</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Crea una contraseña"
-                placeholderTextColor={colors.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
-          </>
-        ) : null}
-
-        <Text style={styles.stepIndicator}>Paso {step} de 4</Text>
-
-        <TouchableOpacity
-          disabled={!isCurrentStepValid}
-          style={[styles.continueButton, !isCurrentStepValid && styles.disabledButton]}
-          onPress={handleContinue}
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.continueButtonText}>
-            {step === 4 ? 'Finalizar' : 'Continuar'}
-          </Text>
-        </TouchableOpacity>
-        </View>
-      </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={20} color={colors.primary} />
+              <Text style={styles.backButtonText}>Regresar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Indicador de progreso */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${(step / 4) * 100}%` }]} />
+            </View>
+            <Text style={styles.progressText}>Paso {step} de 4</Text>
+          </View>
+
+          {/* Contenido del paso */}
+          <View style={styles.stepContent}>
+            {step === 1 ? (
+              <>
+                <Text style={styles.title}>Como te gustaria que te llamemos?</Text>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Nombre</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Escribe tu nombre"
+                    placeholderTextColor={colors.textMuted}
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Apellido</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Escribe tu apellido"
+                    placeholderTextColor={colors.textMuted}
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
+                </View>
+              </>
+            ) : null}
+
+            {step === 2 ? (
+              <>
+                <Text style={styles.title}>Ahora escribe tu correo electronico.</Text>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Correo electronico</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="correo@ejemplo.com"
+                    placeholderTextColor={colors.textMuted}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </>
+            ) : null}
+
+            {step === 3 ? (
+              <>
+                <Text style={styles.title}>Agrega tu numero de telefono.</Text>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Numero de telefono</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Escribe tu numero"
+                    placeholderTextColor={colors.textMuted}
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+              </>
+            ) : null}
+
+            {step === 4 ? (
+              <>
+                <Text style={styles.title}>Por ultimo, crea tu contrasena.</Text>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Contrasena</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Crea una contrasena"
+                    placeholderTextColor={colors.textMuted}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                </View>
+              </>
+            ) : null}
+          </View>
+
+          {/* Boton continuar */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              disabled={!isCurrentStepValid}
+              style={[styles.continueButton, !isCurrentStepValid && styles.disabledButton]}
+              onPress={handleContinue}
+            >
+              <Text style={styles.continueButtonText}>
+                {step === 4 ? 'Finalizar' : 'Continuar'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   )
 }
@@ -196,19 +218,24 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   backgroundLogo: {
-    opacity: 0.6,
+    opacity: 0.06,
   },
-  content: {
+  keyboardView: {
     flex: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
     zIndex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: spacing.lg,
+  },
+  header: {
+    marginBottom: spacing.md,
   },
   backButton: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   backButtonText: {
     color: colors.primary,
@@ -216,9 +243,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: spacing.xs,
   },
-  card: {
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
+  progressContainer: {
+    marginBottom: spacing.xl,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.full,
+  },
+  progressText: {
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
+    marginTop: spacing.xs,
+    textAlign: 'right',
+  },
+  stepContent: {
+    flex: 1,
   },
   title: {
     color: colors.text,
@@ -245,8 +291,11 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     color: colors.text,
   },
+  footer: {
+    marginTop: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
   continueButton: {
-    marginTop: spacing.sm,
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.lg,
@@ -258,13 +307,6 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     fontWeight: '700',
     color: colors.textInverse,
-    textAlign: 'center',
-  },
-  stepIndicator: {
-    color: colors.textMuted,
-    fontSize: typography.bodySmall.fontSize,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
     textAlign: 'center',
   },
 })
