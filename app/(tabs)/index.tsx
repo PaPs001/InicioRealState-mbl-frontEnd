@@ -494,78 +494,10 @@ export default function HomeScreen() {
               </>
             )}
 
-            {/* Inquilino: Accesos rapidos + Tabs de navegacion */}
-            {isTenant && (
-              <>
-                {/* Accesos rapidos del inquilino */}
-                <TouchableOpacity 
-                  style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/catalog-screen')}
-                >
-                  <View style={dynamicStyles.quickAccessIcon}>
-                    <Building2 size={24} color={theme.accent} />
-                  </View>
-                  <View style={styles.quickAccessContent}>
-                    <Text style={dynamicStyles.quickAccessTitle}>Explorar Catalogo</Text>
-                    <Text style={dynamicStyles.quickAccessSubtitle}>
-                      {availableProperties.length} propiedades disponibles
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color={theme.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/favorites-screen')}
-                >
-                  <View style={dynamicStyles.quickAccessIcon}>
-                    <Heart size={24} color={theme.accent} />
-                  </View>
-                  <View style={styles.quickAccessContent}>
-                    <Text style={dynamicStyles.quickAccessTitle}>Mis Favoritos</Text>
-                    <Text style={dynamicStyles.quickAccessSubtitle}>
-                      Propiedades guardadas
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color={theme.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/appointments-screen')}
-                >
-                  <View style={dynamicStyles.quickAccessIcon}>
-                    <Calendar size={24} color={theme.accent} />
-                  </View>
-                  <View style={styles.quickAccessContent}>
-                    <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
-                    <Text style={dynamicStyles.quickAccessSubtitle}>
-                      {userAppointments.length} citas programadas
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color={theme.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/add-property-screen')}
-                >
-                  <View style={dynamicStyles.quickAccessIcon}>
-                    <Plus size={24} color={theme.accent} />
-                  </View>
-                  <View style={styles.quickAccessContent}>
-                    <Text style={dynamicStyles.quickAccessTitle}>Agregar Propiedad</Text>
-                    <Text style={dynamicStyles.quickAccessSubtitle}>
-                      Registra una propiedad para invertir
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color={theme.textMuted} />
-                </TouchableOpacity>
-              </>
             )}
           </View>
 
-          {/* Seccion Mi Renta - Solo para Inquilino */}
+          {/* Seccion Mi Renta - Solo para Inquilino (ARRIBA) */}
           {isTenant && tenantRental && tenantProperty && (
             <View style={styles.section}>
               <Text style={dynamicStyles.sectionTitle}>Mi Renta</Text>
@@ -830,6 +762,77 @@ export default function HomeScreen() {
                     </View>
                   </>
                 )}
+            </View>
+          )}
+
+          {/* Accesos rapidos del inquilino (ABAJO) */}
+          {isTenant && (
+            <View style={styles.section}>
+              <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
+              
+              <TouchableOpacity 
+                style={dynamicStyles.quickAccessCard}
+                onPress={() => router.push('/catalog-screen')}
+              >
+                <View style={dynamicStyles.quickAccessIcon}>
+                  <Building2 size={24} color={theme.accent} />
+                </View>
+                <View style={styles.quickAccessContent}>
+                  <Text style={dynamicStyles.quickAccessTitle}>Explorar Catalogo</Text>
+                  <Text style={dynamicStyles.quickAccessSubtitle}>
+                    {availableProperties.length} propiedades disponibles
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={theme.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={dynamicStyles.quickAccessCard}
+                onPress={() => router.push('/favorites-screen')}
+              >
+                <View style={dynamicStyles.quickAccessIcon}>
+                  <Heart size={24} color={theme.accent} />
+                </View>
+                <View style={styles.quickAccessContent}>
+                  <Text style={dynamicStyles.quickAccessTitle}>Mis Favoritos</Text>
+                  <Text style={dynamicStyles.quickAccessSubtitle}>
+                    Propiedades guardadas
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={theme.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={dynamicStyles.quickAccessCard}
+                onPress={() => router.push('/appointments-screen')}
+              >
+                <View style={dynamicStyles.quickAccessIcon}>
+                  <Calendar size={24} color={theme.accent} />
+                </View>
+                <View style={styles.quickAccessContent}>
+                  <Text style={dynamicStyles.quickAccessTitle}>Mis Citas</Text>
+                  <Text style={dynamicStyles.quickAccessSubtitle}>
+                    {userAppointments.length} citas programadas
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={theme.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={dynamicStyles.quickAccessCard}
+                onPress={() => router.push('/add-property-screen')}
+              >
+                <View style={dynamicStyles.quickAccessIcon}>
+                  <Plus size={24} color={theme.accent} />
+                </View>
+                <View style={styles.quickAccessContent}>
+                  <Text style={dynamicStyles.quickAccessTitle}>Agregar Propiedad</Text>
+                  <Text style={dynamicStyles.quickAccessSubtitle}>
+                    Registra una propiedad para invertir
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={theme.textMuted} />
+              </TouchableOpacity>
             </View>
           )}
 

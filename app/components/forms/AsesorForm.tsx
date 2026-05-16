@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-nativ
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
+import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 export default function AsesorForm() {
   const router = useRouter()
@@ -67,12 +68,18 @@ export default function AsesorForm() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <ArrowLeft size={20} color={colors.primary} />
-        <Text style={styles.backButtonText}>Regresar</Text>
-      </TouchableOpacity>
+      {/* Logo de fondo centrado y transparente */}
+      <View style={styles.backgroundLogoContainer}>
+        <LogoGris width={280} height={280} style={styles.backgroundLogo} />
+      </View>
 
-      <View style={styles.card}>
+      <View style={styles.content}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <ArrowLeft size={20} color={colors.primary} />
+          <Text style={styles.backButtonText}>Regresar</Text>
+        </TouchableOpacity>
+
+        <View style={styles.card}>
         {step === 1 ? (
           <>
             <Text style={styles.title}>¿Cómo te gustaría que te llamemos?</Text>
@@ -167,6 +174,7 @@ export default function AsesorForm() {
             {step === 4 ? 'Finalizar' : 'Continuar'}
           </Text>
         </TouchableOpacity>
+        </View>
       </View>
     </View>
   )
@@ -176,8 +184,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  backgroundLogoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  backgroundLogo: {
+    opacity: 0.04,
+  },
+  content: {
+    flex: 1,
     padding: spacing.lg,
     justifyContent: 'center',
+    zIndex: 1,
   },
   backButton: {
     alignSelf: 'flex-start',
