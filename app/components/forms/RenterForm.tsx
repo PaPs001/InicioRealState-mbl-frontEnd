@@ -841,7 +841,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   backgroundLogo: {
-    opacity: 0.6,
+    opacity: 0.06,
   },
   scrollContent: {
     flexGrow: 1,
