@@ -303,11 +303,10 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* Acceso rapido */}
+          {/* Acceso rapido - No se muestra para inquilino (tiene su propia seccion abajo) */}
+          {!isTenant && (
           <View style={styles.section}>
-            {!isTenant && (
-              <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
-            )}
+            <Text style={dynamicStyles.sectionTitle}>Acceso Rapido</Text>
             
             {/* Inversionista: Ver propiedades, agregar, ganancias + catalogo, favoritos, citas */}
             {isInvestor && (
@@ -494,9 +493,8 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </>
             )}
-
-            )}
           </View>
+          )}
 
           {/* Seccion Mi Renta - Solo para Inquilino (ARRIBA) */}
           {isTenant && tenantRental && tenantProperty && (
