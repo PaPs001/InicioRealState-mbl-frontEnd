@@ -309,8 +309,6 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
     textAlign: 'center',
   },
-})
-  },
   stepIndicator: {
     color: colors.textMuted,
     fontSize: typography.bodySmall.fontSize,
