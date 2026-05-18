@@ -106,7 +106,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Opciones de menu */}
-        <View style={cardStyle}>
+        {/*<View style={cardStyle}>
           <TouchableOpacity style={styles.menuItem}>
             <Bell size={20} color={colors.accent} />
             <Text style={[styles.menuItemText, { color: textColor }]}>Notificaciones</Text>
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
             <Text style={[styles.menuItemText, { color: textColor }]}>Ayuda y Soporte</Text>
             <ChevronRight size={20} color={textSecondaryColor} />
           </TouchableOpacity>
-        </View>
+        </View>*/}
 
         {/* Cerrar sesion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.xxl,
   },
   avatar: {
     width: 80,

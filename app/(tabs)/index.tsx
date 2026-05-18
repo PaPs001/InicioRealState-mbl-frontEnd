@@ -209,6 +209,52 @@ export default function HomeScreen() {
             {/* Inversionista: Ver propiedades, agregar, ganancias */}
             {isInvestor && (
               <>
+              <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/catalog-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Building2 size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Explorar Catalogo</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      {availableProperties.length} propiedades disponibles
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/favorites-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Heart size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Mis Favoritos</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      Propiedades guardadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.quickAccessCard}
+                  onPress={() => router.push('/appointments-screen')}
+                >
+                  <View style={styles.quickAccessIcon}>
+                    <Calendar size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.quickAccessContent}>
+                    <Text style={styles.quickAccessTitle}>Mis Citas</Text>
+                    <Text style={styles.quickAccessSubtitle}>
+                      {userAppointments.length} citas programadas
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textMuted} />
+                </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.quickAccessCard}
                   onPress={() => router.push('/my-properties-screen')}
@@ -224,7 +270,6 @@ export default function HomeScreen() {
                   </View>
                   <ChevronRight size={20} color={colors.textMuted} />
                 </TouchableOpacity>
-
                 <TouchableOpacity 
                   style={styles.quickAccessCard}
                   onPress={() => router.push('/add-property-screen')}
@@ -240,7 +285,6 @@ export default function HomeScreen() {
                   </View>
                   <ChevronRight size={20} color={colors.textMuted} />
                 </TouchableOpacity>
-
                 <TouchableOpacity 
                   style={styles.quickAccessCard}
                   onPress={() => router.push('/earnings-screen')}
@@ -648,7 +692,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.xxl,
   },
   headerContent: {
     flex: 1,
@@ -677,7 +721,7 @@ const styles = StyleSheet.create({
   // Header oscuro
   headerDark: {
     padding: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.xxl,
   },
   greetingDark: {
     fontSize: typography.h2.fontSize,

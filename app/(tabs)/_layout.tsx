@@ -1,5 +1,4 @@
 //imagenes
-import LogoGris from '../assets/LogoNavBarPrincipal.svg'
 import CalendarDateIcon from '../assets/calendarDatesIconMobile.svg'
 import CatalogIcon from '../assets/catalogIconMobile.svg'
 import FavoritesIcon from '../assets/favoritesIconMobile.svg'
@@ -64,6 +63,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarActiveTintColor: tabBarActive,
         tabBarInactiveTintColor: tabBarInactive,
         tabBarStyle: {
@@ -77,12 +77,6 @@ export default function TabsLayout() {
           fontSize: 11,
           fontWeight: '500',
         },
-        headerStyle: {
-          backgroundColor: isClient ? colors.primary : colors.primaryDark,
-        },
-        headerTintColor: colors.textInverse,
-        headerTitle: () => <LogoGris width={120} height={40} />,
-        headerTitleAlign: 'center',
         tabBarIcon: ({ color, size }) => renderTabIcon(route.name, size, color),
       })}
     >
