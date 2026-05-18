@@ -12,7 +12,6 @@ export interface User {
   createdAt: string
 }
 
-// Tipos de propiedad
 export type PropertyType = 'house' | 'apartment' | 'land'
 export type PropertyStatus = 'owned' | 'for_sale' | 'for_rent' | 'rented' | 'available' | 'pending_sale' | 'pending_rent'
 
@@ -29,18 +28,17 @@ export interface Property {
   bedrooms?: number
   bathrooms?: number
   sqMeters: number
-  size: number // en m² (alias para sqMeters por compatibilidad)
+  size: number 
   description?: string
   features?: string[]
   images?: string[]
   ownerId?: string
   agentId?: string
   monthlyRent?: number
-  purchasedWithUs?: boolean // si fue comprada a traves de Inicio
+  purchasedWithUs?: boolean 
   createdAt: string
 }
 
-// Tipos de leads
 export type LeadStatus = 'nuevo' | 'contactado' | 'cita_agendada' | 'visitado' | 'negociando' | 'cerrado' | 'descartado'
 
 export interface PropertyLead {
@@ -67,7 +65,6 @@ export interface LeadFollowUp {
   nextActionDate?: string
 }
 
-// Tipos de citas
 export interface Appointment {
   id: string
   propertyId: string
@@ -80,7 +77,6 @@ export interface Appointment {
   createdAt: string
 }
 
-// Tipos de documentos
 export interface Document {
   id: string
   name: string
@@ -90,7 +86,6 @@ export interface Document {
   status: 'pending' | 'approved' | 'rejected'
 }
 
-// Tipos de comisiones
 export interface Commission {
   id: string
   agentId: string
@@ -103,7 +98,6 @@ export interface Commission {
   paidDate?: string
 }
 
-// Tipos de referidos
 export interface Referral {
   id: string
   referrerId: string
@@ -114,7 +108,6 @@ export interface Referral {
   createdDate: string
 }
 
-// Tipos de notificaciones
 export interface Notification {
   id: string
   userId: string
@@ -125,7 +118,6 @@ export interface Notification {
   createdAt: string
 }
 
-// Tipos de registro venta/renta
 export interface SaleRentRegistration {
   id: string
   propertyId: string
@@ -175,7 +167,6 @@ export interface RegistrationDocument {
   status: 'pending' | 'approved' | 'rejected'
 }
 
-// Tipos de renta activa (para inquilinos)
 export interface ActiveRental {
   id: string
   propertyId: string
@@ -198,7 +189,6 @@ export interface ActiveRental {
   status: 'active' | 'ending_soon' | 'ended'
 }
 
-// Tipos de mensajes
 export interface Message {
   id: string
   conversationId: string
@@ -218,7 +208,6 @@ export interface Conversation {
   propertyId?: string
 }
 
-// Tipos de ganancias (para inversionistas)
 export interface PropertyEarnings {
   propertyId: string
   totalEarnings: number
@@ -231,4 +220,26 @@ export interface PropertyEarnings {
     amount: number
     status: 'paid' | 'pending' | 'late'
   }[]
+}
+
+export type CampaignStatus = 'active' | 'paused' | 'completed' | 'cancelled'
+export type CampaignResult = 'rented' | 'sold' | 'not_achieved' | 'cancelled' | 'pending'
+export type CampaignType = 'rent' | 'sale'
+
+export interface Campaign {
+  id: string
+  propertyId: string
+  ownerId: string
+  type: CampaignType
+  status: CampaignStatus
+  budget: number
+  spentBudget: number
+  remainingBudget: number
+  leadsCount: number
+  startDate: string
+  endDate: string
+  durationDays: number
+  result?: CampaignResult
+  platform: string[]
+  createdAt: string
 }
