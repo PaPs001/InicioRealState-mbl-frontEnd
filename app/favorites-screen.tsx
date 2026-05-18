@@ -2,14 +2,18 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { formatCurrency } from '@/lib/mock-data'
 import { Heart, Home, Building2, Map, Bed, Bath, Maximize, ArrowLeft } from 'lucide-react-native'
 import type { Property } from '@/lib/types'
 
 export default function FavoritesStandaloneScreen() {
-  const { favorites, availableProperties, toggleFavorite, userProperties } = useAuth()
+  const { favorites, availableProperties, toggleFavorite, userProperties, currentUser } = useAuth()
   const router = useRouter()
+
+  // Detectar si es inversionista para usar tema oscuro
+  const isInvestor = currentUser?.role === 'investor'
+  const theme = isInvestor ? clientThemes.investor : null
 
   const allProperties = [...availableProperties, ...userProperties]
   const favoriteProperties = allProperties.filter(p => favorites.includes(p.id))
@@ -28,11 +32,17 @@ export default function FavoritesStandaloneScreen() {
 
     return (
       <TouchableOpacity 
-        style={styles.propertyCard}
+        style={[
+          styles.propertyCard,
+          isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border }
+        ]}
         onPress={() => router.push(`/property/${property.id}`)}
       >
-        <View style={styles.imageContainer}>
-          <Icon size={32} color={colors.textMuted} />
+        <View style={[
+          styles.imageContainer,
+          isInvestor && { backgroundColor: theme!.background }
+        ]}>
+          <Icon size={32} color={isInvestor ? theme!.textMuted : colors.textMuted} />
           <TouchableOpacity 
             style={styles.favoriteButton}
             onPress={() => toggleFavorite(property.id)}
@@ -42,45 +52,63 @@ export default function FavoritesStandaloneScreen() {
         </View>
 
         <View style={styles.cardContent}>
-          <Text style={styles.propertyTitle} numberOfLines={1}>{property.title}</Text>
-          <Text style={styles.propertyLocation}>{property.city}</Text>
+          <Text style={[styles.propertyTitle, isInvestor && { color: theme!.text }]} numberOfLines={1}>
+            {property.title}
+          </Text>
+          <Text style={[styles.propertyLocation, isInvestor && { color: theme!.textSecondary }]}>
+            {property.city}
+          </Text>
           
           <View style={styles.features}>
             {property.type !== 'land' && (
               <>
                 <View style={styles.feature}>
-                  <Bed size={14} color={colors.textMuted} />
-                  <Text style={styles.featureText}>{property.bedrooms}</Text>
+                  <Bed size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+                  <Text style={[styles.featureText, isInvestor && { color: theme!.textSecondary }]}>
+                    {property.bedrooms}
+                  </Text>
                 </View>
                 <View style={styles.feature}>
-                  <Bath size={14} color={colors.textMuted} />
-                  <Text style={styles.featureText}>{property.bathrooms}</Text>
+                  <Bath size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+                  <Text style={[styles.featureText, isInvestor && { color: theme!.textSecondary }]}>
+                    {property.bathrooms}
+                  </Text>
                 </View>
               </>
             )}
             <View style={styles.feature}>
-              <Maximize size={14} color={colors.textMuted} />
-              <Text style={styles.featureText}>{property.sqMeters}m2</Text>
+              <Maximize size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+              <Text style={[styles.featureText, isInvestor && { color: theme!.textSecondary }]}>
+                {property.sqMeters}m2
+              </Text>
             </View>
           </View>
 
-          <Text style={styles.price}>{formatCurrency(property.price)}</Text>
+          <Text style={[styles.price, isInvestor && { color: theme!.accent }]}>
+            {formatCurrency(property.price)}
+          </Text>
         </View>
       </TouchableOpacity>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView 
+      style={[styles.container, isInvestor && { backgroundColor: theme!.background }]} 
+      edges={['top', 'bottom']}
+    >
       {/* Header personalizado */}
-      <View style={styles.header}>
+      <View style={[
+        styles.header,
+        isInvestor && { borderBottomColor: theme!.border }
+      ]}>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={[styles.backButton, isInvestor && { backgroundColor: theme!.surface }]}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={isInvestor ? theme!.text : colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Favoritos</Text>
+        <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>Favoritos</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -92,16 +120,20 @@ export default function FavoritesStandaloneScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Heart size={48} color={colors.textMuted} />
-            <Text style={styles.emptyStateTitle}>Sin favoritos</Text>
-            <Text style={styles.emptyStateText}>
+            <Heart size={48} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+            <Text style={[styles.emptyStateTitle, isInvestor && { color: theme!.text }]}>
+              Sin favoritos
+            </Text>
+            <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textSecondary }]}>
               Guarda las propiedades que te interesen para verlas despues
             </Text>
             <TouchableOpacity 
-              style={styles.exploreButton}
+              style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}
               onPress={() => router.replace('/catalog-screen')}
             >
-              <Text style={styles.exploreButtonText}>Explorar Catalogo</Text>
+              <Text style={[styles.exploreButtonText, isInvestor && { color: theme!.primary }]}>
+                Explorar Catalogo
+              </Text>
             </TouchableOpacity>
           </View>
         }

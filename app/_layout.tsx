@@ -1,31 +1,60 @@
 import { Stack } from 'expo-router'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import * as NavigationBar from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
-import { colors } from '@/lib/theme'
+import { colors, clientThemes } from '@/lib/theme'
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native'
-import { Platform } from 'react-native'
+import { Platform, View } from 'react-native'
 
-const navigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: colors.primaryDark,
-    card: colors.primaryDark,
-    border: colors.primaryDark,
-    primary: colors.accent,
-    text: colors.textLight,
-  },
-}
+// Componente interno que tiene acceso al contexto de auth
+function RootNavigator() {
+  const { currentUser, isClient } = useAuth()
+  
+  // Determinar tipo de usuario
+  const userRole = currentUser?.role
+  const isInvestor = userRole === 'investor'
+  const isAdvisor = userRole === 'advisor' || userRole === 'coordinator'
+  
+  // Usuarios con fondo oscuro: inversionista y asesor
+  // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)
+  const isDarkTheme = isInvestor || isAdvisor
+  
+  // Color de fondo basado en el tipo de usuario
+  let backgroundColor = colors.background // Default claro para login/registro
+  
+  if (currentUser) {
+    if (isInvestor) {
+      backgroundColor = clientThemes.investor.background
+    } else if (isAdvisor) {
+      backgroundColor = clientThemes.advisor.background
+    } else if (userRole === 'tenant') {
+      backgroundColor = clientThemes.tenant.background
+    } else if (userRole === 'searching') {
+      backgroundColor = clientThemes.searching.background
+    } else {
+      backgroundColor = colors.background
+    }
+  }
+  
+  const navigationTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: backgroundColor,
+      card: backgroundColor,
+      border: backgroundColor,
+      primary: isInvestor ? clientThemes.investor.accent : isAdvisor ? clientThemes.advisor.accent : colors.accent,
+      text: isDarkTheme ? colors.textLight : colors.text,
+    },
+  }
 
-export default function RootLayout(){
   useEffect(() => {
     const setupNavigationBar = async () => {
       try {
         if (Platform.OS === 'android') {
-          await NavigationBar.setBackgroundColorAsync(colors.primaryDark);
-          await NavigationBar.setButtonStyleAsync('light');
+          await NavigationBar.setBackgroundColorAsync(backgroundColor);
+          await NavigationBar.setButtonStyleAsync(isDarkTheme ? 'light' : 'dark');
           await NavigationBar.setVisibilityAsync('hidden');
           await NavigationBar.setBehaviorAsync('overlay-swipe');
         }
@@ -34,33 +63,130 @@ export default function RootLayout(){
       }
     }
     setupNavigationBar()
-  }, []);
+  }, [backgroundColor, isDarkTheme]);
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={navigationTheme}>
-        <StatusBar hidden={true} style="light" />
+    <ThemeProvider value={navigationTheme}>
+      <View style={{ flex: 1, backgroundColor }}>
+        <StatusBar hidden={true} style={isDarkTheme ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: colors.primaryDark },
-            animation: 'none',
+            contentStyle: { backgroundColor },
+            animation: 'fade',
+            animationDuration: 150,
           }}
         >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="login" />
+          <Stack.Screen 
+            name="index" 
+            options={{ 
+              contentStyle: { backgroundColor: clientThemes.investor.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="login" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="create-account" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
+          <Stack.Screen 
+            name="registerScreen" 
+            options={{ 
+              contentStyle: { backgroundColor: colors.background },
+            }} 
+          />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen 
+            name="logout-transition" 
+            options={{ 
+              contentStyle: { backgroundColor: clientThemes.investor.background },
+            }} 
+          />
           <Stack.Screen 
             name="property/[id]" 
             options={{ 
               headerShown: true,
               headerTitle: 'Detalle de Propiedad',
               presentation: 'modal',
-              contentStyle: { backgroundColor: colors.primaryDark },
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="my-properties-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="add-property-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="property-detail-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="list-property-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="earnings-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="catalog-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="favorites-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="appointments-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="notifications-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
+            }} 
+          />
+          <Stack.Screen 
+            name="campaigns-screen" 
+            options={{ 
+              contentStyle: { backgroundColor },
             }} 
           />
         </Stack>
-      </ThemeProvider>
+      </View>
+    </ThemeProvider>
+  )
+}
+
+export default function RootLayout(){
+  return (
+    <AuthProvider>
+      <RootNavigator />
     </AuthProvider>
   )
 }

@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { mockConversations, mockUsers, mockProperties } from '@/lib/mock-data'
 import type { Conversation } from '@/lib/types'
 import { 
@@ -20,9 +20,38 @@ import {
 } from 'lucide-react-native'
 
 export default function MessagesTab() {
-  const { currentUser } = useAuth()
+  const { currentUser, isClient, isAgent, isAdmin } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Determinar si es inversionista para usar tema oscuro
+  const isInvestor = currentUser?.role === 'investor'
+  const isDark = isAgent || isAdmin || isInvestor
+  
+  // Obtener colores segun el tipo de usuario
+  const getThemeColors = () => {
+    if (isInvestor) return clientThemes.investor
+    if (isAgent || isAdmin) return {
+      background: colors.primaryDark,
+      surface: colors.surfaceDark,
+      border: colors.borderDark,
+      text: colors.textLight,
+      textSecondary: colors.textMuted,
+      textMuted: colors.textMuted,
+      accent: colors.accent,
+    }
+    return {
+      background: colors.background,
+      surface: colors.surface,
+      border: colors.border,
+      text: colors.text,
+      textSecondary: colors.textSecondary,
+      textMuted: colors.textMuted,
+      accent: colors.accent,
+    }
+  }
+  
+  const theme = getThemeColors()
 
   const userConversations = useMemo(() => {
     if (!currentUser) return []
@@ -73,13 +102,13 @@ export default function MessagesTab() {
 
     return (
       <TouchableOpacity 
-        style={styles.conversationCard}
+        style={[styles.conversationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
         onPress={() => router.push(`/chat/${conversation.id}`)}
         activeOpacity={0.7}
       >
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <User size={24} color={colors.textMuted} />
+          <View style={[styles.avatar, { backgroundColor: theme.background }]}>
+            <User size={24} color={theme.textMuted} />
           </View>
           {conversation.unreadCount > 0 && (
             <View style={styles.unreadBadge}>
@@ -90,16 +119,16 @@ export default function MessagesTab() {
 
         <View style={styles.conversationContent}>
           <View style={styles.conversationHeader}>
-            <Text style={styles.conversationName} numberOfLines={1}>
+            <Text style={[styles.conversationName, { color: theme.text }]} numberOfLines={1}>
               {otherUser?.name || 'Usuario'}
             </Text>
-            <Text style={styles.conversationTime}>
+            <Text style={[styles.conversationTime, { color: theme.textMuted }]}>
               {formatTime(conversation.lastMessageDate)}
             </Text>
           </View>
 
           {property && (
-            <Text style={styles.propertyInfo} numberOfLines={1}>
+            <Text style={[styles.propertyInfo, { color: theme.accent }]} numberOfLines={1}>
               {property.title}
             </Text>
           )}
@@ -107,7 +136,8 @@ export default function MessagesTab() {
           <Text 
             style={[
               styles.lastMessage,
-              conversation.unreadCount > 0 && styles.lastMessageUnread
+              { color: theme.textSecondary },
+              conversation.unreadCount > 0 && { color: theme.text, fontWeight: '500' }
             ]} 
             numberOfLines={1}
           >
@@ -119,20 +149,20 @@ export default function MessagesTab() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mensajes</Text>
+      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Mensajes</Text>
       </View>
 
       {/* Barra de busqueda */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color={colors.textMuted} />
+        <View style={[styles.searchInputContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Search size={20} color={theme.textMuted} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.text }]}
             placeholder="Buscar conversaciones..."
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -148,9 +178,9 @@ export default function MessagesTab() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <MessageCircle size={48} color={colors.textMuted} />
-            <Text style={styles.emptyStateTitle}>Sin conversaciones</Text>
-            <Text style={styles.emptyStateText}>
+            <MessageCircle size={48} color={theme.textMuted} />
+            <Text style={[styles.emptyStateTitle, { color: theme.text }]}>Sin conversaciones</Text>
+            <Text style={[styles.emptyStateText, { color: theme.textMuted }]}>
               Tus mensajes con asesores e inquilinos apareceran aqui
             </Text>
           </View>
@@ -163,18 +193,15 @@ export default function MessagesTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: typography.h2.fontSize,
     fontWeight: '700',
-    color: colors.text,
   },
   searchContainer: {
     paddingHorizontal: spacing.md,
@@ -183,18 +210,15 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   searchInput: {
     flex: 1,
     paddingVertical: spacing.sm,
     paddingLeft: spacing.sm,
     fontSize: typography.body.fontSize,
-    color: colors.text,
   },
   listContent: {
     padding: spacing.md,
@@ -202,11 +226,9 @@ const styles = StyleSheet.create({
   },
   conversationCard: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   avatarContainer: {
     position: 'relative',
@@ -216,7 +238,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -247,27 +268,19 @@ const styles = StyleSheet.create({
   conversationName: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
     flex: 1,
   },
   conversationTime: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
     marginLeft: spacing.sm,
   },
   propertyInfo: {
     fontSize: typography.caption.fontSize,
-    color: colors.accent,
     marginTop: 2,
   },
   lastMessage: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
-  },
-  lastMessageUnread: {
-    color: colors.text,
-    fontWeight: '500',
   },
   emptyState: {
     flex: 1,
@@ -278,12 +291,10 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
     marginTop: spacing.md,
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
