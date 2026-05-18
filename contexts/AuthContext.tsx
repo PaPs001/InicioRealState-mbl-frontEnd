@@ -21,6 +21,7 @@ interface AuthContextType {
   // Acciones de autenticacion
   login: (userId: string) => Promise<void>
   logout: () => Promise<void>
+  setCurrentUser: (user: User | null) => void
   
   // Datos del usuario
   userProperties: Property[]
@@ -189,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isClient,
       login,
       logout,
+      setCurrentUser,
       userProperties,
       availableProperties,
       catalogProperties,

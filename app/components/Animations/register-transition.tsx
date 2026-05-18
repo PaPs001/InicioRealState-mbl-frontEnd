@@ -1,102 +1,126 @@
 import { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native'
+import { View, StyleSheet, Animated, Easing } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { clientThemes } from '@/lib/theme'
+import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
-export type RegisterTransitionVariant = 'pulse-orb' | 'soft-arrival'
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 
 type RegisterTransitionProps = {
-  title?: string
-  subtitle?: string
   durationMs?: number
-  variant?: RegisterTransitionVariant
-  orbColor?: string
-  glowColor?: string
   onComplete?: () => void | Promise<void>
 }
 
 export default function RegisterTransition({
-  title = 'Perfil listo',
-  subtitle = 'Estamos preparando tu sesión de inversionista.',
-  durationMs = 1900,
-  variant = 'pulse-orb',
-  orbColor = colors.accent,
-  glowColor = '#efe4ca',
+  durationMs = 3000,
   onComplete,
 }: RegisterTransitionProps) {
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const scaleAnim = useRef(new Animated.Value(0.92)).current
+  // Animacion inicial de entrada (fade-in con scale)
+  const initialFadeAnim = useRef(new Animated.Value(0)).current
+  const initialScaleAnim = useRef(new Animated.Value(0.8)).current
+  
+  // Animacion de pulse continuo
   const pulseAnim = useRef(new Animated.Value(1)).current
+  
+  // Animacion de fade que se repite cada 1.5 segundos
+  const fadeLoopAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
+    // 1. Animacion inicial de entrada (pulse + fade-in)
     Animated.parallel([
-      Animated.timing(fadeAnim, {
+      Animated.timing(initialFadeAnim, {
         toValue: 1,
-        duration: 450,
+        duration: 600,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnim, {
+      Animated.spring(initialScaleAnim, {
         toValue: 1,
-        duration: 450,
-        easing: Easing.out(Easing.back(1.2)),
+        friction: 8,
+        tension: 40,
         useNativeDriver: true,
       }),
     ]).start()
 
+    // 2. Animacion de pulse continuo (mientras carga)
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.06,
-          duration: 900,
+          toValue: 1.08,
+          duration: 800,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 900,
+          duration: 800,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
     )
-
     pulseLoop.start()
 
-    const timer = setTimeout(() => {
+    // 3. Animacion de fade que se repite cada 1.5 segundos
+    const fadeLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeLoopAnim, {
+          toValue: 0.5,
+          duration: 750,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeLoopAnim, {
+          toValue: 1,
+          duration: 750,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    )
+    
+    // Iniciar fade loop despues de 500ms (cuando termina la entrada inicial)
+    const fadeLoopTimer = setTimeout(() => {
+      fadeLoop.start()
+    }, 500)
+
+    // Timer para completar la transicion
+    const completeTimer = setTimeout(() => {
       void onComplete?.()
     }, durationMs)
 
     return () => {
       pulseLoop.stop()
-      clearTimeout(timer)
+      fadeLoop.stop()
+      clearTimeout(fadeLoopTimer)
+      clearTimeout(completeTimer)
     }
-  }, [durationMs, fadeAnim, onComplete, pulseAnim, scaleAnim])
+  }, [durationMs, initialFadeAnim, initialScaleAnim, onComplete, pulseAnim, fadeLoopAnim])
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[styles.backgroundGlow, { backgroundColor: glowColor }]} />
       <Animated.View
         style={[
-          styles.card,
+          styles.content,
           {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
+            opacity: initialFadeAnim,
+            transform: [{ scale: initialScaleAnim }],
           },
         ]}
       >
+        {/* Logo grande con animaciones de pulse y fade */}
         <Animated.View
           style={[
-            styles.orb,
-            variant === 'soft-arrival' && styles.orbSoft,
-            { backgroundColor: orbColor },
+            styles.logoContainer,
             {
+              opacity: fadeLoopAnim,
               transform: [{ scale: pulseAnim }],
             },
           ]}
-        />
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        >
+          <LogoGris width={280} height={95} />
+        </Animated.View>
       </Animated.View>
     </SafeAreaView>
   )
@@ -105,51 +129,16 @@ export default function RegisterTransition({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.lg,
   },
-  backgroundGlow: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 999,
-    backgroundColor: '#efe4ca',
-    opacity: 0.55,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 320,
+  content: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    justifyContent: 'center',
   },
-  orb: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    marginBottom: spacing.lg,
-  },
-  orbSoft: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-  },
-  title: {
-    color: colors.text,
-    fontSize: typography.h2.fontSize,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: typography.body.fontSize,
-    textAlign: 'center',
-    lineHeight: 24,
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

@@ -8,7 +8,10 @@ import {
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 import { mockProperties, mockUsers, mockActiveRental, mockPropertyEarnings, formatCurrency, formatDate } from '@/lib/mock-data'
 import { 
   ArrowLeft,
@@ -88,13 +91,13 @@ export default function PropertyDetailScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color={colors.text} />
+            <ArrowLeft size={24} color={investorColors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Detalle</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.emptyState}>
-          <AlertCircle size={48} color={colors.textMuted} />
+          <AlertCircle size={48} color={investorColors.textMuted} />
           <Text style={styles.emptyStateText}>Propiedad no encontrada</Text>
         </View>
       </SafeAreaView>
@@ -112,7 +115,7 @@ export default function PropertyDetailScreen() {
         
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <Ruler size={20} color={colors.accent} />
+            <Ruler size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Tamano</Text>
               <Text style={styles.infoValue}>{property.size} m²</Text>
@@ -122,7 +125,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <ShoppingBag size={20} color={colors.accent} />
+            <ShoppingBag size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Precio de compra</Text>
               <Text style={styles.infoValue}>{formatCurrency(property.price)}</Text>
@@ -132,7 +135,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <TrendingUp size={20} color={colors.accent} />
+            <TrendingUp size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Valor actual</Text>
               <Text style={[styles.infoValue, { color: colors.success }]}>
@@ -144,7 +147,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <MapPin size={20} color={colors.accent} />
+            <MapPin size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Ubicacion</Text>
               <Text style={styles.infoValue}>{property.address}, {property.city}</Text>
@@ -154,7 +157,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <Info size={20} color={colors.accent} />
+            <Info size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Adquirida</Text>
               <Text style={styles.infoValue}>
@@ -188,7 +191,7 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <User size={20} color={colors.accent} />
+              <User size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Nombre</Text>
                 <Text style={styles.infoValue}>{agent.name}</Text>
@@ -198,7 +201,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Phone size={20} color={colors.accent} />
+              <Phone size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Telefono</Text>
                 <Text style={styles.infoValue}>{agent.phone}</Text>
@@ -215,7 +218,7 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Megaphone size={20} color={colors.accent} />
+              <Megaphone size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Publicidad</Text>
                 <Text style={[
@@ -238,7 +241,7 @@ export default function PropertyDetailScreen() {
               <>
                 <View style={styles.divider} />
                 <View style={styles.infoRow}>
-                  <Calendar size={20} color={colors.accent} />
+                  <Calendar size={20} color={investorColors.accent} />
                   <View style={styles.infoContent}>
                     <Text style={styles.infoLabel}>Fecha de listado</Text>
                     <Text style={styles.infoValue}>{formatDate(property.createdAt)}</Text>
@@ -258,7 +261,7 @@ export default function PropertyDetailScreen() {
       return (
         <View style={styles.tabContent}>
           <View style={styles.emptyTabState}>
-            <Users size={48} color={colors.textMuted} />
+            <Users size={48} color={investorColors.textMuted} />
             <Text style={styles.emptyTabTitle}>Sin inquilino</Text>
             <Text style={styles.emptyTabText}>
               Esta propiedad no esta rentada actualmente
@@ -276,7 +279,7 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <User size={20} color={colors.accent} />
+              <User size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Nombre</Text>
                 <Text style={styles.infoValue}>{tenant.name}</Text>
@@ -286,7 +289,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Phone size={20} color={colors.accent} />
+              <Phone size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Telefono</Text>
                 <Text style={styles.infoValue}>{tenant.phone}</Text>
@@ -296,7 +299,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Mail size={20} color={colors.accent} />
+              <Mail size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Email</Text>
                 <Text style={styles.infoValue}>{tenant.email}</Text>
@@ -311,7 +314,7 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Calendar size={20} color={colors.accent} />
+              <Calendar size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Inicio del contrato</Text>
                 <Text style={styles.infoValue}>{formatDate(rental.startDate)}</Text>
@@ -321,7 +324,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Clock size={20} color={colors.accent} />
+              <Clock size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Fin del contrato</Text>
                 <Text style={styles.infoValue}>{formatDate(rental.endDate)}</Text>
@@ -331,7 +334,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <DollarSign size={20} color={colors.accent} />
+              <DollarSign size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Renta mensual</Text>
                 <Text style={styles.infoValue}>{formatCurrency(rental.monthlyRent)}</Text>
@@ -341,7 +344,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Calendar size={20} color={colors.accent} />
+              <Calendar size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Dia de pago</Text>
                 <Text style={styles.infoValue}>Dia {rental.paymentDay} de cada mes</Text>
@@ -351,7 +354,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <DollarSign size={20} color={colors.accent} />
+              <DollarSign size={20} color={investorColors.accent} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Deposito</Text>
                 <Text style={styles.infoValue}>{formatCurrency(rental.depositAmount)}</Text>
@@ -370,7 +373,7 @@ export default function PropertyDetailScreen() {
                 <View key={doc.id}>
                   {index > 0 && <View style={styles.divider} />}
                   <TouchableOpacity style={styles.documentRow}>
-                    <FileText size={20} color={colors.accent} />
+                    <FileText size={20} color={investorColors.accent} />
                     <View style={styles.documentContent}>
                       <Text style={styles.documentName}>{doc.name}</Text>
                       <Text style={styles.documentDate}>{formatDate(doc.uploadDate)}</Text>
@@ -408,7 +411,7 @@ export default function PropertyDetailScreen() {
       return (
         <View style={styles.tabContent}>
           <View style={styles.emptyTabState}>
-            <DollarSign size={48} color={colors.textMuted} />
+            <DollarSign size={48} color={investorColors.textMuted} />
             <Text style={styles.emptyTabTitle}>Sin ganancias registradas</Text>
             <Text style={styles.emptyTabText}>
               Cuando esta propiedad genere ingresos, apareceran aqui
@@ -421,7 +424,7 @@ export default function PropertyDetailScreen() {
             
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
-                <TrendingUp size={20} color={colors.accent} />
+                <TrendingUp size={20} color={investorColors.accent} />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Si se renta (estimado)</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
@@ -433,7 +436,7 @@ export default function PropertyDetailScreen() {
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <TrendingUp size={20} color={colors.accent} />
+                <TrendingUp size={20} color={investorColors.accent} />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Plusvalia anual estimada</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
@@ -473,7 +476,7 @@ export default function PropertyDetailScreen() {
             
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
-                <Calendar size={20} color={colors.accent} />
+                <Calendar size={20} color={investorColors.accent} />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Proximo pago</Text>
                   <Text style={styles.infoValue}>{formatDate(earnings.nextPaymentDate)}</Text>
@@ -483,7 +486,7 @@ export default function PropertyDetailScreen() {
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <DollarSign size={20} color={colors.accent} />
+                <DollarSign size={20} color={investorColors.accent} />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Monto esperado</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
@@ -545,7 +548,7 @@ export default function PropertyDetailScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={investorColors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalle</Text>
         <View style={styles.headerPlaceholder} />
@@ -554,12 +557,12 @@ export default function PropertyDetailScreen() {
       {/* Property Header Card */}
       <View style={styles.propertyHeader}>
         <View style={styles.propertyIconLarge}>
-          <Icon size={40} color={colors.accent} />
+          <Icon size={40} color={investorColors.accent} />
         </View>
         <View style={styles.propertyInfo}>
           <Text style={styles.propertyTitle} numberOfLines={2}>{property.title}</Text>
           <View style={styles.locationRow}>
-            <MapPin size={14} color={colors.textMuted} />
+            <MapPin size={14} color={investorColors.textMuted} />
             <Text style={styles.locationText} numberOfLines={1}>{property.city}</Text>
           </View>
         </View>
@@ -626,7 +629,7 @@ export default function PropertyDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -635,20 +638,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xxl,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   headerPlaceholder: {
     width: 40,
@@ -657,15 +660,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   propertyIconLarge: {
     width: 64,
     height: 64,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: investorColors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -676,7 +679,7 @@ const styles = StyleSheet.create({
   propertyTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   locationRow: {
     flexDirection: 'row',
@@ -686,14 +689,14 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     flex: 1,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   tab: {
     flex: 1,
@@ -706,15 +709,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: colors.accent,
+    borderBottomColor: investorColors.accent,
   },
   tabText: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '500',
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   tabTextActive: {
-    color: colors.accent,
+    color: investorColors.accent,
     fontWeight: '600',
   },
   content: {
@@ -730,14 +733,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   infoCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   infoRow: {
     flexDirection: 'row',
@@ -750,17 +753,16 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   infoValue: {
     fontSize: typography.body.fontSize,
+    color: investorColors.text,
     fontWeight: '500',
-    color: colors.text,
-    marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: investorColors.border,
     marginVertical: spacing.xs,
   },
   amenitiesContainer: {
@@ -769,15 +771,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   amenityTag: {
-    backgroundColor: colors.accent + '20',
+    backgroundColor: investorColors.accent + '20',
     paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
   },
   amenityText: {
-    fontSize: typography.caption.fontSize,
+    fontSize: typography.bodySmall.fontSize,
     fontWeight: '500',
-    color: colors.accent,
+    color: investorColors.accent,
   },
   documentRow: {
     flexDirection: 'row',
@@ -790,11 +792,12 @@ const styles = StyleSheet.create({
   },
   documentName: {
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
+    fontWeight: '500',
   },
   documentDate: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
   },
   documentStatus: {
@@ -812,22 +815,22 @@ const styles = StyleSheet.create({
   },
   earningCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   earningAmount: {
     fontSize: typography.h4.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.sm,
   },
   earningLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
   },
   paymentRow: {
@@ -838,7 +841,7 @@ const styles = StyleSheet.create({
   },
   paymentMonth: {
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: investorColors.text,
     flex: 1,
   },
   paymentStatus: {
@@ -859,26 +862,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: spacing.xxl,
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: spacing.md,
+    textAlign: 'center',
   },
   emptyTabState: {
-    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing.xxl,
   },
   emptyTabTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.md,
   },
   emptyTabText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
@@ -886,21 +890,21 @@ const styles = StyleSheet.create({
   listButtonContainer: {
     padding: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
+    borderTopColor: investorColors.border,
+    backgroundColor: investorColors.background,
   },
   listButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
   listButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
 })

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { 
   View, 
   Text, 
@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { mockProperties, mockPropertyEarnings, formatCurrency } from '@/lib/mock-data'
 import { 
   ArrowLeft,
@@ -19,12 +19,21 @@ import {
   Home,
   Building2,
   ChevronRight,
-  PieChart,
+  Banknote,
+  ArrowUpRight,
+  Clock,
+  Target,
 } from 'lucide-react-native'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
+
+type TabType = 'plusvalia' | 'rentas'
 
 export default function EarningsScreen() {
   const { currentUser } = useAuth()
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState<TabType>('plusvalia')
 
   const myProperties = useMemo(() => {
     if (!currentUser) return []
@@ -51,6 +60,25 @@ export default function EarningsScreen() {
     return monthlyIncome * 12
   }, [monthlyIncome])
 
+  // Calculos de plusvalia
+  const totalPropertyValue = useMemo(() => {
+    return myProperties.reduce((sum, p) => sum + p.price, 0)
+  }, [myProperties])
+
+  const projectedValue1Year = useMemo(() => {
+    // Asumiendo 8% de plusvalia anual promedio
+    return totalPropertyValue * 1.08
+  }, [totalPropertyValue])
+
+  const projectedValue5Years = useMemo(() => {
+    // Plusvalia compuesta al 8% anual
+    return totalPropertyValue * Math.pow(1.08, 5)
+  }, [totalPropertyValue])
+
+  const potentialGain = useMemo(() => {
+    return projectedValue1Year - totalPropertyValue
+  }, [projectedValue1Year, totalPropertyValue])
+
   const propertyEarningsData = useMemo(() => {
     return myProperties.map(property => {
       const earnings = mockPropertyEarnings.find(e => e.propertyId === property.id)
@@ -67,6 +95,24 @@ export default function EarningsScreen() {
     })
   }, [myProperties])
 
+  // Proyecciones de renta por propiedad
+  const rentProjections = useMemo(() => {
+    return myProperties.map(property => {
+      // Estimacion de renta mensual basada en el valor (0.5% del valor)
+      const estimatedRent = property.monthlyRent || Math.round(property.price * 0.005)
+      const annualRent = estimatedRent * 12
+      const roi = ((annualRent / property.price) * 100).toFixed(1)
+      
+      return {
+        property,
+        estimatedRent,
+        annualRent,
+        roi,
+        currentlyRented: property.status === 'rented',
+      }
+    })
+  }, [myProperties])
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
@@ -75,10 +121,33 @@ export default function EarningsScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={investorColors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ganancias</Text>
         <View style={styles.headerPlaceholder} />
+      </View>
+
+      {/* Tab Buttons */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'plusvalia' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('plusvalia')}
+        >
+          <TrendingUp size={18} color={activeTab === 'plusvalia' ? investorColors.primary : investorColors.textMuted} />
+          <Text style={[styles.tabButtonText, activeTab === 'plusvalia' && styles.tabButtonTextActive]}>
+            Plusvalia
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'rentas' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('rentas')}
+        >
+          <Banknote size={18} color={activeTab === 'rentas' ? investorColors.primary : investorColors.textMuted} />
+          <Text style={[styles.tabButtonText, activeTab === 'rentas' && styles.tabButtonTextActive]}>
+            Rentas
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -86,139 +155,312 @@ export default function EarningsScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Summary Card */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Ganancias totales</Text>
-          <Text style={styles.summaryAmount}>{formatCurrency(totalEarnings)}</Text>
-          
-          <View style={styles.summaryDivider} />
-          
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryItem}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.success + '20' }]}>
-                <DollarSign size={20} color={colors.success} />
-              </View>
-              <View>
-                <Text style={styles.summaryItemLabel}>Mensual</Text>
-                <Text style={styles.summaryItemValue}>{formatCurrency(monthlyIncome)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.summaryItem}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.info + '20' }]}>
-                <TrendingUp size={20} color={colors.info} />
-              </View>
-              <View>
-                <Text style={styles.summaryItemLabel}>Proyeccion anual</Text>
-                <Text style={styles.summaryItemValue}>{formatCurrency(projectedAnnual)}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <PieChart size={24} color={colors.accent} />
-            <Text style={styles.statValue}>{myProperties.length}</Text>
-            <Text style={styles.statLabel}>Propiedades</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Calendar size={24} color={colors.success} />
-            <Text style={styles.statValue}>
-              {myProperties.filter(p => p.status === 'rented').length}
-            </Text>
-            <Text style={styles.statLabel}>Rentadas</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Home size={24} color={colors.info} />
-            <Text style={styles.statValue}>
-              {myProperties.filter(p => p.status === 'for_sale' || p.status === 'for_rent').length}
-            </Text>
-            <Text style={styles.statLabel}>Disponibles</Text>
-          </View>
-        </View>
-
-        {/* Properties Earnings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Desglose por propiedad</Text>
-
-          {propertyEarningsData.map(({ property, earnings }) => (
-            <TouchableOpacity 
-              key={property.id}
-              style={styles.propertyCard}
-              onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
-            >
-              <View style={styles.propertyIconContainer}>
-                {property.type === 'house' ? (
-                  <Home size={24} color={colors.accent} />
-                ) : (
-                  <Building2 size={24} color={colors.accent} />
-                )}
-              </View>
-
-              <View style={styles.propertyContent}>
-                <Text style={styles.propertyTitle} numberOfLines={1}>
-                  {property.title}
-                </Text>
-                <Text style={styles.propertyCity}>{property.city}</Text>
-                
-                <View style={styles.propertyStats}>
-                  <View style={styles.propertyStat}>
-                    <Text style={styles.propertyStatLabel}>Total</Text>
-                    <Text style={styles.propertyStatValue}>
-                      {formatCurrency(earnings.totalEarnings)}
-                    </Text>
+        {/* Tab: Plusvalia */}
+        {activeTab === 'plusvalia' && (
+          <>
+            {/* Valor Actual Card */}
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Valor actual de tu portafolio</Text>
+              <Text style={styles.summaryAmount}>{formatCurrency(totalPropertyValue)}</Text>
+              
+              <View style={styles.summaryDivider} />
+              
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <View style={[styles.summaryIcon, { backgroundColor: colors.success + '20' }]}>
+                    <ArrowUpRight size={20} color={colors.success} />
                   </View>
-                  
-                  <View style={styles.propertyStat}>
-                    <Text style={styles.propertyStatLabel}>Mensual</Text>
-                    <Text style={[styles.propertyStatValue, { color: colors.success }]}>
-                      {formatCurrency(earnings.monthlyEarnings)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.propertyStat}>
-                    <Text style={styles.propertyStatLabel}>Ocupacion</Text>
-                    <Text style={styles.propertyStatValue}>
-                      {earnings.occupancyRate}%
+                  <View>
+                    <Text style={styles.summaryItemLabel}>Ganancia potencial</Text>
+                    <Text style={[styles.summaryItemValue, { color: colors.success }]}>
+                      +{formatCurrency(potentialGain)}
                     </Text>
                   </View>
                 </View>
+
+                <View style={styles.summaryItem}>
+                  <View style={[styles.summaryIcon, { backgroundColor: colors.info + '20' }]}>
+                    <TrendingUp size={20} color={colors.info} />
+                  </View>
+                  <View>
+                    <Text style={styles.summaryItemLabel}>Tasa anual est.</Text>
+                    <Text style={styles.summaryItemValue}>8%</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Proyecciones */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Proyecciones de valor</Text>
+
+              <View style={styles.projectionCard}>
+                <View style={styles.projectionHeader}>
+                  <Clock size={20} color={investorColors.accent} />
+                  <Text style={styles.projectionTitle}>En 1 ano</Text>
+                </View>
+                <Text style={styles.projectionValue}>{formatCurrency(projectedValue1Year)}</Text>
+                <Text style={styles.projectionGain}>
+                  +{formatCurrency(projectedValue1Year - totalPropertyValue)} de plusvalia
+                </Text>
               </View>
 
-              <ChevronRight size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-          ))}
-
-          {propertyEarningsData.length === 0 && (
-            <View style={styles.emptyState}>
-              <DollarSign size={48} color={colors.textMuted} />
-              <Text style={styles.emptyStateText}>
-                Agrega propiedades para ver tus ganancias
-              </Text>
+              <View style={styles.projectionCard}>
+                <View style={styles.projectionHeader}>
+                  <Target size={20} color={investorColors.accent} />
+                  <Text style={styles.projectionTitle}>En 5 anos</Text>
+                </View>
+                <Text style={styles.projectionValue}>{formatCurrency(projectedValue5Years)}</Text>
+                <Text style={styles.projectionGain}>
+                  +{formatCurrency(projectedValue5Years - totalPropertyValue)} de plusvalia
+                </Text>
+              </View>
             </View>
-          )}
-        </View>
 
-        {/* Tips */}
-        <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>Consejos para maximizar ganancias</Text>
-          <View style={styles.tipItem}>
-            <View style={styles.tipBullet} />
-            <Text style={styles.tipText}>Mantiene tus propiedades en buen estado para atraer mejores inquilinos</Text>
-          </View>
-          <View style={styles.tipItem}>
-            <View style={styles.tipBullet} />
-            <Text style={styles.tipText}>Revisa los precios del mercado periodicamente para ajustar tu renta</Text>
-          </View>
-          <View style={styles.tipItem}>
-            <View style={styles.tipBullet} />
-            <Text style={styles.tipText}>Considera contratos a largo plazo para mayor estabilidad</Text>
-          </View>
-        </View>
+            {/* Desglose por propiedad - Plusvalia */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Valor por propiedad</Text>
+
+              {myProperties.map(property => {
+                const value1Year = property.price * 1.08
+                const gain = value1Year - property.price
+                
+                return (
+                  <TouchableOpacity 
+                    key={property.id}
+                    style={styles.propertyCard}
+                    onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
+                  >
+                    <View style={styles.propertyIconContainer}>
+                      {property.type === 'house' ? (
+                        <Home size={24} color={investorColors.accent} />
+                      ) : (
+                        <Building2 size={24} color={investorColors.accent} />
+                      )}
+                    </View>
+
+                    <View style={styles.propertyContent}>
+                      <Text style={styles.propertyTitle} numberOfLines={1}>
+                        {property.title}
+                      </Text>
+                      <Text style={styles.propertyCity}>{property.city}</Text>
+                      
+                      <View style={styles.propertyStats}>
+                        <View style={styles.propertyStat}>
+                          <Text style={styles.propertyStatLabel}>Valor actual</Text>
+                          <Text style={styles.propertyStatValue}>
+                            {formatCurrency(property.price)}
+                          </Text>
+                        </View>
+                        
+                        <View style={styles.propertyStat}>
+                          <Text style={styles.propertyStatLabel}>En 1 ano</Text>
+                          <Text style={[styles.propertyStatValue, { color: colors.success }]}>
+                            +{formatCurrency(gain)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    <ChevronRight size={20} color={investorColors.textMuted} />
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+
+            {/* Costos estimados para venta */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Costos estimados para venta</Text>
+              
+              <View style={styles.costsCard}>
+                <View style={styles.costRow}>
+                  <Text style={styles.costLabel}>Comision inmobiliaria (5%)</Text>
+                  <Text style={styles.costValue}>{formatCurrency(totalPropertyValue * 0.05)}</Text>
+                </View>
+                <View style={styles.costDivider} />
+                <View style={styles.costRow}>
+                  <Text style={styles.costLabel}>Gastos notariales (2%)</Text>
+                  <Text style={styles.costValue}>{formatCurrency(totalPropertyValue * 0.02)}</Text>
+                </View>
+                <View style={styles.costDivider} />
+                <View style={styles.costRow}>
+                  <Text style={styles.costLabel}>ISR (estimado)</Text>
+                  <Text style={styles.costValue}>{formatCurrency(potentialGain * 0.35)}</Text>
+                </View>
+                <View style={styles.costDivider} />
+                <View style={[styles.costRow, { marginTop: spacing.sm }]}>
+                  <Text style={[styles.costLabel, { fontWeight: '600', color: investorColors.text }]}>
+                    Ganancia neta estimada (1 ano)
+                  </Text>
+                  <Text style={[styles.costValue, { color: colors.success, fontWeight: '700' }]}>
+                    {formatCurrency(potentialGain - (totalPropertyValue * 0.07) - (potentialGain * 0.35))}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Tab: Rentas */}
+        {activeTab === 'rentas' && (
+          <>
+            {/* Summary Card - Rentas */}
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Ingresos por renta</Text>
+              <Text style={styles.summaryAmount}>{formatCurrency(totalEarnings)}</Text>
+              
+              <View style={styles.summaryDivider} />
+              
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <View style={[styles.summaryIcon, { backgroundColor: colors.success + '20' }]}>
+                    <DollarSign size={20} color={colors.success} />
+                  </View>
+                  <View>
+                    <Text style={styles.summaryItemLabel}>Mensual</Text>
+                    <Text style={styles.summaryItemValue}>{formatCurrency(monthlyIncome)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.summaryItem}>
+                  <View style={[styles.summaryIcon, { backgroundColor: colors.info + '20' }]}>
+                    <Calendar size={20} color={colors.info} />
+                  </View>
+                  <View>
+                    <Text style={styles.summaryItemLabel}>Proyeccion anual</Text>
+                    <Text style={styles.summaryItemValue}>{formatCurrency(projectedAnnual)}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Stats */}
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <Home size={24} color={investorColors.accent} />
+                <Text style={styles.statValue}>
+                  {myProperties.filter(p => p.status === 'rented').length}
+                </Text>
+                <Text style={styles.statLabel}>Rentadas</Text>
+              </View>
+
+              <View style={styles.statCard}>
+                <Building2 size={24} color={colors.info} />
+                <Text style={styles.statValue}>
+                  {myProperties.filter(p => p.status !== 'rented').length}
+                </Text>
+                <Text style={styles.statLabel}>Disponibles</Text>
+              </View>
+            </View>
+
+            {/* Desglose por propiedad - Rentas */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Ingresos por propiedad</Text>
+
+              {propertyEarningsData.map(({ property, earnings }) => (
+                <TouchableOpacity 
+                  key={property.id}
+                  style={styles.propertyCard}
+                  onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
+                >
+                  <View style={styles.propertyIconContainer}>
+                    {property.type === 'house' ? (
+                      <Home size={24} color={investorColors.accent} />
+                    ) : (
+                      <Building2 size={24} color={investorColors.accent} />
+                    )}
+                  </View>
+
+                  <View style={styles.propertyContent}>
+                    <Text style={styles.propertyTitle} numberOfLines={1}>
+                      {property.title}
+                    </Text>
+                    <View style={styles.propertyStatusRow}>
+                      <Text style={styles.propertyCity}>{property.city}</Text>
+                      <View style={[
+                        styles.statusBadge, 
+                        { backgroundColor: property.status === 'rented' ? colors.success + '20' : investorColors.border }
+                      ]}>
+                        <Text style={[
+                          styles.statusText,
+                          { color: property.status === 'rented' ? colors.success : investorColors.textMuted }
+                        ]}>
+                          {property.status === 'rented' ? 'Rentada' : 'Disponible'}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.propertyStats}>
+                      <View style={styles.propertyStat}>
+                        <Text style={styles.propertyStatLabel}>Total ganado</Text>
+                        <Text style={styles.propertyStatValue}>
+                          {formatCurrency(earnings.totalEarnings)}
+                        </Text>
+                      </View>
+                      
+                      <View style={styles.propertyStat}>
+                        <Text style={styles.propertyStatLabel}>Renta mensual</Text>
+                        <Text style={[styles.propertyStatValue, { color: colors.success }]}>
+                          {formatCurrency(earnings.monthlyEarnings || property.monthlyRent || 0)}
+                        </Text>
+                      </View>
+
+                      <View style={styles.propertyStat}>
+                        <Text style={styles.propertyStatLabel}>Ocupacion</Text>
+                        <Text style={styles.propertyStatValue}>
+                          {earnings.occupancyRate}%
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <ChevronRight size={20} color={investorColors.textMuted} />
+                </TouchableOpacity>
+              ))}
+
+              {propertyEarningsData.length === 0 && (
+                <View style={styles.emptyState}>
+                  <DollarSign size={48} color={investorColors.textMuted} />
+                  <Text style={styles.emptyStateText}>
+                    Agrega propiedades para ver tus ganancias
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Proyeccion de rentas */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Potencial de renta</Text>
+              
+              {rentProjections.map(({ property, estimatedRent, annualRent, roi, currentlyRented }) => (
+                <View key={property.id} style={styles.rentProjectionCard}>
+                  <View style={styles.rentProjectionHeader}>
+                    <Text style={styles.rentProjectionTitle} numberOfLines={1}>{property.title}</Text>
+                    {currentlyRented && (
+                      <View style={styles.rentingBadge}>
+                        <Text style={styles.rentingBadgeText}>Rentando</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.rentProjectionStats}>
+                    <View style={styles.rentProjectionStat}>
+                      <Text style={styles.rentProjectionLabel}>Renta estimada</Text>
+                      <Text style={styles.rentProjectionValue}>{formatCurrency(estimatedRent)}/mes</Text>
+                    </View>
+                    <View style={styles.rentProjectionStat}>
+                      <Text style={styles.rentProjectionLabel}>Anual</Text>
+                      <Text style={styles.rentProjectionValue}>{formatCurrency(annualRent)}</Text>
+                    </View>
+                    <View style={styles.rentProjectionStat}>
+                      <Text style={styles.rentProjectionLabel}>ROI</Text>
+                      <Text style={[styles.rentProjectionValue, { color: investorColors.accent }]}>{roi}%</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -227,7 +469,7 @@ export default function EarningsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -236,23 +478,54 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   headerPlaceholder: {
     width: 40,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: investorColors.surface,
+    borderWidth: 1,
+    borderColor: investorColors.border,
+  },
+  tabButtonActive: {
+    backgroundColor: investorColors.accent,
+    borderColor: investorColors.accent,
+  },
+  tabButtonText: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+    color: investorColors.textMuted,
+  },
+  tabButtonTextActive: {
+    color: investorColors.primary,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -262,23 +535,23 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   summaryCard: {
-    backgroundColor: colors.primary,
+    backgroundColor: investorColors.accent,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
   },
   summaryLabel: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textLight + '80',
+    color: investorColors.primary + 'cc',
   },
   summaryAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: colors.accent,
+    color: investorColors.primary,
     marginTop: spacing.xs,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: colors.borderDark,
+    backgroundColor: investorColors.primary + '30',
     marginVertical: spacing.lg,
   },
   summaryRow: {
@@ -300,12 +573,12 @@ const styles = StyleSheet.create({
   },
   summaryItemLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textLight + '80',
+    color: investorColors.primary + 'cc',
   },
   summaryItemValue: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.textLight,
+    color: investorColors.primary,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -313,22 +586,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   statValue: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.sm,
   },
   statLabel: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
   },
   section: {
@@ -337,22 +610,77 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
+  },
+  projectionCard: {
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: investorColors.border,
+  },
+  projectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  projectionTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+    color: investorColors.textSecondary,
+  },
+  projectionValue: {
+    fontSize: typography.h3.fontSize,
+    fontWeight: '700',
+    color: investorColors.text,
+  },
+  projectionGain: {
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.success,
+    marginTop: spacing.xs,
+  },
+  costsCard: {
+    backgroundColor: investorColors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: investorColors.border,
+  },
+  costRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  costLabel: {
+    fontSize: typography.body.fontSize,
+    color: investorColors.textSecondary,
+  },
+  costValue: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+    color: investorColors.text,
+  },
+  costDivider: {
+    height: 1,
+    backgroundColor: investorColors.border,
+    marginVertical: spacing.xs,
   },
   propertyCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   propertyIconContainer: {
     width: 50,
     height: 50,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: investorColors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -363,12 +691,27 @@ const styles = StyleSheet.create({
   propertyTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   propertyCity: {
     fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: 2,
+  },
+  propertyStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   propertyStats: {
     flexDirection: 'row',
@@ -378,12 +721,12 @@ const styles = StyleSheet.create({
   propertyStat: {},
   propertyStatLabel: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
   },
   propertyStatValue: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
   },
   emptyState: {
     alignItems: 'center',
@@ -391,40 +734,52 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: spacing.md,
     textAlign: 'center',
   },
-  tipsCard: {
-    backgroundColor: colors.accent + '15',
+  rentProjectionCard: {
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accent + '30',
+    borderColor: investorColors.border,
   },
-  tipsTitle: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: spacing.md,
-  },
-  tipItem: {
+  rentProjectionHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
-  tipBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.accent,
-    marginTop: 6,
-  },
-  tipText: {
+  rentProjectionTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: investorColors.text,
     flex: 1,
+  },
+  rentingBadge: {
+    backgroundColor: colors.success + '20',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  rentingBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.success,
+  },
+  rentProjectionStats: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  rentProjectionStat: {},
+  rentProjectionLabel: {
+    fontSize: 10,
+    color: investorColors.textMuted,
+  },
+  rentProjectionValue: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.text,
-    lineHeight: 20,
+    fontWeight: '600',
+    color: investorColors.text,
   },
 })
