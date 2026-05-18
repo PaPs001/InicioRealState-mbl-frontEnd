@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { mockProperties, formatCurrency } from '@/lib/mock-data'
 import type { Property } from '@/lib/types'
 import { 
@@ -21,6 +21,9 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react-native'
+
+// Colores del inversionista (negro y dorado)
+const investorColors = clientThemes.investor
 
 export default function MyPropertiesScreen() {
   const { currentUser } = useAuth()
@@ -55,7 +58,7 @@ export default function MyPropertiesScreen() {
       case 'rented': return colors.success
       case 'for_sale': return colors.info
       case 'for_rent': return colors.warning
-      default: return colors.textMuted
+      default: return investorColors.textMuted
     }
   }
 
@@ -70,7 +73,7 @@ export default function MyPropertiesScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.propertyIconContainer}>
-          <Icon size={32} color={colors.accent} />
+          <Icon size={32} color={investorColors.accent} />
         </View>
 
         <View style={styles.propertyContent}>
@@ -84,7 +87,7 @@ export default function MyPropertiesScreen() {
           </View>
 
           <View style={styles.locationRow}>
-            <MapPin size={14} color={colors.textMuted} />
+            <MapPin size={14} color={investorColors.textMuted} />
             <Text style={styles.propertyAddress} numberOfLines={1}>
               {property.address}, {property.city}
             </Text>
@@ -94,7 +97,7 @@ export default function MyPropertiesScreen() {
             <Text style={styles.propertyValue}>
               {formatCurrency(property.currentValue || property.price)}
             </Text>
-            <ChevronRight size={20} color={colors.textMuted} />
+            <ChevronRight size={20} color={investorColors.textMuted} />
           </View>
         </View>
       </TouchableOpacity>
@@ -109,14 +112,14 @@ export default function MyPropertiesScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.text} />
+          <ArrowLeft size={24} color={investorColors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mis Propiedades</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => router.push('/add-property-screen')}
         >
-          <Plus size={24} color={colors.accent} />
+          <Plus size={24} color={investorColors.accent} />
         </TouchableOpacity>
       </View>
 
@@ -136,7 +139,7 @@ export default function MyPropertiesScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Building2 size={48} color={colors.textMuted} />
+            <Building2 size={48} color={investorColors.textMuted} />
             <Text style={styles.emptyStateTitle}>Sin propiedades</Text>
             <Text style={styles.emptyStateText}>
               Agrega tu primera propiedad para comenzar a monitorear tu portafolio
@@ -145,7 +148,7 @@ export default function MyPropertiesScreen() {
               style={styles.emptyStateButton}
               onPress={() => router.push('/add-property-screen')}
             >
-              <Plus size={20} color={colors.primary} />
+              <Plus size={20} color={investorColors.primary} />
               <Text style={styles.emptyStateButtonText}>Agregar propiedad</Text>
             </TouchableOpacity>
           </View>
@@ -158,7 +161,7 @@ export default function MyPropertiesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: investorColors.background,
   },
   header: {
     flexDirection: 'row',
@@ -167,26 +170,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: investorColors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.text,
   },
   addButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
   },
   counterText: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
   },
   listContent: {
     padding: spacing.md,
@@ -204,17 +207,17 @@ const styles = StyleSheet.create({
   },
   propertyCard: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: investorColors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: investorColors.border,
   },
   propertyIconContainer: {
     width: 60,
     height: 60,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: investorColors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -231,7 +234,7 @@ const styles = StyleSheet.create({
   propertyTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
     flex: 1,
   },
   statusBadge: {
@@ -251,7 +254,7 @@ const styles = StyleSheet.create({
   },
   propertyAddress: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
+    color: investorColors.textSecondary,
     flex: 1,
   },
   propertyFooter: {
@@ -263,7 +266,7 @@ const styles = StyleSheet.create({
   propertyValue: {
     fontSize: typography.body.fontSize,
     fontWeight: '700',
-    color: colors.text,
+    color: investorColors.accent,
   },
   emptyState: {
     flex: 1,
@@ -274,12 +277,12 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
-    color: colors.text,
+    color: investorColors.text,
     marginTop: spacing.md,
   },
   emptyStateText: {
     fontSize: typography.body.fontSize,
-    color: colors.textMuted,
+    color: investorColors.textMuted,
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
@@ -287,7 +290,7 @@ const styles = StyleSheet.create({
   emptyStateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: investorColors.accent,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.lg,
@@ -297,6 +300,6 @@ const styles = StyleSheet.create({
   emptyStateButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: colors.primary,
+    color: investorColors.primary,
   },
 })
