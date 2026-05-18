@@ -29,12 +29,14 @@ export interface Property {
   bedrooms?: number
   bathrooms?: number
   sqMeters: number
+  size: number // en m² (alias para sqMeters por compatibilidad)
   description?: string
   features?: string[]
   images?: string[]
   ownerId?: string
   agentId?: string
   monthlyRent?: number
+  purchasedWithUs?: boolean // si fue comprada a traves de Inicio
   createdAt: string
 }
 
@@ -171,4 +173,62 @@ export interface RegistrationDocument {
   url: string
   uploadDate: string
   status: 'pending' | 'approved' | 'rejected'
+}
+
+// Tipos de renta activa (para inquilinos)
+export interface ActiveRental {
+  id: string
+  propertyId: string
+  tenantId: string
+  landlordId: string
+  agentId: string
+  startDate: string
+  endDate: string
+  monthlyRent: number
+  paymentDay: number
+  depositAmount: number
+  rules: string[]
+  utilities: {
+    electricity: { provider: string; phone: string; accountNumber?: string }
+    water: { provider: string; phone: string; accountNumber?: string }
+    gas: { provider: string; phone: string; accountNumber?: string }
+    internet?: { provider: string; phone: string; accountNumber?: string }
+  }
+  documents: RegistrationDocument[]
+  status: 'active' | 'ending_soon' | 'ended'
+}
+
+// Tipos de mensajes
+export interface Message {
+  id: string
+  conversationId: string
+  senderId: string
+  receiverId: string
+  content: string
+  read: boolean
+  createdAt: string
+}
+
+export interface Conversation {
+  id: string
+  participants: string[]
+  lastMessage?: string
+  lastMessageDate?: string
+  unreadCount: number
+  propertyId?: string
+}
+
+// Tipos de ganancias (para inversionistas)
+export interface PropertyEarnings {
+  propertyId: string
+  totalEarnings: number
+  monthlyEarnings: number
+  occupancyRate: number
+  lastPaymentDate?: string
+  nextPaymentDate?: string
+  paymentHistory: {
+    month: string
+    amount: number
+    status: 'paid' | 'pending' | 'late'
+  }[]
 }
