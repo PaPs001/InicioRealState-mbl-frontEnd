@@ -1,6 +1,6 @@
 // Paleta de colores para la aplicacion
 export const colors = {
-  // Colores principales
+  // Colores principales (default)
   primary: '#1e2d32',
   primaryDark: '#0c1427',
   accent: '#cbb375',
@@ -44,6 +44,78 @@ export const colors = {
     text: '#1e2d32',
     textSecondary: '#6b7280',
   }
+}
+
+// Temas por tipo de cliente
+export const clientThemes = {
+  // Usuario buscando propiedad (colores originales claros)
+  searching: {
+    primary: '#083b52',
+    secondary: '#0c74af',
+    accent: '#0c74af',
+    background: '#f5f1ec',
+    surface: '#ffffff',
+    border: '#e5e0d8',
+    text: '#202c38',
+    textSecondary: '#5a6673',
+    textMuted: '#8a949e',
+    textLight: '#f5f1ec',
+  },
+  
+  // Usuario inversionista (azul profundo elegante y dorado)
+  investor: {
+    primary: '#0a1628',
+    secondary: '#152238',
+    accent: '#cbb375',
+    background: '#050d18',
+    surface: '#0a1628',
+    surfaceLight: '#152238',
+    border: '#1a2d4a',
+    text: '#f5f1ec',
+    textSecondary: '#a8b4c8',
+    textMuted: '#5a6a82',
+    textLight: '#f5f1ec',
+    accentLight: '#e5d4a8',
+  },
+  
+  // Usuario inquilino (oscuro elegante pero mas calido - nivel debajo del inversionista)
+  tenant: {
+    primary: '#3d5a40',
+    secondary: '#4a6d4d',
+    accent: '#907a63',
+    accentGold: '#cbb375',
+    background: '#1f2b38',
+    surface: '#2a3847',
+    surfaceLight: '#354555',
+    border: '#3d5a40',
+    text: '#f5f1ec',
+    textSecondary: '#c4bdb4',
+    textMuted: '#8a9a8c',
+    textLight: '#f5f1ec',
+    green: '#3d5a40',
+    warm: '#907a63',
+  },
+  
+  // Asesor (fondo oscuro azul)
+  advisor: {
+    primary: '#0c1427',
+    secondary: '#1f2b38',
+    accent: '#cbb375',
+    background: '#0c1427',
+    surface: '#1f2b38',
+    border: '#3a4857',
+    text: '#e5e5e5',
+    textSecondary: '#9ca3af',
+    textMuted: '#6b7280',
+    textLight: '#e5e5e5',
+  },
+}
+
+// Funcion para obtener el tema segun el rol del usuario
+export type ClientRole = 'searching' | 'investor' | 'tenant'
+
+export function getClientTheme(role: ClientRole) {
+  return clientThemes[role] || clientThemes.searching
 }
 
 // Espaciado

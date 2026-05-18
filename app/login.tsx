@@ -1,6 +1,7 @@
 //Imagenes
 import LogoGris from './assets/LogoInicioSVGris.svg';
 import LogoNegro from './assets/LogoInicioSVGNegro.svg';
+import TextoLogoInicio from './assets/TextoLogoInicio.svg';
 
 //configuraciones
 import { useState } from 'react'
@@ -120,7 +121,7 @@ export default function LoginScreen() {
             style={styles.logoContainer}
             onPress={() => setIsAgentMode(true)}
           >
-            <LogoNegro width={150} height={150} />
+            <TextoLogoInicio width={200} height={80} />
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
@@ -158,6 +159,14 @@ export default function LoginScreen() {
             >
               <UserPlus size={18} color={colors.text} />
               <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+              onPress={() => router.push('/animation-demo-screen')}
+            >
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Ver demos de animacion</Text>
             </TouchableOpacity>
           </View>
 
