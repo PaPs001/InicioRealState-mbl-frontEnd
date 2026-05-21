@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   View, 
   Text, 
@@ -8,10 +8,13 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+import { useAuth } from '@/contexts/AuthContext'
+import { createUserProperty } from '@/lib/api-user-properties'
 import { 
   ArrowLeft,
   Home,
@@ -38,7 +41,6 @@ import {
   Tag,
 } from 'lucide-react-native'
 
-// Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor
 
 type PropertyType = 'house' | 'apartment' | 'land'
@@ -58,12 +60,15 @@ const AMENITIES = [
 
 export default function AddPropertyScreen() {
   const router = useRouter()
+  const { authToken, currentUser } = useAuth()
+  const isDemoSession = !authToken
   const [step, setStep] = useState(1)
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null)
   const [acquisitionType, setAcquisitionType] = useState<AcquisitionType | null>(null)
   const [externalAgency, setExternalAgency] = useState('')
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
   const [photos, setPhotos] = useState<string[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     address: '',
@@ -77,12 +82,95 @@ export default function AddPropertyScreen() {
 
   const totalSteps = 7
 
+  useEffect(() => {
+    const tokenPreview = authToken ? `${authToken.slice(0, 12)}...` : 'SIN_TOKEN'
+    console.log('[auth][add-property]', {
+      userId: currentUser?.id ?? null,
+      role: currentUser?.role ?? null,
+      token: tokenPreview,
+      hasToken: !!authToken,
+    })
+  }, [authToken, currentUser?.id, currentUser?.role])
+
+  const handleSubmit = async () => {
+    if (!propertyType) return
+
+    if (!authToken) {
+      Alert.alert(
+        'Sesion requerida',
+        'Para agregar propiedades necesitas iniciar sesion con una cuenta real del backend. El acceso rapido demo no genera token.'
+      )
+      return
+    }
+
+    const amenityLabels = AMENITIES
+      .filter((amenity) => selectedAmenities.includes(amenity.id))
+      .map((amenity) => amenity.label)
+
+    const normalizedPrice = formData.purchasePrice.trim()
+    const normalizedArea = formData.sqMeters.trim()
+    const acquisitionLabel = acquisitionType === 'inicio'
+      ? 'IRS'
+      : acquisitionType === 'external'
+        ? `ext ${externalAgency.trim() ? ` con ${externalAgency.trim()}` : ''}`
+        : null
+        //igual hablar con edwin sobre el almacenado de imagenes
+//no olvides arreglar esta parte para enviar los datos correctos
+    const payload = {
+      id: `prop-${Date.now()}`,
+      propertyType,
+      name: formData.title.trim(),
+      banner: false,
+      urlImage: 'https://example.com/image.jpg',
+      offer: false,
+      zonaText: formData.city.trim(),
+      googleDriveImages: 'https://example.com/image.jpg',
+      propertyView: "Sea view",
+      propertyPayment: "Cash",
+      propertyInformation: acquisitionLabel,
+      propertyDescription: formData.description.trim() || formData.title.trim(),
+      locationUrl: "https://maps.google.com/...",
+      isALand: propertyType === 'land',
+      propertyArea: normalizedArea ? `${normalizedArea} m2` : null,
+      propertyDimensions: "10x12",
+      propertyAmenities: amenityLabels.length > 0 ? amenityLabels.join(', ') : null,
+      priceData: normalizedPrice ? `$${normalizedPrice}` : null,
+      priceSpecial: null,
+      minPrice: null,
+      maxPrice: null,
+      status: 'disponible',
+      parking: selectedAmenities.includes('parking') ? '1' : '1',
+      wc: propertyType === 'land' ? null : (formData.bathrooms.trim() || null),
+      bed: propertyType === 'land' ? null : (formData.bedrooms.trim() || null),
+      address: formData.address.trim(),
+      originalPhotos: "https://example.com/photos/original.jpg",
+      editedPhotos: "https://example.com/photos/edited.jpg",
+      list: 'featured',
+    } as const
+
+    try {
+      setIsSubmitting(true)
+      await createUserProperty(payload, authToken)
+      Alert.alert(
+        'Propiedad guardada',
+        currentUser?.name
+          ? `La propiedad se agrego correctamente al perfil de ${currentUser.name}.`
+          : 'La propiedad se agrego correctamente a tu perfil.'
+      )
+      router.back()
+    } catch (error) {
+      console.error('Error al guardar propiedad', error)
+      Alert.alert('No se pudo guardar', error instanceof Error ? error.message : 'Ocurrio un error al guardar la propiedad.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
-      // Submit form - guardar propiedad
-      router.back()
+      handleSubmit()
     }
   }
 
@@ -119,11 +207,11 @@ export default function AddPropertyScreen() {
       case 4:
         return formData.purchasePrice && formData.sqMeters
       case 5:
-        return true // Amenidades son opcionales
+        return true
       case 6:
-        return true // Fotos son opcionales
+        return true 
       case 7:
-        return true // Pantalla final informativa
+        return true 
       default:
         return true
     }
@@ -212,7 +300,6 @@ export default function AddPropertyScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Campo opcional para inmobiliaria externa */}
       {acquisitionType === 'external' && (
         <View style={styles.externalAgencyContainer}>
           <View style={styles.formGroup}>
@@ -465,6 +552,15 @@ export default function AddPropertyScreen() {
         <Text style={styles.finalHint}>
           Nuestro equipo esta disponible para ayudarte si decides publicar tu propiedad
         </Text>
+
+        {isDemoSession && (
+          <View style={styles.warningBox}>
+            <Text style={styles.warningTitle}>Sesion demo detectada</Text>
+            <Text style={styles.warningText}>
+              Para guardar esta propiedad necesitas iniciar sesion con una cuenta real del backend.
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -514,10 +610,14 @@ export default function AddPropertyScreen() {
           <TouchableOpacity 
             style={[styles.continueButton, !canProceed() && styles.continueButtonDisabled]}
             onPress={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isSubmitting}
           >
             <Text style={styles.continueButtonText}>
-              {step === totalSteps ? 'Guardar propiedad' : 'Continuar'}
+              {step === totalSteps
+                ? (isSubmitting
+                    ? 'Guardando...'
+                    : (isDemoSession ? 'Inicia sesion real para guardar' : 'Guardar propiedad'))
+                : 'Continuar'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -883,6 +983,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.lg,
     paddingHorizontal: spacing.md,
+  },
+  warningBox: {
+    width: '100%',
+    marginTop: spacing.lg,
+    backgroundColor: investorColors.accent + '15',
+    borderColor: investorColors.accent,
+    borderWidth: 1,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  warningTitle: {
+    color: investorColors.text,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '700',
+  },
+  warningText: {
+    color: investorColors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    lineHeight: 18,
   },
   footer: {
     padding: spacing.md,
