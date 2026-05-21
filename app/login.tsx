@@ -1,6 +1,7 @@
 //Imagenes
 import LogoGris from './assets/LogoInicioSVGris.svg';
 import LogoNegro from './assets/LogoInicioSVGNegro.svg';
+import TextoLogoInicio from './assets/TextoLogoInicio.svg';
 
 //configuraciones
 import { useState } from 'react'
@@ -18,14 +19,49 @@ import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
-import { User, Lock, UserPlus, ArrowLeft } from 'lucide-react-native'
+import { User, UserPlus, ArrowLeft } from 'lucide-react-native'
+import { apiFetch } from '@/lib/apiFetchData'
 
 export default function LoginScreen() {
   const [isAgentMode, setIsAgentMode] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login } = useAuth()
+  const { login, setAuthSession } = useAuth()
   const router = useRouter()
+
+  const handleLogin = async () => {
+    try {
+      const data = await apiFetch<any>('/auth/login', {
+        method: 'POST',
+        body: {
+          email,
+          password,
+        },
+      })
+
+      const backendUser = data?.user ?? data?.data?.user ?? data
+      const authToken =
+        data?.accessToken ??
+        data?.token ??
+        data?.data?.accessToken ??
+        data?.data?.token ??
+        null
+
+      if (!backendUser) {
+        throw new Error('La API no devolvio un usuario valido')
+      }
+
+      if (!authToken) {
+        throw new Error('La API no devolvio un token de sesion')
+      }
+
+      await setAuthSession(backendUser, authToken)
+      console.log('usuario recibido', backendUser)
+      router.replace('/(tabs)')
+    } catch (error) {
+      console.error('Error al iniciar sesion', error)
+    }
+  }
 
   const handleQuickLogin = async (userId: string) => {
     await login(userId)
@@ -80,7 +116,7 @@ export default function LoginScreen() {
                   secureTextEntry
                 />
               </View>
-              <TouchableOpacity style={styles.buttonAccent}>
+              <TouchableOpacity style={styles.buttonAccent} onPress={handleLogin}>
                 <User size={18} color={colors.primaryDark} />
                 <Text style={styles.buttonAccentText}>Iniciar Sesion</Text>
               </TouchableOpacity>
@@ -120,7 +156,7 @@ export default function LoginScreen() {
             style={styles.logoContainer}
             onPress={() => setIsAgentMode(true)}
           >
-            <LogoNegro width={150} height={150} />
+            <TextoLogoInicio width={200} height={80} />
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
@@ -145,7 +181,7 @@ export default function LoginScreen() {
                 secureTextEntry
               />
             </View>
-            <TouchableOpacity style={styles.buttonPrimary}>
+            <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>
               <User size={18} color={colors.textInverse} />
               <Text style={styles.buttonPrimaryText}>Iniciar Sesion</Text>
             </TouchableOpacity>
@@ -158,6 +194,14 @@ export default function LoginScreen() {
             >
               <UserPlus size={18} color={colors.text} />
               <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+              onPress={() => router.push('/animation-demo-screen')}
+            >
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Ver demos de animacion</Text>
             </TouchableOpacity>
           </View>
 

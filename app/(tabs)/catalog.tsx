@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { formatCurrency } from '@/lib/mock-data'
 import type { Property } from '@/lib/types'
 import { 
@@ -37,11 +37,16 @@ export default function CatalogScreen() {
     isCatalogLoading,
     hasLoadedCatalog,
     loadCatalogProperties,
+    currentUser,
   } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
   const [showFilters, setShowFilters] = useState(false)
+
+  const isInvestor = currentUser?.role === 'investor'
+  const isSearching = currentUser?.role === 'searching'
+  const theme = isInvestor ? clientThemes.investor : isSearching ? clientThemes.searching : null
 
   useEffect(() => {
     if (catalogProperties.length === 0 && !isCatalogLoading) {
@@ -171,51 +176,51 @@ export default function CatalogScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, theme && { backgroundColor: theme.background }]} edges={['bottom']}>
       {/* Barra de busqueda */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color={colors.textMuted} />
+      <View style={[styles.searchContainer, theme && { backgroundColor: theme.background }]}>
+        <View style={[styles.searchInputContainer, theme && { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Search size={20} color={theme?.textMuted || colors.textMuted} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, theme && { color: theme.text }]}
             placeholder="Buscar propiedades..."
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={theme?.textMuted || colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
         <TouchableOpacity 
-          style={styles.filterButton}
+          style={[styles.filterButton, theme && { backgroundColor: theme.surface, borderColor: theme.border }]}
           onPress={() => setShowFilters(true)}
         >
-          <Filter size={20} color={colors.accent} />
+          <Filter size={20} color={theme?.accent || colors.accent} />
         </TouchableOpacity>
       </View>
 
       {/* Tabs de filtro */}
-      <View style={styles.filterTabs}>
+      <View style={[styles.filterTabs, theme && { backgroundColor: theme.background }]}>
         <TouchableOpacity 
-          style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
+          style={[styles.filterTab, filter === 'all' && styles.filterTabActive, filter === 'all' && theme && { backgroundColor: theme.accent }]}
           onPress={() => setFilter('all')}
         >
-          <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive, filter === 'all' && theme && { color: theme.textLight }]}>
             Todos
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.filterTab, filter === 'sale' && styles.filterTabActive]}
+          style={[styles.filterTab, filter === 'sale' && styles.filterTabActive, filter === 'sale' && theme && { backgroundColor: theme.accent }]}
           onPress={() => setFilter('sale')}
         >
-          <Text style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive, filter === 'sale' && theme && { color: theme.textLight }]}>
             Venta
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.filterTab, filter === 'rent' && styles.filterTabActive]}
+          style={[styles.filterTab, filter === 'rent' && styles.filterTabActive, filter === 'rent' && theme && { backgroundColor: theme.accent }]}
           onPress={() => setFilter('rent')}
         >
-          <Text style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive, filter === 'rent' && theme && { color: theme.textLight }]}>
             Renta
           </Text>
         </TouchableOpacity>
