@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router'
+import { Stack, usePathname } from 'expo-router'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import * as NavigationBar from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
@@ -9,7 +9,8 @@ import { Platform, View } from 'react-native'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
-  const { currentUser, isClient } = useAuth()
+  const { currentUser, authToken, isClient } = useAuth()
+  const pathname = usePathname()
   
   // Determinar tipo de usuario
   const userRole = currentUser?.role
@@ -64,6 +65,17 @@ function RootNavigator() {
     }
     setupNavigationBar()
   }, [backgroundColor, isDarkTheme]);
+
+  useEffect(() => {
+    const tokenPreview = authToken ? `${authToken.slice(0, 12)}...` : 'SIN_TOKEN'
+    console.log('[auth][route]', {
+      pathname,
+      userId: currentUser?.id ?? null,
+      role: currentUser?.role ?? null,
+      token: tokenPreview,
+      hasToken: !!authToken,
+    })
+  }, [pathname, authToken, currentUser?.id, currentUser?.role])
 
   return (
     <ThemeProvider value={navigationTheme}>

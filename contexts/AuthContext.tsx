@@ -5,12 +5,11 @@ import { mockUsers, mockProperties, mockLeads, mockAppointments, mockNotificatio
 import { CataLogData } from '@/lib/api-catalog-data'
 
 interface AuthContextType {
-  // Usuario actual
   currentUser: User | null
+  authToken: string | null
   isLoading: boolean
   isLoggedIn: boolean
   
-  // Roles
   isInvestor: boolean
   isSearching: boolean
   isTenant: boolean
@@ -18,12 +17,11 @@ interface AuthContextType {
   isAdmin: boolean
   isClient: boolean
   
-  // Acciones de autenticacion
   login: (userId: string) => Promise<void>
   logout: () => Promise<void>
-  setCurrentUser: (user: User | null) => void
+  setCurrentUser: (user: BackendUser | User | null) => void
+  setAuthSession: (user: BackendUser | User | null, token: string | null) => Promise<void>
   
-  // Datos del usuario
   userProperties: Property[]
   availableProperties: Property[]
   catalogProperties: Property[]
@@ -33,24 +31,78 @@ interface AuthContextType {
   userAppointments: Appointment[]
   notifications: Notification[]
   
-  // Favoritos
   favorites: string[]
   toggleFavorite: (propertyId: string) => void
   isFavorite: (propertyId: string) => boolean
   
-  // Funciones de propiedades
   getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: () => Promise<void>
   
-  // Funciones de notificaciones
   markNotificationAsRead: (id: string) => void
   unreadNotificationsCount: number
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AUTH_USER_STORAGE_KEY = 'authUser'
+const AUTH_TOKEN_STORAGE_KEY = 'authToken'
+const CURRENT_USER_ID_STORAGE_KEY = 'currentUserId'
+
+type BackendUser = Partial<User> & {
+  _id?: string
+  userId?: string
+  roles?: string[]
+}
+
+function mapBackendRoleToAppRole(roles?: string[], role?: string): UserRole {
+  const normalizedRoles = roles?.map(item => item.toUpperCase()) ?? []
+  const normalizedRole = role?.toUpperCase()
+
+  if (normalizedRoles.includes('CLIENT') || normalizedRole === 'CLIENT') {
+    return 'searching'
+  }
+
+  if (normalizedRoles.includes('AGENT') || normalizedRole === 'AGENT') {
+    return 'agent'
+  }
+
+  if (normalizedRoles.includes('ADMIN') || normalizedRole === 'ADMIN') {
+    return 'admin'
+  }
+
+  if (normalizedRole === 'INVESTOR') {
+    return 'investor'
+  }
+
+  if (normalizedRole === 'TENANT') {
+    return 'tenant'
+  }
+
+  if (normalizedRole === 'SEARCHING') {
+    return 'searching'
+  }
+
+  return 'searching'
+}
+
+function normalizeUser(user: BackendUser | User | null): User | null {
+  if (!user) return null
+
+  const backendUser = user as BackendUser
+
+  return {
+    id: user.id ?? backendUser._id ?? backendUser.userId ?? '',
+    name: user.name ?? '',
+    email: user.email ?? '',
+    phone: user.phone ?? '',
+    role: mapBackendRoleToAppRole(backendUser.roles, user.role ? String(user.role) : undefined),
+    avatar: user.avatar,
+    createdAt: user.createdAt ?? new Date().toISOString(),
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [currentUser, setCurrentUserState] = useState<User | null>(null)
+  const [authToken, setAuthToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [favorites, setFavorites] = useState<string[]>([])
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
@@ -58,22 +110,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isCatalogLoading, setIsCatalogLoading] = useState(false)
   const [hasLoadedCatalog, setHasLoadedCatalog] = useState(false)
 
-  // Cargar usuario guardado al iniciar
   useEffect(() => {
     loadStoredUser()
   }, [])
 
+  const setCurrentUser = (user: BackendUser | User | null) => {
+    setCurrentUserState(normalizeUser(user))
+  }
+
+  const setAuthSession = async (user: BackendUser | User | null, token: string | null) => {
+    const normalizedUser = normalizeUser(user)
+    setCurrentUserState(normalizedUser)
+    setAuthToken(token)
+
+    if (normalizedUser?.id) {
+      await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, normalizedUser.id)
+      await AsyncStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(normalizedUser))
+    } else {
+      await AsyncStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY)
+      await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
+    }
+
+    if (token) {
+      await AsyncStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)
+    } else {
+      await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+    }
+  }
+
   const loadStoredUser = async () => {
     try {
-      const storedUserId = await AsyncStorage.getItem('currentUserId')
+      const storedUserId = await AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY)
+      const storedAuthToken = await AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+      const storedAuthUser = await AsyncStorage.getItem(AUTH_USER_STORAGE_KEY)
+      setAuthToken(storedAuthToken)
+      if (storedAuthUser) {
+        setCurrentUserState(JSON.parse(storedAuthUser) as User)
+      }
       if (storedUserId) {
-        const user = mockUsers.find(u => u.id === storedUserId)
-        if (user) {
-          setCurrentUser(user)
-          const storedFavorites = await AsyncStorage.getItem(`favorites_${storedUserId}`)
-          if (storedFavorites) {
-            setFavorites(JSON.parse(storedFavorites))
-          }
+        const storedFavorites = await AsyncStorage.getItem(`favorites_${storedUserId}`)
+        if (storedFavorites) {
+          setFavorites(JSON.parse(storedFavorites))
         }
       }
     } catch (error) {
@@ -87,7 +164,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const user = mockUsers.find(u => u.id === userId)
     if (user) {
       setCurrentUser(user)
-      await AsyncStorage.setItem('currentUserId', userId)
+      setAuthToken(null)
+      await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, userId)
+      await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+      await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
       const storedFavorites = await AsyncStorage.getItem(`favorites_${userId}`)
       if (storedFavorites) {
         setFavorites(JSON.parse(storedFavorites))
@@ -98,12 +178,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    setCurrentUser(null)
+    setCurrentUserState(null)
+    setAuthToken(null)
     setFavorites([])
-    await AsyncStorage.removeItem('currentUserId')
+    await AsyncStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY)
+    await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+    await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
   }
 
-  // Roles
   const isInvestor = currentUser?.role === 'investor'
   const isSearching = currentUser?.role === 'searching'
   const isTenant = currentUser?.role === 'tenant'
@@ -111,10 +193,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = currentUser?.role === 'admin'
   const isClient = isInvestor || isSearching || isTenant
 
-  // Propiedades del usuario
   const userProperties = mockProperties.filter(p => p.ownerId === currentUser?.id)
   
-  // Propiedades disponibles (no propias)
   const propertySource = hasLoadedCatalog ? catalogProperties : mockProperties
   const availableProperties = propertySource.filter(p => {
     if (p.ownerId === currentUser?.id) return false
@@ -124,19 +204,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true
   })
 
-  // Leads del usuario (si es agente)
   const userLeads = isAgent || isAdmin 
     ? mockLeads.filter(l => isAdmin || l.agentId === currentUser?.id)
     : []
 
-  // Citas del usuario
   const userAppointments = mockAppointments.filter(a => {
     if (isClient) return a.userId === currentUser?.id
     if (isAgent || isAdmin) return isAdmin || a.agentId === currentUser?.id
     return false
   })
 
-  // Favoritos
   const toggleFavorite = async (propertyId: string) => {
     const newFavorites = favorites.includes(propertyId)
       ? favorites.filter(id => id !== propertyId)
@@ -163,11 +240,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Obtener propiedad por ID
   const getPropertyById = (id: string) =>
     catalogProperties.find(p => p.id === id) ?? mockProperties.find(p => p.id === id)
 
-  // Notificaciones
   const userNotifications = notifications.filter(n => n.userId === currentUser?.id)
   const unreadNotificationsCount = userNotifications.filter(n => !n.read).length
 
@@ -180,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       currentUser,
+      authToken,
       isLoading,
       isLoggedIn: !!currentUser,
       isInvestor,
@@ -191,6 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       setCurrentUser,
+      setAuthSession,
       userProperties,
       availableProperties,
       catalogProperties,

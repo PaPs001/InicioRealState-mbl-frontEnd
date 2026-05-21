@@ -30,8 +30,9 @@ import {
 } from 'lucide-react-native'
 import { useAuth } from '@/contexts/AuthContext'
 import { spacing, typography, borderRadius, clientThemes, colors } from '@/lib/theme'
-import type { Property } from '@/lib/types'
+import type { Property, User as AppUser } from '@/lib/types'
 import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
+import { registerUser } from '@/lib/registerUser'
 
 const { width } = Dimensions.get('window')
 
@@ -45,7 +46,7 @@ type Step = 'name' | 'email' | 'phone' | 'password' | 'search-preferences' | 'lo
 
 export default function BuyerForm({ onBack }: BuyerFormProps) {
   const router = useRouter()
-  const { setCurrentUser, availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = useAuth()
+  const { setAuthSession, availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = useAuth()
   
   const [step, setStep] = useState<Step>('name')
   const [formData, setFormData] = useState({
@@ -183,46 +184,55 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     }
   }
 
-  const handleSkipPreferences = () => {
-    completeRegistration()
+  const handleSkipPreferences = async () => {
+    await completeRegistration()
   }
 
-  const completeRegistration = () => {
-    setCurrentUser({
-      id: 'new-buyer',
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      role: 'searching',
-      avatar: undefined,
-      createdAt: new Date().toISOString(),
-    })
-    router.replace('/(tabs)')
+  const completeRegistration = async () => {
+    try {
+      const response = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      })
+
+      const backendUser = (response as {
+        user?: AppUser
+        data?: { user?: AppUser }
+      }).user ?? (response as { data?: { user?: AppUser } }).data?.user
+
+      const authToken = (response as {
+        accessToken?: string
+        token?: string
+        data?: { accessToken?: string; token?: string }
+      }).accessToken
+        ?? (response as { token?: string }).token
+        ?? (response as { data?: { accessToken?: string; token?: string } }).data?.accessToken
+        ?? (response as { data?: { accessToken?: string; token?: string } }).data?.token
+        ?? null
+
+      if (!backendUser || !authToken) {
+        throw new Error('El registro no devolvio una sesion valida')
+      }
+
+      await setAuthSession(backendUser, authToken)
+      return true
+    } catch(error){
+      console.error('Error al registrar el usuario', error)
+      return false
+    }
   }
 
-  const handlePropertySelect = (propertyId: string) => {
-    setCurrentUser({
-      id: 'new-buyer',
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      role: 'searching',
-      avatar: undefined,
-      createdAt: new Date().toISOString(),
-    })
+  const handlePropertySelect = async () => {
+    const registered = await completeRegistration()
+    if (!registered) return
     router.replace(`/(tabs)/catalog`)
   }
 
-  const handleExploreAll = () => {
-    setCurrentUser({
-      id: 'new-buyer',
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      role: 'searching',
-      avatar: undefined,
-      createdAt: new Date().toISOString(),
-    })
+  const handleExploreAll = async () => {
+    const registered = await completeRegistration()
+    if (!registered) return
     router.replace('/(tabs)/catalog')
   }
 
@@ -482,7 +492,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
             <TouchableOpacity
               key={property.id}
               style={styles.propertyCard}
-              onPress={() => handlePropertySelect(property.id)}
+              onPress={handlePropertySelect}
             >
               <View style={styles.propertyIconContainer}>
                 <Building2 size={24} color={theme.primary} />

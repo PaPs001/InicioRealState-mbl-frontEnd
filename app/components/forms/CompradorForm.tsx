@@ -4,6 +4,7 @@ import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
+import { registerUser } from '@/lib/registerUser'
 
 export default function CompradorForm() {
   const router = useRouter()
