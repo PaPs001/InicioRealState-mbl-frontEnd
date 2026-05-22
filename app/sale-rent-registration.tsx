@@ -7,7 +7,6 @@ import {
   TouchableOpacity, 
   TextInput,
   Alert,
-  FlatList,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -258,20 +257,23 @@ export default function SaleRentRegistrationScreen() {
           {/* Lista de propiedades */}
           {showPropertyPicker && (
             <View style={styles.propertyListContainer}>
-              <FlatList
-                data={filteredProperties}
-                renderItem={renderPropertyItem}
-                keyExtractor={item => item.id}
-                style={styles.propertyList}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
+              <ScrollView style={styles.propertyList} nestedScrollEnabled={true}>
+                {isAgentCatalogLoading ? (
                   <View style={styles.emptyList}>
-                    <Text style={styles.emptyListText}>
-                      {isAgentCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
-                    </Text>
+                    <Text style={styles.emptyListText}>Cargando propiedades...</Text>
                   </View>
-                }
-              />
+                ) : filteredProperties.length === 0 ? (
+                  <View style={styles.emptyList}>
+                    <Text style={styles.emptyListText}>No se encontraron propiedades</Text>
+                  </View>
+                ) : (
+                  filteredProperties.map((item) => (
+                    <View key={item.id}>
+                      {renderPropertyItem({ item })}
+                    </View>
+                  ))
+                )}
+              </ScrollView>
               <TouchableOpacity 
                 style={styles.closeListButton}
                 onPress={() => setShowPropertyPicker(false)}
