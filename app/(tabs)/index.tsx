@@ -926,6 +926,22 @@ export default function HomeScreen() {
             <ChevronRight size={20} color={colors.textMuted} />
           </TouchableOpacity>
 
+          <TouchableOpacity 
+            style={styles.quickAccessCardDark}
+            onPress={() => router.push('/my-properties')}
+          >
+            <View style={styles.quickAccessIconDark}>
+              <Building2 size={24} color={colors.accent} />
+            </View>
+            <View style={styles.quickAccessContent}>
+              <Text style={styles.quickAccessTitleDark}>Propiedades</Text>
+              <Text style={styles.quickAccessSubtitleDark}>
+                {visibleAvailableProperties.length} propiedades activas
+              </Text>
+            </View>
+            <ChevronRight size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+
           {isAgent && (
             <TouchableOpacity 
               style={styles.quickAccessCardDark}
