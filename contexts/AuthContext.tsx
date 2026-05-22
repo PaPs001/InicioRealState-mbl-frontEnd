@@ -266,10 +266,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const getPropertyById = (id: string) =>
-    agentCatalogProperties.find(p => p.id === id) ?? 
-    catalogProperties.find(p => p.id === id) ?? 
-    mockProperties.find(p => p.id === id)
+  const getPropertyById = (id: string) => {
+    console.log('[v0] getPropertyById - buscando id:', id)
+    console.log('[v0] getPropertyById - agentCatalogProperties:', agentCatalogProperties.length)
+    console.log('[v0] getPropertyById - catalogProperties:', catalogProperties.length)
+    
+    const found = agentCatalogProperties.find(p => p.id === id) ?? 
+      catalogProperties.find(p => p.id === id) ?? 
+      mockProperties.find(p => p.id === id)
+    
+    console.log('[v0] getPropertyById - encontrado:', !!found)
+    return found
+  }
 
   const userNotifications = notifications.filter(n => n.userId === currentUser?.id)
   const unreadNotificationsCount = userNotifications.filter(n => !n.read).length
