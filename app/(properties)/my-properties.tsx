@@ -69,7 +69,7 @@ export default function MyPropertiesScreen() {
     return (
       <TouchableOpacity 
         style={styles.propertyCard}
-        onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
+        onPress={() => router.push(`/property-detail?id=${property.id}`)}
         activeOpacity={0.7}
       >
         <View style={styles.propertyIconContainer}>
@@ -117,7 +117,7 @@ export default function MyPropertiesScreen() {
         <Text style={styles.headerTitle}>Mis Propiedades</Text>
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => router.push('/add-property-screen')}
+          onPress={() => router.push('/add-property')}
         >
           <Plus size={24} color={investorColors.accent} />
         </TouchableOpacity>
@@ -146,7 +146,7 @@ export default function MyPropertiesScreen() {
             </Text>
             <TouchableOpacity 
               style={styles.emptyStateButton}
-              onPress={() => router.push('/add-property-screen')}
+              onPress={() => router.push('/add-property')}
             >
               <Plus size={20} color={investorColors.primary} />
               <Text style={styles.emptyStateButtonText}>Agregar propiedad</Text>

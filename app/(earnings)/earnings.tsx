@@ -229,7 +229,7 @@ export default function EarningsScreen() {
                   <TouchableOpacity 
                     key={property.id}
                     style={styles.propertyCard}
-                    onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
+                    onPress={() => router.push(`/property-detail?id=${property.id}`)}
                   >
                     <View style={styles.propertyIconContainer}>
                       {property.type === 'house' ? (
@@ -361,7 +361,7 @@ export default function EarningsScreen() {
                 <TouchableOpacity 
                   key={property.id}
                   style={styles.propertyCard}
-                  onPress={() => router.push(`/property-detail-screen?id=${property.id}`)}
+                  onPress={() => router.push(`/property-detail?id=${property.id}`)}
                 >
                   <View style={styles.propertyIconContainer}>
                     {property.type === 'house' ? (

@@ -248,7 +248,7 @@ export default function HomeScreen() {
             </View>
             <TouchableOpacity 
               style={dynamicStyles.notificationButton}
-              onPress={() => router.push('/notifications-screen')}
+              onPress={() => router.push('/notifications')}
             >
               <Bell size={24} color={theme.text} />
             </TouchableOpacity>
@@ -313,7 +313,7 @@ export default function HomeScreen() {
               <>
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/my-properties-screen')}
+                  onPress={() => router.push('/my-properties')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Home size={24} color={theme.accent} />
@@ -328,7 +328,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/add-property-screen')}
+                  onPress={() => router.push('/add-property')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Plus size={24} color={theme.accent} />
@@ -343,7 +343,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/earnings-screen')}
+                  onPress={() => router.push('/earnings')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <TrendingUp size={24} color={theme.accent} />
@@ -359,7 +359,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/catalog-screen')}
+                  onPress={() => router.push('/catalog')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Building2 size={24} color={theme.accent} />
@@ -375,7 +375,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/favorites-screen')}
+                  onPress={() => router.push('/favorites')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Heart size={24} color={theme.accent} />
@@ -391,7 +391,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/appointments-screen')}
+                  onPress={() => router.push('/appointments')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Calendar size={24} color={theme.accent} />
@@ -407,7 +407,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/campaigns-screen')}
+                  onPress={() => router.push('/campaigns')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Megaphone size={24} color={theme.accent} />
@@ -428,7 +428,7 @@ export default function HomeScreen() {
               <>
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/catalog-screen')}
+                  onPress={() => router.push('/catalog')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Building2 size={24} color={theme.accent} />
@@ -444,7 +444,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/favorites-screen')}
+                  onPress={() => router.push('/favorites')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Heart size={24} color={theme.accent} />
@@ -460,7 +460,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/appointments-screen')}
+                  onPress={() => router.push('/appointments')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Calendar size={24} color={theme.accent} />
@@ -476,7 +476,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity 
                   style={dynamicStyles.quickAccessCard}
-                  onPress={() => router.push('/add-property-screen')}
+                  onPress={() => router.push('/add-property')}
                 >
                   <View style={dynamicStyles.quickAccessIcon}>
                     <Plus size={24} color={theme.accent} />
@@ -769,7 +769,7 @@ export default function HomeScreen() {
               
               <TouchableOpacity 
                 style={dynamicStyles.quickAccessCard}
-                onPress={() => router.push('/catalog-screen')}
+                onPress={() => router.push('/catalog')}
               >
                 <View style={dynamicStyles.quickAccessIcon}>
                   <Building2 size={24} color={theme.accent} />
@@ -785,7 +785,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity 
                 style={dynamicStyles.quickAccessCard}
-                onPress={() => router.push('/favorites-screen')}
+                onPress={() => router.push('/favorites')}
               >
                 <View style={dynamicStyles.quickAccessIcon}>
                   <Heart size={24} color={theme.accent} />
@@ -801,7 +801,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity 
                 style={dynamicStyles.quickAccessCard}
-                onPress={() => router.push('/appointments-screen')}
+                onPress={() => router.push('/appointments')}
               >
                 <View style={dynamicStyles.quickAccessIcon}>
                   <Calendar size={24} color={theme.accent} />
@@ -817,7 +817,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity 
                 style={dynamicStyles.quickAccessCard}
-                onPress={() => router.push('/add-property-screen')}
+                onPress={() => router.push('/add-property')}
               >
                 <View style={dynamicStyles.quickAccessIcon}>
                   <Plus size={24} color={theme.accent} />
