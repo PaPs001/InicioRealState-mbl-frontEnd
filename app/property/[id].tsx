@@ -44,7 +44,7 @@ type TabType = 'info' | 'analysis' | 'calendar'
 export default function PropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const { getPropertyById, isFavorite, toggleFavorite, isClient, currentUser } = useAuth()
+  const { getPropertyById, isFavorite, toggleFavorite, isClient, isAgent, isAdmin, currentUser } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('info')
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
@@ -56,7 +56,6 @@ export default function PropertyDetailScreen() {
   const property = getPropertyById(id || '')
   const favorite = property ? isFavorite(property.id) : false
 
-  // Determinar tema segun usuario
   const isInvestor = currentUser?.role === 'investor'
   const isSearching = currentUser?.role === 'searching'
   const isTenant = currentUser?.role === 'tenant'
@@ -82,7 +81,6 @@ export default function PropertyDetailScreen() {
   const isForSale = property?.status === 'for_sale'
   const isForRent = property?.status === 'for_rent'
 
-  // Mock de citas ya agendadas (simulando fechas ocupadas)
   const bookedAppointments = [
     { date: '2024-06-15', time: '10:00' },
     { date: '2024-06-15', time: '14:00' },
@@ -668,15 +666,19 @@ export default function PropertyDetailScreen() {
         >
           <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Detalle</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity 
-            style={[styles.headerAction, favorite && { backgroundColor: colors.error }]}
-            onPress={() => toggleFavorite(property.id)}
-          >
-            <Heart size={20} color={favorite ? '#fff' : theme.text} fill={favorite ? '#fff' : 'transparent'} />
-          </TouchableOpacity>
-        </View>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Detalle de Propiedad</Text>
+        {!isAgent && !isAdmin ? (
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={[styles.headerAction, favorite && { backgroundColor: colors.error }]}
+              onPress={() => toggleFavorite(property.id)}
+            >
+              <Heart size={20} color={favorite ? '#fff' : theme.text} fill={favorite ? '#fff' : 'transparent'} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
       </View>
 
       {/* Property Header */}
@@ -718,15 +720,17 @@ export default function PropertyDetailScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'calendar' && { borderBottomColor: theme.accent }]}
-          onPress={() => setActiveTab('calendar')}
-        >
-          <Calendar size={18} color={activeTab === 'calendar' ? theme.accent : theme.textMuted} />
-          <Text style={[styles.tabText, { color: activeTab === 'calendar' ? theme.accent : theme.textMuted }]}>
-            Agendar
-          </Text>
-        </TouchableOpacity>
+        {!isAgent && !isAdmin && (
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'calendar' && { borderBottomColor: theme.accent }]}
+            onPress={() => setActiveTab('calendar')}
+          >
+            <Calendar size={18} color={activeTab === 'calendar' ? theme.accent : theme.textMuted} />
+            <Text style={[styles.tabText, { color: activeTab === 'calendar' ? theme.accent : theme.textMuted }]}>
+              Agendar
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
