@@ -105,10 +105,16 @@ export default function SaleRentRegistrationScreen() {
   })
   
   // Estados comunes (cliente)
+  const [clientSearchQuery, setClientSearchQuery] = useState('')
+  const [selectedClient, setSelectedClient] = useState<string | null>(null)
+  const [showClientPicker, setShowClientPicker] = useState(false)
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   const [referralCode, setReferralCode] = useState('')
+  
+  // Mock de clientes (vacio por ahora, se llenara con datos reales mas tarde)
+  const existingClients: { id: string; name: string; phone: string; email: string }[] = []
 
   // Cargar propiedades si no están cargadas
   useEffect(() => {
@@ -191,6 +197,42 @@ export default function SaleRentRegistrationScreen() {
       (p.zonaText || '').toLowerCase().includes(query)
     )
   }, [agentCatalogRawData, searchQuery, transactionType])
+
+  // Filtrar clientes por búsqueda
+  const filteredClients = useMemo(() => {
+    if (!clientSearchQuery.trim()) return existingClients
+    const query = clientSearchQuery.toLowerCase()
+    return existingClients.filter(c => 
+      c.name.toLowerCase().includes(query) ||
+      c.phone.includes(query) ||
+      c.email.toLowerCase().includes(query)
+    )
+  }, [existingClients, clientSearchQuery])
+
+  // Manejar selección de cliente existente
+  const handleSelectClient = (clientId: string) => {
+    const client = existingClients.find(c => c.id === clientId)
+    if (client) {
+      setSelectedClient(clientId)
+      setClientName(client.name)
+      setClientPhone(client.phone)
+      setClientEmail(client.email)
+      setClientSearchQuery(client.name)
+      setShowClientPicker(false)
+    }
+  }
+
+  // Manejar cambio en búsqueda de cliente
+  const handleClientSearchChange = (text: string) => {
+    setClientSearchQuery(text)
+    setClientName(text) // También actualiza el nombre si escribe manualmente
+    if (selectedClient) {
+      setSelectedClient(null) // Limpiar selección si cambia el texto
+    }
+    if (text.length > 0 && !showClientPicker) {
+      setShowClientPicker(true)
+    }
+  }
 
   // Obtener datos de la propiedad seleccionada
   const selectedPropertyRaw = useMemo(() => {
@@ -942,48 +984,122 @@ export default function SaleRentRegistrationScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Datos del Cliente *</Text>
           
+          {/* Buscador de cliente */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Nombre completo *</Text>
-            <View style={styles.inputWithIcon}>
-              <User size={20} color={advisorTheme.textMuted} />
-              <TextInput
-                style={styles.inputInner}
-                placeholder="Nombre del cliente"
-                placeholderTextColor={advisorTheme.textMuted}
-                value={clientName}
-                onChangeText={setClientName}
-              />
+            <Text style={styles.inputLabel}>Buscar cliente existente o agregar nuevo *</Text>
+            <View style={styles.searchContainer}>
+              <View style={styles.inputWithIcon}>
+                <Search size={20} color={advisorTheme.textMuted} />
+                <TextInput
+                  style={styles.inputInner}
+                  placeholder="Escribe nombre, telefono o email..."
+                  placeholderTextColor={advisorTheme.textMuted}
+                  value={clientSearchQuery}
+                  onChangeText={handleClientSearchChange}
+                  onFocus={() => setShowClientPicker(true)}
+                />
+                {selectedClient && (
+                  <Check size={20} color={advisorTheme.accent} />
+                )}
+              </View>
             </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Telefono *</Text>
-            <View style={styles.inputWithIcon}>
-              <Phone size={20} color={advisorTheme.textMuted} />
-              <TextInput
-                style={styles.inputInner}
-                placeholder="10 digitos"
-                placeholderTextColor={advisorTheme.textMuted}
-                keyboardType="phone-pad"
-                value={clientPhone}
-                onChangeText={setClientPhone}
-              />
+          {/* Lista de clientes encontrados */}
+          {showClientPicker && clientSearchQuery.length > 0 && (
+            <View style={styles.clientListContainer}>
+              {filteredClients.length === 0 ? (
+                <View style={styles.noClientFound}>
+                  <User size={24} color={advisorTheme.textMuted} />
+                  <Text style={styles.noClientFoundText}>
+                    No se encontro ningun cliente
+                  </Text>
+                  <Text style={styles.noClientFoundHint}>
+                    Completa los datos manualmente abajo
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView style={styles.clientList} nestedScrollEnabled={true}>
+                  {filteredClients.map((client) => (
+                    <TouchableOpacity
+                      key={client.id}
+                      style={[
+                        styles.clientItem,
+                        selectedClient === client.id && styles.clientItemSelected
+                      ]}
+                      onPress={() => handleSelectClient(client.id)}
+                    >
+                      <View style={styles.clientItemContent}>
+                        <Text style={styles.clientItemName}>{client.name}</Text>
+                        <Text style={styles.clientItemDetails}>
+                          {client.phone} - {client.email}
+                        </Text>
+                      </View>
+                      {selectedClient === client.id && (
+                        <Check size={20} color={advisorTheme.accent} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+              <TouchableOpacity 
+                style={styles.closeClientListButton}
+                onPress={() => setShowClientPicker(false)}
+              >
+                <Text style={styles.closeClientListButtonText}>Cerrar</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <View style={styles.inputWithIcon}>
-              <Mail size={20} color={advisorTheme.textMuted} />
-              <TextInput
-                style={styles.inputInner}
-                placeholder="correo@ejemplo.com"
-                placeholderTextColor={advisorTheme.textMuted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={clientEmail}
-                onChangeText={setClientEmail}
-              />
+          {/* Datos del cliente (editables si no se selecciono uno existente o si se quiere modificar) */}
+          <View style={[styles.clientDataFields, selectedClient && styles.clientDataFieldsSelected]}>
+            {selectedClient && (
+              <Text style={styles.clientSelectedHint}>Cliente seleccionado - puedes editar los datos si es necesario</Text>
+            )}
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Nombre completo *</Text>
+              <View style={styles.inputWithIcon}>
+                <User size={20} color={advisorTheme.textMuted} />
+                <TextInput
+                  style={styles.inputInner}
+                  placeholder="Nombre del cliente"
+                  placeholderTextColor={advisorTheme.textMuted}
+                  value={clientName}
+                  onChangeText={setClientName}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Telefono *</Text>
+              <View style={styles.inputWithIcon}>
+                <Phone size={20} color={advisorTheme.textMuted} />
+                <TextInput
+                  style={styles.inputInner}
+                  placeholder="10 digitos"
+                  placeholderTextColor={advisorTheme.textMuted}
+                  keyboardType="phone-pad"
+                  value={clientPhone}
+                  onChangeText={setClientPhone}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <View style={styles.inputWithIcon}>
+                <Mail size={20} color={advisorTheme.textMuted} />
+                <TextInput
+                  style={styles.inputInner}
+                  placeholder="correo@ejemplo.com"
+                  placeholderTextColor={advisorTheme.textMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={clientEmail}
+                  onChangeText={setClientEmail}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -1482,5 +1598,83 @@ const styles = StyleSheet.create({
     color: advisorTheme.background,
     fontSize: typography.body.fontSize,
     fontWeight: '700',
+  },
+  // Estilos para selector de clientes
+  searchContainer: {
+    position: 'relative',
+  },
+  clientListContainer: {
+    marginTop: spacing.sm,
+    backgroundColor: advisorTheme.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+    maxHeight: 280,
+  },
+  clientList: {
+    maxHeight: 200,
+  },
+  noClientFound: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  noClientFoundText: {
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+  },
+  noClientFoundHint: {
+    color: advisorTheme.textMuted,
+    fontSize: typography.caption.fontSize,
+    textAlign: 'center',
+  },
+  clientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: advisorTheme.border,
+  },
+  clientItemSelected: {
+    backgroundColor: advisorTheme.accent + '20',
+  },
+  clientItemContent: {
+    flex: 1,
+  },
+  clientItemName: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: advisorTheme.text,
+  },
+  clientItemDetails: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textMuted,
+    marginTop: 2,
+  },
+  closeClientListButton: {
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: advisorTheme.border,
+  },
+  closeClientListButtonText: {
+    color: advisorTheme.accent,
+    fontWeight: '600',
+  },
+  clientDataFields: {
+    marginTop: spacing.md,
+  },
+  clientDataFieldsSelected: {
+    borderLeftWidth: 3,
+    borderLeftColor: advisorTheme.accent,
+    paddingLeft: spacing.md,
+  },
+  clientSelectedHint: {
+    color: advisorTheme.accent,
+    fontSize: typography.caption.fontSize,
+    marginBottom: spacing.sm,
+    fontStyle: 'italic',
   },
 })
