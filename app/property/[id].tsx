@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Alert
+  Alert,
+  Image,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -674,6 +675,17 @@ export default function PropertyDetailScreen() {
         )}
       </View>
 
+      {/* Property Image */}
+      {property.images && property.images.length > 0 && property.images[0] && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: property.images[0] }}
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+
       {/* Tabs */}
       <View style={[styles.tabsContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         {/**importyanteeeeeeeee */}
@@ -761,6 +773,15 @@ const styles = StyleSheet.create({
   },
   notFoundText: {
     fontSize: typography.body.fontSize,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 220,
+    backgroundColor: colors.surface,
+  },
+  propertyImage: {
+    width: '100%',
+    height: '100%',
   },
   header: {
     flexDirection: 'row',
