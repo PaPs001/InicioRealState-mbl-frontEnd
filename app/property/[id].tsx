@@ -57,10 +57,6 @@ export default function PropertyDetailScreen() {
   const property = getPropertyById(id || '')
   const favorite = property ? isFavorite(property.id) : false
 
-  console.log('[v0] PropertyDetail - id:', id)
-  console.log('[v0] PropertyDetail - property found:', !!property)
-  console.log('[v0] PropertyDetail - property:', property)
-
   const isInvestor = currentUser?.role === 'investor'
   const isSearching = currentUser?.role === 'searching'
   const isTenant = currentUser?.role === 'tenant'
