@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
-import RegisterTransition from '@/app/components/Animations/register-transition'
-import type { RegisterTransitionVariant } from '@/app/components/Animations/register-transition'
+import RegisterTransition from '@/components/animations/register-transition'
+import type { RegisterTransitionVariant } from '@/components/animations/register-transition'
 
 export default function RegisterTransitionRoute() {
   const router = useRouter()
