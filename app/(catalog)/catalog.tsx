@@ -54,9 +54,14 @@ export default function CatalogStandaloneScreen() {
   const theme = isInvestor ? clientThemes.investor : null
   const isAgentOrAdmin = isAgent || isAdmin
 
+  console.log('[v0] CatalogScreen - isAgent:', isAgent, 'isAdmin:', isAdmin, 'isAgentOrAdmin:', isAgentOrAdmin)
+  console.log('[v0] CatalogScreen - agentCatalogProperties:', agentCatalogProperties.length, 'hasLoadedAgentCatalog:', hasLoadedAgentCatalog)
+
   // Cargar catalogo segun tipo de usuario
   useEffect(() => {
+    console.log('[v0] useEffect - isAgentOrAdmin:', isAgentOrAdmin)
     if (isAgentOrAdmin) {
+      console.log('[v0] Cargando catalogo de asesores...')
       if (agentCatalogProperties.length === 0 && !isAgentCatalogLoading) {
         loadAgentCatalogProperties()
       }
