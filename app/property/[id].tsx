@@ -681,21 +681,6 @@ export default function PropertyDetailScreen() {
         )}
       </View>
 
-      {/* Property Header */}
-      <View style={[styles.propertyHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <View style={[styles.propertyIconLarge, { backgroundColor: theme.accent + '15' }]}>
-          <Icon size={40} color={theme.accent} />
-        </View>
-        <View style={styles.propertyInfo}>
-          <Text style={[styles.propertyTitle, { color: theme.text }]} numberOfLines={2}>{property.title}</Text>
-          <View style={styles.locationRow}>
-            <MapPin size={14} color={theme.textMuted} />
-            <Text style={[styles.locationText, { color: theme.textSecondary }]}>{property.city}</Text>
-          </View>
-          <Text style={[styles.propertyPrice, { color: theme.accent }]}>{formatCurrency(property.price)}</Text>
-        </View>
-      </View>
-
       {/* Tabs */}
       <View style={[styles.tabsContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TouchableOpacity 
@@ -812,41 +797,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  propertyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderBottomWidth: 1,
-  },
-  propertyIconLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  propertyInfo: {
-    flex: 1,
-  },
-  propertyTitle: {
-    fontSize: typography.h4.fontSize,
-    fontWeight: '700',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  locationText: {
-    fontSize: typography.bodySmall.fontSize,
-  },
-  propertyPrice: {
-    fontSize: typography.h4.fontSize,
-    fontWeight: '700',
-    marginTop: spacing.xs,
   },
   tabsContainer: {
     flexDirection: 'row',
