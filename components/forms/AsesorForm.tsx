@@ -1,9 +1,24 @@
-import { useState } from 'react'
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, Animated, Dimensions } from 'react-native'
+import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+
+const { width, height } = Dimensions.get('window')
+
+// Colores exclusivos para asesores - Azul oscuro elegante
+const advisorColors = {
+  background: clientThemes.advisor.background,
+  surface: clientThemes.advisor.surface,
+  accent: clientThemes.advisor.accent,
+  text: clientThemes.advisor.text,
+  textSecondary: clientThemes.advisor.textSecondary,
+  textMuted: clientThemes.advisor.textMuted,
+  border: clientThemes.advisor.border,
+  success: '#4ade80',
+  error: '#ef4444',
+}
 
 export default function AsesorForm() {
   const router = useRouter()
@@ -85,7 +100,7 @@ export default function AsesorForm() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <ArrowLeft size={20} color={colors.primary} />
+              <ArrowLeft size={20} color={advisorColors.accent} />
               <Text style={styles.backButtonText}>Regresar</Text>
             </TouchableOpacity>
           </View>
@@ -205,7 +220,7 @@ export default function AsesorForm() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: advisorColors.background,
   },
   backgroundLogoContainer: {
     position: 'absolute',
@@ -218,7 +233,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   backgroundLogo: {
-    opacity: 0.06,
+    opacity: 0.08,
   },
   keyboardView: {
     flex: 1,
@@ -238,7 +253,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   backButtonText: {
-    color: colors.primary,
+    color: advisorColors.accent,
     fontSize: typography.body.fontSize,
     fontWeight: '500',
     marginLeft: spacing.xs,
@@ -248,17 +263,17 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: colors.border,
+    backgroundColor: advisorColors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: advisorColors.accent,
     borderRadius: borderRadius.full,
   },
   progressText: {
-    color: colors.textMuted,
+    color: advisorColors.textMuted,
     fontSize: typography.bodySmall.fontSize,
     marginTop: spacing.xs,
     textAlign: 'right',
@@ -267,7 +282,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: colors.text,
+    color: advisorColors.text,
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
     marginBottom: spacing.lg,
@@ -278,25 +293,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.body.fontSize,
     fontWeight: '500',
-    color: colors.text,
+    color: advisorColors.text,
     marginBottom: spacing.sm,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: advisorColors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: advisorColors.border,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     fontSize: typography.body.fontSize,
-    color: colors.text,
+    color: advisorColors.text,
   },
   footer: {
     marginTop: spacing.lg,
     paddingBottom: spacing.lg,
   },
   continueButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: advisorColors.accent,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.lg,
   },
@@ -306,7 +321,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: typography.body.fontSize,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: advisorColors.background,
     textAlign: 'center',
   },
 })
