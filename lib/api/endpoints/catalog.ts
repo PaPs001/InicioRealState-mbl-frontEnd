@@ -5,7 +5,6 @@
 import { notificationsApi } from '../client'
 import type { Property } from '@/lib/types'
 
-// Tipos de respuesta del API
 export interface PropertyCatalogItemResponse {
   address: string
   banner: boolean
@@ -38,7 +37,6 @@ export interface PropertyCatalogItemResponse {
   zonaText: string | null
 }
 
-// Utilidades de mapeo
 function extractNumber(value: string | null | undefined): number {
   if (!value) return 0
   const match = value.match(/(\d+(\.\d+)?)/)
@@ -86,7 +84,6 @@ export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Pro
   }
 }
 
-// Obtener catalogo de propiedades en renta
 export async function getCatalogRentProperties(): Promise<Property[]> {
   try {
     const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
@@ -103,7 +100,6 @@ export async function getCatalogRentProperties(): Promise<Property[]> {
   }
 }
 
-// Obtener catalogo de propiedades en venta
 export async function getCatalogSaleProperties(): Promise<Property[]> {
   try {
     const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
@@ -120,7 +116,6 @@ export async function getCatalogSaleProperties(): Promise<Property[]> {
   }
 }
 
-// Obtener todas las propiedades del catalogo
 export async function getAllCatalogProperties(): Promise<Property[]> {
   try {
     const [rentProperties, saleProperties] = await Promise.all([
@@ -134,7 +129,6 @@ export async function getAllCatalogProperties(): Promise<Property[]> {
   }
 }
 
-// Status disponibles para asesores/coordinadores
 export const AGENT_VISIBLE_STATUSES = [
   'apartada',
   'disponible', 
@@ -144,7 +138,6 @@ export const AGENT_VISIBLE_STATUSES = [
   'alquilada externo'
 ]
 
-// Obtener catalogo completo para asesores (todos los status)
 export async function getAgentCatalogRentProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
   try {
     const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
@@ -152,7 +145,6 @@ export async function getAgentCatalogRentProperties(): Promise<{ properties: Pro
       body: { list: 'rent' }
     })
 
-    // Filtrar por los status visibles para asesores
     const filteredData = data.filter(item => {
       const status = (item.status || '').toLowerCase()
       return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
@@ -168,7 +160,6 @@ export async function getAgentCatalogRentProperties(): Promise<{ properties: Pro
   }
 }
 
-// Obtener catalogo de venta para asesores (todos los status)
 export async function getAgentCatalogSaleProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
   try {
     const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
@@ -176,7 +167,6 @@ export async function getAgentCatalogSaleProperties(): Promise<{ properties: Pro
       body: { list: 'sale' }
     })
 
-    // Filtrar por los status visibles para asesores
     const filteredData = data.filter(item => {
       const status = (item.status || '').toLowerCase()
       return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
@@ -192,7 +182,6 @@ export async function getAgentCatalogSaleProperties(): Promise<{ properties: Pro
   }
 }
 
-// Obtener catalogo completo para asesores (renta y venta)
 export async function getAllAgentCatalogProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
   try {
     const [rentResult, saleResult] = await Promise.all([
