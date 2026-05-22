@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { 
   View, 
   Text, 
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Linking,
   Image,
+  ActivityIndicator,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -62,18 +63,38 @@ const getStatusColor = (status: string | null) => {
 export default function AgentPropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const { agentCatalogRawData, agentCatalogProperties, loadAgentCatalogProperties, isAgentCatalogLoading } = useAuth()
+  const { agentCatalogRawData, loadAgentCatalogProperties, isAgentCatalogLoading, hasLoadedAgentCatalog } = useAuth()
 
-  console.log('[v0] AgentPropertyDetail - id:', id)
-  console.log('[v0] AgentPropertyDetail - agentCatalogRawData length:', agentCatalogRawData.length)
-  console.log('[v0] AgentPropertyDetail - agentCatalogProperties length:', agentCatalogProperties.length)
+  // Cargar datos si no están disponibles
+  useEffect(() => {
+    if (!hasLoadedAgentCatalog && !isAgentCatalogLoading) {
+      loadAgentCatalogProperties()
+    }
+  }, [hasLoadedAgentCatalog, isAgentCatalogLoading, loadAgentCatalogProperties])
 
   // Buscar la propiedad en los datos raw
   const property = useMemo(() => {
-    const found = agentCatalogRawData.find(p => p.id === id)
-    console.log('[v0] AgentPropertyDetail - property found:', !!found)
-    return found
+    return agentCatalogRawData.find(p => p.id === id)
   }, [agentCatalogRawData, id])
+
+  // Mostrar loading mientras se cargan los datos
+  if (isAgentCatalogLoading || (!hasLoadedAgentCatalog && !property)) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={advisorTheme.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Cargando...</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={advisorTheme.accent} />
+          <Text style={styles.loadingText}>Cargando propiedad...</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   if (!property) {
     return (
@@ -413,6 +434,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notFoundText: {
+    color: advisorTheme.textMuted,
+    fontSize: typography.body.fontSize,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  loadingText: {
     color: advisorTheme.textMuted,
     fontSize: typography.body.fontSize,
   },
