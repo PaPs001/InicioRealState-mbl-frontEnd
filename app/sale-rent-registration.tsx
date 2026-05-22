@@ -1591,35 +1591,39 @@ export default function SaleRentRegistrationScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {renderStepContent()}
+          
+          {/* Botones de navegacion dentro del scroll */}
+          <View style={styles.navigationButtons}>
+            {currentStepIndex > 0 && (
+              <TouchableOpacity style={styles.secondaryButton} onPress={goBack}>
+                <Text style={styles.secondaryButtonText}>Anterior</Text>
+              </TouchableOpacity>
+            )}
+            
+            {currentStep === 'summary' ? (
+              <TouchableOpacity 
+                style={[styles.primaryButton, styles.submitButton, currentStepIndex === 0 && styles.fullWidthButton]}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.primaryButtonText}>Enviar Registro</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={[
+                  styles.primaryButton, 
+                  !isCurrentStepValid && styles.primaryButtonDisabled,
+                  currentStepIndex === 0 && styles.fullWidthButton
+                ]}
+                onPress={goNext}
+                disabled={!isCurrentStepValid}
+              >
+                <Text style={styles.primaryButtonText}>Siguiente</Text>
+                <ChevronRight size={20} color={advisorTheme.background} />
+              </TouchableOpacity>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        {currentStepIndex > 0 && (
-          <TouchableOpacity style={styles.secondaryButton} onPress={goBack}>
-            <Text style={styles.secondaryButtonText}>Anterior</Text>
-          </TouchableOpacity>
-        )}
-        
-        {currentStep === 'summary' ? (
-          <TouchableOpacity 
-            style={[styles.primaryButton, styles.submitButton]}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.primaryButtonText}>Enviar Registro</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity 
-            style={[styles.primaryButton, !isCurrentStepValid && styles.primaryButtonDisabled]}
-            onPress={goNext}
-            disabled={!isCurrentStepValid}
-          >
-            <Text style={styles.primaryButtonText}>Siguiente</Text>
-            <ChevronRight size={20} color={advisorTheme.background} />
-          </TouchableOpacity>
-        )}
-      </View>
     </SafeAreaView>
   )
 }
@@ -2264,12 +2268,10 @@ const styles = StyleSheet.create({
     backgroundColor: advisorTheme.border,
     marginVertical: spacing.sm,
   },
-  footer: {
+  navigationButtons: {
     flexDirection: 'row',
-    padding: spacing.md,
+    marginTop: spacing.lg,
     gap: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: advisorTheme.border,
   },
   secondaryButton: {
     flex: 1,
@@ -2297,10 +2299,8 @@ const styles = StyleSheet.create({
   primaryButtonDisabled: {
     opacity: 0.5,
   },
-  primaryButtonText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '700',
-    color: advisorTheme.background,
+  fullWidthButton: {
+    flex: 1,
   },
   submitButton: {
     backgroundColor: advisorTheme.success,
