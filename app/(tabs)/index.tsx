@@ -928,7 +928,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity 
             style={styles.quickAccessCardDark}
-            onPress={() => router.push('/catalog')}
+            onPress={() => router.push('/agent-catalog')}
           >
             <View style={styles.quickAccessIconDark}>
               <Building2 size={24} color={colors.accent} />

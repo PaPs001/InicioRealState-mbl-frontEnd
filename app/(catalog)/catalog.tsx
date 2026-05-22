@@ -6,7 +6,6 @@ import {
   FlatList, 
   TouchableOpacity, 
   TextInput,
-  ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -31,63 +30,29 @@ export default function CatalogStandaloneScreen() {
     availableProperties,
     toggleFavorite,
     isFavorite,
-    isAgent,
-    isAdmin,
     catalogProperties,
-    agentCatalogProperties,
-    agentCatalogRawData,
     isCatalogLoading,
-    isAgentCatalogLoading,
     hasLoadedCatalog,
-    hasLoadedAgentCatalog,
     loadCatalogProperties,
-    loadAgentCatalogProperties,
     favorites,
     currentUser,
   } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const isInvestor = currentUser?.role === 'investor'
   const theme = isInvestor ? clientThemes.investor : null
-  const isAgentOrAdmin = isAgent || isAdmin
 
-  console.log('[v0] CatalogScreen - isAgent:', isAgent, 'isAdmin:', isAdmin, 'isAgentOrAdmin:', isAgentOrAdmin)
-  console.log('[v0] CatalogScreen - agentCatalogProperties:', agentCatalogProperties.length, 'hasLoadedAgentCatalog:', hasLoadedAgentCatalog)
-
-  // Cargar catalogo segun tipo de usuario
+  // Cargar catalogo de clientes
   useEffect(() => {
-    console.log('[v0] useEffect - isAgentOrAdmin:', isAgentOrAdmin)
-    if (isAgentOrAdmin) {
-      console.log('[v0] Cargando catalogo de asesores...')
-      if (agentCatalogProperties.length === 0 && !isAgentCatalogLoading) {
-        loadAgentCatalogProperties()
-      }
-    } else {
-      if (catalogProperties.length === 0 && !isCatalogLoading) {
-        loadCatalogProperties()
-      }
+    if (catalogProperties.length === 0 && !isCatalogLoading) {
+      loadCatalogProperties()
     }
-  }, [isAgentOrAdmin, agentCatalogProperties.length, isAgentCatalogLoading, loadAgentCatalogProperties, catalogProperties.length, isCatalogLoading, loadCatalogProperties])
-
-  // Obtener status unicos para el filtro de asesores
-  const availableStatuses = useMemo(() => {
-    if (!isAgentOrAdmin) return []
-    const statuses = new Set(agentCatalogRawData.map(item => item.status || 'Sin status'))
-    return Array.from(statuses).sort()
-  }, [isAgentOrAdmin, agentCatalogRawData])
+  }, [catalogProperties.length, isCatalogLoading, loadCatalogProperties])
 
   const filteredProperties = useMemo(() => {
-    // Usar catalogo de asesores o clientes segun corresponda
-    let properties: Property[] = []
-    
-    if (isAgentOrAdmin) {
-      properties = hasLoadedAgentCatalog ? agentCatalogProperties : []
-    } else {
-      properties = hasLoadedCatalog ? availableProperties : []
-    }
+    const properties = hasLoadedCatalog ? availableProperties : []
 
     return properties.filter(property => {
       const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,16 +62,9 @@ export default function CatalogStandaloneScreen() {
         (filter === 'sale' && (property.status === 'for_sale' || property.status === 'available')) ||
         (filter === 'rent' && (property.status === 'for_rent' || property.status === 'available'))
       
-      // Filtro de status para asesores
-      let matchesStatus = true
-      if (isAgentOrAdmin && statusFilter !== 'all') {
-        const rawItem = agentCatalogRawData.find(item => item.id === property.id)
-        matchesStatus = rawItem?.status?.toLowerCase().includes(statusFilter.toLowerCase()) || false
-      }
-      
-      return matchesSearch && matchesFilter && matchesStatus
+      return matchesSearch && matchesFilter
     })
-  }, [isAgentOrAdmin, availableProperties, agentCatalogProperties, hasLoadedCatalog, hasLoadedAgentCatalog, searchQuery, filter, statusFilter, agentCatalogRawData])
+  }, [availableProperties, hasLoadedCatalog, searchQuery, filter])
 
   const getPropertyIcon = (type: Property['type']) => {
     switch (type) {
@@ -120,7 +78,6 @@ export default function CatalogStandaloneScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
-    const isPending = property.status === 'pending_sale' || property.status === 'pending_rent'
 
     return (
       <TouchableOpacity 
@@ -147,29 +104,22 @@ export default function CatalogStandaloneScreen() {
                 isInvestor && { color: theme!.accent }
               ]}>{property.city}</Text>
             </View>
-            {isPending && (isAgent || isAdmin) && (
-              <View style={styles.pendingBadge}>
-                <Text style={styles.pendingBadgeText}>En Proceso</Text>
-              </View>
-            )}
           </View>
 
-          {!isAgent && !isAdmin && (
-            <TouchableOpacity 
-              style={[
-                styles.favoriteButton, 
-                favorite && styles.favoriteButtonActive,
-                isInvestor && !favorite && { backgroundColor: theme!.surface }
-              ]}
-              onPress={() => toggleFavorite(property.id)}
-            >
-              <Heart 
-                size={18} 
-                color={favorite ? '#fff' : (isInvestor ? theme!.textMuted : colors.textMuted)} 
-                fill={favorite ? '#fff' : 'transparent'}
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity 
+            style={[
+              styles.favoriteButton, 
+              favorite && styles.favoriteButtonActive,
+              isInvestor && !favorite && { backgroundColor: theme!.surface }
+            ]}
+            onPress={() => toggleFavorite(property.id)}
+          >
+            <Heart 
+              size={18} 
+              color={favorite ? '#fff' : (isInvestor ? theme!.textMuted : colors.textMuted)} 
+              fill={favorite ? '#fff' : 'transparent'}
+            />
+          </TouchableOpacity>
 
           {property.status === 'for_rent' && property.monthlyRent && (
             <View style={styles.rentBadge}>
@@ -248,23 +198,19 @@ export default function CatalogStandaloneScreen() {
           <ArrowLeft size={24} color={isInvestor ? theme!.text : colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>
-          {isAgent || isAdmin ? 'Catalogo de Propiedades' : 'Catalogo'}
+          Catalogo
         </Text>
-        {!isAgent && !isAdmin ? (
-          <TouchableOpacity 
-            style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
-            onPress={() => router.push('/favorites')}
-          >
-            <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
-            {favorites.length > 0 && (
-              <View style={styles.favoriteBadge}>
-                <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 44 }} />
-        )}
+        <TouchableOpacity 
+          style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
+          onPress={() => router.push('/favorites')}
+        >
+          <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
+          {favorites.length > 0 && (
+            <View style={styles.favoriteBadge}>
+              <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Barra de busqueda */}
@@ -348,46 +294,6 @@ export default function CatalogStandaloneScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filtro de status para asesores/coordinadores */}
-      {isAgentOrAdmin && availableStatuses.length > 0 && (
-        <View style={styles.statusFilterContainer}>
-          <Text style={styles.statusFilterLabel}>Filtrar por status:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statusFilterScroll}>
-            <TouchableOpacity 
-              style={[
-                styles.statusFilterChip,
-                statusFilter === 'all' && styles.statusFilterChipActive
-              ]}
-              onPress={() => setStatusFilter('all')}
-            >
-              <Text style={[
-                styles.statusFilterChipText,
-                statusFilter === 'all' && styles.statusFilterChipTextActive
-              ]}>
-                Todos ({agentCatalogProperties.length})
-              </Text>
-            </TouchableOpacity>
-            {availableStatuses.map(status => (
-              <TouchableOpacity 
-                key={status}
-                style={[
-                  styles.statusFilterChip,
-                  statusFilter === status.toLowerCase() && styles.statusFilterChipActive
-                ]}
-                onPress={() => setStatusFilter(status.toLowerCase())}
-              >
-                <Text style={[
-                  styles.statusFilterChipText,
-                  statusFilter === status.toLowerCase() && styles.statusFilterChipTextActive
-                ]}>
-                  {status} ({agentCatalogRawData.filter(item => item.status === status).length})
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
       {/* Lista de propiedades */}
       <FlatList
         data={filteredProperties}
@@ -399,7 +305,7 @@ export default function CatalogStandaloneScreen() {
           <View style={styles.emptyState}>
             <Building2 size={48} color={isInvestor ? theme!.textMuted : colors.textMuted} />
             <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textMuted }]}>
-              {(isAgentOrAdmin ? isAgentCatalogLoading : isCatalogLoading) ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
+              {isCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
             </Text>
           </View>
         }
@@ -516,39 +422,6 @@ const styles = StyleSheet.create({
   },
   filterTabTextActive: {
     color: colors.accent,
-    fontWeight: '600',
-  },
-  statusFilterContainer: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  statusFilterLabel: {
-    fontSize: typography.bodySmall.fontSize,
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
-  },
-  statusFilterScroll: {
-    flexGrow: 0,
-  },
-  statusFilterChip: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.xs,
-  },
-  statusFilterChipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  statusFilterChipText: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textSecondary,
-  },
-  statusFilterChipTextActive: {
-    color: colors.surface,
     fontWeight: '600',
   },
   listContent: {
