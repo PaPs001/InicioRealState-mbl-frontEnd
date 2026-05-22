@@ -126,25 +126,13 @@ export default function TabsLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Panel',
+              title: 'Inicio',
             }}
           />
           <Tabs.Screen
-            name="leads"
+            name="messages"
             options={{
-              title: 'Leads',
-            }}
-          />
-          <Tabs.Screen
-            name="properties"
-            options={{
-              title: 'Propiedades',
-            }}
-          />
-          <Tabs.Screen
-            name="registration"
-            options={{
-              title: 'Registro',
+              title: 'Mensajes',
             }}
           />
           <Tabs.Screen
@@ -196,10 +184,10 @@ export default function TabsLayout() {
       <Tabs.Screen name="catalog" options={{ href: null }} />
       <Tabs.Screen name="appointments" options={{ href: null }} />
       <Tabs.Screen name="favorites" options={{ href: null }} />
-      <Tabs.Screen name="messages" options={{ href: isClient ? undefined : null }} />
-      <Tabs.Screen name="leads" options={{ href: isAgent || isAdmin ? undefined : null }} />
-      <Tabs.Screen name="properties" options={{ href: isAgent ? undefined : null }} />
-      <Tabs.Screen name="registration" options={{ href: isAgent ? undefined : null }} />
+      <Tabs.Screen name="messages" options={{ href: isClient || isAgent ? undefined : null }} />
+      <Tabs.Screen name="leads" options={{ href: isAdmin ? undefined : null }} />
+      <Tabs.Screen name="properties" options={{ href: null }} />
+      <Tabs.Screen name="registration" options={{ href: null }} />
       <Tabs.Screen name="reviews" options={{ href: isAdmin ? undefined : null }} />
       <Tabs.Screen name="commissions" options={{ href: isAdmin ? undefined : null }} />
     </Tabs>
