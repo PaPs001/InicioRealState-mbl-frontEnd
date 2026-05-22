@@ -251,12 +251,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadAgentCatalogProperties = useCallback(async () => {
-    console.log('[v0] loadAgentCatalogProperties - Iniciando carga...')
     setIsAgentCatalogLoading(true)
     setHasLoadedAgentCatalog(true)
     try {
       const { properties, rawData } = await getAllAgentCatalogProperties()
-      console.log('[v0] loadAgentCatalogProperties - Propiedades cargadas:', properties.length)
       setAgentCatalogProperties(properties)
       setAgentCatalogRawData(rawData)
     } catch (error) {
