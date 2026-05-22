@@ -113,19 +113,25 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.quickAccessContainer}>
-              <Text style={styles.quickAccessLabel}>Acceso rapido (Demo)</Text>
+              <Text style={styles.quickAccessLabel}>Acceso rapido</Text>
               <View style={styles.quickAccessButtons}>
                 <TouchableOpacity 
                   style={styles.quickButtonAgent}
-                  onPress={() => handleQuickLogin('user-4')}
+                  onPress={() => router.push('/leads')}
                 >
-                  <Text style={styles.quickButtonAgentText}>Asesor</Text>
+                  <Text style={styles.quickButtonAgentText}>Leads</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.quickButtonAgent}
+                  onPress={() => router.push('/my-properties')}
+                >
+                  <Text style={styles.quickButtonAgentText}>Propiedades</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.quickButtonAdmin}
-                  onPress={() => handleQuickLogin('user-5')}
+                  onPress={() => router.push('/sale-rent-registration')}
                 >
-                  <Text style={styles.quickButtonAdminText}>Coordinador</Text>
+                  <Text style={styles.quickButtonAdminText}>Registro Venta/Renta</Text>
                 </TouchableOpacity>
               </View>
             </View>
