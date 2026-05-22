@@ -120,9 +120,6 @@ export default function AgentCatalogScreen() {
     const status = getPropertyStatus(property.id)
     const hasImage = property.images && property.images.length > 0 && property.images[0]
 
-    console.log('[v0] renderPropertyCard - property.city:', property.city, typeof property.city)
-    console.log('[v0] renderPropertyCard - status:', status, typeof status)
-
     return (
       <TouchableOpacity 
         style={styles.propertyCard}
