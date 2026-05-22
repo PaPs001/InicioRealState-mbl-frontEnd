@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { 
   View, 
   Text, 
@@ -54,11 +54,11 @@ export default function SaleRentRegistrationScreen() {
   const [referralCode, setReferralCode] = useState('')
 
   // Cargar propiedades si no están cargadas
-  useState(() => {
+  useEffect(() => {
     if (!hasLoadedAgentCatalog && !isAgentCatalogLoading) {
       loadAgentCatalogProperties()
     }
-  })
+  }, [hasLoadedAgentCatalog, isAgentCatalogLoading, loadAgentCatalogProperties])
 
   // Filtrar propiedades por búsqueda
   const filteredProperties = useMemo(() => {
