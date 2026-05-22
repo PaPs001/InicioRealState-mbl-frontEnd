@@ -213,7 +213,7 @@ export default function MyRentalScreen() {
 
                 <TouchableOpacity 
                   style={styles.contactButton}
-                  onPress={() => router.push('/messages-screen')}
+                  onPress={() => router.push('/messages')}
                 >
                   <Mail size={20} color={colors.accent} />
                   <Text style={styles.contactButtonText}>Mensaje</Text>
@@ -250,7 +250,7 @@ export default function MyRentalScreen() {
 
                 <TouchableOpacity 
                   style={styles.contactButton}
-                  onPress={() => router.push('/messages-screen')}
+                  onPress={() => router.push('/messages')}
                 >
                   <Mail size={20} color={colors.accent} />
                   <Text style={styles.contactButtonText}>Mensaje</Text>

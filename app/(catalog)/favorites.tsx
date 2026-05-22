@@ -129,7 +129,7 @@ export default function FavoritesStandaloneScreen() {
             </Text>
             <TouchableOpacity 
               style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}
-              onPress={() => router.replace('/catalog-screen')}
+              onPress={() => router.replace('/catalog')}
             >
               <Text style={[styles.exploreButtonText, isInvestor && { color: theme!.primary }]}>
                 Explorar Catalogo

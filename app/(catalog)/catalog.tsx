@@ -207,7 +207,7 @@ export default function CatalogStandaloneScreen() {
         <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>Catalogo</Text>
         <TouchableOpacity 
           style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
-          onPress={() => router.push('/favorites-screen')}
+          onPress={() => router.push('/favorites')}
         >
           <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
           {favorites.length > 0 && (
