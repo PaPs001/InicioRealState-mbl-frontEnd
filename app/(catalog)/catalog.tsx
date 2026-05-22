@@ -113,20 +113,22 @@ export default function CatalogStandaloneScreen() {
             )}
           </View>
 
-          <TouchableOpacity 
-            style={[
-              styles.favoriteButton, 
-              favorite && styles.favoriteButtonActive,
-              isInvestor && !favorite && { backgroundColor: theme!.surface }
-            ]}
-            onPress={() => toggleFavorite(property.id)}
-          >
-            <Heart 
-              size={18} 
-              color={favorite ? '#fff' : (isInvestor ? theme!.textMuted : colors.textMuted)} 
-              fill={favorite ? '#fff' : 'transparent'}
-            />
-          </TouchableOpacity>
+          {!isAgent && !isAdmin && (
+            <TouchableOpacity 
+              style={[
+                styles.favoriteButton, 
+                favorite && styles.favoriteButtonActive,
+                isInvestor && !favorite && { backgroundColor: theme!.surface }
+              ]}
+              onPress={() => toggleFavorite(property.id)}
+            >
+              <Heart 
+                size={18} 
+                color={favorite ? '#fff' : (isInvestor ? theme!.textMuted : colors.textMuted)} 
+                fill={favorite ? '#fff' : 'transparent'}
+              />
+            </TouchableOpacity>
+          )}
 
           {property.status === 'for_rent' && property.monthlyRent && (
             <View style={styles.rentBadge}>
@@ -204,18 +206,24 @@ export default function CatalogStandaloneScreen() {
         >
           <ArrowLeft size={24} color={isInvestor ? theme!.text : colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>Catalogo</Text>
-        <TouchableOpacity 
-          style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
-          onPress={() => router.push('/favorites')}
-        >
-          <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
-          {favorites.length > 0 && (
-            <View style={styles.favoriteBadge}>
-              <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>
+          {isAgent || isAdmin ? 'Catalogo de Propiedades' : 'Catalogo'}
+        </Text>
+        {!isAgent && !isAdmin ? (
+          <TouchableOpacity 
+            style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
+            onPress={() => router.push('/favorites')}
+          >
+            <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
+            {favorites.length > 0 && (
+              <View style={styles.favoriteBadge}>
+                <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 44 }} />
+        )}
       </View>
 
       {/* Barra de busqueda */}
