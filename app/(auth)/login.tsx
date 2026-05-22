@@ -1,7 +1,7 @@
 //Imagenes
-import LogoGris from './assets/LogoInicioSVGris.svg';
-import LogoNegro from './assets/LogoInicioSVGNegro.svg';
-import TextoLogoInicio from './assets/TextoLogoInicio.svg';
+import LogoGris from '../assets/LogoInicioSVGris.svg';
+import LogoNegro from '../assets/LogoInicioSVGNegro.svg';
+import TextoLogoInicio from '../assets/TextoLogoInicio.svg';
 
 //configuraciones
 import { useState } from 'react'

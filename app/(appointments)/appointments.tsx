@@ -116,7 +116,7 @@ export default function AppointmentsStandaloneScreen() {
             </Text>
             <TouchableOpacity 
               style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}
-              onPress={() => router.push('/catalog-screen')}
+              onPress={() => router.push('/catalog')}
             >
               <Text style={[styles.exploreButtonText, isInvestor && { color: theme!.primary }]}>
                 Explorar Catalogo

@@ -615,7 +615,7 @@ export default function PropertyDetailScreen() {
         <View style={styles.listButtonContainer}>
           <TouchableOpacity 
             style={styles.listButton}
-            onPress={() => router.push(`/list-property-screen?id=${property.id}`)}
+            onPress={() => router.push(`/list-property?id=${property.id}`)}
           >
             <ListPlus size={20} color={colors.primary} />
             <Text style={styles.listButtonText}>Enlistar esta propiedad</Text>
