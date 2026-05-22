@@ -125,7 +125,7 @@ export default function AgentCatalogScreen() {
     return (
       <TouchableOpacity 
         style={styles.propertyCard}
-        onPress={() => router.push(`/property/${property.id}`)}
+        onPress={() => router.push(`/agent-property/${property.id}`)}
         activeOpacity={0.7}
       >
         <View style={styles.imageContainer}>
