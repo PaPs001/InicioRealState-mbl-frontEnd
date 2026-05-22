@@ -139,6 +139,11 @@ const DOCUMENTS_LIST = [
   { id: 'legal', label: 'Documentos legales del inmueble', required: false },
 ]
 
+// Tipo para archivos de documentos
+type DocumentFiles = {
+  [key: string]: { name: string; uri: string } | null
+}
+
 export default function SaleRentRegistrationScreen() {
   const router = useRouter()
   const { agentCatalogRawData, loadAgentCatalogProperties, hasLoadedAgentCatalog, isAgentCatalogLoading } = useAuth()
@@ -223,6 +228,9 @@ export default function SaleRentRegistrationScreen() {
   
   // Estados para documentos
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
+  const [expandedDocument, setExpandedDocument] = useState<string | null>(null)
+  const [documentFiles, setDocumentFiles] = useState<DocumentFiles>({})
+  const [additionalFiles, setAdditionalFiles] = useState<{ name: string; uri: string }[]>([])
   const [referralCode, setReferralCode] = useState('')
 
   // Mock de clientes (vacio por ahora)
@@ -348,6 +356,91 @@ export default function SaleRentRegistrationScreen() {
     setSelectedDocuments(prev => 
       prev.includes(docId) ? prev.filter(d => d !== docId) : [...prev, docId]
     )
+  }
+
+  const toggleDocumentExpanded = (docId: string) => {
+    setExpandedDocument(prev => prev === docId ? null : docId)
+  }
+
+  const handleUploadDocument = (docId: string) => {
+    // Simular seleccion de archivo (en produccion usar expo-document-picker o expo-image-picker)
+    Alert.alert(
+      'Subir documento',
+      'Selecciona el origen del archivo',
+      [
+        { 
+          text: 'Camara', 
+          onPress: () => {
+            // Simular archivo subido
+            setDocumentFiles(prev => ({
+              ...prev,
+              [docId]: { name: `${docId}_foto.jpg`, uri: 'file://mock' }
+            }))
+            if (!selectedDocuments.includes(docId)) {
+              setSelectedDocuments(prev => [...prev, docId])
+            }
+          }
+        },
+        { 
+          text: 'Galeria', 
+          onPress: () => {
+            setDocumentFiles(prev => ({
+              ...prev,
+              [docId]: { name: `${docId}_imagen.jpg`, uri: 'file://mock' }
+            }))
+            if (!selectedDocuments.includes(docId)) {
+              setSelectedDocuments(prev => [...prev, docId])
+            }
+          }
+        },
+        { 
+          text: 'Archivo', 
+          onPress: () => {
+            setDocumentFiles(prev => ({
+              ...prev,
+              [docId]: { name: `${docId}_documento.pdf`, uri: 'file://mock' }
+            }))
+            if (!selectedDocuments.includes(docId)) {
+              setSelectedDocuments(prev => [...prev, docId])
+            }
+          }
+        },
+        { text: 'Cancelar', style: 'cancel' }
+      ]
+    )
+  }
+
+  const handleRemoveDocument = (docId: string) => {
+    setDocumentFiles(prev => {
+      const newFiles = { ...prev }
+      delete newFiles[docId]
+      return newFiles
+    })
+  }
+
+  const handleUploadAdditionalFiles = () => {
+    // Simular subida multiple
+    Alert.alert(
+      'Subir archivos adicionales',
+      'Se agregara un archivo de ejemplo',
+      [
+        {
+          text: 'Agregar',
+          onPress: () => {
+            const newFile = { 
+              name: `archivo_adicional_${additionalFiles.length + 1}.pdf`, 
+              uri: 'file://mock' 
+            }
+            setAdditionalFiles(prev => [...prev, newFile])
+          }
+        },
+        { text: 'Cancelar', style: 'cancel' }
+      ]
+    )
+  }
+
+  const handleRemoveAdditionalFile = (index: number) => {
+    setAdditionalFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = () => {
@@ -1250,33 +1343,119 @@ export default function SaleRentRegistrationScreen() {
         return (
           <View style={styles.stepContent}>
             <Text style={styles.stepQuestion}>Documentos requeridos</Text>
-            <Text style={styles.stepHint}>Selecciona los documentos que ya tienes</Text>
+            <Text style={styles.stepHint}>Expande cada documento para subir el archivo correspondiente</Text>
             
-            <View style={styles.documentsGrid}>
+            {/* Lista de documentos con acordeon */}
+            <View style={styles.documentsAccordion}>
               {DOCUMENTS_LIST.map((doc) => {
+                const isExpanded = expandedDocument === doc.id
+                const hasFile = documentFiles[doc.id]
                 const isSelected = selectedDocuments.includes(doc.id)
+                
                 return (
-                  <TouchableOpacity
-                    key={doc.id}
-                    style={[styles.documentItem, isSelected && styles.documentItemActive]}
-                    onPress={() => toggleDocument(doc.id)}
-                  >
-                    <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
-                      {isSelected && <Check size={14} color={advisorTheme.background} />}
-                    </View>
-                    <View style={styles.documentInfo}>
-                      <Text style={styles.documentLabel}>{doc.label}</Text>
-                      {doc.required && <Text style={styles.documentRequired}>Requerido</Text>}
-                    </View>
-                  </TouchableOpacity>
+                  <View key={doc.id} style={styles.documentAccordionItem}>
+                    {/* Header del acordeon */}
+                    <TouchableOpacity
+                      style={[
+                        styles.documentAccordionHeader,
+                        isExpanded && styles.documentAccordionHeaderExpanded,
+                        hasFile && styles.documentAccordionHeaderWithFile
+                      ]}
+                      onPress={() => toggleDocumentExpanded(doc.id)}
+                    >
+                      <View style={styles.documentAccordionLeft}>
+                        <View style={[styles.documentCheckbox, isSelected && styles.documentCheckboxActive]}>
+                          {isSelected && <Check size={12} color={advisorTheme.background} />}
+                        </View>
+                        <View style={styles.documentAccordionInfo}>
+                          <Text style={styles.documentAccordionLabel}>{doc.label}</Text>
+                          {doc.required && <Text style={styles.documentRequiredTag}>Requerido</Text>}
+                          {hasFile && (
+                            <Text style={styles.documentFileName}>{documentFiles[doc.id]?.name}</Text>
+                          )}
+                        </View>
+                      </View>
+                      <ChevronRight 
+                        size={20} 
+                        color={advisorTheme.textMuted} 
+                        style={{ transform: [{ rotate: isExpanded ? '90deg' : '0deg' }] }}
+                      />
+                    </TouchableOpacity>
+                    
+                    {/* Contenido expandido */}
+                    {isExpanded && (
+                      <View style={styles.documentAccordionContent}>
+                        {hasFile ? (
+                          <View style={styles.documentFilePreview}>
+                            <View style={styles.documentFileInfo}>
+                              <FileText size={24} color={advisorTheme.accent} />
+                              <View style={styles.documentFileDetails}>
+                                <Text style={styles.documentFileNameLarge}>{documentFiles[doc.id]?.name}</Text>
+                                <Text style={styles.documentFileStatus}>Archivo cargado</Text>
+                              </View>
+                            </View>
+                            <View style={styles.documentFileActions}>
+                              <TouchableOpacity 
+                                style={styles.documentChangeBtn}
+                                onPress={() => handleUploadDocument(doc.id)}
+                              >
+                                <Text style={styles.documentChangeBtnText}>Cambiar</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity 
+                                style={styles.documentRemoveBtn}
+                                onPress={() => handleRemoveDocument(doc.id)}
+                              >
+                                <X size={16} color={advisorTheme.error} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ) : (
+                          <TouchableOpacity 
+                            style={styles.documentUploadArea}
+                            onPress={() => handleUploadDocument(doc.id)}
+                          >
+                            <Upload size={24} color={advisorTheme.accent} />
+                            <Text style={styles.documentUploadText}>Subir {doc.label}</Text>
+                            <Text style={styles.documentUploadHint}>Toca para seleccionar archivo</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 )
               })}
             </View>
 
-            <TouchableOpacity style={styles.uploadDocsButton}>
-              <Upload size={20} color={advisorTheme.accent} />
-              <Text style={styles.uploadDocsText}>Subir documentos</Text>
-            </TouchableOpacity>
+            {/* Seccion de archivos adicionales */}
+            <View style={styles.additionalFilesSection}>
+              <Text style={styles.additionalFilesTitle}>Archivos adicionales (opcional)</Text>
+              <Text style={styles.additionalFilesHint}>Sube cualquier otro documento relevante</Text>
+              
+              {/* Lista de archivos adicionales */}
+              {additionalFiles.length > 0 && (
+                <View style={styles.additionalFilesList}>
+                  {additionalFiles.map((file, index) => (
+                    <View key={index} style={styles.additionalFileItem}>
+                      <View style={styles.additionalFileInfo}>
+                        <FileText size={18} color={advisorTheme.accent} />
+                        <Text style={styles.additionalFileItemName}>{file.name}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => handleRemoveAdditionalFile(index)}>
+                        <X size={18} color={advisorTheme.error} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+              
+              <TouchableOpacity 
+                style={styles.uploadAdditionalBtn}
+                onPress={handleUploadAdditionalFiles}
+              >
+                <Upload size={20} color={advisorTheme.accent} />
+                <Text style={styles.uploadAdditionalBtnText}>Agregar mas archivos</Text>
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Codigo de referido (opcional)</Text>
@@ -2125,5 +2304,186 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: advisorTheme.success,
+  },
+  // Estilos para acordeon de documentos
+  documentsAccordion: {
+    gap: spacing.sm,
+  },
+  documentAccordionItem: {
+    backgroundColor: advisorTheme.surface,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  documentAccordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+  },
+  documentAccordionHeaderExpanded: {
+    borderBottomWidth: 1,
+    borderBottomColor: advisorTheme.border,
+  },
+  documentAccordionHeaderWithFile: {
+    backgroundColor: advisorTheme.accent + '15',
+  },
+  documentAccordionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.sm,
+  },
+  documentCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: advisorTheme.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  documentCheckboxActive: {
+    backgroundColor: advisorTheme.accent,
+    borderColor: advisorTheme.accent,
+  },
+  documentAccordionInfo: {
+    flex: 1,
+  },
+  documentAccordionLabel: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+    color: advisorTheme.text,
+  },
+  documentRequiredTag: {
+    fontSize: 10,
+    color: advisorTheme.error,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  documentFileName: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.accent,
+    marginTop: 2,
+  },
+  documentAccordionContent: {
+    padding: spacing.md,
+    backgroundColor: advisorTheme.surfaceLight,
+  },
+  documentUploadArea: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: advisorTheme.border,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
+  },
+  documentUploadText: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: advisorTheme.accent,
+  },
+  documentUploadHint: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textMuted,
+  },
+  documentFilePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  documentFileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  documentFileDetails: {
+    flex: 1,
+  },
+  documentFileNameLarge: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
+    color: advisorTheme.text,
+  },
+  documentFileStatus: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.success,
+    marginTop: 2,
+  },
+  documentFileActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  documentChangeBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: advisorTheme.surface,
+    borderRadius: borderRadius.sm,
+  },
+  documentChangeBtnText: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.accent,
+    fontWeight: '600',
+  },
+  documentRemoveBtn: {
+    padding: spacing.xs,
+  },
+  // Archivos adicionales
+  additionalFilesSection: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: advisorTheme.border,
+  },
+  additionalFilesTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: advisorTheme.text,
+  },
+  additionalFilesHint: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textMuted,
+    marginTop: 4,
+    marginBottom: spacing.md,
+  },
+  additionalFilesList: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  additionalFileItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: advisorTheme.surface,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  additionalFileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  additionalFileItemName: {
+    fontSize: typography.body.fontSize,
+    color: advisorTheme.text,
+  },
+  uploadAdditionalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: advisorTheme.accent,
+    borderRadius: borderRadius.md,
+    borderStyle: 'dashed',
+  },
+  uploadAdditionalBtnText: {
+    fontSize: typography.body.fontSize,
+    color: advisorTheme.accent,
+    fontWeight: '500',
   },
 })
