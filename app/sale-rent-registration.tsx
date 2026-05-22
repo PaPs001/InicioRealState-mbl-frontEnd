@@ -41,7 +41,7 @@ const advisorTheme = {
 
 export default function SaleRentRegistrationScreen() {
   const router = useRouter()
-  const { agentCatalogProperties, agentCatalogRawData, loadAgentCatalogProperties, hasLoadedAgentCatalog, isAgentCatalogLoading } = useAuth()
+  const { agentCatalogRawData, loadAgentCatalogProperties, hasLoadedAgentCatalog, isAgentCatalogLoading } = useAuth()
   
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent')
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null)
@@ -234,13 +234,13 @@ export default function SaleRentRegistrationScreen() {
           </View>
 
           {/* Propiedad seleccionada */}
-          {selectedPropertyData && !showPropertyPicker && (
+          {selectedPropertyRaw && !showPropertyPicker && (
             <View style={styles.selectedPropertyCard}>
               <View style={styles.selectedPropertyContent}>
                 <Building2 size={24} color={advisorTheme.accent} />
                 <View style={styles.selectedPropertyInfo}>
-                  <Text style={styles.selectedPropertyTitle}>{selectedPropertyData.title}</Text>
-                  <Text style={styles.selectedPropertyLocation}>{selectedPropertyData.city}</Text>
+                  <Text style={styles.selectedPropertyTitle}>{selectedPropertyRaw.name}</Text>
+                  <Text style={styles.selectedPropertyLocation}>{selectedPropertyRaw.zonaText || selectedPropertyRaw.address}</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={() => setShowPropertyPicker(true)}>
