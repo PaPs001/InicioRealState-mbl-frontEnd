@@ -76,16 +76,11 @@ export default function LoginScreen() {
         >
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <TouchableOpacity 
-              style={styles.backButton}
+              style={styles.logoContainer}
               onPress={() => setIsAgentMode(false)}
             >
-              <ArrowLeft size={20} color={colors.accent} />
-              <Text style={styles.backButtonText}>Volver a clientes</Text>
-            </TouchableOpacity>
-
-            <View style={styles.logoContainer}>
               <TextoLogoInicio width={200} height={80} />
-            </View>
+            </TouchableOpacity>
 
             <Text style={styles.subtitleDark}>Portal de Asesores y Coordinadores</Text>
 
