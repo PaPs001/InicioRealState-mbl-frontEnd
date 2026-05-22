@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingVi
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import TextoLogoInicio from '@/app/assets/TextoLogoInicio.svg'
 
 const { width, height } = Dimensions.get('window')
 
@@ -85,7 +85,7 @@ export default function AsesorForm() {
     <View style={styles.container}>
       {/* Logo de fondo centrado y transparente */}
       <View style={styles.backgroundLogoContainer}>
-        <LogoGris width={280} height={280} style={styles.backgroundLogo} />
+        <TextoLogoInicio width={200} height={80} style={styles.backgroundLogo} />
       </View>
 
       <KeyboardAvoidingView 
