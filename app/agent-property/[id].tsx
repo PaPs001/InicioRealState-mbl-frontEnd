@@ -62,11 +62,17 @@ const getStatusColor = (status: string | null) => {
 export default function AgentPropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const { agentCatalogRawData } = useAuth()
+  const { agentCatalogRawData, agentCatalogProperties, loadAgentCatalogProperties, isAgentCatalogLoading } = useAuth()
+
+  console.log('[v0] AgentPropertyDetail - id:', id)
+  console.log('[v0] AgentPropertyDetail - agentCatalogRawData length:', agentCatalogRawData.length)
+  console.log('[v0] AgentPropertyDetail - agentCatalogProperties length:', agentCatalogProperties.length)
 
   // Buscar la propiedad en los datos raw
   const property = useMemo(() => {
-    return agentCatalogRawData.find(p => p.id === id)
+    const found = agentCatalogRawData.find(p => p.id === id)
+    console.log('[v0] AgentPropertyDetail - property found:', !!found)
+    return found
   }, [agentCatalogRawData, id])
 
   if (!property) {
