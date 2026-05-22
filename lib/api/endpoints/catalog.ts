@@ -147,16 +147,22 @@ export const AGENT_VISIBLE_STATUSES = [
 // Obtener catalogo completo para asesores (todos los status)
 export async function getAgentCatalogRentProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
   try {
+    console.log('[v0] getAgentCatalogRentProperties - Llamando API...')
     const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
       method: 'POST',
       body: { list: 'rent' }
     })
+
+    console.log('[v0] getAgentCatalogRentProperties - Total propiedades recibidas:', data.length)
+    console.log('[v0] getAgentCatalogRentProperties - Status encontrados:', [...new Set(data.map(item => item.status))])
 
     // Filtrar por los status visibles para asesores
     const filteredData = data.filter(item => {
       const status = (item.status || '').toLowerCase()
       return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
     })
+
+    console.log('[v0] getAgentCatalogRentProperties - Propiedades filtradas:', filteredData.length)
 
     return {
       properties: filteredData.map(mapApiPropertyToProperty),
