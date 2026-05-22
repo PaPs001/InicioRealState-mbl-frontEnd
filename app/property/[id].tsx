@@ -141,7 +141,6 @@ export default function PropertyDetailScreen() {
 
   const timeSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00']
   
-  // Funciones para el calendario
   const getMonthDays = () => {
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
@@ -149,20 +148,17 @@ export default function PropertyDetailScreen() {
     const lastDay = new Date(year, month + 1, 0)
     const days = []
     
-    // Dias del mes anterior para completar la semana
     const firstDayWeekday = firstDay.getDay()
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
       const date = new Date(year, month, -i)
       days.push({ date, isCurrentMonth: false })
     }
     
-    // Dias del mes actual
     for (let i = 1; i <= lastDay.getDate(); i++) {
       const date = new Date(year, month, i)
       days.push({ date, isCurrentMonth: true })
     }
     
-    // Dias del siguiente mes para completar
     const remaining = 42 - days.length
     for (let i = 1; i <= remaining; i++) {
       const date = new Date(year, month + 1, i)
@@ -215,7 +211,6 @@ export default function PropertyDetailScreen() {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
   }
 
-  // Tab de Informacion General
   const renderInfoTab = () => (
     <View style={styles.tabContent}>
       {/* Descripcion */}
@@ -226,7 +221,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Caracteristicas principales */}
       {property.type !== 'land' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Caracteristicas</Text>
@@ -252,7 +246,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Amenidades */}
       {property.amenities && property.amenities.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Amenidades</Text>
@@ -267,7 +260,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Caracteristicas adicionales */}
       {property.features && property.features.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Incluye</Text>
@@ -282,7 +274,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Ubicacion */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Ubicacion</Text>
         <View style={[styles.locationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -294,7 +285,6 @@ export default function PropertyDetailScreen() {
         </View>
       </View>
 
-      {/* Detalles de renta */}
       {isForRent && property.monthlyRent && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Detalles de Renta</Text>
@@ -314,7 +304,6 @@ export default function PropertyDetailScreen() {
     </View>
   )
 
-  // Tab de Analisis de Plusvalia (solo para ventas)
   const renderAnalysisTab = () => {
     const currentValue = property.currentValue || property.price
     const yearlyGrowth = 0.08 // 8% anual estimado
@@ -322,7 +311,6 @@ export default function PropertyDetailScreen() {
     const value3Years = currentValue * Math.pow(1 + yearlyGrowth, 3)
     const value5Years = currentValue * Math.pow(1 + yearlyGrowth, 5)
 
-    // Costos estimados de venta
     const commissionRate = 0.05
     const notaryRate = 0.03
     const isrRate = 0.15
@@ -342,7 +330,6 @@ export default function PropertyDetailScreen() {
           </View>
         </View>
 
-        {/* Proyeccion a futuro */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Proyeccion de Plusvalia</Text>
           <Text style={[styles.projectionNote, { color: theme.textMuted }]}>
@@ -368,7 +355,6 @@ export default function PropertyDetailScreen() {
           </View>
         </View>
 
-        {/* Costos estimados de compra/venta */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Costos Estimados de Compra</Text>
           
@@ -395,7 +381,6 @@ export default function PropertyDetailScreen() {
           </View>
         </View>
 
-        {/* ROI potencial si renta */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Potencial de Renta</Text>
           <View style={[styles.roiCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -414,7 +399,6 @@ export default function PropertyDetailScreen() {
     )
   }
 
-  // Tab de Calendario
   const renderCalendarTab = () => {
     const monthDays = getMonthDays()
     const weekDays = getWeekDays()
@@ -679,7 +663,7 @@ export default function PropertyDetailScreen() {
         )}
       </View>
 
-      {/* Property Image */}
+      {/* Imagenes NO LO OLVIDES CHECAAAAAAAAR */}
       {property.images && property.images.length > 0 && property.images[0] && (
         <View style={styles.imageContainer}>
           <Image
@@ -780,7 +764,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 220,
+    height: 320,
     backgroundColor: colors.surface,
     marginTop: -75
   },

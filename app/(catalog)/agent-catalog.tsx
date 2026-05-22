@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -42,7 +43,6 @@ export default function AgentCatalogScreen() {
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  // Cargar propiedades
   const loadProperties = async () => {
     setIsLoading(true)
     try {
@@ -66,7 +66,6 @@ export default function AgentCatalogScreen() {
     loadProperties()
   }, [])
 
-  // Obtener status unicos para el filtro
   const availableStatuses = useMemo(() => {
     const statuses = new Set(rawData.map(item => item.status || 'Sin status'))
     return Array.from(statuses).sort()
@@ -101,13 +100,11 @@ export default function AgentCatalogScreen() {
     }
   }
 
-  // Obtener el status original de la propiedad
   const getPropertyStatus = (propertyId: string) => {
     const rawItem = rawData.find(item => item.id === propertyId)
     return rawItem?.status || 'Sin status'
   }
 
-  // Color del badge segun status
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase()
     if (s.includes('disponible')) return '#22c55e'
@@ -121,6 +118,7 @@ export default function AgentCatalogScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const status = getPropertyStatus(property.id)
+    const hasImage = property.images && property.images.length > 0 && property.images[0]
 
     return (
       <TouchableOpacity 
@@ -129,7 +127,15 @@ export default function AgentCatalogScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.imageContainer}>
-          <Icon size={40} color={advisorColors.textMuted} />
+          {hasImage ? (
+            <Image
+              source={{ uri: property.images![0] }}
+              style={styles.propertyImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon size={40} color={advisorColors.textMuted} />
+          )}
           
           <View style={styles.badgeContainer}>
             <View style={styles.locationBadge}>
@@ -159,7 +165,7 @@ export default function AgentCatalogScreen() {
           </Text>
 
           <View style={styles.divider} />
-
+          
           <View style={styles.features}>
             {property.type !== 'land' && (
               <>
@@ -216,14 +222,12 @@ export default function AgentCatalogScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Contador de propiedades */}
       <View style={styles.counterContainer}>
         <Text style={styles.counterText}>
           {properties.length} propiedades en total
         </Text>
       </View>
 
-      {/* Barra de busqueda */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Search size={20} color={advisorColors.textMuted} />
@@ -240,7 +244,6 @@ export default function AgentCatalogScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tabs de filtro Venta/Renta */}
       <View style={styles.filterTabs}>
         <TouchableOpacity 
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
@@ -268,7 +271,6 @@ export default function AgentCatalogScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filtro de status */}
       {availableStatuses.length > 0 && (
         <View style={styles.statusFilterContainer}>
           <Text style={styles.statusFilterLabel}>Filtrar por status:</Text>
@@ -302,7 +304,6 @@ export default function AgentCatalogScreen() {
         </View>
       )}
 
-      {/* Lista de propiedades */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={advisorColors.accent} />
@@ -491,6 +492,11 @@ const styles = StyleSheet.create({
     backgroundColor: advisorColors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  propertyImage: {
+    width: '100%',
+    height: '100%',
   },
   badgeContainer: {
     position: 'absolute',
