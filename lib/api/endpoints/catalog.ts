@@ -133,3 +133,78 @@ export async function getAllCatalogProperties(): Promise<Property[]> {
     throw error
   }
 }
+
+// Status disponibles para asesores/coordinadores
+export const AGENT_VISIBLE_STATUSES = [
+  'apartada',
+  'disponible', 
+  'edición inicio',
+  'alquilada inicio',
+  'en proceso',
+  'alquilada externo'
+]
+
+// Obtener catalogo completo para asesores (todos los status)
+export async function getAgentCatalogRentProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
+  try {
+    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
+      method: 'POST',
+      body: { list: 'rent' }
+    })
+
+    // Filtrar por los status visibles para asesores
+    const filteredData = data.filter(item => {
+      const status = (item.status || '').toLowerCase()
+      return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
+    })
+
+    return {
+      properties: filteredData.map(mapApiPropertyToProperty),
+      rawData: filteredData
+    }
+  } catch (error) {
+    console.error('Error al obtener catalogo de asesores (renta):', error)
+    throw error
+  }
+}
+
+// Obtener catalogo de venta para asesores (todos los status)
+export async function getAgentCatalogSaleProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
+  try {
+    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
+      method: 'POST',
+      body: { list: 'sale' }
+    })
+
+    // Filtrar por los status visibles para asesores
+    const filteredData = data.filter(item => {
+      const status = (item.status || '').toLowerCase()
+      return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
+    })
+
+    return {
+      properties: filteredData.map(mapApiPropertyToProperty),
+      rawData: filteredData
+    }
+  } catch (error) {
+    console.error('Error al obtener catalogo de asesores (venta):', error)
+    throw error
+  }
+}
+
+// Obtener catalogo completo para asesores (renta y venta)
+export async function getAllAgentCatalogProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
+  try {
+    const [rentResult, saleResult] = await Promise.all([
+      getAgentCatalogRentProperties(),
+      getAgentCatalogSaleProperties()
+    ])
+    return {
+      properties: [...rentResult.properties, ...saleResult.properties],
+      rawData: [...rentResult.rawData, ...saleResult.rawData]
+    }
+  } catch (error) {
+    console.error('Error al obtener catalogo completo de asesores:', error)
+    throw error
+  }
+}
