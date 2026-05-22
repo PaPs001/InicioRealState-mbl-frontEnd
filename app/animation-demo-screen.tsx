@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ArrowLeft, RotateCcw } from 'lucide-react-native'
-import AnimatedLogo, { AnimationVariant } from '@/app/components/Animations/AnimatedLogo'
+import AnimatedLogo, { AnimationVariant } from '@/components/animations/AnimatedLogo'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 
 const variants: { name: AnimationVariant; description: string }[] = [
