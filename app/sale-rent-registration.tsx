@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
+import { PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import { formatCurrency } from '@/lib/mock-data'
 import { 
@@ -60,28 +61,48 @@ export default function SaleRentRegistrationScreen() {
     }
   }, [hasLoadedAgentCatalog, isAgentCatalogLoading, loadAgentCatalogProperties])
 
-  // Filtrar propiedades por búsqueda
+  // Limpiar selección cuando cambia el tipo de transacción
+  const handleTransactionTypeChange = (type: 'rent' | 'sale') => {
+    setTransactionType(type)
+    setSelectedProperty(null)
+    setSearchQuery('')
+    setPriceOption('original')
+    setCustomAmount('')
+  }
+
+  // Filtrar propiedades por tipo de transacción, disponibilidad y búsqueda
   const filteredProperties = useMemo(() => {
-    if (!searchQuery.trim()) return agentCatalogProperties
+    // Filtrar por tipo de transacción (sale/rent) y disponibilidad
+    const filtered = agentCatalogRawData.filter(p => {
+      const isSaleType = p.list === 'sale'
+      const isRentType = p.list === 'rent'
+      const isAvailable = (p.status || '').toLowerCase().includes('disponible')
+      
+      if (transactionType === 'sale') {
+        return isSaleType && isAvailable
+      } else {
+        return isRentType && isAvailable
+      }
+    })
+
+    // Filtrar por búsqueda
+    if (!searchQuery.trim()) return filtered
     const query = searchQuery.toLowerCase()
-    return agentCatalogProperties.filter(p => 
-      p.title.toLowerCase().includes(query) ||
-      p.city.toLowerCase().includes(query)
+    return filtered.filter(p => 
+      p.name.toLowerCase().includes(query) ||
+      (p.address || '').toLowerCase().includes(query) ||
+      (p.zonaText || '').toLowerCase().includes(query)
     )
-  }, [agentCatalogProperties, searchQuery])
+  }, [agentCatalogRawData, searchQuery, transactionType])
 
-  // Obtener datos de la propiedad seleccionada
-  const selectedPropertyData = useMemo(() => {
-    if (!selectedProperty) return null
-    return agentCatalogProperties.find(p => p.id === selectedProperty)
-  }, [selectedProperty, agentCatalogProperties])
-
+  // Obtener datos de la propiedad seleccionada (usar rawData directamente)
   const selectedPropertyRaw = useMemo(() => {
     if (!selectedProperty) return null
     return agentCatalogRawData.find(p => p.id === selectedProperty)
   }, [selectedProperty, agentCatalogRawData])
 
   // Calcular el monto según la opción seleccionada
+  // maxPrice = precio original, minPrice = precio mínimo
   const calculatedAmount = useMemo(() => {
     if (!selectedPropertyRaw) return ''
     
@@ -89,21 +110,19 @@ export default function SaleRentRegistrationScreen() {
       return customAmount
     }
     
-    if (transactionType === 'rent') {
-      if (priceOption === 'original') {
-        return selectedPropertyRaw.monthlyRent?.toString() || ''
-      } else if (priceOption === 'min') {
-        return selectedPropertyRaw.minRent?.toString() || ''
-      }
-    } else {
-      if (priceOption === 'original') {
-        return selectedPropertyRaw.price?.toString() || ''
-      } else if (priceOption === 'min') {
-        return selectedPropertyRaw.minPrice?.toString() || ''
-      }
+    if (priceOption === 'original') {
+      return selectedPropertyRaw.maxPrice?.toString() || ''
+    } else if (priceOption === 'min') {
+      return selectedPropertyRaw.minPrice?.toString() || ''
     }
+    
     return ''
-  }, [selectedPropertyRaw, priceOption, transactionType, customAmount])
+  }, [selectedPropertyRaw, priceOption, customAmount])
+
+  // Verificar si existe precio mínimo
+  const hasMinPrice = useMemo(() => {
+    return selectedPropertyRaw?.minPrice != null && selectedPropertyRaw.minPrice > 0
+  }, [selectedPropertyRaw])
 
   const handleSelectProperty = (propertyId: string) => {
     setSelectedProperty(propertyId)
@@ -125,8 +144,7 @@ export default function SaleRentRegistrationScreen() {
     )
   }
 
-  const renderPropertyItem = ({ item }: { item: typeof agentCatalogProperties[0] }) => {
-    const rawData = agentCatalogRawData.find(p => p.id === item.id)
+  const renderPropertyItem = ({ item }: { item: PropertyCatalogItemResponse }) => {
     const isSelected = selectedProperty === item.id
     
     return (
@@ -135,31 +153,16 @@ export default function SaleRentRegistrationScreen() {
         onPress={() => handleSelectProperty(item.id)}
       >
         <View style={styles.propertyItemContent}>
-          <Text style={styles.propertyItemTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.propertyItemLocation}>{item.city}</Text>
+          <Text style={styles.propertyItemTitle} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.propertyItemLocation}>{item.zonaText || item.address}</Text>
           <View style={styles.propertyItemPrices}>
-            {transactionType === 'rent' ? (
-              <>
-                <Text style={styles.propertyItemPrice}>
-                  Renta: {formatCurrency(rawData?.monthlyRent || item.monthlyRent || 0)}
-                </Text>
-                {rawData?.minRent && (
-                  <Text style={styles.propertyItemMinPrice}>
-                    Min: {formatCurrency(rawData.minRent)}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <>
-                <Text style={styles.propertyItemPrice}>
-                  Precio: {formatCurrency(rawData?.price || item.price)}
-                </Text>
-                {rawData?.minPrice && (
-                  <Text style={styles.propertyItemMinPrice}>
-                    Min: {formatCurrency(rawData.minPrice)}
-                  </Text>
-                )}
-              </>
+            <Text style={styles.propertyItemPrice}>
+              Precio: {formatCurrency(item.maxPrice || 0)}
+            </Text>
+            {item.minPrice != null && item.minPrice > 0 && (
+              <Text style={styles.propertyItemMinPrice}>
+                Min: {formatCurrency(item.minPrice)}
+              </Text>
             )}
           </View>
         </View>
@@ -188,11 +191,7 @@ export default function SaleRentRegistrationScreen() {
           <View style={styles.toggleContainer}>
             <TouchableOpacity 
               style={[styles.toggleButton, transactionType === 'sale' && styles.toggleButtonActive]}
-              onPress={() => {
-                setTransactionType('sale')
-                setPriceOption('original')
-                setCustomAmount('')
-              }}
+              onPress={() => handleTransactionTypeChange('sale')}
             >
               <Text style={[styles.toggleText, transactionType === 'sale' && styles.toggleTextActive]}>
                 Venta
@@ -200,11 +199,7 @@ export default function SaleRentRegistrationScreen() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.toggleButton, transactionType === 'rent' && styles.toggleButtonActive]}
-              onPress={() => {
-                setTransactionType('rent')
-                setPriceOption('original')
-                setCustomAmount('')
-              }}
+              onPress={() => handleTransactionTypeChange('rent')}
             >
               <Text style={[styles.toggleText, transactionType === 'rent' && styles.toggleTextActive]}>
                 Renta
@@ -292,7 +287,7 @@ export default function SaleRentRegistrationScreen() {
             </Text>
             
             <View style={styles.priceOptionsContainer}>
-              {/* Precio original */}
+              {/* Precio original (maxPrice) */}
               <TouchableOpacity 
                 style={[styles.priceOption, priceOption === 'original' && styles.priceOptionActive]}
                 onPress={() => setPriceOption('original')}
@@ -303,16 +298,13 @@ export default function SaleRentRegistrationScreen() {
                 <View style={styles.priceOptionContent}>
                   <Text style={styles.priceOptionLabel}>Precio Original</Text>
                   <Text style={styles.priceOptionValue}>
-                    {transactionType === 'rent' 
-                      ? formatCurrency(selectedPropertyRaw.monthlyRent || 0)
-                      : formatCurrency(selectedPropertyRaw.price || 0)
-                    }
+                    {formatCurrency(selectedPropertyRaw.maxPrice || 0)}
                   </Text>
                 </View>
               </TouchableOpacity>
 
-              {/* Precio mínimo */}
-              {(transactionType === 'rent' ? selectedPropertyRaw.minRent : selectedPropertyRaw.minPrice) && (
+              {/* Precio mínimo (solo si existe) */}
+              {hasMinPrice && (
                 <TouchableOpacity 
                   style={[styles.priceOption, priceOption === 'min' && styles.priceOptionActive]}
                   onPress={() => setPriceOption('min')}
@@ -323,10 +315,7 @@ export default function SaleRentRegistrationScreen() {
                   <View style={styles.priceOptionContent}>
                     <Text style={styles.priceOptionLabel}>Precio Minimo</Text>
                     <Text style={styles.priceOptionValue}>
-                      {transactionType === 'rent' 
-                        ? formatCurrency(selectedPropertyRaw.minRent || 0)
-                        : formatCurrency(selectedPropertyRaw.minPrice || 0)
-                      }
+                      {formatCurrency(selectedPropertyRaw.minPrice || 0)}
                     </Text>
                   </View>
                 </TouchableOpacity>
