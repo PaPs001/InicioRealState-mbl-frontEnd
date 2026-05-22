@@ -660,13 +660,6 @@ export default function PropertyDetailScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: theme.surface }]}
-          onPress={() => router.back()}
-        >
-          <ArrowLeft size={24} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Detalle de Propiedad</Text>
         {!isAgent && !isAdmin ? (
           <View style={styles.headerActions}>
             <TouchableOpacity 
@@ -683,11 +676,12 @@ export default function PropertyDetailScreen() {
 
       {/* Tabs */}
       <View style={[styles.tabsContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        {/**importyanteeeeeeeee */}
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'info' && { borderBottomColor: theme.accent }]}
           onPress={() => setActiveTab('info')}
         >
-          <Info size={18} color={activeTab === 'info' ? theme.accent : theme.textMuted} />
+          <Info size={22} color={activeTab === 'info' ? theme.accent : theme.textMuted} />
           <Text style={[styles.tabText, { color: activeTab === 'info' ? theme.accent : theme.textMuted }]}>
             Informacion
           </Text>
@@ -801,6 +795,7 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
+
   },
   tab: {
     flex: 1,
