@@ -2,10 +2,10 @@ import { View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { colors } from '@/lib/theme'
-import OwnerForm from './components/forms/OwnerForm'
-import RenterForm from './components/forms/RenterForm'
-import AsesorForm from './components/forms/AsesorForm'
-import BuyerForm from './components/forms/BuyerForm'
+import OwnerForm from '@/components/forms/OwnerForm'
+import RenterForm from '@/components/forms/RenterForm'
+import AsesorForm from '@/components/forms/AsesorForm'
+import BuyerForm from '@/components/forms/BuyerForm'
 
 export default function RegisterScreen() {
   const { clientType } = useLocalSearchParams<{ clientType?: string }>()
