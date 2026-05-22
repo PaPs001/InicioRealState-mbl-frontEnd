@@ -945,7 +945,7 @@ export default function HomeScreen() {
           {isAgent && (
             <TouchableOpacity 
               style={styles.quickAccessCardDark}
-              onPress={() => router.push('/(tabs)/registration')}
+              onPress={() => router.push('/sale-rent-registration')}
             >
               <View style={styles.quickAccessIconDark}>
                 <ClipboardCheck size={24} color={colors.accent} />
