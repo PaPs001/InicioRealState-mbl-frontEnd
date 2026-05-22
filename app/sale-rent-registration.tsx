@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
 import { PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
-import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { spacing, typography, borderRadius } from '@/lib/theme'
 import { formatCurrency } from '@/lib/mock-data'
 import { 
   Building2, 
@@ -26,6 +26,16 @@ import {
   ArrowLeft,
   Search,
   X,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Home,
+  Briefcase,
+  Camera,
+  Bed,
+  Bath,
+  Car,
+  Ruler,
 } from 'lucide-react-native'
 
 // Colores del tema advisor
@@ -39,16 +49,62 @@ const advisorTheme = {
   accent: '#c9a227',
 }
 
+type ListingSource = 'internal' | 'external'
+
+// Secciones colapsables para listado externo
+type AccordionSection = 'property' | 'location' | 'owner' | 'source' | 'commission' | 'details' | 'photos'
+
 export default function SaleRentRegistrationScreen() {
   const router = useRouter()
   const { agentCatalogRawData, loadAgentCatalogProperties, hasLoadedAgentCatalog, isAgentCatalogLoading } = useAuth()
   
+  // Estados generales
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent')
+  const [listingSource, setListingSource] = useState<ListingSource>('internal')
+  
+  // Estados para listado INTERNO
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showPropertyPicker, setShowPropertyPicker] = useState(false)
   const [priceOption, setPriceOption] = useState<'original' | 'min' | 'custom'>('original')
   const [customAmount, setCustomAmount] = useState('')
+  
+  // Estados para listado EXTERNO
+  const [expandedSections, setExpandedSections] = useState<AccordionSection[]>(['property'])
+  const [externalData, setExternalData] = useState({
+    // Datos del inmueble
+    propertyName: '',
+    propertyType: '' as 'house' | 'apartment' | 'land' | '',
+    price: '',
+    // Ubicacion
+    address: '',
+    city: '',
+    mapsLink: '',
+    // Propietario
+    ownerName: '',
+    ownerPhone: '',
+    ownerEmail: '',
+    ownerNotes: '',
+    // Fuente externa
+    sourceName: '',
+    sourceContact: '',
+    sourceNotes: '',
+    // Comisiones
+    totalCommission: '',
+    externalCommission: '',
+    agentCommission: '',
+    // Detalles del inmueble
+    bedrooms: '',
+    bathrooms: '',
+    parking: '',
+    sqMeters: '',
+    description: '',
+    amenities: '',
+    // Fotos
+    photos: [] as string[],
+  })
+  
+  // Estados comunes (cliente)
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
@@ -61,7 +117,7 @@ export default function SaleRentRegistrationScreen() {
     }
   }, [hasLoadedAgentCatalog, isAgentCatalogLoading, loadAgentCatalogProperties])
 
-  // Limpiar selección cuando cambia el tipo de transacción
+  // Limpiar selección cuando cambia el tipo de transacción o fuente
   const handleTransactionTypeChange = (type: 'rent' | 'sale') => {
     setTransactionType(type)
     setSelectedProperty(null)
@@ -70,9 +126,51 @@ export default function SaleRentRegistrationScreen() {
     setCustomAmount('')
   }
 
+  const handleListingSourceChange = (source: ListingSource) => {
+    setListingSource(source)
+    // Limpiar datos al cambiar fuente
+    setSelectedProperty(null)
+    setSearchQuery('')
+    setPriceOption('original')
+    setCustomAmount('')
+    setExternalData({
+      propertyName: '',
+      propertyType: '',
+      price: '',
+      address: '',
+      city: '',
+      mapsLink: '',
+      ownerName: '',
+      ownerPhone: '',
+      ownerEmail: '',
+      ownerNotes: '',
+      sourceName: '',
+      sourceContact: '',
+      sourceNotes: '',
+      totalCommission: '',
+      externalCommission: '',
+      agentCommission: '',
+      bedrooms: '',
+      bathrooms: '',
+      parking: '',
+      sqMeters: '',
+      description: '',
+      amenities: '',
+      photos: [],
+    })
+  }
+
+  // Toggle para secciones acordeón
+  const toggleSection = (section: AccordionSection) => {
+    setExpandedSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    )
+  }
+
   // Filtrar propiedades por tipo de transacción, disponibilidad y búsqueda
   const filteredProperties = useMemo(() => {
-    // Filtrar por tipo de transacción (sale/rent) y disponibilidad
     const filtered = agentCatalogRawData.filter(p => {
       const isSaleType = p.list === 'sale'
       const isRentType = p.list === 'rent'
@@ -85,7 +183,6 @@ export default function SaleRentRegistrationScreen() {
       }
     })
 
-    // Filtrar por búsqueda
     if (!searchQuery.trim()) return filtered
     const query = searchQuery.toLowerCase()
     return filtered.filter(p => 
@@ -95,14 +192,13 @@ export default function SaleRentRegistrationScreen() {
     )
   }, [agentCatalogRawData, searchQuery, transactionType])
 
-  // Obtener datos de la propiedad seleccionada (usar rawData directamente)
+  // Obtener datos de la propiedad seleccionada
   const selectedPropertyRaw = useMemo(() => {
     if (!selectedProperty) return null
     return agentCatalogRawData.find(p => p.id === selectedProperty)
   }, [selectedProperty, agentCatalogRawData])
 
   // Calcular el monto según la opción seleccionada
-  // maxPrice = precio original, minPrice = precio mínimo
   const calculatedAmount = useMemo(() => {
     if (!selectedPropertyRaw) return ''
     
@@ -124,26 +220,48 @@ export default function SaleRentRegistrationScreen() {
     return selectedPropertyRaw?.minPrice != null && selectedPropertyRaw.minPrice > 0
   }, [selectedPropertyRaw])
 
+  // Handlers
   const handleSelectProperty = (propertyId: string) => {
     setSelectedProperty(propertyId)
     setShowPropertyPicker(false)
-    setSearchQuery('')
     setPriceOption('original')
     setCustomAmount('')
   }
 
   const handleSubmit = () => {
-    if (!selectedProperty || !clientName || !clientPhone || !calculatedAmount) {
-      Alert.alert('Error', 'Por favor completa todos los campos requeridos')
-      return
+    if (listingSource === 'internal') {
+      if (!selectedProperty || !clientName || !clientPhone) {
+        Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios')
+        return
+      }
+    } else {
+      if (!externalData.propertyName || !externalData.price || !clientName || !clientPhone) {
+        Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios')
+        return
+      }
     }
+    
     Alert.alert(
-      'Registro Enviado',
-      'Tu registro de ' + (transactionType === 'sale' ? 'venta' : 'renta') + ' ha sido enviado para revision.',
+      'Registro enviado',
+      `Tu registro de ${transactionType === 'sale' ? 'venta' : 'renta'} ha sido enviado correctamente.`,
       [{ text: 'OK', onPress: () => router.back() }]
     )
   }
 
+  // Validar si el formulario está completo
+  const isFormValid = useMemo(() => {
+    const clientValid = clientName.trim() && clientPhone.trim()
+    
+    if (listingSource === 'internal') {
+      const propertyValid = selectedProperty && calculatedAmount
+      return clientValid && propertyValid
+    } else {
+      const propertyValid = externalData.propertyName.trim() && externalData.price.trim()
+      return clientValid && propertyValid
+    }
+  }, [listingSource, clientName, clientPhone, selectedProperty, calculatedAmount, externalData])
+
+  // Renderizar item de propiedad en la lista
   const renderPropertyItem = ({ item }: { item: PropertyCatalogItemResponse }) => {
     const isSelected = selectedProperty === item.id
     
@@ -173,8 +291,42 @@ export default function SaleRentRegistrationScreen() {
     )
   }
 
+  // Renderizar sección acordeón
+  const renderAccordionSection = (
+    section: AccordionSection, 
+    title: string, 
+    icon: React.ReactNode,
+    content: React.ReactNode
+  ) => {
+    const isExpanded = expandedSections.includes(section)
+    
+    return (
+      <View style={styles.accordionSection}>
+        <TouchableOpacity 
+          style={styles.accordionHeader}
+          onPress={() => toggleSection(section)}
+        >
+          <View style={styles.accordionHeaderLeft}>
+            {icon}
+            <Text style={styles.accordionTitle}>{title}</Text>
+          </View>
+          {isExpanded ? (
+            <ChevronUp size={20} color={advisorTheme.textMuted} />
+          ) : (
+            <ChevronDown size={20} color={advisorTheme.textMuted} />
+          )}
+        </TouchableOpacity>
+        {isExpanded && (
+          <View style={styles.accordionContent}>
+            {content}
+          </View>
+        )}
+      </View>
+    )
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -184,10 +336,14 @@ export default function SaleRentRegistrationScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
-        {/* Tipo de transaccion */}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Tipo de transacción */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tipo de Transaccion</Text>
+          <Text style={styles.sectionTitle}>Tipo de Transaccion *</Text>
           <View style={styles.toggleContainer}>
             <TouchableOpacity 
               style={[styles.toggleButton, transactionType === 'sale' && styles.toggleButtonActive]}
@@ -208,234 +364,664 @@ export default function SaleRentRegistrationScreen() {
           </View>
         </View>
 
-        {/* Selector de propiedad */}
+        {/* Fuente del listado */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Propiedad *</Text>
-          
-          {/* Campo de búsqueda */}
-          <View style={styles.searchContainer}>
-            <Search size={20} color={advisorTheme.textMuted} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar propiedad por nombre o ciudad..."
-              placeholderTextColor={advisorTheme.textMuted}
-              value={searchQuery}
-              onChangeText={(text) => {
-                setSearchQuery(text)
-                setShowPropertyPicker(true)
-              }}
-              onFocus={() => setShowPropertyPicker(true)}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X size={20} color={advisorTheme.textMuted} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Propiedad seleccionada */}
-          {selectedPropertyRaw && !showPropertyPicker && (
-            <View style={styles.selectedPropertyCard}>
-              <View style={styles.selectedPropertyContent}>
-                <Building2 size={24} color={advisorTheme.accent} />
-                <View style={styles.selectedPropertyInfo}>
-                  <Text style={styles.selectedPropertyTitle}>{selectedPropertyRaw.name}</Text>
-                  <Text style={styles.selectedPropertyLocation}>{selectedPropertyRaw.zonaText || selectedPropertyRaw.address}</Text>
-                </View>
+          <Text style={styles.sectionTitle}>Origen del Inmueble *</Text>
+          <View style={styles.sourceContainer}>
+            <TouchableOpacity 
+              style={[styles.sourceOption, listingSource === 'internal' && styles.sourceOptionActive]}
+              onPress={() => handleListingSourceChange('internal')}
+            >
+              <View style={styles.sourceOptionRadio}>
+                {listingSource === 'internal' && <View style={styles.sourceOptionRadioInner} />}
               </View>
-              <TouchableOpacity onPress={() => setShowPropertyPicker(true)}>
-                <Text style={styles.changeButton}>Cambiar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Lista de propiedades */}
-          {showPropertyPicker && (
-            <View style={styles.propertyListContainer}>
-              <ScrollView style={styles.propertyList} nestedScrollEnabled={true}>
-                {isAgentCatalogLoading ? (
-                  <View style={styles.emptyList}>
-                    <Text style={styles.emptyListText}>Cargando propiedades...</Text>
-                  </View>
-                ) : filteredProperties.length === 0 ? (
-                  <View style={styles.emptyList}>
-                    <Text style={styles.emptyListText}>No se encontraron propiedades</Text>
-                  </View>
-                ) : (
-                  filteredProperties.map((item) => (
-                    <View key={item.id}>
-                      {renderPropertyItem({ item })}
-                    </View>
-                  ))
-                )}
-              </ScrollView>
-              <TouchableOpacity 
-                style={styles.closeListButton}
-                onPress={() => setShowPropertyPicker(false)}
-              >
-                <Text style={styles.closeListButtonText}>Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+              <View style={styles.sourceOptionContent}>
+                <Text style={styles.sourceOptionTitle}>Listado Interno</Text>
+                <Text style={styles.sourceOptionDesc}>Propiedad del catalogo de Inicio</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.sourceOption, listingSource === 'external' && styles.sourceOptionActive]}
+              onPress={() => handleListingSourceChange('external')}
+            >
+              <View style={styles.sourceOptionRadio}>
+                {listingSource === 'external' && <View style={styles.sourceOptionRadioInner} />}
+              </View>
+              <View style={styles.sourceOptionContent}>
+                <Text style={styles.sourceOptionTitle}>Listado Externo</Text>
+                <Text style={styles.sourceOptionDesc}>Propiedad de otra inmobiliaria o particular</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Opciones de precio (solo si hay propiedad seleccionada) */}
-        {selectedPropertyRaw && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {transactionType === 'sale' ? 'Precio de Venta' : 'Renta Mensual'} *
-            </Text>
-            
-            <View style={styles.priceOptionsContainer}>
-              {/* Precio original (maxPrice) */}
+        {/* LISTADO INTERNO */}
+        {listingSource === 'internal' && (
+          <>
+            {/* Seleccionar propiedad */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Seleccionar Propiedad *</Text>
+              
+              {/* Campo de búsqueda */}
               <TouchableOpacity 
-                style={[styles.priceOption, priceOption === 'original' && styles.priceOptionActive]}
-                onPress={() => setPriceOption('original')}
+                style={styles.searchContainer}
+                onPress={() => setShowPropertyPicker(true)}
               >
-                <View style={styles.priceOptionRadio}>
-                  {priceOption === 'original' && <View style={styles.priceOptionRadioInner} />}
-                </View>
-                <View style={styles.priceOptionContent}>
-                  <Text style={styles.priceOptionLabel}>Precio Original</Text>
-                  <Text style={styles.priceOptionValue}>
-                    {formatCurrency(selectedPropertyRaw.maxPrice || 0)}
-                  </Text>
-                </View>
+                <Search size={20} color={advisorTheme.textMuted} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Buscar por nombre o ubicacion..."
+                  placeholderTextColor={advisorTheme.textMuted}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onFocus={() => setShowPropertyPicker(true)}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <X size={20} color={advisorTheme.textMuted} />
+                  </TouchableOpacity>
+                )}
               </TouchableOpacity>
 
-              {/* Precio mínimo (solo si existe) */}
-              {hasMinPrice && (
-                <TouchableOpacity 
-                  style={[styles.priceOption, priceOption === 'min' && styles.priceOptionActive]}
-                  onPress={() => setPriceOption('min')}
-                >
-                  <View style={styles.priceOptionRadio}>
-                    {priceOption === 'min' && <View style={styles.priceOptionRadioInner} />}
+              {/* Propiedad seleccionada */}
+              {selectedPropertyRaw && !showPropertyPicker && (
+                <View style={styles.selectedPropertyCard}>
+                  <View style={styles.selectedPropertyContent}>
+                    <Building2 size={24} color={advisorTheme.accent} />
+                    <View style={styles.selectedPropertyInfo}>
+                      <Text style={styles.selectedPropertyTitle}>{selectedPropertyRaw.name}</Text>
+                      <Text style={styles.selectedPropertyLocation}>{selectedPropertyRaw.zonaText || selectedPropertyRaw.address}</Text>
+                    </View>
                   </View>
-                  <View style={styles.priceOptionContent}>
-                    <Text style={styles.priceOptionLabel}>Precio Minimo</Text>
-                    <Text style={styles.priceOptionValue}>
-                      {formatCurrency(selectedPropertyRaw.minPrice || 0)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setShowPropertyPicker(true)}>
+                    <Text style={styles.changeButton}>Cambiar</Text>
+                  </TouchableOpacity>
+                </View>
               )}
 
-              {/* Precio personalizado */}
-              <TouchableOpacity 
-                style={[styles.priceOption, priceOption === 'custom' && styles.priceOptionActive]}
-                onPress={() => setPriceOption('custom')}
-              >
-                <View style={styles.priceOptionRadio}>
-                  {priceOption === 'custom' && <View style={styles.priceOptionRadioInner} />}
-                </View>
-                <View style={styles.priceOptionContent}>
-                  <Text style={styles.priceOptionLabel}>Precio Personalizado</Text>
-                </View>
-              </TouchableOpacity>
-
-              {priceOption === 'custom' && (
-                <View style={styles.customPriceContainer}>
-                  <DollarSign size={20} color={advisorTheme.accent} />
-                  <TextInput
-                    style={styles.customPriceInput}
-                    placeholder="Ingresa el monto"
-                    placeholderTextColor={advisorTheme.textMuted}
-                    value={customAmount}
-                    onChangeText={setCustomAmount}
-                    keyboardType="numeric"
-                  />
+              {/* Lista de propiedades */}
+              {showPropertyPicker && (
+                <View style={styles.propertyListContainer}>
+                  <ScrollView style={styles.propertyList} nestedScrollEnabled={true}>
+                    {isAgentCatalogLoading ? (
+                      <View style={styles.emptyList}>
+                        <Text style={styles.emptyListText}>Cargando propiedades...</Text>
+                      </View>
+                    ) : filteredProperties.length === 0 ? (
+                      <View style={styles.emptyList}>
+                        <Text style={styles.emptyListText}>No se encontraron propiedades</Text>
+                      </View>
+                    ) : (
+                      filteredProperties.map((item) => (
+                        <View key={item.id}>
+                          {renderPropertyItem({ item })}
+                        </View>
+                      ))
+                    )}
+                  </ScrollView>
+                  <TouchableOpacity 
+                    style={styles.closeListButton}
+                    onPress={() => setShowPropertyPicker(false)}
+                  >
+                    <Text style={styles.closeListButtonText}>Cerrar</Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
 
-            {/* Monto final */}
-            {calculatedAmount && (
-              <View style={styles.finalAmountContainer}>
-                <Text style={styles.finalAmountLabel}>Monto a registrar:</Text>
-                <Text style={styles.finalAmountValue}>{formatCurrency(Number(calculatedAmount))}</Text>
+            {/* Opciones de precio (solo si hay propiedad seleccionada) */}
+            {selectedPropertyRaw && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {transactionType === 'sale' ? 'Precio de Venta' : 'Renta Mensual'} *
+                </Text>
+                
+                <View style={styles.priceOptionsContainer}>
+                  {/* Precio original (maxPrice) */}
+                  <TouchableOpacity 
+                    style={[styles.priceOption, priceOption === 'original' && styles.priceOptionActive]}
+                    onPress={() => setPriceOption('original')}
+                  >
+                    <View style={styles.priceOptionRadio}>
+                      {priceOption === 'original' && <View style={styles.priceOptionRadioInner} />}
+                    </View>
+                    <View style={styles.priceOptionContent}>
+                      <Text style={styles.priceOptionLabel}>Precio Original</Text>
+                      <Text style={styles.priceOptionValue}>
+                        {formatCurrency(selectedPropertyRaw.maxPrice || 0)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Precio mínimo (solo si existe) */}
+                  {hasMinPrice && (
+                    <TouchableOpacity 
+                      style={[styles.priceOption, priceOption === 'min' && styles.priceOptionActive]}
+                      onPress={() => setPriceOption('min')}
+                    >
+                      <View style={styles.priceOptionRadio}>
+                        {priceOption === 'min' && <View style={styles.priceOptionRadioInner} />}
+                      </View>
+                      <View style={styles.priceOptionContent}>
+                        <Text style={styles.priceOptionLabel}>Precio Minimo</Text>
+                        <Text style={styles.priceOptionValue}>
+                          {formatCurrency(selectedPropertyRaw.minPrice || 0)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Precio personalizado */}
+                  <TouchableOpacity 
+                    style={[styles.priceOption, priceOption === 'custom' && styles.priceOptionActive]}
+                    onPress={() => setPriceOption('custom')}
+                  >
+                    <View style={styles.priceOptionRadio}>
+                      {priceOption === 'custom' && <View style={styles.priceOptionRadioInner} />}
+                    </View>
+                    <View style={styles.priceOptionContent}>
+                      <Text style={styles.priceOptionLabel}>Precio Personalizado</Text>
+                      {priceOption === 'custom' && (
+                        <View style={styles.customPriceInput}>
+                          <DollarSign size={16} color={advisorTheme.textMuted} />
+                          <TextInput
+                            style={styles.customPriceTextInput}
+                            placeholder="Ingresa el monto"
+                            placeholderTextColor={advisorTheme.textMuted}
+                            keyboardType="numeric"
+                            value={customAmount}
+                            onChangeText={setCustomAmount}
+                          />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* LISTADO EXTERNO */}
+        {listingSource === 'external' && (
+          <View style={styles.externalContainer}>
+            {/* Seccion: Datos del Inmueble */}
+            {renderAccordionSection(
+              'property',
+              'Datos del Inmueble',
+              <Building2 size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Nombre del inmueble *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ej: Casa en Polanco"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.propertyName}
+                    onChangeText={(text) => setExternalData({ ...externalData, propertyName: text })}
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Tipo de propiedad</Text>
+                  <View style={styles.propertyTypeContainer}>
+                    {[
+                      { value: 'house', label: 'Casa' },
+                      { value: 'apartment', label: 'Depto' },
+                      { value: 'land', label: 'Terreno' },
+                    ].map((type) => (
+                      <TouchableOpacity
+                        key={type.value}
+                        style={[
+                          styles.propertyTypeButton,
+                          externalData.propertyType === type.value && styles.propertyTypeButtonActive
+                        ]}
+                        onPress={() => setExternalData({ ...externalData, propertyType: type.value as any })}
+                      >
+                        <Text style={[
+                          styles.propertyTypeText,
+                          externalData.propertyType === type.value && styles.propertyTypeTextActive
+                        ]}>
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {transactionType === 'sale' ? 'Precio de venta' : 'Renta mensual'} *
+                  </Text>
+                  <View style={styles.inputWithIcon}>
+                    <DollarSign size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="0.00"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="numeric"
+                      value={externalData.price}
+                      onChangeText={(text) => setExternalData({ ...externalData, price: text })}
+                    />
+                    <Text style={styles.inputSuffix}>MXN</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Ubicacion */}
+            {renderAccordionSection(
+              'location',
+              'Ubicacion',
+              <MapPin size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Direccion</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Calle, numero, colonia"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.address}
+                    onChangeText={(text) => setExternalData({ ...externalData, address: text })}
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Ciudad</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ciudad o zona"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.city}
+                    onChangeText={(text) => setExternalData({ ...externalData, city: text })}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Link de Google Maps</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="https://maps.google.com/..."
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.mapsLink}
+                    onChangeText={(text) => setExternalData({ ...externalData, mapsLink: text })}
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Propietario */}
+            {renderAccordionSection(
+              'owner',
+              'Propietario',
+              <User size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Nombre del dueno</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Nombre completo"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.ownerName}
+                    onChangeText={(text) => setExternalData({ ...externalData, ownerName: text })}
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Telefono</Text>
+                  <View style={styles.inputWithIcon}>
+                    <Phone size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="10 digitos"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="phone-pad"
+                      value={externalData.ownerPhone}
+                      onChangeText={(text) => setExternalData({ ...externalData, ownerPhone: text })}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Email</Text>
+                  <View style={styles.inputWithIcon}>
+                    <Mail size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="correo@ejemplo.com"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={externalData.ownerEmail}
+                      onChangeText={(text) => setExternalData({ ...externalData, ownerEmail: text })}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Notas adicionales</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Informacion adicional del propietario..."
+                    placeholderTextColor={advisorTheme.textMuted}
+                    multiline
+                    numberOfLines={3}
+                    value={externalData.ownerNotes}
+                    onChangeText={(text) => setExternalData({ ...externalData, ownerNotes: text })}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Fuente Externa */}
+            {renderAccordionSection(
+              'source',
+              'Asesor/Empresa Externa',
+              <Briefcase size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Nombre del asesor o empresa</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ej: Century 21, Juan Perez"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.sourceName}
+                    onChangeText={(text) => setExternalData({ ...externalData, sourceName: text })}
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Contacto</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Telefono o email de contacto"
+                    placeholderTextColor={advisorTheme.textMuted}
+                    value={externalData.sourceContact}
+                    onChangeText={(text) => setExternalData({ ...externalData, sourceContact: text })}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Informacion general</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Detalles adicionales de la fuente..."
+                    placeholderTextColor={advisorTheme.textMuted}
+                    multiline
+                    numberOfLines={3}
+                    value={externalData.sourceNotes}
+                    onChangeText={(text) => setExternalData({ ...externalData, sourceNotes: text })}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Comisiones */}
+            {renderAccordionSection(
+              'commission',
+              'Comisiones',
+              <DollarSign size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Comision total</Text>
+                  <View style={styles.inputWithIcon}>
+                    <DollarSign size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="0.00"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="numeric"
+                      value={externalData.totalCommission}
+                      onChangeText={(text) => setExternalData({ ...externalData, totalCommission: text })}
+                    />
+                    <Text style={styles.inputSuffix}>MXN</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Comision para la otra parte</Text>
+                  <View style={styles.inputWithIcon}>
+                    <DollarSign size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="0.00"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="numeric"
+                      value={externalData.externalCommission}
+                      onChangeText={(text) => setExternalData({ ...externalData, externalCommission: text })}
+                    />
+                    <Text style={styles.inputSuffix}>MXN</Text>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Tu comision</Text>
+                  <View style={styles.inputWithIcon}>
+                    <DollarSign size={20} color={advisorTheme.textMuted} />
+                    <TextInput
+                      style={styles.inputInner}
+                      placeholder="0.00"
+                      placeholderTextColor={advisorTheme.textMuted}
+                      keyboardType="numeric"
+                      value={externalData.agentCommission}
+                      onChangeText={(text) => setExternalData({ ...externalData, agentCommission: text })}
+                    />
+                    <Text style={styles.inputSuffix}>MXN</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Detalles del Inmueble */}
+            {renderAccordionSection(
+              'details',
+              'Detalles del Inmueble',
+              <Home size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <View style={styles.inputRow}>
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>Recamaras</Text>
+                    <View style={styles.inputWithIcon}>
+                      <Bed size={20} color={advisorTheme.textMuted} />
+                      <TextInput
+                        style={styles.inputInner}
+                        placeholder="0"
+                        placeholderTextColor={advisorTheme.textMuted}
+                        keyboardType="numeric"
+                        value={externalData.bedrooms}
+                        onChangeText={(text) => setExternalData({ ...externalData, bedrooms: text })}
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>Banos</Text>
+                    <View style={styles.inputWithIcon}>
+                      <Bath size={20} color={advisorTheme.textMuted} />
+                      <TextInput
+                        style={styles.inputInner}
+                        placeholder="0"
+                        placeholderTextColor={advisorTheme.textMuted}
+                        keyboardType="numeric"
+                        value={externalData.bathrooms}
+                        onChangeText={(text) => setExternalData({ ...externalData, bathrooms: text })}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.inputRow}>
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>Estacionamiento</Text>
+                    <View style={styles.inputWithIcon}>
+                      <Car size={20} color={advisorTheme.textMuted} />
+                      <TextInput
+                        style={styles.inputInner}
+                        placeholder="0"
+                        placeholderTextColor={advisorTheme.textMuted}
+                        keyboardType="numeric"
+                        value={externalData.parking}
+                        onChangeText={(text) => setExternalData({ ...externalData, parking: text })}
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>m2</Text>
+                    <View style={styles.inputWithIcon}>
+                      <Ruler size={20} color={advisorTheme.textMuted} />
+                      <TextInput
+                        style={styles.inputInner}
+                        placeholder="0"
+                        placeholderTextColor={advisorTheme.textMuted}
+                        keyboardType="numeric"
+                        value={externalData.sqMeters}
+                        onChangeText={(text) => setExternalData({ ...externalData, sqMeters: text })}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Descripcion</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Descripcion general del inmueble..."
+                    placeholderTextColor={advisorTheme.textMuted}
+                    multiline
+                    numberOfLines={4}
+                    value={externalData.description}
+                    onChangeText={(text) => setExternalData({ ...externalData, description: text })}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Amenidades</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Ej: Alberca, gimnasio, seguridad 24/7..."
+                    placeholderTextColor={advisorTheme.textMuted}
+                    multiline
+                    numberOfLines={2}
+                    value={externalData.amenities}
+                    onChangeText={(text) => setExternalData({ ...externalData, amenities: text })}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Seccion: Fotos (opcional) */}
+            {renderAccordionSection(
+              'photos',
+              'Fotos (opcional)',
+              <Camera size={20} color={advisorTheme.accent} />,
+              <View style={styles.accordionFields}>
+                <TouchableOpacity style={styles.uploadPhotoButton}>
+                  <Upload size={24} color={advisorTheme.accent} />
+                  <Text style={styles.uploadPhotoText}>Agregar fotos del inmueble</Text>
+                  <Text style={styles.uploadPhotoHint}>Toca para seleccionar imagenes</Text>
+                </TouchableOpacity>
+                
+                {externalData.photos.length > 0 && (
+                  <View style={styles.photosPreview}>
+                    {externalData.photos.map((photo, index) => (
+                      <View key={index} style={styles.photoPreviewItem}>
+                        <Text style={styles.photoPreviewText}>Foto {index + 1}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
           </View>
         )}
 
-        {/* Datos del cliente */}
+        {/* Datos del cliente (comun para ambos) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Datos del Cliente</Text>
+          <Text style={styles.sectionTitle}>Datos del Cliente *</Text>
           
-          <View style={styles.inputContainer}>
-            <User size={20} color={advisorTheme.accent} />
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre completo *"
-              placeholderTextColor={advisorTheme.textMuted}
-              value={clientName}
-              onChangeText={setClientName}
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nombre completo *</Text>
+            <View style={styles.inputWithIcon}>
+              <User size={20} color={advisorTheme.textMuted} />
+              <TextInput
+                style={styles.inputInner}
+                placeholder="Nombre del cliente"
+                placeholderTextColor={advisorTheme.textMuted}
+                value={clientName}
+                onChangeText={setClientName}
+              />
+            </View>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Phone size={20} color={advisorTheme.accent} />
-            <TextInput
-              style={styles.input}
-              placeholder="Telefono *"
-              placeholderTextColor={advisorTheme.textMuted}
-              value={clientPhone}
-              onChangeText={setClientPhone}
-              keyboardType="phone-pad"
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Telefono *</Text>
+            <View style={styles.inputWithIcon}>
+              <Phone size={20} color={advisorTheme.textMuted} />
+              <TextInput
+                style={styles.inputInner}
+                placeholder="10 digitos"
+                placeholderTextColor={advisorTheme.textMuted}
+                keyboardType="phone-pad"
+                value={clientPhone}
+                onChangeText={setClientPhone}
+              />
+            </View>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Mail size={20} color={advisorTheme.accent} />
-            <TextInput
-              style={styles.input}
-              placeholder="Correo electronico (opcional)"
-              placeholderTextColor={advisorTheme.textMuted}
-              value={clientEmail}
-              onChangeText={setClientEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <View style={styles.inputWithIcon}>
+              <Mail size={20} color={advisorTheme.textMuted} />
+              <TextInput
+                style={styles.inputInner}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor={advisorTheme.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={clientEmail}
+                onChangeText={setClientEmail}
+              />
+            </View>
           </View>
         </View>
 
         {/* Codigo de referido */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Codigo de Referido (opcional)</Text>
-          <View style={styles.inputContainer}>
-            <FileText size={20} color={advisorTheme.accent} />
+          <View style={styles.inputWithIcon}>
+            <FileText size={20} color={advisorTheme.textMuted} />
             <TextInput
-              style={styles.input}
-              placeholder="Ingresa el codigo"
+              style={styles.inputInner}
+              placeholder="Ingresa el codigo si aplica"
               placeholderTextColor={advisorTheme.textMuted}
               value={referralCode}
               onChangeText={setReferralCode}
-              autoCapitalize="characters"
             />
           </View>
         </View>
 
-        {/* Documentos */}
+        {/* Subir documentos */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Documentos</Text>
+          <Text style={styles.sectionTitle}>Documentos (opcional)</Text>
           <TouchableOpacity style={styles.uploadButton}>
             <Upload size={24} color={advisorTheme.accent} />
             <Text style={styles.uploadButtonText}>Subir documentos</Text>
-            <Text style={styles.uploadHint}>Contrato, identificaciones, etc.</Text>
           </TouchableOpacity>
         </View>
 
         {/* Boton de enviar */}
         <TouchableOpacity 
-          style={[styles.submitButton, (!selectedProperty || !clientName || !clientPhone || !calculatedAmount) && styles.submitButtonDisabled]} 
+          style={[styles.submitButton, !isFormValid && styles.submitButtonDisabled]}
           onPress={handleSubmit}
-          disabled={!selectedProperty || !clientName || !clientPhone || !calculatedAmount}
+          disabled={!isFormValid}
         >
           <Text style={styles.submitButtonText}>Enviar Registro</Text>
         </TouchableOpacity>
 
-        <View style={styles.bottomSpacing} />
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   )
@@ -451,7 +1037,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: advisorTheme.border,
   },
@@ -460,38 +1046,36 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: borderRadius.full,
     backgroundColor: advisorTheme.surface,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: typography.h4.fontSize,
     fontWeight: '700',
     color: advisorTheme.text,
   },
-  scrollContent: {
+  content: {
     flex: 1,
+    padding: spacing.md,
   },
   section: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    marginBottom: spacing.lg,
   },
   sectionTitle: {
-    fontSize: typography.bodySmall.fontSize,
+    fontSize: typography.body.fontSize,
     fontWeight: '600',
-    color: advisorTheme.accent,
-    marginBottom: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: advisorTheme.text,
+    marginBottom: spacing.sm,
   },
   toggleContainer: {
     flexDirection: 'row',
     backgroundColor: advisorTheme.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.xs,
+    padding: 4,
   },
   toggleButton: {
     flex: 1,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     borderRadius: borderRadius.md,
   },
@@ -506,6 +1090,50 @@ const styles = StyleSheet.create({
   toggleTextActive: {
     color: advisorTheme.background,
   },
+  sourceContainer: {
+    gap: spacing.sm,
+  },
+  sourceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: advisorTheme.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+  },
+  sourceOptionActive: {
+    borderColor: advisorTheme.accent,
+  },
+  sourceOptionRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: advisorTheme.textMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  sourceOptionRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: advisorTheme.accent,
+  },
+  sourceOptionContent: {
+    flex: 1,
+  },
+  sourceOptionTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+    color: advisorTheme.text,
+  },
+  sourceOptionDesc: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textMuted,
+    marginTop: 2,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -514,22 +1142,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: advisorTheme.border,
-    marginBottom: spacing.md,
   },
   searchInput: {
     flex: 1,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
-    fontSize: typography.body.fontSize,
     color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
   },
   selectedPropertyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: spacing.md,
     backgroundColor: advisorTheme.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    marginTop: spacing.sm,
     borderWidth: 1,
     borderColor: advisorTheme.accent,
   },
@@ -537,9 +1165,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: spacing.md,
   },
   selectedPropertyInfo: {
+    marginLeft: spacing.sm,
     flex: 1,
   },
   selectedPropertyTitle: {
@@ -548,22 +1176,20 @@ const styles = StyleSheet.create({
     color: advisorTheme.text,
   },
   selectedPropertyLocation: {
-    fontSize: typography.bodySmall.fontSize,
-    color: advisorTheme.textSecondary,
-    marginTop: 2,
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textMuted,
   },
   changeButton: {
-    fontSize: typography.bodySmall.fontSize,
-    fontWeight: '600',
     color: advisorTheme.accent,
+    fontWeight: '600',
   },
   propertyListContainer: {
+    marginTop: spacing.sm,
     backgroundColor: advisorTheme.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: advisorTheme.border,
     maxHeight: 300,
-    overflow: 'hidden',
   },
   propertyList: {
     maxHeight: 250,
@@ -576,7 +1202,7 @@ const styles = StyleSheet.create({
     borderBottomColor: advisorTheme.border,
   },
   propertyItemSelected: {
-    backgroundColor: advisorTheme.background,
+    backgroundColor: advisorTheme.accent + '20',
   },
   propertyItemContent: {
     flex: 1,
@@ -589,38 +1215,36 @@ const styles = StyleSheet.create({
   propertyItemLocation: {
     fontSize: typography.caption.fontSize,
     color: advisorTheme.textMuted,
-    marginTop: 2,
   },
   propertyItemPrices: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     marginTop: spacing.xs,
   },
   propertyItemPrice: {
-    fontSize: typography.bodySmall.fontSize,
+    fontSize: typography.caption.fontSize,
     color: advisorTheme.accent,
+    fontWeight: '600',
   },
   propertyItemMinPrice: {
-    fontSize: typography.bodySmall.fontSize,
+    fontSize: typography.caption.fontSize,
     color: advisorTheme.textSecondary,
   },
   closeListButton: {
-    padding: spacing.md,
+    padding: spacing.sm,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: advisorTheme.border,
   },
   closeListButtonText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
     color: advisorTheme.accent,
+    fontWeight: '600',
   },
   emptyList: {
-    padding: spacing.xl,
+    padding: spacing.lg,
     alignItems: 'center',
   },
   emptyListText: {
-    fontSize: typography.body.fontSize,
     color: advisorTheme.textMuted,
   },
   priceOptionsContainer: {
@@ -628,10 +1252,10 @@ const styles = StyleSheet.create({
   },
   priceOption: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    padding: spacing.md,
     backgroundColor: advisorTheme.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
     borderWidth: 1,
     borderColor: advisorTheme.border,
   },
@@ -643,10 +1267,11 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: advisorTheme.accent,
-    marginRight: spacing.md,
-    justifyContent: 'center',
+    borderColor: advisorTheme.textMuted,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+    marginTop: 2,
   },
   priceOptionRadioInner: {
     width: 10,
@@ -662,100 +1287,200 @@ const styles = StyleSheet.create({
     color: advisorTheme.text,
   },
   priceOptionValue: {
-    fontSize: typography.bodySmall.fontSize,
-    color: advisorTheme.accent,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  customPriceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: advisorTheme.surface,
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: advisorTheme.accent,
-    marginTop: spacing.sm,
-  },
-  customPriceInput: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    paddingLeft: spacing.md,
-    fontSize: typography.body.fontSize,
-    color: advisorTheme.text,
-  },
-  finalAmountContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: advisorTheme.accent + '20',
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginTop: spacing.md,
-  },
-  finalAmountLabel: {
-    fontSize: typography.body.fontSize,
-    color: advisorTheme.text,
-  },
-  finalAmountValue: {
     fontSize: typography.h4.fontSize,
     fontWeight: '700',
     color: advisorTheme.accent,
+    marginTop: spacing.xs,
   },
-  inputContainer: {
+  customPriceInput: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  customPriceTextInput: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+  },
+  externalContainer: {
+    gap: spacing.sm,
+  },
+  accordionSection: {
     backgroundColor: advisorTheme.surface,
     borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: advisorTheme.border,
+    overflow: 'hidden',
   },
-  input: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    paddingLeft: spacing.md,
-    fontSize: typography.body.fontSize,
-    color: advisorTheme.text,
-  },
-  uploadButton: {
+  accordionHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: advisorTheme.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: advisorTheme.border,
+    justifyContent: 'space-between',
+    padding: spacing.md,
   },
-  uploadButtonText: {
+  accordionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  accordionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
     color: advisorTheme.text,
+  },
+  accordionContent: {
+    padding: spacing.md,
+    paddingTop: 0,
+    borderTopWidth: 1,
+    borderTopColor: advisorTheme.border,
+  },
+  accordionFields: {
+    paddingTop: spacing.md,
+    gap: spacing.md,
+  },
+  inputGroup: {
+    gap: spacing.xs,
+  },
+  inputLabel: {
+    fontSize: typography.caption.fontSize,
+    color: advisorTheme.textSecondary,
+    fontWeight: '500',
+  },
+  input: {
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+  },
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+  },
+  inputInner: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+  },
+  inputSuffix: {
+    color: advisorTheme.textMuted,
+    fontSize: typography.caption.fontSize,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  propertyTypeContainer: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  propertyTypeButton: {
+    flex: 1,
+    padding: spacing.sm,
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+  },
+  propertyTypeButtonActive: {
+    borderColor: advisorTheme.accent,
+    backgroundColor: advisorTheme.accent + '20',
+  },
+  propertyTypeText: {
+    color: advisorTheme.textMuted,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+  propertyTypeTextActive: {
+    color: advisorTheme.accent,
+  },
+  uploadPhotoButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    borderColor: advisorTheme.border,
+    borderStyle: 'dashed',
+  },
+  uploadPhotoText: {
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
     marginTop: spacing.sm,
   },
-  uploadHint: {
-    fontSize: typography.caption.fontSize,
+  uploadPhotoHint: {
     color: advisorTheme.textMuted,
+    fontSize: typography.caption.fontSize,
     marginTop: spacing.xs,
+  },
+  photosPreview: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  photoPreviewItem: {
+    width: 80,
+    height: 80,
+    backgroundColor: advisorTheme.background,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoPreviewText: {
+    color: advisorTheme.textMuted,
+    fontSize: typography.caption.fontSize,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.md,
+    backgroundColor: advisorTheme.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: advisorTheme.border,
+    gap: spacing.sm,
+  },
+  uploadButtonText: {
+    color: advisorTheme.text,
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
   },
   submitButton: {
     backgroundColor: advisorTheme.accent,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
+    padding: spacing.md,
     borderRadius: borderRadius.lg,
     alignItems: 'center',
+    marginTop: spacing.md,
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
+    color: advisorTheme.background,
     fontSize: typography.body.fontSize,
     fontWeight: '700',
-    color: advisorTheme.background,
-  },
-  bottomSpacing: {
-    height: spacing.xxl,
   },
 })
