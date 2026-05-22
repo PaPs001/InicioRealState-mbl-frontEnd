@@ -1,5 +1,4 @@
 //Imagenes
-import LogoGris from '../assets/LogoInicioSVGris.svg';
 import LogoNegro from '../assets/LogoInicioSVGNegro.svg';
 import TextoLogoInicio from '../assets/TextoLogoInicio.svg';
 
@@ -85,11 +84,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={styles.logoContainer}>
-              <LogoGris width={150} height={150} />
-              {/*<View style={styles.logoPlaceholder}>
-                <Text style={styles.logoText}>Avion</Text>
-                <Text style={styles.logoSubtext}>REAL ESTATE</Text>
-              </View>*/}
+              <TextoLogoInicio width={200} height={80} />
             </View>
 
             <Text style={styles.subtitleDark}>Portal de Asesores y Coordinadores</Text>
