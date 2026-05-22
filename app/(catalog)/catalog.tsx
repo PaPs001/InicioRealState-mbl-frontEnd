@@ -6,6 +6,7 @@ import {
   FlatList, 
   TouchableOpacity, 
   TextInput,
+  ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -33,29 +34,57 @@ export default function CatalogStandaloneScreen() {
     isAgent,
     isAdmin,
     catalogProperties,
+    agentCatalogProperties,
+    agentCatalogRawData,
     isCatalogLoading,
+    isAgentCatalogLoading,
     hasLoadedCatalog,
+    hasLoadedAgentCatalog,
     loadCatalogProperties,
+    loadAgentCatalogProperties,
     favorites,
     currentUser,
   } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const isInvestor = currentUser?.role === 'investor'
   const theme = isInvestor ? clientThemes.investor : null
+  const isAgentOrAdmin = isAgent || isAdmin
 
+  // Cargar catalogo segun tipo de usuario
   useEffect(() => {
-    if (catalogProperties.length === 0 && !isCatalogLoading) {
-      loadCatalogProperties()
+    if (isAgentOrAdmin) {
+      if (agentCatalogProperties.length === 0 && !isAgentCatalogLoading) {
+        loadAgentCatalogProperties()
+      }
+    } else {
+      if (catalogProperties.length === 0 && !isCatalogLoading) {
+        loadCatalogProperties()
+      }
     }
-  }, [catalogProperties.length, isCatalogLoading, loadCatalogProperties])
+  }, [isAgentOrAdmin, agentCatalogProperties.length, isAgentCatalogLoading, loadAgentCatalogProperties, catalogProperties.length, isCatalogLoading, loadCatalogProperties])
+
+  // Obtener status unicos para el filtro de asesores
+  const availableStatuses = useMemo(() => {
+    if (!isAgentOrAdmin) return []
+    const statuses = new Set(agentCatalogRawData.map(item => item.status || 'Sin status'))
+    return Array.from(statuses).sort()
+  }, [isAgentOrAdmin, agentCatalogRawData])
 
   const filteredProperties = useMemo(() => {
-    const catalogVisibleProperties = hasLoadedCatalog ? availableProperties : []
+    // Usar catalogo de asesores o clientes segun corresponda
+    let properties: Property[] = []
+    
+    if (isAgentOrAdmin) {
+      properties = hasLoadedAgentCatalog ? agentCatalogProperties : []
+    } else {
+      properties = hasLoadedCatalog ? availableProperties : []
+    }
 
-    return catalogVisibleProperties.filter(property => {
+    return properties.filter(property => {
       const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         property.city.toLowerCase().includes(searchQuery.toLowerCase())
       
@@ -63,9 +92,16 @@ export default function CatalogStandaloneScreen() {
         (filter === 'sale' && (property.status === 'for_sale' || property.status === 'available')) ||
         (filter === 'rent' && (property.status === 'for_rent' || property.status === 'available'))
       
-      return matchesSearch && matchesFilter
+      // Filtro de status para asesores
+      let matchesStatus = true
+      if (isAgentOrAdmin && statusFilter !== 'all') {
+        const rawItem = agentCatalogRawData.find(item => item.id === property.id)
+        matchesStatus = rawItem?.status?.toLowerCase().includes(statusFilter.toLowerCase()) || false
+      }
+      
+      return matchesSearch && matchesFilter && matchesStatus
     })
-  }, [availableProperties, hasLoadedCatalog, searchQuery, filter])
+  }, [isAgentOrAdmin, availableProperties, agentCatalogProperties, hasLoadedCatalog, hasLoadedAgentCatalog, searchQuery, filter, statusFilter, agentCatalogRawData])
 
   const getPropertyIcon = (type: Property['type']) => {
     switch (type) {
@@ -307,6 +343,46 @@ export default function CatalogStandaloneScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Filtro de status para asesores/coordinadores */}
+      {isAgentOrAdmin && availableStatuses.length > 0 && (
+        <View style={styles.statusFilterContainer}>
+          <Text style={styles.statusFilterLabel}>Filtrar por status:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statusFilterScroll}>
+            <TouchableOpacity 
+              style={[
+                styles.statusFilterChip,
+                statusFilter === 'all' && styles.statusFilterChipActive
+              ]}
+              onPress={() => setStatusFilter('all')}
+            >
+              <Text style={[
+                styles.statusFilterChipText,
+                statusFilter === 'all' && styles.statusFilterChipTextActive
+              ]}>
+                Todos ({agentCatalogProperties.length})
+              </Text>
+            </TouchableOpacity>
+            {availableStatuses.map(status => (
+              <TouchableOpacity 
+                key={status}
+                style={[
+                  styles.statusFilterChip,
+                  statusFilter === status.toLowerCase() && styles.statusFilterChipActive
+                ]}
+                onPress={() => setStatusFilter(status.toLowerCase())}
+              >
+                <Text style={[
+                  styles.statusFilterChipText,
+                  statusFilter === status.toLowerCase() && styles.statusFilterChipTextActive
+                ]}>
+                  {status} ({agentCatalogRawData.filter(item => item.status === status).length})
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Lista de propiedades */}
       <FlatList
         data={filteredProperties}
@@ -318,7 +394,7 @@ export default function CatalogStandaloneScreen() {
           <View style={styles.emptyState}>
             <Building2 size={48} color={isInvestor ? theme!.textMuted : colors.textMuted} />
             <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textMuted }]}>
-              {isCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
+              {(isAgentOrAdmin ? isAgentCatalogLoading : isCatalogLoading) ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
             </Text>
           </View>
         }
@@ -435,6 +511,39 @@ const styles = StyleSheet.create({
   },
   filterTabTextActive: {
     color: colors.accent,
+    fontWeight: '600',
+  },
+  statusFilterContainer: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  statusFilterLabel: {
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
+  statusFilterScroll: {
+    flexGrow: 0,
+  },
+  statusFilterChip: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: spacing.xs,
+  },
+  statusFilterChipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  statusFilterChipText: {
+    fontSize: typography.caption.fontSize,
+    color: colors.textSecondary,
+  },
+  statusFilterChipTextActive: {
+    color: colors.surface,
     fontWeight: '600',
   },
   listContent: {

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { User, UserRole, Property, PropertyLead, Appointment, Notification } from '@/lib/types'
 import { mockUsers, mockProperties, mockLeads, mockAppointments, mockNotifications } from '@/lib/mock-data'
 import { CataLogData } from '@/lib/api-catalog-data'
+import { getAllAgentCatalogProperties, PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
 
 interface AuthContextType {
   currentUser: User | null
@@ -25,8 +26,12 @@ interface AuthContextType {
   userProperties: Property[]
   availableProperties: Property[]
   catalogProperties: Property[]
+  agentCatalogProperties: Property[]
+  agentCatalogRawData: PropertyCatalogItemResponse[]
   isCatalogLoading: boolean
+  isAgentCatalogLoading: boolean
   hasLoadedCatalog: boolean
+  hasLoadedAgentCatalog: boolean
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
@@ -37,6 +42,7 @@ interface AuthContextType {
   
   getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: () => Promise<void>
+  loadAgentCatalogProperties: () => Promise<void>
   
   markNotificationAsRead: (id: string) => void
   unreadNotificationsCount: number
@@ -107,8 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([])
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [catalogProperties, setCatalogProperties] = useState<Property[]>([])
+  const [agentCatalogProperties, setAgentCatalogProperties] = useState<Property[]>([])
+  const [agentCatalogRawData, setAgentCatalogRawData] = useState<PropertyCatalogItemResponse[]>([])
   const [isCatalogLoading, setIsCatalogLoading] = useState(false)
+  const [isAgentCatalogLoading, setIsAgentCatalogLoading] = useState(false)
   const [hasLoadedCatalog, setHasLoadedCatalog] = useState(false)
+  const [hasLoadedAgentCatalog, setHasLoadedAgentCatalog] = useState(false)
 
   useEffect(() => {
     loadStoredUser()
@@ -240,8 +250,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const loadAgentCatalogProperties = useCallback(async () => {
+    setIsAgentCatalogLoading(true)
+    setHasLoadedAgentCatalog(true)
+    try {
+      const { properties, rawData } = await getAllAgentCatalogProperties()
+      setAgentCatalogProperties(properties)
+      setAgentCatalogRawData(rawData)
+    } catch (error) {
+      console.error('Error loading agent catalog properties:', error)
+      setAgentCatalogProperties([])
+      setAgentCatalogRawData([])
+    } finally {
+      setIsAgentCatalogLoading(false)
+    }
+  }, [])
+
   const getPropertyById = (id: string) =>
-    catalogProperties.find(p => p.id === id) ?? mockProperties.find(p => p.id === id)
+    agentCatalogProperties.find(p => p.id === id) ?? 
+    catalogProperties.find(p => p.id === id) ?? 
+    mockProperties.find(p => p.id === id)
 
   const userNotifications = notifications.filter(n => n.userId === currentUser?.id)
   const unreadNotificationsCount = userNotifications.filter(n => !n.read).length
@@ -271,8 +299,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userProperties,
       availableProperties,
       catalogProperties,
+      agentCatalogProperties,
+      agentCatalogRawData,
       isCatalogLoading,
+      isAgentCatalogLoading,
       hasLoadedCatalog,
+      hasLoadedAgentCatalog,
       userLeads,
       userAppointments,
       notifications: userNotifications,
@@ -281,6 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isFavorite,
       getPropertyById,
       loadCatalogProperties,
+      loadAgentCatalogProperties,
       markNotificationAsRead,
       unreadNotificationsCount,
     }}>
