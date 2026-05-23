@@ -6,7 +6,6 @@ import {
   FlatList, 
   TouchableOpacity, 
   TextInput,
-  Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -42,25 +41,8 @@ export default function CatalogStandaloneScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
 
-  // Determinar tema segun rol
-  const theme = useMemo(() => {
-    if (currentUser?.role === 'investor') return clientThemes.investor
-    if (currentUser?.role === 'tenant') return clientThemes.tenant
-    if (currentUser?.role === 'searching') return clientThemes.searching
-    // Tema por defecto para clientes
-    return {
-      primary: colors.primary,
-      secondary: colors.secondary,
-      accent: colors.accent,
-      background: colors.background,
-      surface: colors.surface,
-      border: colors.border,
-      text: colors.text,
-      textSecondary: colors.textSecondary,
-      textMuted: colors.textMuted,
-      textLight: colors.textInverse,
-    }
-  }, [currentUser?.role])
+  const isInvestor = currentUser?.role === 'investor'
+  const theme = isInvestor ? clientThemes.investor : null
 
   // Cargar catalogo de clientes
   useEffect(() => {
@@ -96,28 +78,31 @@ export default function CatalogStandaloneScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
-    const hasImage = property.images && property.images.length > 0 && property.images[0]
 
     return (
       <TouchableOpacity 
-        style={[styles.propertyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        style={[
+          styles.propertyCard,
+          isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border }
+        ]}
         onPress={() => router.push(`/property/${property.id}`)}
         activeOpacity={0.7}
       >
-        <View style={[styles.imageContainer, { backgroundColor: theme.background }]}>
-          {hasImage ? (
-            <Image 
-              source={{ uri: property.images![0] }}
-              style={styles.propertyImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <Icon size={40} color={theme.textMuted} />
-          )}
+        <View style={[
+          styles.imageContainer,
+          isInvestor && { backgroundColor: theme!.background }
+        ]}>
+          <Icon size={40} color={isInvestor ? theme!.textMuted : colors.textMuted} />
           
           <View style={styles.badgeContainer}>
-            <View style={[styles.locationBadge, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.locationBadgeText, { color: theme.accent }]}>{property.city}</Text>
+            <View style={[
+              styles.locationBadge,
+              isInvestor && { backgroundColor: theme!.surface }
+            ]}>
+              <Text style={[
+                styles.locationBadgeText,
+                isInvestor && { color: theme!.accent }
+              ]}>{property.city}</Text>
             </View>
           </View>
 
@@ -125,13 +110,13 @@ export default function CatalogStandaloneScreen() {
             style={[
               styles.favoriteButton, 
               favorite && styles.favoriteButtonActive,
-              !favorite && { backgroundColor: theme.surface }
+              isInvestor && !favorite && { backgroundColor: theme!.surface }
             ]}
             onPress={() => toggleFavorite(property.id)}
           >
             <Heart 
               size={18} 
-              color={favorite ? '#fff' : theme.textMuted} 
+              color={favorite ? '#fff' : (isInvestor ? theme!.textMuted : colors.textMuted)} 
               fill={favorite ? '#fff' : 'transparent'}
             />
           </TouchableOpacity>
@@ -139,7 +124,10 @@ export default function CatalogStandaloneScreen() {
           {property.status === 'for_rent' && property.monthlyRent && (
             <View style={styles.rentBadge}>
               <Text style={styles.rentBadgeLabel}>RENTA</Text>
-              <Text style={[styles.rentBadgePrice, { backgroundColor: theme.accent }]}>
+              <Text style={[
+                styles.rentBadgePrice,
+                isInvestor && { backgroundColor: theme!.accent, color: theme!.primary }
+              ]}>
                 {formatCurrency(property.monthlyRent)}/mes
               </Text>
             </View>
@@ -147,27 +135,27 @@ export default function CatalogStandaloneScreen() {
         </View>
 
         <View style={styles.cardContent}>
-          <Text style={[styles.propertyTitle, { color: theme.text }]} numberOfLines={1}>
+          <Text style={[styles.propertyTitle, isInvestor && { color: theme!.text }]} numberOfLines={1}>
             {property.title}
           </Text>
-          <Text style={[styles.propertyAddress, { color: theme.textSecondary }]} numberOfLines={1}>
+          <Text style={[styles.propertyAddress, isInvestor && { color: theme!.textSecondary }]} numberOfLines={1}>
             {property.address}
           </Text>
 
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <View style={[styles.divider, isInvestor && { backgroundColor: theme!.border }]} />
 
           <View style={styles.features}>
             {property.type !== 'land' && (
               <>
                 <View style={styles.feature}>
-                  <Bed size={16} color={theme.textMuted} />
-                  <Text style={[styles.featureText, { color: theme.textSecondary }]}>
+                  <Bed size={16} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+                  <Text style={[styles.featureText, isInvestor && { color: theme!.textSecondary }]}>
                     {property.bedrooms}
                   </Text>
                 </View>
                 <View style={styles.feature}>
-                  <Bath size={16} color={theme.textMuted} />
-                  <Text style={[styles.featureText, { color: theme.textSecondary }]}>
+                  <Bath size={16} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+                  <Text style={[styles.featureText, isInvestor && { color: theme!.textSecondary }]}>
                     {property.bathrooms}
                   </Text>
                 </View>
@@ -176,14 +164,16 @@ export default function CatalogStandaloneScreen() {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={[styles.price, { color: theme.text }]}>
+            <Text style={[styles.price, isInvestor && { color: theme!.text }]}>
               {formatCurrency(property.price)}
             </Text>
             <TouchableOpacity 
-              style={[styles.viewButton, { backgroundColor: theme.accent }]}
+              style={[styles.viewButton, isInvestor && { backgroundColor: theme!.accent }]}
               onPress={() => router.push(`/property/${property.id}`)}
             >
-              <Text style={styles.viewButtonText}>Ver mas</Text>
+              <Text style={[styles.viewButtonText, isInvestor && { color: theme!.primary }]}>
+                Ver mas
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -193,76 +183,133 @@ export default function CatalogStandaloneScreen() {
 
   return (
     <SafeAreaView 
-      style={[styles.container, { backgroundColor: theme.background }]} 
+      style={[styles.container, isInvestor && { backgroundColor: theme!.background }]} 
       edges={['top', 'bottom']}
     >
       {/* Header personalizado */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+      <View style={[
+        styles.header,
+        isInvestor && { borderBottomColor: theme!.border }
+      ]}>
         <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: theme.surface }]}
+          style={[styles.backButton, isInvestor && { backgroundColor: theme!.surface }]}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={theme.text} />
+          <ArrowLeft size={24} color={isInvestor ? theme!.text : colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Catalogo</Text>
-        <View style={{ width: 40 }} />
+        <Text style={[styles.headerTitle, isInvestor && { color: theme!.text }]}>
+          Catalogo
+        </Text>
+        <TouchableOpacity 
+          style={[styles.favoritesButton, isInvestor && { backgroundColor: theme!.surface }]}
+          onPress={() => router.push('/favorites')}
+        >
+          <Heart size={24} color={isInvestor ? theme!.accent : colors.accent} />
+          {favorites.length > 0 && (
+            <View style={styles.favoriteBadge}>
+              <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        {/* Search */}
-        <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Search size={20} color={theme.textMuted} />
+      {/* Barra de busqueda */}
+      <View style={styles.searchContainer}>
+        <View style={[
+          styles.searchInputContainer,
+          isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border }
+        ]}>
+          <Search size={20} color={isInvestor ? theme!.textMuted : colors.textMuted} />
           <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
+            style={[styles.searchInput, isInvestor && { color: theme!.text }]}
             placeholder="Buscar propiedades..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor={isInvestor ? theme!.textMuted : colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-
-        {/* Filters */}
-        <View style={styles.filtersContainer}>
-          {(['all', 'sale', 'rent'] as const).map((filterOption) => (
-            <TouchableOpacity
-              key={filterOption}
-              style={[
-                styles.filterChip,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                filter === filterOption && [styles.filterChipActive, { backgroundColor: theme.accent, borderColor: theme.accent }],
-              ]}
-              onPress={() => setFilter(filterOption)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  { color: theme.textSecondary },
-                  filter === filterOption && styles.filterChipTextActive,
-                ]}
-              >
-                {filterOption === 'all' ? 'Todos' : filterOption === 'sale' ? 'Venta' : 'Renta'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Lista de propiedades */}
-        <FlatList
-          data={filteredProperties}
-          renderItem={renderPropertyCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Building2 size={48} color={theme.textMuted} />
-              <Text style={[styles.emptyStateText, { color: theme.textMuted }]}>
-                {isCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
-              </Text>
-            </View>
-          }
-        />
+        <TouchableOpacity style={[
+          styles.filterButton,
+          isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border }
+        ]}>
+          <Filter size={20} color={isInvestor ? theme!.accent : colors.accent} />
+        </TouchableOpacity>
       </View>
+
+      {/* Tabs de filtro */}
+      <View style={styles.filterTabs}>
+        <TouchableOpacity 
+          style={[
+            styles.filterTab, 
+            filter === 'all' && styles.filterTabActive,
+            isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border },
+            isInvestor && filter === 'all' && { backgroundColor: theme!.accent, borderColor: theme!.accent }
+          ]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={[
+            styles.filterTabText, 
+            filter === 'all' && styles.filterTabTextActive,
+            isInvestor && { color: theme!.textSecondary },
+            isInvestor && filter === 'all' && { color: theme!.primary }
+          ]}>
+            Todos
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[
+            styles.filterTab, 
+            filter === 'sale' && styles.filterTabActive,
+            isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border },
+            isInvestor && filter === 'sale' && { backgroundColor: theme!.accent, borderColor: theme!.accent }
+          ]}
+          onPress={() => setFilter('sale')}
+        >
+          <Text style={[
+            styles.filterTabText, 
+            filter === 'sale' && styles.filterTabTextActive,
+            isInvestor && { color: theme!.textSecondary },
+            isInvestor && filter === 'sale' && { color: theme!.primary }
+          ]}>
+            Venta
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[
+            styles.filterTab, 
+            filter === 'rent' && styles.filterTabActive,
+            isInvestor && { backgroundColor: theme!.surface, borderColor: theme!.border },
+            isInvestor && filter === 'rent' && { backgroundColor: theme!.accent, borderColor: theme!.accent }
+          ]}
+          onPress={() => setFilter('rent')}
+        >
+          <Text style={[
+            styles.filterTabText, 
+            filter === 'rent' && styles.filterTabTextActive,
+            isInvestor && { color: theme!.textSecondary },
+            isInvestor && filter === 'rent' && { color: theme!.primary }
+          ]}>
+            Renta
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Lista de propiedades */}
+      <FlatList
+        data={filteredProperties}
+        renderItem={renderPropertyCard}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Building2 size={48} color={isInvestor ? theme!.textMuted : colors.textMuted} />
+            <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textMuted }]}>
+              {isCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
+            </Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   )
 }
@@ -391,13 +438,9 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     height: 180,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-  },
-  propertyImage: {
-    width: '100%',
-    height: '100%',
   },
   badgeContainer: {
     position: 'absolute',
