@@ -87,47 +87,39 @@ export default function CatalogStandaloneScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
-    
-    console.log('[v0] theme:', theme, 'isInvestor:', isInvestor, 'role:', currentUser?.role)
+
+    // Colores de la card segun tema
+    const cardBg = theme?.surface || colors.surface
+    const cardBorder = theme?.border || colors.border
+    const imageBg = theme?.primary || colors.background
+    const textColor = theme?.text || colors.text
+    const textSecondaryColor = theme?.textSecondary || colors.textSecondary
+    const textMutedColor = theme?.textMuted || colors.textMuted
+    const accentColor = theme?.accent || colors.accent
+    const primaryColor = theme?.primary || colors.primary
 
     return (
       <TouchableOpacity 
-        style={[
-          styles.propertyCard,
-          theme && { backgroundColor: theme.surface, borderColor: theme.border }
-        ]}
+        style={[styles.propertyCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
         onPress={() => router.push(`/property/${property.id}`)}
         activeOpacity={0.7}
       >
-        <View style={[
-          styles.imageContainer,
-          theme && { backgroundColor: theme.background }
-        ]}>
-          <Icon size={40} color={theme?.textMuted || colors.textMuted} />
+        <View style={[styles.imageContainer, { backgroundColor: imageBg }]}>
+          <Icon size={40} color={textMutedColor} />
           
           <View style={styles.badgeContainer}>
-            <View style={[
-              styles.locationBadge,
-              theme && { backgroundColor: theme.surface }
-            ]}>
-              <Text style={[
-                styles.locationBadgeText,
-                theme && { color: theme.accent }
-              ]}>{property.city}</Text>
+            <View style={[styles.locationBadge, { backgroundColor: cardBg }]}>
+              <Text style={[styles.locationBadgeText, { color: accentColor }]}>{property.city}</Text>
             </View>
           </View>
 
           <TouchableOpacity 
-            style={[
-              styles.favoriteButton, 
-              favorite && styles.favoriteButtonActive,
-              theme && !favorite && { backgroundColor: theme.surface }
-            ]}
+            style={[styles.favoriteButton, { backgroundColor: cardBg }, favorite && styles.favoriteButtonActive]}
             onPress={() => toggleFavorite(property.id)}
           >
             <Heart 
               size={18} 
-              color={favorite ? '#fff' : (theme?.textMuted || colors.textMuted)} 
+              color={favorite ? '#fff' : textMutedColor} 
               fill={favorite ? '#fff' : 'transparent'}
             />
           </TouchableOpacity>
@@ -135,38 +127,35 @@ export default function CatalogStandaloneScreen() {
           {property.status === 'for_rent' && property.monthlyRent && (
             <View style={styles.rentBadge}>
               <Text style={styles.rentBadgeLabel}>RENTA</Text>
-              <Text style={[
-                styles.rentBadgePrice,
-                theme && { backgroundColor: theme.accent, color: theme.primary }
-              ]}>
+              <Text style={[styles.rentBadgePrice, { backgroundColor: accentColor, color: primaryColor }]}>
                 {formatCurrency(property.monthlyRent)}/mes
               </Text>
             </View>
           )}
         </View>
 
-        <View style={styles.cardContent}>
-          <Text style={[styles.propertyTitle, theme && { color: theme.text }]} numberOfLines={1}>
+        <View style={[styles.cardContent, { backgroundColor: cardBg }]}>
+          <Text style={[styles.propertyTitle, { color: textColor }]} numberOfLines={1}>
             {property.title}
           </Text>
-          <Text style={[styles.propertyAddress, theme && { color: theme.textSecondary }]} numberOfLines={1}>
+          <Text style={[styles.propertyAddress, { color: textSecondaryColor }]} numberOfLines={1}>
             {property.address}
           </Text>
 
-          <View style={[styles.divider, theme && { backgroundColor: theme.border }]} />
+          <View style={[styles.divider, { backgroundColor: cardBorder }]} />
 
           <View style={styles.features}>
             {property.type !== 'land' && (
               <>
                 <View style={styles.feature}>
-                  <Bed size={16} color={theme?.textMuted || colors.textMuted} />
-                  <Text style={[styles.featureText, theme && { color: theme.textSecondary }]}>
+                  <Bed size={16} color={textMutedColor} />
+                  <Text style={[styles.featureText, { color: textSecondaryColor }]}>
                     {property.bedrooms}
                   </Text>
                 </View>
                 <View style={styles.feature}>
-                  <Bath size={16} color={theme?.textMuted || colors.textMuted} />
-                  <Text style={[styles.featureText, theme && { color: theme.textSecondary }]}>
+                  <Bath size={16} color={textMutedColor} />
+                  <Text style={[styles.featureText, { color: textSecondaryColor }]}>
                     {property.bathrooms}
                   </Text>
                 </View>
@@ -175,14 +164,14 @@ export default function CatalogStandaloneScreen() {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={[styles.price, theme && { color: theme.text }]}>
+            <Text style={[styles.price, { color: textColor }]}>
               {formatCurrency(property.price)}
             </Text>
             <TouchableOpacity 
-              style={[styles.viewButton, theme && { backgroundColor: theme.accent }]}
+              style={[styles.viewButton, { backgroundColor: accentColor }]}
               onPress={() => router.push(`/property/${property.id}`)}
             >
-              <Text style={[styles.viewButtonText, theme && { color: theme.primary }]}>
+              <Text style={[styles.viewButtonText, { color: primaryColor }]}>
                 Ver mas
               </Text>
             </TouchableOpacity>
@@ -192,30 +181,42 @@ export default function CatalogStandaloneScreen() {
     )
   }
 
+  // Colores globales para el componente
+  const bgColor = theme?.background || colors.background
+  const surfaceColor = theme?.surface || colors.surface
+  const borderColor = theme?.border || colors.border
+  const textColor = theme?.text || colors.text
+  const textSecondaryColor = theme?.textSecondary || colors.textSecondary
+  const textMutedColor = theme?.textMuted || colors.textMuted
+  const accentColor = theme?.accent || colors.accent
+  const primaryColor = theme?.primary || colors.primary
+
   return (
     <SafeAreaView 
-      style={[styles.container, theme && { backgroundColor: theme.background }]} 
-      edges={['top', 'bottom']}
+      style={[styles.container, { backgroundColor: bgColor }]} 
+      edges={['top']}
     >
-      {/* Header personalizado */}
-      <View style={[
-        styles.header,
-        theme && { borderBottomColor: theme.border }
-      ]}>
+      {/* Header con boton volver */}
+      <View style={[styles.header, { backgroundColor: bgColor, borderBottomColor: borderColor }]}>
         <TouchableOpacity 
-          style={[styles.backButton, theme && { backgroundColor: theme.surface }]}
-          onPress={() => router.back()}
+          style={[styles.backButton, { backgroundColor: surfaceColor }]}
+          onPress={() => {
+            if (isInvestor) router.push('/(investor-tabs)')
+            else if (isTenant) router.push('/(tenant-tabs)')
+            else if (isSearching) router.push('/(searching-tabs)')
+            else router.back()
+          }}
         >
-          <ArrowLeft size={24} color={theme?.text || colors.text} />
+          <ArrowLeft size={24} color={textColor} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, theme && { color: theme.text }]}>
+        <Text style={[styles.headerTitle, { color: textColor }]}>
           Catalogo
         </Text>
         <TouchableOpacity 
-          style={[styles.favoritesButton, theme && { backgroundColor: theme.surface }]}
+          style={[styles.favoritesButton, { backgroundColor: surfaceColor }]}
           onPress={() => router.push('/favorites')}
         >
-          <Heart size={24} color={theme?.accent || colors.accent} />
+          <Heart size={24} color={accentColor} />
           {favorites.length > 0 && (
             <View style={styles.favoriteBadge}>
               <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
@@ -225,44 +226,36 @@ export default function CatalogStandaloneScreen() {
       </View>
 
       {/* Barra de busqueda */}
-      <View style={[styles.searchContainer, theme && { backgroundColor: theme.background }]}>
-        <View style={[
-          styles.searchInputContainer,
-          theme && { backgroundColor: theme.surface, borderColor: theme.border }
-        ]}>
-          <Search size={20} color={theme?.textMuted || colors.textMuted} />
+      <View style={[styles.searchContainer, { backgroundColor: bgColor }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: surfaceColor, borderColor: borderColor }]}>
+          <Search size={20} color={textMutedColor} />
           <TextInput
-            style={[styles.searchInput, theme && { color: theme.text }]}
+            style={[styles.searchInput, { color: textColor }]}
             placeholder="Buscar propiedades..."
-            placeholderTextColor={theme?.textMuted || colors.textMuted}
+            placeholderTextColor={textMutedColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={[
-          styles.filterButton,
-          theme && { backgroundColor: theme.surface, borderColor: theme.border }
-        ]}>
-          <Filter size={20} color={theme?.accent || colors.accent} />
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: surfaceColor, borderColor: borderColor }]}>
+          <Filter size={20} color={accentColor} />
         </TouchableOpacity>
       </View>
 
       {/* Tabs de filtro */}
-      <View style={[styles.filterTabs, theme && { backgroundColor: theme.background }]}>
+      <View style={[styles.filterTabs, { backgroundColor: bgColor }]}>
         <TouchableOpacity 
           style={[
             styles.filterTab, 
-            filter === 'all' && styles.filterTabActive,
-            theme && { backgroundColor: theme.surface, borderColor: theme.border },
-            theme && filter === 'all' && { backgroundColor: theme.accent, borderColor: theme.accent }
+            { backgroundColor: surfaceColor, borderColor: borderColor },
+            filter === 'all' && { backgroundColor: accentColor, borderColor: accentColor }
           ]}
           onPress={() => setFilter('all')}
         >
           <Text style={[
             styles.filterTabText, 
-            filter === 'all' && styles.filterTabTextActive,
-            theme && { color: theme.textSecondary },
-            theme && filter === 'all' && { color: theme.textLight }
+            { color: textSecondaryColor },
+            filter === 'all' && { color: primaryColor, fontWeight: '600' }
           ]}>
             Todos
           </Text>
@@ -270,17 +263,15 @@ export default function CatalogStandaloneScreen() {
         <TouchableOpacity 
           style={[
             styles.filterTab, 
-            filter === 'sale' && styles.filterTabActive,
-            theme && { backgroundColor: theme.surface, borderColor: theme.border },
-            theme && filter === 'sale' && { backgroundColor: theme.accent, borderColor: theme.accent }
+            { backgroundColor: surfaceColor, borderColor: borderColor },
+            filter === 'sale' && { backgroundColor: accentColor, borderColor: accentColor }
           ]}
           onPress={() => setFilter('sale')}
         >
           <Text style={[
             styles.filterTabText, 
-            filter === 'sale' && styles.filterTabTextActive,
-            theme && { color: theme.textSecondary },
-            theme && filter === 'sale' && { color: theme.textLight }
+            { color: textSecondaryColor },
+            filter === 'sale' && { color: primaryColor, fontWeight: '600' }
           ]}>
             Venta
           </Text>
@@ -288,17 +279,15 @@ export default function CatalogStandaloneScreen() {
         <TouchableOpacity 
           style={[
             styles.filterTab, 
-            filter === 'rent' && styles.filterTabActive,
-            theme && { backgroundColor: theme.surface, borderColor: theme.border },
-            theme && filter === 'rent' && { backgroundColor: theme.accent, borderColor: theme.accent }
+            { backgroundColor: surfaceColor, borderColor: borderColor },
+            filter === 'rent' && { backgroundColor: accentColor, borderColor: accentColor }
           ]}
           onPress={() => setFilter('rent')}
         >
           <Text style={[
             styles.filterTabText, 
-            filter === 'rent' && styles.filterTabTextActive,
-            theme && { color: theme.textSecondary },
-            theme && filter === 'rent' && { color: theme.textLight }
+            { color: textSecondaryColor },
+            filter === 'rent' && { color: primaryColor, fontWeight: '600' }
           ]}>
             Renta
           </Text>
@@ -310,12 +299,12 @@ export default function CatalogStandaloneScreen() {
         data={filteredProperties}
         renderItem={renderPropertyCard}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Building2 size={48} color={theme?.textMuted || colors.textMuted} />
-            <Text style={[styles.emptyStateText, theme && { color: theme.textMuted }]}>
+            <Building2 size={48} color={textMutedColor} />
+            <Text style={[styles.emptyStateText, { color: textMutedColor }]}>
               {isCatalogLoading ? 'Cargando propiedades...' : 'No se encontraron propiedades'}
             </Text>
           </View>
@@ -335,7 +324,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
