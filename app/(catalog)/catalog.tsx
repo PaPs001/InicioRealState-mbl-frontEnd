@@ -87,6 +87,8 @@ export default function CatalogStandaloneScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
+    
+    console.log('[v0] theme:', theme, 'isInvestor:', isInvestor, 'role:', currentUser?.role)
 
     return (
       <TouchableOpacity 
