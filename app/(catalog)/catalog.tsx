@@ -88,6 +88,8 @@ export default function CatalogStandaloneScreen() {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
 
+    console.log('[v0] DEBUG - currentUser?.role:', currentUser?.role, 'isInvestor:', isInvestor, 'theme:', theme ? 'EXISTS' : 'NULL')
+
     // Colores de la card segun tema
     const cardBg = theme?.surface || colors.surface
     const cardBorder = theme?.border || colors.border
