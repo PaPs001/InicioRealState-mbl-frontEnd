@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Image,
+  Linking,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -28,6 +29,8 @@ import {
   Calendar,
   Phone,
   MessageCircle,
+  ExternalLink,
+  ImageIcon,
   X,
   Check,
   Info,
@@ -67,7 +70,6 @@ export default function PropertyDetailScreen() {
     if (isSearching) return clientThemes.searching
     return {
       primary: colors.primary,
-      secondary: colors.secondary,
       accent: colors.accent,
       background: colors.background,
       surface: colors.surface,
@@ -209,6 +211,17 @@ export default function PropertyDetailScreen() {
 
   const renderInfoTab = () => (
     <View style={styles.tabContent}>
+      {/* Imagen principal */}
+      {property.images && property.images.length > 0 && property.images[0] && (
+        <View style={styles.infoImageContainer}>
+          <Image 
+            source={{ uri: property.images[0] }}
+            style={styles.infoImage}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+
       {/* Descripcion */}
       {property.description && (
         <View style={styles.section}>
@@ -217,6 +230,7 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
+      {/* Caracteristicas - igual que asesor */}
       {property.type !== 'land' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Caracteristicas</Text>
@@ -270,16 +284,53 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
+      {/* Ubicacion - mejorada como asesor */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Ubicacion</Text>
         <View style={[styles.locationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <MapPin size={20} color={theme.accent} />
-          <View style={styles.locationInfo}>
-            <Text style={[styles.locationAddress, { color: theme.text }]}>{property.address}</Text>
-            <Text style={[styles.locationCity, { color: theme.textSecondary }]}>{property.city}</Text>
+          <View style={styles.locationRow}>
+            <MapPin size={20} color={theme.accent} />
+            <View style={styles.locationInfo}>
+              <Text style={[styles.locationAddress, { color: theme.text }]}>{property.address}</Text>
+              <Text style={[styles.locationCity, { color: theme.textSecondary }]}>{property.city}</Text>
+            </View>
           </View>
+          {property.locationUrl && (
+            <TouchableOpacity 
+              style={styles.linkButton}
+              onPress={() => Linking.openURL(property.locationUrl!)}
+            >
+              <ExternalLink size={16} color={theme.accent} />
+              <Text style={[styles.linkText, { color: theme.accent }]}>Ver en Google Maps</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Fotos - link a galeria */}
+      {property.images && property.images.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Fotos</Text>
+          <View style={[styles.photosCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.photosPreview}>
+              {property.images.slice(0, 3).map((img, index) => (
+                <View key={index} style={styles.photoThumb}>
+                  <Image source={{ uri: img }} style={styles.photoThumbImage} resizeMode="cover" />
+                </View>
+              ))}
+              {property.images.length > 3 && (
+                <View style={[styles.photoThumb, styles.morePhotos, { backgroundColor: theme.accent + '20' }]}>
+                  <Text style={[styles.morePhotosText, { color: theme.accent }]}>+{property.images.length - 3}</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity style={styles.linkButton}>
+              <ImageIcon size={16} color={theme.accent} />
+              <Text style={[styles.linkText, { color: theme.accent }]}>Ver todas las fotos ({property.images.length})</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {isForRent && property.monthlyRent && (
         <View style={styles.section}>
@@ -892,12 +943,15 @@ const styles = StyleSheet.create({
     fontSize: typography.bodySmall.fontSize,
   },
   locationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
+    gap: spacing.md,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   locationInfo: {
     flex: 1,
@@ -909,6 +963,57 @@ const styles = StyleSheet.create({
   locationCity: {
     fontSize: typography.bodySmall.fontSize,
     marginTop: 2,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  linkText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '500',
+  },
+  // Info image styles
+  infoImageContainer: {
+    height: 200,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  infoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  // Photos card styles
+  photosCard: {
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    gap: spacing.md,
+  },
+  photosPreview: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  photoThumb: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  photoThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  morePhotos: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  morePhotosText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
   },
   rentDetailsCard: {
     padding: spacing.md,
