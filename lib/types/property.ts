@@ -22,6 +22,7 @@ export interface Property {
   description?: string
   features?: string[]
   images?: string[]
+  locationUrl?: string
   ownerId?: string
   agentId?: string
   monthlyRent?: number
