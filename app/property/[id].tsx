@@ -209,32 +209,6 @@ export default function PropertyDetailScreen() {
 
   const renderInfoTab = () => (
     <View style={styles.tabContent}>
-      {/* Imagen de la propiedad */}
-      {property.images && property.images.length > 0 && property.images[0] && (
-        <View style={styles.infoImageContainer}>
-          <Image 
-            source={{ uri: property.images[0] }}
-            style={styles.infoImage}
-            resizeMode="cover"
-          />
-        </View>
-      )}
-
-      {/* Precio principal */}
-      <View style={styles.section}>
-        <View style={[styles.priceCard, { backgroundColor: theme.accent + '15', borderColor: theme.accent }]}>
-          <DollarSign size={24} color={theme.accent} />
-          <View style={styles.priceCardContent}>
-            <Text style={[styles.priceCardLabel, { color: theme.textSecondary }]}>
-              {isForRent ? 'Renta mensual' : 'Precio de venta'}
-            </Text>
-            <Text style={[styles.priceCardValue, { color: theme.accent }]}>
-              {formatCurrency(isForRent ? property.monthlyRent : property.price)}
-            </Text>
-          </View>
-        </View>
-      </View>
-
       {/* Descripcion */}
       {property.description && (
         <View style={styles.section}>
@@ -243,7 +217,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Caracteristicas */}
       {property.type !== 'land' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Caracteristicas</Text>
@@ -269,7 +242,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Amenidades */}
       {property.amenities && property.amenities.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Amenidades</Text>
@@ -284,7 +256,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Features/Incluye */}
       {property.features && property.features.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Incluye</Text>
@@ -299,7 +270,6 @@ export default function PropertyDetailScreen() {
         </View>
       )}
 
-      {/* Ubicacion */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Ubicacion</Text>
         <View style={[styles.locationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -311,7 +281,6 @@ export default function PropertyDetailScreen() {
         </View>
       </View>
 
-      {/* Detalles de renta (solo si es renta) */}
       {isForRent && property.monthlyRent && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Detalles de Renta</Text>
@@ -328,21 +297,6 @@ export default function PropertyDetailScreen() {
           </View>
         </View>
       )}
-
-      {/* Informacion de contacto */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Contacto</Text>
-        <View style={[styles.contactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.contactButton, { backgroundColor: theme.accent }]}>
-            <Phone size={20} color="#fff" />
-            <Text style={styles.contactButtonText}>Llamar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.contactButton, { backgroundColor: '#25D366' }]}>
-            <MessageCircle size={20} color="#fff" />
-            <Text style={styles.contactButtonText}>WhatsApp</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </View>
   )
 
@@ -870,35 +824,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.lg,
   },
-  infoImageContainer: {
-    width: '100%',
-    height: 200,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-  },
-  infoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  priceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-  },
-  priceCardContent: {
-    flex: 1,
-  },
-  priceCardLabel: {
-    fontSize: typography.caption.fontSize,
-    marginBottom: 4,
-  },
-  priceCardValue: {
-    fontSize: typography.h3.fontSize,
-    fontWeight: '700',
-  },
   section: {
     gap: spacing.sm,
   },
@@ -1005,27 +930,6 @@ const styles = StyleSheet.create({
   },
   rentDivider: {
     height: 1,
-  },
-  contactCard: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-  },
-  contactButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  contactButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: typography.body.fontSize,
   },
   // Analysis tab styles
   valueCard: {
