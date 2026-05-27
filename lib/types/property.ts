@@ -7,6 +7,7 @@ export type PropertyStatus = 'owned' | 'for_sale' | 'for_rent' | 'rented' | 'ava
 
 export interface Property {
   id: string
+  _id?: string
   title: string
   address: string
   city: string
@@ -22,6 +23,8 @@ export interface Property {
   description?: string
   features?: string[]
   images?: string[]
+  googleDriveImages?: string
+  locationUrl?: string
   ownerId?: string
   agentId?: string
   monthlyRent?: number

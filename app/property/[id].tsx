@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Image,
+  Linking,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -38,6 +39,8 @@ import {
   ChevronLeft,
   DollarSign,
   BarChart3,
+  ExternalLink,
+  ImageIcon,
 } from 'lucide-react-native'
 
 type TabType = 'info' | 'analysis' | 'calendar'
@@ -95,6 +98,12 @@ export default function PropertyDetailScreen() {
     return bookedAppointments.some(apt => apt.date === date && apt.time === time)
   }
 
+  const openLink = (url?: string) => {
+    if (url) {
+      Linking.openURL(url)
+    }
+  }
+
   if (!property) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -115,6 +124,7 @@ export default function PropertyDetailScreen() {
   }
 
   const Icon = getPropertyIcon()
+  const headerSurfaceColor = isTenant ? theme.surfaceLight || theme.surface : theme.surface
 
   const handleScheduleAppointment = () => {
     if (!selectedDate || !selectedTime) {
@@ -279,7 +289,29 @@ export default function PropertyDetailScreen() {
             <Text style={[styles.locationCity, { color: theme.textSecondary }]}>{property.city}</Text>
           </View>
         </View>
+        {property.locationUrl && (
+          <TouchableOpacity
+            style={[styles.linkButton, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '30' }]}
+            onPress={() => openLink(property.locationUrl)}
+          >
+            <ExternalLink size={16} color={theme.accent} />
+            <Text style={[styles.linkButtonText, { color: theme.accent }]}>Ver ubicacion en Google Maps</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {property.googleDriveImages && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Fotos</Text>
+          <TouchableOpacity
+            style={[styles.linkButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => openLink(property.googleDriveImages)}
+          >
+            <ImageIcon size={18} color={theme.accent} />
+            <Text style={[styles.linkButtonText, { color: theme.text }]}>Ver todas las fotos en Drive</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {isForRent && property.monthlyRent && (
         <View style={styles.section}>
@@ -302,7 +334,7 @@ export default function PropertyDetailScreen() {
 
   const renderAnalysisTab = () => {
     const currentValue = property.currentValue || property.price
-    const yearlyGrowth = 0.08 // 8% anual estimado
+    const yearlyGrowth = 0.08
     const value1Year = currentValue * (1 + yearlyGrowth)
     const value3Years = currentValue * Math.pow(1 + yearlyGrowth, 3)
     const value5Years = currentValue * Math.pow(1 + yearlyGrowth, 5)
@@ -644,19 +676,33 @@ export default function PropertyDetailScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        {!isAgent && !isAdmin ? (
-          <View style={styles.headerActions}>
+      <View style={[styles.header, { backgroundColor: headerSurfaceColor, borderBottomColor: theme.border }]}>
+        <View style={styles.headerSide}>
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: theme.background, borderColor: theme.border }]}
+            onPress={() => router.back()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={20} color={theme.accent} />
+          </TouchableOpacity>
+        </View>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Mas informacion</Text>
+        <View style={[styles.headerSide, styles.headerActions]}>
+          {!isAgent && !isAdmin ? (
             <TouchableOpacity 
-              style={[styles.headerAction, favorite && { backgroundColor: colors.error }]}
+              style={[
+                styles.headerAction,
+                { backgroundColor: theme.background, borderColor: theme.border },
+                favorite && { backgroundColor: colors.error, borderColor: colors.error },
+              ]}
               onPress={() => toggleFavorite(property.id)}
             >
               <Heart size={20} color={favorite ? '#fff' : theme.text} fill={favorite ? '#fff' : 'transparent'} />
             </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
+          ) : (
+            <View style={styles.headerPlaceholder} />
+          )}
+        </View>
       </View>
 
       {/* Imagenes NO LO OLVIDES CHECAAAAAAAAR */}
@@ -771,32 +817,42 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
+  },
+  headerSide: {
+    width: 56,
+    justifyContent: 'center',
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
+    flex: 1,
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
+    textAlign: 'center',
   },
   headerActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
+    alignItems: 'flex-end',
   },
   headerAction: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerPlaceholder: {
+    width: 40,
+    height: 40,
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -909,6 +965,21 @@ const styles = StyleSheet.create({
   locationCity: {
     fontSize: typography.bodySmall.fontSize,
     marginTop: 2,
+  },
+  linkButton: {
+    marginTop: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  linkButtonText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
   },
   rentDetailsCard: {
     padding: spacing.md,

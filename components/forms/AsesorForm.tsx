@@ -124,7 +124,7 @@ export default function AsesorForm() {
                   <TextInput
                     style={styles.input}
                     placeholder="Escribe tu nombre"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={advisorColors.textMuted}
                     value={firstName}
                     onChangeText={setFirstName}
                   />
@@ -135,7 +135,7 @@ export default function AsesorForm() {
                   <TextInput
                     style={styles.input}
                     placeholder="Escribe tu apellido"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={advisorColors.textMuted}
                     value={lastName}
                     onChangeText={setLastName}
                   />
@@ -152,7 +152,7 @@ export default function AsesorForm() {
                   <TextInput
                     style={styles.input}
                     placeholder="correo@ejemplo.com"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={advisorColors.textMuted}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -171,7 +171,7 @@ export default function AsesorForm() {
                   <TextInput
                     style={styles.input}
                     placeholder="Escribe tu numero"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={advisorColors.textMuted}
                     value={phone}
                     onChangeText={setPhone}
                     keyboardType="phone-pad"
@@ -189,7 +189,7 @@ export default function AsesorForm() {
                   <TextInput
                     style={styles.input}
                     placeholder="Crea una contrasena"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={advisorColors.textMuted}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry

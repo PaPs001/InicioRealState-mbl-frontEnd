@@ -2,10 +2,11 @@
  * Endpoints del catalogo de propiedades
  */
 
-import { notificationsApi } from '../client'
+import { notificationsApi, coreApi } from '../client'
 import type { Property } from '@/lib/types'
 
 export interface PropertyCatalogItemResponse {
+  _id: string
   address: string
   banner: boolean
   bed: string | null
@@ -65,6 +66,7 @@ export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Pro
     .filter(Boolean)
 
   return {
+    _id: item._id,
     id: item.id,
     title: item.name || 'Propiedad sin titulo',
     address: item.address || 'Sin direccion',
@@ -75,7 +77,10 @@ export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Pro
     bedrooms: item.isALand ? 0 : bedrooms,
     bathrooms: item.isALand ? 0 : bathrooms,
     sqMeters: area,
+    size: area,
     images: item.urlImage ? [item.urlImage] : [],
+    googleDriveImages: item.googleDriveImages || undefined,
+    locationUrl: item.locationUrl || undefined,
     status: mapStatusToPropertyStatus(item.list, item.status),
     description: item.propertyDescription || item.name || 'Sin descripcion',
     amenities,
@@ -93,6 +98,20 @@ export async function getCatalogRentProperties(): Promise<Property[]> {
 
     return data
       .filter(item => (item.status || '').toLowerCase().includes('disponible'))
+      .map(mapApiPropertyToProperty)
+  } catch (error) {
+    console.error('Error al obtener catalogo:', error)
+    throw error
+  }
+}
+
+export async function getCatalogPropertiesCoreAPI(token?: string): Promise<Property[]>{
+  try {
+    const data = await coreApi<PropertyCatalogItemResponse[]>('/users/properties/available', {
+      method: 'GET',
+      token,
+    })
+    return data
       .map(mapApiPropertyToProperty)
   } catch (error) {
     console.error('Error al obtener catalogo:', error)
@@ -197,3 +216,45 @@ export async function getAllAgentCatalogProperties(): Promise<{ properties: Prop
     throw error
   }
 }
+
+//favoritos
+export async function addFavoriteProperty(propertyId: string, token?: string): Promise<void> {
+  try {
+    await coreApi('/users/favorites', {
+      method: 'POST',
+      body: { id: propertyId },
+      token,
+    })
+  } catch (error) {
+    console.error('Error al agregar propiedad a favoritos:', error)
+    throw error
+  }
+}
+
+export async function getFavoriteProperties(userID: string, token?: string): Promise<Property[]> {
+  try {
+    const data = await coreApi<PropertyCatalogItemResponse[]>('/users/favorites', {
+      method: 'GET',
+      headers: { ownerId: userID },
+      token,
+    })
+    return data.map(mapApiPropertyToProperty)
+  } catch (error) {
+    console.error('Error al obtener propiedades favoritas:', error)
+    throw error
+  }
+}
+
+export async function deleteFavoriteProperties(propertyId: string, token?: string): Promise<void> {
+  try {
+    await coreApi(`/users/favorites/${propertyId}`, {
+      method: 'DELETE',
+      token,
+    })
+  } catch (error) {
+    console.error('Error al eliminar favorito:', error)
+    throw error
+  }
+}
+
+
