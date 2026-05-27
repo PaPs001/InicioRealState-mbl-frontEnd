@@ -3,7 +3,6 @@
  * Maneja errores, headers y configuracion base
  */
 
-// URLs base de las APIs
 export const API_URLS = {
   CORE: 'https://core-api-smoky-ten.vercel.app',
   NOTIFICATIONS: 'https://inicio-notifications-service.vercel.app',
@@ -24,9 +23,6 @@ interface ApiError {
   error?: string
 }
 
-/**
- * Extrae el mensaje de error de una respuesta fallida
- */
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
     const data = await response.json() as { message?: string; error?: string }
@@ -76,9 +72,6 @@ export async function apiClient<T>(
   return response.json() as Promise<T>
 }
 
-/**
- * Cliente para la API Core (auth, usuarios, propiedades de usuario)
- */
 export async function coreApi<T>(
   path: string,
   options: ApiClientOptions = {}
@@ -86,9 +79,6 @@ export async function coreApi<T>(
   return apiClient<T>(API_URLS.CORE, path, options)
 }
 
-/**
- * Cliente para la API de Notificaciones (catalogo de propiedades)
- */
 export async function notificationsApi<T>(
   path: string,
   options: ApiClientOptions = {}

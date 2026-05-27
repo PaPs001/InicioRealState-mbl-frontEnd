@@ -413,7 +413,7 @@ export default function HomeScreen() {
                     <Megaphone size={24} color={theme.accent} />
                   </View>
                   <View style={styles.quickAccessContent}>
-                    <Text style={dynamicStyles.quickAccessTitle}>Campanas</Text>
+                    <Text style={dynamicStyles.quickAccessTitle}>Campañas</Text>
                     <Text style={dynamicStyles.quickAccessSubtitle}>
                       Publicidad de tus propiedades
                     </Text>
@@ -423,7 +423,6 @@ export default function HomeScreen() {
               </>
             )}
 
-            {/* Buscador: Catalogo, favoritos, citas, agregar propiedad */}
             {isSearching && (
               <>
                 <TouchableOpacity 
@@ -494,7 +493,6 @@ export default function HomeScreen() {
           </View>
           )}
 
-          {/* Seccion Mi Renta - Solo para Inquilino (ARRIBA) */}
           {isTenant && tenantRental && tenantProperty && (
             <View style={styles.section}>
               <Text style={dynamicStyles.sectionTitle}>Mi Renta</Text>

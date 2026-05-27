@@ -270,7 +270,22 @@ export const mockLeads: PropertyLead[] = [
     email: 'pedro@email.com',
     status: 'nuevo',
     source: 'Facebook',
+    notes: 'Pidio informacion general del departamento y rango de precio.',
     createdDate: '2024-05-01',
+    followUps: [
+      {
+        id: 'lead-1-fu-1',
+        date: '2024-05-01',
+        type: 'whatsapp',
+        notes: 'Primer contacto por WhatsApp. Se compartio brochure y precio de salida.',
+      },
+      {
+        id: 'lead-1-fu-2',
+        date: '2024-05-03',
+        type: 'call',
+        notes: 'Llamada breve para resolver dudas sobre mantenimiento y amenidades.',
+      },
+    ],
   },
   {
     id: 'lead-2',
@@ -281,8 +296,23 @@ export const mockLeads: PropertyLead[] = [
     email: 'laura@email.com',
     status: 'contactado',
     source: 'Instagram',
+    notes: 'Mostro interes por renta a mediano plazo y pregunto por disponibilidad inmediata.',
     createdDate: '2024-04-28',
     lastContactDate: '2024-05-02',
+    followUps: [
+      {
+        id: 'lead-2-fu-1',
+        date: '2024-04-29',
+        type: 'email',
+        notes: 'Se envio presentacion con fotos, ubicacion y condiciones de renta.',
+      },
+      {
+        id: 'lead-2-fu-2',
+        date: '2024-05-02',
+        type: 'meeting',
+        notes: 'Reunion virtual para revisar opciones de agenda y perfil del cliente.',
+      },
+    ],
   },
   {
     id: 'lead-3',
@@ -292,8 +322,23 @@ export const mockLeads: PropertyLead[] = [
     phone: '+52 55 5555 6666',
     status: 'cita_agendada',
     source: 'Referido',
+    notes: 'Llego por recomendacion de un cliente anterior. Ya tiene visita programada.',
     createdDate: '2024-04-20',
     lastContactDate: '2024-05-01',
+    followUps: [
+      {
+        id: 'lead-3-fu-1',
+        date: '2024-04-21',
+        type: 'call',
+        notes: 'Se validaron necesidades del cliente y preferencia de horario para visita.',
+      },
+      {
+        id: 'lead-3-fu-2',
+        date: '2024-05-01',
+        type: 'visit',
+        notes: 'Se confirmo visita presencial para conocer el inmueble y la zona.',
+      },
+    ],
   },
   {
     id: 'lead-4',
@@ -304,8 +349,23 @@ export const mockLeads: PropertyLead[] = [
     email: 'sofia@empresa.com',
     status: 'negociando',
     source: 'Sitio Web',
+    notes: 'Empresa interesada en compra, actualmente comparando opciones y condiciones.',
     createdDate: '2024-04-15',
     lastContactDate: '2024-05-03',
+    followUps: [
+      {
+        id: 'lead-4-fu-1',
+        date: '2024-04-16',
+        type: 'email',
+        notes: 'Se envio informacion corporativa y expediente tecnico del terreno.',
+      },
+      {
+        id: 'lead-4-fu-2',
+        date: '2024-05-03',
+        type: 'meeting',
+        notes: 'Reunion con tomadores de decision para revisar esquema de negociacion.',
+      },
+    ],
   },
 ]
 

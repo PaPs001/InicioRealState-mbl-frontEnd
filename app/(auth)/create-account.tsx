@@ -57,7 +57,7 @@ export default function CreateAccountScreen() {
     //console.log('[create-account] tipo enviado:', selectedClientType)
     //Alert.alert('Debug', `Tipo enviado: ${selectedClientType}`)
 
-    router.push(`/registerScreen?clientType=${selectedClientType}`)
+    router.push(`/register?clientType=${selectedClientType}`)
   }
 
   return (

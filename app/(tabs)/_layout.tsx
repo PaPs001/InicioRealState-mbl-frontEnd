@@ -78,6 +78,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: tabBarActive,
         tabBarInactiveTintColor: tabBarInactive,
         tabBarStyle: {
+          display: (isClient && (route.name === 'catalog' || route.name === 'favorites')) || route.name === 'leads' ? 'none' : 'flex',
           backgroundColor: tabBarBg,
           borderTopColor: tabBarBorder,
           paddingBottom: 8,

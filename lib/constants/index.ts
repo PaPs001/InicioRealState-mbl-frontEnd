@@ -71,7 +71,7 @@ export const STORAGE_KEYS = {
 export const ROUTES = {
   // Auth
   LOGIN: '/login',
-  REGISTER: '/registerScreen',
+  REGISTER: '/register',
   CREATE_ACCOUNT: '/create-account',
   LOGOUT_TRANSITION: '/logout-transition',
   

@@ -2,8 +2,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { User, UserRole, Property, PropertyLead, Appointment, Notification } from '@/lib/types'
 import { mockUsers, mockProperties, mockLeads, mockAppointments, mockNotifications } from '@/lib/mock-data'
-import { CataLogData } from '@/lib/api-catalog-data'
-import { getAllAgentCatalogProperties, PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
+import { 
+  getAllCatalogProperties,
+  getAllAgentCatalogProperties, 
+  PropertyCatalogItemResponse, 
+  addFavoriteProperty,
+  getCatalogPropertiesCoreAPI,
+  getFavoriteProperties,
+  deleteFavoriteProperties
+} from '@/lib/api/endpoints/catalog'
 
 interface AuthContextType {
   currentUser: User | null
@@ -35,11 +42,14 @@ interface AuthContextType {
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
+  favoriteProperties: Property[]
   
   favorites: string[]
-  toggleFavorite: (propertyId: string) => void
+  loadFavoriteProperties: () => Promise<void>
+  addNewFavoriteProperty: (propertyId: string) => Promise<void>
+  toggleFavorite: (propertyId: string) => Promise<void>
   isFavorite: (propertyId: string) => boolean
-  
+  newLoadCatalogProperties: () => Promise<void>
   getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: () => Promise<void>
   loadAgentCatalogProperties: () => Promise<void>
@@ -57,6 +67,45 @@ type BackendUser = Partial<User> & {
   _id?: string
   userId?: string
   roles?: string[]
+}
+
+function decodeBase64(value: string): string | null {
+  try {
+    if (typeof globalThis.atob === 'function') {
+      return globalThis.atob(value)
+    }
+
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(value, 'base64').toString('utf-8')
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+function getUserIdFromToken(token: string | null): string | null {
+  if (!token) return null
+
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return null
+
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedPayload = normalizedPayload.padEnd(
+      normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
+      '='
+    )
+
+    const decodedPayload = decodeBase64(paddedPayload)
+    if (!decodedPayload) return null
+
+    const parsedPayload = JSON.parse(decodedPayload) as { userId?: string }
+    return parsedPayload.userId ?? null
+  } catch {
+    return null
+  }
 }
 
 function mapBackendRoleToAppRole(roles?: string[], role?: string): UserRole {
@@ -119,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAgentCatalogLoading, setIsAgentCatalogLoading] = useState(false)
   const [hasLoadedCatalog, setHasLoadedCatalog] = useState(false)
   const [hasLoadedAgentCatalog, setHasLoadedAgentCatalog] = useState(false)
+  const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([])
 
   useEffect(() => {
     loadStoredUser()
@@ -130,12 +180,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setAuthSession = async (user: BackendUser | User | null, token: string | null) => {
     const normalizedUser = normalizeUser(user)
-    setCurrentUserState(normalizedUser)
+    const tokenUserId = getUserIdFromToken(token)
+    const sessionUser = normalizedUser
+      ? { ...normalizedUser, id: normalizedUser.id || tokenUserId || '' }
+      : null
+
+    setCurrentUserState(sessionUser)
     setAuthToken(token)
 
-    if (normalizedUser?.id) {
-      await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, normalizedUser.id)
-      await AsyncStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(normalizedUser))
+    if (sessionUser?.id) {
+      await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, sessionUser.id)
+      await AsyncStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(sessionUser))
     } else {
       await AsyncStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY)
       await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
@@ -191,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentUserState(null)
     setAuthToken(null)
     setFavorites([])
+    setFavoriteProperties([])
     await AsyncStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY)
     await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
     await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
@@ -223,24 +279,104 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isAgent || isAdmin) return isAdmin || a.agentId === currentUser?.id
     return false
   })
+  // funciones para manejo de favoritos de propiedades
+  const loadFavoriteProperties = useCallback(async () => {
+    if(!currentUser?.id){
+      setFavoriteProperties([])
+      setFavorites([])
+      return
+    }
 
-  const toggleFavorite = async (propertyId: string) => {
-    const newFavorites = favorites.includes(propertyId)
-      ? favorites.filter(id => id !== propertyId)
-      : [...favorites, propertyId]
+    try{
+      console.log('loadFavoriteProperties payload:', {
+        userId: currentUser.id,
+        token: authToken,
+      })
+      const data = await getFavoriteProperties(currentUser?.id, authToken ?? undefined)
+      setFavoriteProperties(data)
+      setFavorites(data.map(properties => properties.id))
+    }catch(error){
+      console.error("Error cargando los datos mi buen amigo", error)
+      setFavoriteProperties([])
+      setFavorites([])
+    }
+  }, [currentUser?.id, authToken])
+
+  useEffect(() => {
+    loadFavoriteProperties()
+  }, [loadFavoriteProperties])
+
+  /*const deleteFavoriteProperty = async (propertyId: string) => {
+    if(favorites.includes(propertyId)){
+      return
+    }
+
+    console.log('deleteFavoriteProperties payload', {
+      propertyId,
+      token: authToken,
+    })
+
+    await deleteFavoriteProperties(propertyId, authToken ?? undefined)
+    const deleteFavorites = [...favorites, propertyId]
+    
+  }*/
+
+  const addNewFavoriteProperty = async (propertyId: string) => {
+    if (favorites.includes(propertyId)) {
+      return
+    }
+
+    console.log('addFavoriteProperty payload:', {
+      propertyId,
+      token: authToken,
+    })
+
+    await addFavoriteProperty(propertyId, authToken ?? undefined)
+
+    const newFavorites = [...favorites, propertyId]
     setFavorites(newFavorites)
+
+    const property = getPropertyById(propertyId)
+    if (property) {
+      setFavoriteProperties(prev =>
+        prev.some(item => item.id === propertyId) ? prev : [...prev, property]
+      )
+    }
+
     if (currentUser) {
       await AsyncStorage.setItem(`favorites_${currentUser.id}`, JSON.stringify(newFavorites))
     }
   }
 
+  const toggleFavorite = async (propertyId: string) => {
+    if (favorites.includes(propertyId)) {
+      console.log('deleteFavoriteProperties payload:', {
+        propertyId,
+        token: authToken,
+      })
+      await deleteFavoriteProperties(propertyId, authToken ?? undefined)
+      const newFavorites = favorites.filter(id => id !== propertyId)
+      setFavorites(newFavorites)
+      setFavoriteProperties(prev => prev.filter(property => property.id !== propertyId))
+
+      if (currentUser) {
+        await AsyncStorage.setItem(`favorites_${currentUser.id}`, JSON.stringify(newFavorites))
+      }
+
+      return
+    }
+
+    await addNewFavoriteProperty(propertyId)
+  }
+
   const isFavorite = (propertyId: string) => favorites.includes(propertyId)
 
+  // funciones para cargar catalogos de propiedades
   const loadCatalogProperties = useCallback(async () => {
     setIsCatalogLoading(true)
     setHasLoadedCatalog(true)
     try {
-      const properties = await CataLogData()
+      const properties = await getAllCatalogProperties()
       setCatalogProperties(properties)
     } catch (error) {
       console.error('Error loading catalog properties:', error)
@@ -249,6 +385,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsCatalogLoading(false)
     }
   }, [])
+
+  const newLoadCatalogProperties = useCallback(async () => {
+    setIsCatalogLoading(true)
+    setHasLoadedCatalog(true)
+    try {
+      const properties = await getCatalogPropertiesCoreAPI(authToken ?? undefined)
+      setCatalogProperties(properties)
+    } catch (error) {
+      console.error('Error loading catalog properties:', error)
+      setCatalogProperties([])
+    } finally {
+      setIsCatalogLoading(false)
+    }
+  }, [authToken])
 
   const loadAgentCatalogProperties = useCallback(async () => {
     setIsAgentCatalogLoading(true)
@@ -267,7 +417,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const getPropertyById = (id: string) => {
-    return agentCatalogProperties.find(p => p.id === id) ?? 
+    return favoriteProperties.find(p => p.id === id) ??
+      agentCatalogProperties.find(p => p.id === id) ?? 
       catalogProperties.find(p => p.id === id) ?? 
       mockProperties.find(p => p.id === id)
   }
@@ -301,6 +452,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       availableProperties,
       catalogProperties,
       agentCatalogProperties,
+      newLoadCatalogProperties,
       agentCatalogRawData,
       isCatalogLoading,
       isAgentCatalogLoading,
@@ -309,7 +461,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userLeads,
       userAppointments,
       notifications: userNotifications,
+      favoriteProperties,
+      loadFavoriteProperties,
       favorites,
+      addNewFavoriteProperty,
       toggleFavorite,
       isFavorite,
       getPropertyById,
