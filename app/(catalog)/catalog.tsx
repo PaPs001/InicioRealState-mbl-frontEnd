@@ -4,8 +4,11 @@ import {
   Text, 
   StyleSheet, 
   FlatList, 
+  Modal,
+  Pressable,
   TouchableOpacity, 
   TextInput,
+  Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -22,7 +25,8 @@ import {
   Home,
   Building2,
   Map,
-  ArrowLeft
+  ArrowLeft,
+  X
 } from 'lucide-react-native'
 
 export default function CatalogStandaloneScreen() {
@@ -39,7 +43,9 @@ export default function CatalogStandaloneScreen() {
   } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
+  const [filter, setFilter] = useState<'all' | 'sale' | 'rent' | 'favorites'>('all')
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<'all' | 'house' | 'apartment' | 'land'>('all')
+  const [showFilters, setShowFilters] = useState(false)
 
   // Determinar tema segun tipo de usuario
   const isInvestor = currentUser?.role === 'investor'
@@ -68,12 +74,15 @@ export default function CatalogStandaloneScreen() {
         property.city.toLowerCase().includes(searchQuery.toLowerCase())
       
       const matchesFilter = filter === 'all' ||
-        (filter === 'sale' && (property.status === 'for_sale' || property.status === 'available')) ||
-        (filter === 'rent' && (property.status === 'for_rent' || property.status === 'available'))
+        (filter === 'sale' && property.status === 'for_sale') ||
+        (filter === 'rent' && property.status === 'for_rent') ||
+        (filter === 'favorites' && isFavorite(property.id))
+
+      const matchesType = propertyTypeFilter === 'all' || property.type === propertyTypeFilter
       
-      return matchesSearch && matchesFilter
+      return matchesSearch && matchesFilter && matchesType
     })
-  }, [availableProperties, hasLoadedCatalog, searchQuery, filter])
+  }, [availableProperties, hasLoadedCatalog, searchQuery, filter, propertyTypeFilter])
 
   const getPropertyIcon = (type: Property['type']) => {
     switch (type) {
@@ -87,6 +96,7 @@ export default function CatalogStandaloneScreen() {
   const renderPropertyCard = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const favorite = isFavorite(property.id)
+    const hasImage = property.images && property.images.length > 0 && property.images[0]
 
     console.log('[v0] DEBUG - currentUser?.role:', currentUser?.role, 'isInvestor:', isInvestor, 'theme:', theme ? 'EXISTS' : 'NULL')
 
@@ -107,7 +117,15 @@ export default function CatalogStandaloneScreen() {
         activeOpacity={0.7}
       >
         <View style={[styles.imageContainer, { backgroundColor: imageBg }]}>
-          <Icon size={40} color={textMutedColor} />
+          {hasImage ? (
+            <Image
+              source={{ uri: property.images![0] }}
+              style={styles.propertyImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon size={40} color={textMutedColor} />
+          )}
           
           <View style={styles.badgeContainer}>
             <View style={[styles.locationBadge, { backgroundColor: cardBg }]}>
@@ -193,6 +211,13 @@ export default function CatalogStandaloneScreen() {
   const accentColor = theme?.accent || colors.accent
   const primaryColor = theme?.primary || colors.primary
 
+  const clearFilters = () => {
+    setFilter('all')
+    setPropertyTypeFilter('all')
+  }
+
+  const hasActiveFilters = filter !== 'all' || propertyTypeFilter !== 'all'
+
   return (
     <SafeAreaView 
       style={[styles.container, { backgroundColor: bgColor }]} 
@@ -214,17 +239,16 @@ export default function CatalogStandaloneScreen() {
         <Text style={[styles.headerTitle, { color: textColor }]}>
           Catalogo
         </Text>
-        <TouchableOpacity 
-          style={[styles.favoritesButton, { backgroundColor: surfaceColor }]}
-          onPress={() => router.push('/favorites')}
-        >
-          <Heart size={24} color={accentColor} />
-          {favorites.length > 0 && (
-            <View style={styles.favoriteBadge}>
-              <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {hasActiveFilters ? (
+          <TouchableOpacity 
+            style={[styles.favoritesButton, { backgroundColor: surfaceColor, borderColor }]}
+            onPress={clearFilters}
+          >
+            <Text style={[styles.clearButtonText, { color: textColor }]}>Limpiar</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.clearButtonPlaceholder} />
+        )}
       </View>
 
       {/* Barra de busqueda */}
@@ -239,60 +263,11 @@ export default function CatalogStandaloneScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={[styles.filterButton, { backgroundColor: surfaceColor, borderColor: borderColor }]}>
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: surfaceColor, borderColor: borderColor }]}
+          onPress={() => setShowFilters(true)}
+        >
           <Filter size={20} color={accentColor} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Tabs de filtro */}
-      <View style={[styles.filterTabs, { backgroundColor: bgColor }]}>
-        <TouchableOpacity 
-          style={[
-            styles.filterTab, 
-            { backgroundColor: surfaceColor, borderColor: borderColor },
-            filter === 'all' && { backgroundColor: accentColor, borderColor: accentColor }
-          ]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={[
-            styles.filterTabText, 
-            { color: textSecondaryColor },
-            filter === 'all' && { color: primaryColor, fontWeight: '600' }
-          ]}>
-            Todos
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[
-            styles.filterTab, 
-            { backgroundColor: surfaceColor, borderColor: borderColor },
-            filter === 'sale' && { backgroundColor: accentColor, borderColor: accentColor }
-          ]}
-          onPress={() => setFilter('sale')}
-        >
-          <Text style={[
-            styles.filterTabText, 
-            { color: textSecondaryColor },
-            filter === 'sale' && { color: primaryColor, fontWeight: '600' }
-          ]}>
-            Venta
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[
-            styles.filterTab, 
-            { backgroundColor: surfaceColor, borderColor: borderColor },
-            filter === 'rent' && { backgroundColor: accentColor, borderColor: accentColor }
-          ]}
-          onPress={() => setFilter('rent')}
-        >
-          <Text style={[
-            styles.filterTabText, 
-            { color: textSecondaryColor },
-            filter === 'rent' && { color: primaryColor, fontWeight: '600' }
-          ]}>
-            Renta
-          </Text>
         </TouchableOpacity>
       </View>
 
@@ -312,6 +287,95 @@ export default function CatalogStandaloneScreen() {
           </View>
         }
       />
+
+      <Modal
+        visible={showFilters}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFilters(false)}
+      >
+        <Pressable style={styles.filterOverlay} onPress={() => setShowFilters(false)}>
+          <Pressable
+            style={[styles.filterModal, { backgroundColor: surfaceColor, borderColor }]}
+            onPress={() => {}}
+          >
+            <View style={[styles.filterHandle, { backgroundColor: borderColor }]} />
+            <View style={styles.filterModalHeader}>
+              <Text style={[styles.filterModalTitle, { color: textColor }]}>Filtros</Text>
+              <TouchableOpacity
+                style={[styles.filterModalClose, { backgroundColor: bgColor, borderColor }]}
+                onPress={() => setShowFilters(false)}
+              >
+                <X size={18} color={textColor} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Operacion</Text>
+              <View style={styles.filterOptions}>
+                {[
+                  { key: 'all', label: 'Todos' },
+                  { key: 'sale', label: 'Venta' },
+                  { key: 'rent', label: 'Renta' },
+                  { key: 'favorites', label: 'Favoritos' },
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.filterChip,
+                      { backgroundColor: bgColor, borderColor },
+                      filter === option.key && { backgroundColor: accentColor, borderColor: accentColor },
+                    ]}
+                    onPress={() => setFilter(option.key as typeof filter)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        { color: textSecondaryColor },
+                        filter === option.key && { color: primaryColor, fontWeight: '600' },
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Tipo</Text>
+              <View style={styles.filterOptions}>
+                {[
+                  { key: 'all', label: 'Todo tipo' },
+                  { key: 'house', label: 'Casa' },
+                  { key: 'apartment', label: 'Departamento' },
+                  { key: 'land', label: 'Terreno' },
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.filterChip,
+                      { backgroundColor: bgColor, borderColor },
+                      propertyTypeFilter === option.key && { backgroundColor: accentColor, borderColor: accentColor },
+                    ]}
+                    onPress={() => setPropertyTypeFilter(option.key as typeof propertyTypeFilter)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        { color: textSecondaryColor },
+                        propertyTypeFilter === option.key && { color: primaryColor, fontWeight: '600' },
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -344,28 +408,21 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   favoritesButton: {
-    width: 40,
+    minWidth: 88,
     height: 40,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
   },
-  favoriteBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: colors.error,
-    borderRadius: borderRadius.full,
-    minWidth: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  clearButtonText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
   },
-  favoriteBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
+  clearButtonPlaceholder: {
+    width: 88,
+    height: 40,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -400,31 +457,66 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  filterTabs: {
+  filterOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 13, 24, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  filterModal: {
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+    width: '100%',
+    borderBottomWidth: 0,
+    paddingBottom: spacing.xl,
+  },
+  filterHandle: {
+    width: 48,
+    height: 5,
+    borderRadius: borderRadius.full,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  filterModalHeader: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  filterModalTitle: {
+    fontSize: typography.h4.fontSize,
+    fontWeight: '700',
+  },
+  filterModalClose: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterSection: {
+    marginBottom: spacing.md,
+  },
+  filterSectionTitle: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  filterTab: {
+  filterChip: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  filterTabActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterTabText: {
+  filterChipText: {
     fontSize: typography.bodySmall.fontSize,
-    color: colors.textSecondary,
-  },
-  filterTabTextActive: {
-    color: colors.accent,
-    fontWeight: '600',
   },
   listContent: {
     padding: spacing.md,
@@ -443,6 +535,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  propertyImage: {
+    width: '100%',
+    height: '100%',
   },
   badgeContainer: {
     position: 'absolute',

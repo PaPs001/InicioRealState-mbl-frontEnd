@@ -108,7 +108,7 @@ function RootNavigator() {
             }} 
           />
           <Stack.Screen 
-            name="registerScreen" 
+            name="register" 
             options={{ 
               contentStyle: { backgroundColor: colors.background },
             }} 

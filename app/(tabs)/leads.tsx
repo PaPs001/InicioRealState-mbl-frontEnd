@@ -1,27 +1,27 @@
 import { useState, useMemo } from 'react'
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
   TextInput,
-  Modal 
+  Modal,
+  Linking,
 } from 'react-native'
+import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatShortDate } from '@/lib/mock-data'
 import type { PropertyLead } from '@/lib/types'
-import { 
-  Search, 
-  Filter, 
-  Phone, 
-  Mail, 
+import {
+  ArrowLeft,
+  Search,
+  Filter,
+  Phone,
   MessageCircle,
   User,
-  ChevronDown,
-  X
+  X,
 } from 'lucide-react-native'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -35,7 +35,8 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default function LeadsScreen() {
-  const { userLeads, getPropertyById, isAdmin } = useAuth()
+  const router = useRouter()
+  const { userLeads, getPropertyById } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [showFilterModal, setShowFilterModal] = useState(false)
@@ -49,66 +50,71 @@ export default function LeadsScreen() {
     })
   }, [userLeads, searchQuery, statusFilter])
 
+  const getPropertyTypeLabel = (type?: string) => {
+    switch (type) {
+      case 'house':
+        return 'Casa'
+      case 'apartment':
+        return 'Departamento'
+      case 'land':
+        return 'Terreno'
+      default:
+        return 'Sin categoria'
+    }
+  }
+
+  const handleCall = (phone: string) => {
+    Linking.openURL(`tel:${phone}`)
+  }
+
+  const handleMessage = (phone: string) => {
+    const sanitizedPhone = phone.replace(/[^\d+]/g, '').replace('+', '')
+    Linking.openURL(`https://wa.me/${sanitizedPhone}`)
+  }
+
   const renderLead = ({ item: lead }: { item: PropertyLead }) => {
     const property = getPropertyById(lead.propertyId)
-    const status = statusLabels[lead.status] || statusLabels.nuevo
 
     return (
-      <View style={styles.leadCard}>
+      <TouchableOpacity
+        style={styles.leadCard}
+        activeOpacity={0.8}
+        onPress={() => router.push(`/lead-information/${lead.id}`)}
+      >
         <View style={styles.leadHeader}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {lead.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </Text>
-          </View>
           <View style={styles.leadInfo}>
             <Text style={styles.leadName}>{lead.name}</Text>
             <Text style={styles.leadProperty} numberOfLines={1}>
               {property?.title || 'Sin propiedad'}
             </Text>
+            <Text style={styles.leadCategory}>
+              {getPropertyTypeLabel(property?.type)}
+            </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
-            <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
-          </View>
-        </View>
-
-        <View style={styles.leadDetails}>
-          <View style={styles.detailRow}>
-            <Phone size={14} color={colors.textMuted} />
-            <Text style={styles.detailText}>{lead.phone}</Text>
-          </View>
-          {lead.email && (
-            <View style={styles.detailRow}>
-              <Mail size={14} color={colors.textMuted} />
-              <Text style={styles.detailText}>{lead.email}</Text>
-            </View>
-          )}
-          <View style={styles.detailRow}>
-            <MessageCircle size={14} color={colors.textMuted} />
-            <Text style={styles.detailText}>Fuente: {lead.source}</Text>
-          </View>
-        </View>
-
-        <View style={styles.leadFooter}>
-          <Text style={styles.dateText}>
-            Creado: {formatShortDate(lead.createdDate)}
-          </Text>
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => handleCall(lead.phone)}>
               <Phone size={16} color={colors.accent} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => handleMessage(lead.phone)}>
               <MessageCircle size={16} color={colors.accent} />
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* Barra de busqueda */}
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/(tabs)')}>
+          <ArrowLeft size={18} color={colors.accent} />
+          <Text style={styles.backButtonText}>Volver</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Leads</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Search size={20} color={colors.textMuted} />
@@ -120,7 +126,7 @@ export default function LeadsScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
@@ -128,19 +134,17 @@ export default function LeadsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filtro activo */}
       {statusFilter !== 'todos' && (
         <View style={styles.activeFilter}>
           <Text style={styles.activeFilterText}>
             Filtro: {statusLabels[statusFilter]?.label}
           </Text>
           <TouchableOpacity onPress={() => setStatusFilter('todos')}>
-            <X size={16} color={colors.textLight} />
+            <X size={16} color={colors.primaryDark} />
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Lista de leads */}
       <FlatList
         data={filteredLeads}
         renderItem={renderLead}
@@ -155,7 +159,6 @@ export default function LeadsScreen() {
         }
       />
 
-      {/* Modal de filtros */}
       <Modal
         visible={showFilterModal}
         animationType="slide"
@@ -170,8 +173,8 @@ export default function LeadsScreen() {
                 <X size={24} color={colors.textLight} />
               </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.filterOption, statusFilter === 'todos' && styles.filterOptionActive]}
               onPress={() => {
                 setStatusFilter('todos')
@@ -182,7 +185,7 @@ export default function LeadsScreen() {
             </TouchableOpacity>
 
             {Object.entries(statusLabels).map(([key, value]) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={key}
                 style={[styles.filterOption, statusFilter === key && styles.filterOptionActive]}
                 onPress={() => {
@@ -206,10 +209,46 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryDark,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surfaceDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  backButtonText: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: typography.h3.fontSize,
+    fontWeight: '700',
+    color: colors.textLight,
+  },
+  headerSpacer: {
+    width: 104,
+  },
   searchContainer: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
   searchInputContainer: {
@@ -269,24 +308,11 @@ const styles = StyleSheet.create({
   leadHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primaryDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-    color: colors.accent,
+    justifyContent: 'space-between',
   },
   leadInfo: {
     flex: 1,
-    marginLeft: spacing.md,
+    paddingRight: spacing.md,
   },
   leadName: {
     fontSize: typography.body.fontSize,
@@ -298,51 +324,25 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
-  statusBadge: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-  },
-  statusText: {
+  leadCategory: {
     fontSize: typography.caption.fontSize,
+    color: colors.accent,
     fontWeight: '600',
-  },
-  leadDetails: {
-    gap: spacing.sm,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  detailText: {
-    fontSize: typography.bodySmall.fontSize,
-    color: colors.textMuted,
-  },
-  leadFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.md,
-  },
-  dateText: {
-    fontSize: typography.caption.fontSize,
-    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: spacing.sm,
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.primaryDark,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
   },
   emptyState: {
     flex: 1,
