@@ -249,7 +249,12 @@ export default function AgentCatalogScreen() {
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
           onPress={() => setFilter('all')}
         >
-          <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>
+          <Text
+            style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             Todos
           </Text>
         </TouchableOpacity>
@@ -257,16 +262,26 @@ export default function AgentCatalogScreen() {
           style={[styles.filterTab, filter === 'sale' && styles.filterTabActive]}
           onPress={() => setFilter('sale')}
         >
-          <Text style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive]}>
-            Venta
+          <Text
+            style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            Ventas
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.filterTab, filter === 'rent' && styles.filterTabActive]}
           onPress={() => setFilter('rent')}
         >
-          <Text style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive]}>
-            Renta
+          <Text
+            style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            Rentas
           </Text>
         </TouchableOpacity>
       </View>
@@ -427,6 +442,7 @@ const styles = StyleSheet.create({
   filterTabText: {
     fontSize: typography.bodySmall.fontSize,
     color: advisorColors.textSecondary,
+    flexShrink: 1,
   },
   filterTabTextActive: {
     color: advisorColors.background,

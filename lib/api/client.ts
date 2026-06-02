@@ -1,12 +1,10 @@
-/**
- * Cliente HTTP centralizado para todas las llamadas a la API
- * Maneja errores, headers y configuracion base
- */
-
+console.log('EXPO API URL =>', process.env.EXPO_PUBLIC_API_BASE_URL)
 export const API_URLS = {
-  CORE: 'https://core-api-smoky-ten.vercel.app',
+  CORE: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://core-api-smoky-ten.vercel.app',
   NOTIFICATIONS: 'https://inicio-notifications-service.vercel.app',
 } as const
+
+console.log('API_URLS.CORE =>', API_URLS.CORE)
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 

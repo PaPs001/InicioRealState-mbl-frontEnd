@@ -7,13 +7,21 @@ import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 // Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor
 
+export type RegisterTransitionVariant = 'pulse-orb'
+
 type RegisterTransitionProps = {
+  title?: string
+  subtitle?: string
   durationMs?: number
+  variant?: RegisterTransitionVariant
   onComplete?: () => void | Promise<void>
 }
 
 export default function RegisterTransition({
+  title,
+  subtitle,
   durationMs = 3000,
+  variant = 'pulse-orb',
   onComplete,
 }: RegisterTransitionProps) {
   // Animacion inicial de entrada (fade-in con scale)
@@ -96,7 +104,7 @@ export default function RegisterTransition({
       clearTimeout(fadeLoopTimer)
       clearTimeout(completeTimer)
     }
-  }, [durationMs, initialFadeAnim, initialScaleAnim, onComplete, pulseAnim, fadeLoopAnim])
+  }, [durationMs, initialFadeAnim, initialScaleAnim, onComplete, pulseAnim, fadeLoopAnim, variant, title, subtitle])
 
   return (
     <SafeAreaView style={styles.container}>

@@ -50,9 +50,9 @@ export default function CatalogScreen() {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<'all' | 'house' | 'apartment' | 'land'>('all')
   const [showFilters, setShowFilters] = useState(false)
 
-  const isInvestor = currentUser?.role === 'investor'
-  const isTenant = currentUser?.role === 'tenant'
-  const isSearching = currentUser?.role === 'searching'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
   const theme = useMemo(() => {
     if (isInvestor) return clientThemes.investor
     if (isTenant) return clientThemes.tenant
@@ -311,12 +311,12 @@ export default function CatalogScreen() {
             </View>
 
             <View style={styles.filterSection}>
-              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Operacion</Text>
+              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Operación</Text>
               <View style={styles.filterOptions}>
                 {[
                   { key: 'all', label: 'Todos' },
-                  { key: 'sale', label: 'Venta' },
-                  { key: 'rent', label: 'Renta' },
+                  { key: 'sale', label: 'Ventas' },
+                  { key: 'rent', label: 'Rentas' },
                   { key: 'favorites', label: 'Favoritos' },
                 ].map(option => (
                   <TouchableOpacity
@@ -328,15 +328,18 @@ export default function CatalogScreen() {
                     ]}
                     onPress={() => setFilter(option.key as typeof filter)}
                   >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: textSecondaryColor },
-                        filter === option.key && { color: primaryColor, fontWeight: '600' },
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: textSecondaryColor },
+                          filter === option.key && { color: primaryColor, fontWeight: '600' },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.85}
+                      >
+                        {option.label}
+                      </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -360,15 +363,18 @@ export default function CatalogScreen() {
                     ]}
                     onPress={() => setPropertyTypeFilter(option.key as typeof propertyTypeFilter)}
                   >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: textSecondaryColor },
-                        propertyTypeFilter === option.key && { color: primaryColor, fontWeight: '600' },
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: textSecondaryColor },
+                          propertyTypeFilter === option.key && { color: primaryColor, fontWeight: '600' },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.85}
+                      >
+                        {option.label}
+                      </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -528,6 +534,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: typography.bodySmall.fontSize,
+    flexShrink: 1,
   },
   listContent: {
     padding: spacing.md,

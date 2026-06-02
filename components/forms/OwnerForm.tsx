@@ -5,6 +5,7 @@ import {
   TextInput, 
   StyleSheet, 
   TouchableOpacity, 
+  Keyboard,
   Animated,
   Dimensions,
   ActivityIndicator,
@@ -15,6 +16,8 @@ import {
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { ArrowLeft, Check, Building2, Plus, ChevronRight } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
+import { useAuth } from '@/contexts/AuthContext'
+import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 const { width, height } = Dimensions.get('window')
@@ -35,9 +38,21 @@ const investorColors = {
   error: '#ef4444',
 }
 
+type Step =
+  | 'name'
+  | 'email'
+  | 'phone'
+  | 'password'
+  | 'property-question'
+  | 'properties-found'
+  | 'properties-not-found'
+  | 'benefits'
+
 export default function OwnerForm() {
+  const { setAuthSession } = useAuth()
+  
   const router = useRouter()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState<Step>('name')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -46,14 +61,15 @@ export default function OwnerForm() {
   const [isSearching, setIsSearching] = useState(false)
   const [propertiesFound, setPropertiesFound] = useState<boolean | null>(null)
   
-  // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
   const logoScale = useRef(new Animated.Value(0.8)).current
   const logoOpacity = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
+  const progressSteps: Step[] = ['name', 'email', 'phone', 'password', 'property-question']
+  const currentStepIndex = progressSteps.indexOf(step)
+  const totalSteps = progressSteps.length
 
-  // Animacion de entrada al cambiar de paso
   useEffect(() => {
     fadeAnim.setValue(0)
     slideAnim.setValue(30)
@@ -72,7 +88,6 @@ export default function OwnerForm() {
     ]).start()
   }, [step])
 
-  // Animacion del logo al inicio
   useEffect(() => {
     Animated.parallel([
       Animated.timing(logoOpacity, {
@@ -89,7 +104,6 @@ export default function OwnerForm() {
     ]).start()
   }, [])
 
-  // Animacion de pulso para el loader
   useEffect(() => {
     if (isSearching) {
       const pulse = Animated.loop(
@@ -111,113 +125,133 @@ export default function OwnerForm() {
     }
   }, [isSearching])
 
-  // Validaciones
   const isStepOneValid = fullName.trim().length >= 3
   const isStepTwoValid = email.trim().includes('@') && email.trim().includes('.')
   const isStepThreeValid = phone.trim().length >= 10
   const isStepFourValid = password.trim().length >= 6
 
+  const completeRegistration = async () => {
+    const result = await completeRegistrationAndLogin(
+      {
+        name: fullName.trim(),
+        email,
+        phone,
+        password,
+        role: 'CLIENT',
+        clientProfile: 'INVESTOR',
+      },
+      setAuthSession
+    )
+
+    if (!result.success) {
+      console.error('Error al registrar el usuario inversionista', result.error)
+    }
+
+    return result.success
+  }
+
   const handleBack = () => {
-    if (step === 1) {
-      router.back()
-      return
+    Keyboard.dismiss()
+
+    switch (step) {
+      case 'name':
+        router.back()
+        return
+      case 'email':
+        setStep('name')
+        return
+      case 'phone':
+        setStep('email')
+        return
+      case 'password':
+        setStep('phone')
+        return
+      case 'property-question':
+        setStep('password')
+        return
+      case 'properties-found':
+      case 'properties-not-found':
+        setStep('property-question')
+        setPropertiesFound(null)
+        setIsSearching(false)
+        return
+      case 'benefits':
+        setStep('property-question')
+        return
     }
-    if (step === 6 && hasPropertiesWithUs === false) {
-      setStep(5)
-      return
-    }
-    if (step === 7) {
-      setStep(5)
-      setPropertiesFound(null)
-      setIsSearching(false)
-      return
-    }
-    setStep((currentStep) => currentStep - 1)
   }
 
   const handleContinue = () => {
-    if (step === 1 && isStepOneValid) {
-      setStep(2)
-      return
-    }
-    if (step === 2 && isStepTwoValid) {
-      setStep(3)
-      return
-    }
-    if (step === 3 && isStepThreeValid) {
-      setStep(4)
-      return
-    }
-    if (step === 4 && isStepFourValid) {
-      setStep(5) // Ir a pregunta de propiedades
-      return
+    Keyboard.dismiss()
+
+    switch (step) {
+      case 'name':
+        if (isStepOneValid) setStep('email')
+        return
+      case 'email':
+        if (isStepTwoValid) setStep('phone')
+        return
+      case 'phone':
+        if (isStepThreeValid) setStep('password')
+        return
+      case 'password':
+        if (isStepFourValid) setStep('property-question')
+        return
     }
   }
-
+ //esto tiene que ser cambiado despues de todo solo es simulacion para encontrar usuario y sus propiedades
   const handlePropertyQuestion = (answer: boolean) => {
     setHasPropertiesWithUs(answer)
     if (answer) {
-      // Simular busqueda de propiedades
       setIsSearching(true)
       setTimeout(() => {
         setIsSearching(false)
-        // Simular que encontramos propiedades (50% probabilidad para demo)
         const found = Math.random() > 0.5
         setPropertiesFound(found)
-        setStep(found ? 6 : 7) // 6: encontradas, 7: no encontradas
+        setStep(found ? 'properties-found' : 'properties-not-found')
       }, 2500)
     } else {
-      setStep(8) // Ir a pantalla de beneficios
+      setStep('benefits')
     }
   }
 
-  const handleFinish = () => {
-    router.push({
-      pathname: '/register-transition',
-      params: {
-        title: 'Bienvenido a Inicio',
-        subtitle: 'Tu espacio exclusivo de inversiones esta listo.',
-        loginUserId: 'user-1',
-        nextRoute: '/(tabs)',
-        durationMs: '2200',
-        variant: 'pulse-orb',
-      },
-    })
+  const handleFinish = async () => {
+    const registered = await completeRegistration()
+    if (!registered) return
+
+    router.replace('/(tabs)')
   }
 
   const isCurrentStepValid =
-    (step === 1 && isStepOneValid) ||
-    (step === 2 && isStepTwoValid) ||
-    (step === 3 && isStepThreeValid) ||
-    (step === 4 && isStepFourValid)
+    (step === 'name' && isStepOneValid) ||
+    (step === 'email' && isStepTwoValid) ||
+    (step === 'phone' && isStepThreeValid) ||
+    (step === 'password' && isStepFourValid)
 
-  const totalSteps = 4
-
-  // Renderizar contenido segun el paso
   const renderStep = () => {
     switch (step) {
-      case 1:
+      case 'name':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Comencemos con lo basico</Text>
-            <Text style={styles.stepSubtitle}>¿Como te gustaria que te llamemos?</Text>
+            <Text style={styles.stepSubtitle}>¿Cómo te gustaría que te llamemos?</Text>
             
             <View style={styles.formGroup}>
               <Text style={styles.label}>Nombre completo</Text>
               <TextInput
+                key="owner-name"
                 style={styles.input}
                 placeholder="Escribe tu nombre completo"
                 placeholderTextColor={investorColors.textMuted}
                 value={fullName}
                 onChangeText={setFullName}
-                autoFocus
               />
               <Text style={styles.hint}>Usaremos este nombre para personalizar tu experiencia</Text>
             </View>
           </Animated.View>
         )
 
-      case 2:
+      case 'email':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Mantente conectado</Text>
@@ -226,6 +260,7 @@ export default function OwnerForm() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Correo electronico</Text>
               <TextInput
+                key="owner-email"
                 style={styles.input}
                 placeholder="tu@correo.com"
                 placeholderTextColor={investorColors.textMuted}
@@ -233,58 +268,59 @@ export default function OwnerForm() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                autoFocus
               />
               <Text style={styles.hint}>Aqui recibiras actualizaciones de tus inversiones</Text>
             </View>
           </Animated.View>
         )
 
-      case 3:
+      case 'phone':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Una linea directa</Text>
             <Text style={styles.stepSubtitle}>Para que tu asesor pueda contactarte</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Numero de telefono</Text>
+              <Text style={styles.label}>Número de teléfono</Text>
               <TextInput
+                key="owner-phone"
                 style={styles.input}
                 placeholder="+52 55 1234 5678"
                 placeholderTextColor={investorColors.textMuted}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
-                autoFocus
               />
               <Text style={styles.hint}>Solo te contactaremos cuando sea importante</Text>
             </View>
           </Animated.View>
         )
 
-      case 4:
+      case 'password':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Protege tu cuenta</Text>
-            <Text style={styles.stepSubtitle}>Crea una contrasena segura</Text>
+            <Text style={styles.stepSubtitle}>Crea una contraseña segura</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Contrasena</Text>
+              <Text style={styles.label}>Contraseña</Text>
               <TextInput
+                key="owner-password"
                 style={styles.input}
                 placeholder="Minimo 6 caracteres"
                 placeholderTextColor={investorColors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
               />
-              <Text style={styles.hint}>Tu informacion esta protegida con encriptacion</Text>
+              <Text style={styles.hint}>Tu información está protegida con encriptación</Text>
             </View>
           </Animated.View>
         )
 
-      case 5:
+      case 'property-question':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.questionContainer}>
@@ -294,7 +330,7 @@ export default function OwnerForm() {
               
               <Text style={styles.questionTitle}>¿Ya tienes propiedades con nosotros?</Text>
               <Text style={styles.questionSubtitle}>
-                Si ya has invertido con Inicio, podemos vincular automaticamente tus propiedades a tu nueva cuenta
+                Si ya has invertido con Inicio, podemos vincular automáticamente tus propiedades a tu nueva cuenta
               </Text>
 
               <View style={styles.optionsContainer}>
@@ -304,7 +340,7 @@ export default function OwnerForm() {
                 >
                   <View style={styles.optionContent}>
                     <Check size={24} color={investorColors.gold} />
-                    <Text style={styles.optionText}>Si, tengo propiedades</Text>
+                    <Text style={styles.optionText}>Sí, tengo propiedades</Text>
                   </View>
                   <ChevronRight size={20} color={investorColors.textMuted} />
                 </TouchableOpacity>
@@ -324,10 +360,7 @@ export default function OwnerForm() {
           </Animated.View>
         )
 
-      case -1: 
-        return null
-
-      case 6:
+      case 'properties-found':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.successContainer}>
@@ -337,7 +370,7 @@ export default function OwnerForm() {
               
               <Text style={styles.successTitle}>Propiedades vinculadas</Text>
               <Text style={styles.successSubtitle}>
-                Hemos encontrado y vinculado tus propiedades a tu cuenta. Ya puedes acceder a toda la informacion desde tu dashboard.
+                Hemos encontrado y vinculado tus propiedades a tu cuenta. Ya puedes acceder a toda la información desde tu dashboard.
               </Text>
 
               <View style={styles.propertyPreview}>
@@ -355,8 +388,7 @@ export default function OwnerForm() {
           </Animated.View>
         )
 
-      // Propiedades no encontradas
-      case 7:
+      case 'properties-not-found':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.notFoundContainer}>
@@ -373,20 +405,20 @@ export default function OwnerForm() {
                 <Text style={styles.primaryButtonText}>Continuar al dashboard</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep(5)}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep('property-question')}>
                 <Text style={styles.secondaryButtonText}>Intentar de nuevo</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
         )
 
-      case 8:
+      case 'benefits':
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.benefitsContainer}>
               <Text style={styles.benefitsTitle}>Bienvenido al mundo de las inversiones</Text>
               <Text style={styles.benefitsSubtitle}>
-                Como inversionista de Inicio tendras acceso a:
+                Como inversionista de Inicio tendrás acceso a:
               </Text>
 
               <View style={styles.benefitsList}>
@@ -477,17 +509,17 @@ export default function OwnerForm() {
         </View>
 
         {/* Indicador de progreso (solo para pasos 1-4) */}
-        {step <= 4 && (
+        {progressSteps.includes(step) && (
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
               <Animated.View 
                 style={[
                   styles.progressFill, 
-                  { width: `${(step / totalSteps) * 100}%` }
+                  { width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>Paso {step} de {totalSteps}</Text>
+            <Text style={styles.progressText}>Paso {Math.min(currentStepIndex + 1, totalSteps)} de {totalSteps}</Text>
           </View>
         )}
 
@@ -495,7 +527,7 @@ export default function OwnerForm() {
         {renderStep()}
 
         {/* Boton continuar (solo para pasos 1-4) */}
-        {step <= 4 && (
+        {['name', 'email', 'phone', 'password'].includes(step) && (
           <View style={styles.footer}>
             <TouchableOpacity
               disabled={!isCurrentStepValid}
@@ -503,7 +535,7 @@ export default function OwnerForm() {
               onPress={handleContinue}
             >
               <Text style={styles.continueButtonText}>
-                {step === 4 ? 'Crear cuenta' : 'Continuar'}
+                {step === 'password' ? 'Crear cuenta' : 'Continuar'}
               </Text>
             </TouchableOpacity>
           </View>

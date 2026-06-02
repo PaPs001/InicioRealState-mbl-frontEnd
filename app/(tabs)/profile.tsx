@@ -24,9 +24,9 @@ export default function ProfileScreen() {
   const router = useRouter()
 
   // Determinar tipo de cliente
-  const isInvestor = currentUser?.role === 'investor'
-  const isSearching = currentUser?.role === 'searching'
-  const isTenant = currentUser?.role === 'tenant'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
   const isDark = isAgent || isAdmin || isInvestor
 
   // Obtener colores segun el tipo de usuario cliente
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: () => {
             // Navegar a pantalla de transicion con el rol del usuario
-            router.replace(`/logout-transition?role=${currentUser?.role || 'searching'}`)
+            router.replace(`/logout-transition?role=${currentUser?.clientProfile || 'searching'}`)
           }
         }
       ]
@@ -73,17 +73,17 @@ export default function ProfileScreen() {
   }
 
   const getRoleLabel = () => {
-    switch (currentUser?.role) {
-      case 'investor': return 'Inversionista'
-      case 'searching': return 'Buscando Propiedad'
-      case 'tenant': return 'Inquilino'
-      case 'agent': return 'Asesor'
-      case 'admin': return 'Coordinador'
-      default: return 'Usuario'
-    }
+    if (currentUser?.systemRole === 'AGENT') return 'Asesor'
+    if (currentUser?.systemRole === 'COORDINATOR') return 'Coordinador'
+    if (currentUser?.systemRole === 'ADMIN') return 'Administrador'
+
+    if (currentUser?.clientProfile === 'INVESTOR') return 'Inversionista'
+    if (currentUser?.clientProfile === 'TENANT') return 'Inquilino'
+    if (currentUser?.clientProfile === 'SEEKER') return 'Buscador'
+
+    return 'Cliente'
   }
 
-  // Fecha de registro simulada
   const memberSince = 'Enero 2024'
 
   return (

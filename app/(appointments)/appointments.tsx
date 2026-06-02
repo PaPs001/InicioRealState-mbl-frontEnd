@@ -11,7 +11,7 @@ export default function AppointmentsStandaloneScreen() {
   const router = useRouter()
   
   // Detectar si es inversionista para usar tema oscuro
-  const isInvestor = currentUser?.role === 'investor'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
   const theme = isInvestor ? clientThemes.investor : null
 
   const getStatusInfo = (status: string) => {
@@ -64,7 +64,7 @@ export default function AppointmentsStandaloneScreen() {
           <View style={styles.addressRow}>
             <MapPin size={14} color={isInvestor ? theme!.textMuted : colors.textMuted} />
             <Text style={[styles.addressText, isInvestor && { color: theme!.textSecondary }]} numberOfLines={1}>
-              {property?.address || 'Direccion no disponible'}
+              {property?.address || 'Dirección no disponible'}
             </Text>
           </View>
         </View>
@@ -112,7 +112,7 @@ export default function AppointmentsStandaloneScreen() {
               Sin citas programadas
             </Text>
             <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textSecondary }]}>
-              Explora el catalogo y agenda una visita a las propiedades que te interesen
+              Explora el catálogo y agenda una visita a las propiedades que te interesen
             </Text>
             <TouchableOpacity 
               style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}

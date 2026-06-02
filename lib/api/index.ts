@@ -15,24 +15,19 @@
  * await api.properties.createUserProperty(payload, token)
  */
 
-// Re-exportar cliente para uso directo si es necesario
 export { apiClient, coreApi, notificationsApi, API_URLS } from './client'
 
-// Importar todos los endpoints
 import * as auth from './endpoints/auth'
 import * as catalog from './endpoints/catalog'
 import * as properties from './endpoints/properties'
 
-// Objeto API unificado
 export const api = {
   auth,
   catalog,
   properties,
 } as const
 
-// Re-exportar funciones individuales para compatibilidad hacia atras
 export {
-  // Auth
   registerUser,
   loginUser,
   checkEmailExists,
@@ -41,7 +36,6 @@ export {
 } from './endpoints/auth'
 
 export {
-  // Catalog
   getCatalogRentProperties,
   getCatalogSaleProperties,
   getAllCatalogProperties,
@@ -50,7 +44,6 @@ export {
 } from './endpoints/catalog'
 
 export {
-  // Properties
   createUserProperty,
   getUserProperties,
   updateUserProperty,

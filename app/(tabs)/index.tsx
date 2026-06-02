@@ -71,7 +71,6 @@ export default function HomeScreen() {
     }
   }, [hasLoadedCatalog, isAdmin, isAgent, isCatalogLoading, loadCatalogProperties])
 
-  // Calculos para clientes
   const totalValue = userProperties.reduce((acc, p) => acc + (p.currentValue || p.price), 0)
   const totalGains = userProperties.reduce((acc, p) => {
     if (p.currentValue && p.currentValue > p.price) {
@@ -80,18 +79,15 @@ export default function HomeScreen() {
     return acc
   }, 0)
 
-  // Calculos para asesores
   const pendingLeads = userLeads.filter(l => l.status === 'nuevo').length
   const negotiatingLeads = userLeads.filter(l => l.status === 'negociando').length
   const pendingAppointments = userAppointments.filter(a => a.status === 'pending').length
   const visibleAvailableProperties = hasLoadedCatalog ? availableProperties : []
 
-  // Determinar tipo especifico de cliente
-  const isInvestor = currentUser?.role === 'investor'
-  const isSearching = currentUser?.role === 'searching'
-  const isTenant = currentUser?.role === 'tenant'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
 
-  // Obtener tema segun el rol del cliente
   const getClientRole = (): ClientRole => {
     if (isInvestor) return 'investor'
     if (isTenant) return 'tenant'
@@ -99,7 +95,6 @@ export default function HomeScreen() {
   }
   const theme = isClient ? clientThemes[getClientRole()] : null
 
-  // Subtitulo basado en el rol
   const getSubGreeting = () => {
     if (isInvestor) return 'Bienvenido a tu panel de inversiones'
     if (isSearching) return 'Encuentra tu propiedad ideal'
@@ -107,9 +102,8 @@ export default function HomeScreen() {
     return 'Bienvenido'
   }
 
-  // Datos de renta para inquilino
   const tenantRental = useMemo(() => {
-    if (!currentUser || currentUser.role !== 'tenant') return null
+    if (!currentUser || currentUser.clientProfile !== 'TENANT') return null
     if (mockActiveRental.tenantId === currentUser.id) {
       return mockActiveRental
     }
@@ -146,7 +140,6 @@ export default function HomeScreen() {
     Linking.openURL(`tel:${phone}`)
   }
 
-  // Panel de cliente - diferenciado por tipo
   if (isClient && theme) {
     const dynamicStyles = {
       container: {
@@ -286,7 +279,7 @@ export default function HomeScreen() {
                   <Text style={[dynamicStyles.statValue, { color: colors.success }]}>
                     {formatCurrency(totalGains)}
                   </Text>
-                  <Text style={dynamicStyles.statDescription}>Plusvalia</Text>
+                  <Text style={dynamicStyles.statDescription}>Plusvalía</Text>
                 </View>
 
                 <View style={[dynamicStyles.statCard, styles.statCardHalf, { backgroundColor: theme.accent }]}>
@@ -297,7 +290,7 @@ export default function HomeScreen() {
                   <Text style={[dynamicStyles.statValue, { color: theme.primary }]}>
                     {formatCurrency(totalValue * 1.1)}
                   </Text>
-                  <Text style={[dynamicStyles.statDescription, { color: theme.primary + 'cc' }]}>Est. 1 ano</Text>
+                  <Text style={[dynamicStyles.statDescription, { color: theme.primary + 'cc' }]}>Est. 1 año</Text>
                 </View>
               </View>
             </View>
@@ -951,7 +944,7 @@ export default function HomeScreen() {
               <View style={styles.quickAccessContent}>
                 <Text style={styles.quickAccessTitleDark}>Registrar Venta/Renta</Text>
                 <Text style={styles.quickAccessSubtitleDark}>
-                  Nuevo registro de transaccion
+                  Nuevo registro de transacción
                 </Text>
               </View>
               <ChevronRight size={20} color={colors.textMuted} />

@@ -50,7 +50,8 @@ interface UseFormResult<T> {
 export function useForm<T extends Record<string, unknown>>(
   options: UseFormOptions<T>
 ): UseFormResult<T> {
-  const { initialValues, validations = {}, onSubmit } = options
+  const { initialValues, onSubmit } = options
+  const validations: FieldValidation<T> = options.validations ?? {}
 
   const [values, setValuesState] = useState<T>(initialValues)
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({})

@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
 import RegisterTransition from '@/components/animations/register-transition'
 import type { RegisterTransitionVariant } from '@/components/animations/register-transition'
@@ -20,7 +20,7 @@ export default function RegisterTransitionRoute() {
       await login(params.loginUserId)
     }
 
-    router.replace(params.nextRoute || '/(tabs)')
+    router.replace((params.nextRoute as Href) || '/(tabs)')
   }
 
   return (

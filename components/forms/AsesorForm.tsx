@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, Animated, Dimensions } from 'react-native'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard, KeyboardAvoidingView, ScrollView, Platform, Animated, Dimensions } from 'react-native'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import TextoLogoInicio from '@/app/assets/TextoLogoInicio.svg'
+import { useAuth } from '@/contexts/AuthContext'
+import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
 
 const { width, height } = Dimensions.get('window')
 
-// Colores exclusivos para asesores - Azul oscuro elegante
 const advisorColors = {
   background: clientThemes.advisor.background,
   surface: clientThemes.advisor.surface,
@@ -22,6 +23,7 @@ const advisorColors = {
 
 export default function AsesorForm() {
   const router = useRouter()
+  const { setAuthSession } = useAuth()
   const [step, setStep] = useState(1)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -34,7 +36,30 @@ export default function AsesorForm() {
   const isStepThreeValid = phone.trim().length > 0
   const isStepFourValid = password.trim().length > 0
 
+  const completeRegistration = async () => {
+    const result = await completeRegistrationAndLogin(
+      {
+        name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        role: 'AGENT',
+        clientProfile: 'SEEKER',
+      },
+      setAuthSession
+    )
+
+    if (!result.success) {
+      console.error('Error al registrar el asesor', result.error)
+      return false
+    }
+
+    return true
+  }
+
   const handleBack = () => {
+    Keyboard.dismiss()
+
     if (step === 1) {
       router.back()
       return
@@ -43,7 +68,9 @@ export default function AsesorForm() {
     setStep((currentStep) => currentStep - 1)
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    Keyboard.dismiss()
+
     if (step === 1 && isStepOneValid) {
       setStep(2)
       return
@@ -60,17 +87,10 @@ export default function AsesorForm() {
     }
 
     if (step === 4 && isStepFourValid) {
-      router.push({
-        pathname: '/register-transition',
-        params: {
-          title: 'Registro completado',
-          subtitle: 'Estamos preparando tu sesion de asesor.',
-          loginUserId: 'user-4',
-          nextRoute: '/(tabs)',
-          durationMs: '1900',
-          variant: 'pulse-orb',
-        },
-      })
+      const registered = await completeRegistration()
+      if (!registered) return
+
+      router.replace('/(tabs)')
       return
     }
   }
@@ -83,7 +103,6 @@ export default function AsesorForm() {
 
   return (
     <View style={styles.container}>
-      {/* Logo de fondo centrado y transparente */}
       <View style={styles.backgroundLogoContainer}>
         <TextoLogoInicio width={200} height={80} style={styles.backgroundLogo} />
       </View>
@@ -97,7 +116,6 @@ export default function AsesorForm() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={20} color={advisorColors.accent} />
@@ -105,7 +123,6 @@ export default function AsesorForm() {
             </TouchableOpacity>
           </View>
 
-          {/* Indicador de progreso */}
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${(step / 4) * 100}%` }]} />
@@ -113,7 +130,6 @@ export default function AsesorForm() {
             <Text style={styles.progressText}>Paso {step} de 4</Text>
           </View>
 
-          {/* Contenido del paso */}
           <View style={styles.stepContent}>
             {step === 1 ? (
               <>
@@ -122,6 +138,7 @@ export default function AsesorForm() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Nombre</Text>
                   <TextInput
+                    key="advisor-first-name"
                     style={styles.input}
                     placeholder="Escribe tu nombre"
                     placeholderTextColor={advisorColors.textMuted}
@@ -133,6 +150,7 @@ export default function AsesorForm() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Apellido</Text>
                   <TextInput
+                    key="advisor-last-name"
                     style={styles.input}
                     placeholder="Escribe tu apellido"
                     placeholderTextColor={advisorColors.textMuted}
@@ -150,6 +168,7 @@ export default function AsesorForm() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Correo electronico</Text>
                   <TextInput
+                    key="advisor-email"
                     style={styles.input}
                     placeholder="correo@ejemplo.com"
                     placeholderTextColor={advisorColors.textMuted}
@@ -164,11 +183,12 @@ export default function AsesorForm() {
 
             {step === 3 ? (
               <>
-                <Text style={styles.title}>Agrega tu numero de telefono.</Text>
+                <Text style={styles.title}>Agrega tu número de teléfono.</Text>
 
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Numero de telefono</Text>
+                  <Text style={styles.label}>Número de teléfono</Text>
                   <TextInput
+                    key="advisor-phone"
                     style={styles.input}
                     placeholder="Escribe tu numero"
                     placeholderTextColor={advisorColors.textMuted}
@@ -182,17 +202,20 @@ export default function AsesorForm() {
 
             {step === 4 ? (
               <>
-                <Text style={styles.title}>Por ultimo, crea tu contrasena.</Text>
+                <Text style={styles.title}>Por último, crea tu contraseña.</Text>
 
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Contrasena</Text>
+                  <Text style={styles.label}>Contraseña</Text>
                   <TextInput
+                    key="advisor-password"
                     style={styles.input}
-                    placeholder="Crea una contrasena"
+                    placeholder="Crea una contraseña"
                     placeholderTextColor={advisorColors.textMuted}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
                   />
                 </View>
               </>
