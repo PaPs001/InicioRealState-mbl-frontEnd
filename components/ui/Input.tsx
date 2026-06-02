@@ -97,8 +97,8 @@ export function Input({
           style={[
             styles.input,
             { color: theme.text },
-            leftIcon && styles.inputWithLeftIcon,
-            (rightIcon || isPassword) && styles.inputWithRightIcon,
+            leftIcon ? styles.inputWithLeftIcon : null,
+            rightIcon || isPassword ? styles.inputWithRightIcon : null,
             style,
           ]}
           placeholderTextColor={theme.textMuted}

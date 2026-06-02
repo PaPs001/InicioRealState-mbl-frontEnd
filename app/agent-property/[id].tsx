@@ -213,7 +213,7 @@ export default function AgentPropertyDetailScreen() {
               </View>
               <View style={styles.priceGridItem}>
                 <Text style={styles.priceGridLabel}>Precio Especial</Text>
-                <Text style={[styles.priceGridValue, property.priceSpecial && { color: '#4ade80' }]}>
+                <Text style={[styles.priceGridValue, property.priceSpecial ? { color: '#4ade80' } : null]}>
                   {formatCurrency(property.priceSpecial)}
                 </Text>
               </View>

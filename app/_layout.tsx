@@ -9,13 +9,13 @@ import { Platform, View } from 'react-native'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
-  const { currentUser, authToken, isClient } = useAuth()
+  const { currentUser, authToken, isAgent, isAdmin } = useAuth()
   const pathname = usePathname()
   
   // Determinar tipo de usuario
-  const userRole = currentUser?.role
-  const isInvestor = userRole === 'investor'
-  const isAdvisor = userRole === 'advisor' || userRole === 'coordinator'
+  const userRole = currentUser?.clientProfile
+  const isInvestor = userRole === 'INVESTOR'
+  const isAdvisor = isAgent || isAdmin
   
   // Usuarios con fondo oscuro: inversionista y asesor
   // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)
@@ -29,9 +29,9 @@ function RootNavigator() {
       backgroundColor = clientThemes.investor.background
     } else if (isAdvisor) {
       backgroundColor = clientThemes.advisor.background
-    } else if (userRole === 'tenant') {
+    } else if (userRole === 'TENANT') {
       backgroundColor = clientThemes.tenant.background
-    } else if (userRole === 'searching') {
+    } else if (userRole === 'SEEKER') {
       backgroundColor = clientThemes.searching.background
     } else {
       backgroundColor = colors.background
@@ -71,11 +71,11 @@ function RootNavigator() {
     console.log('[auth][route]', {
       pathname,
       userId: currentUser?.id ?? null,
-      role: currentUser?.role ?? null,
+      role: currentUser?.clientProfile ?? null,
       token: tokenPreview,
       hasToken: !!authToken,
     })
-  }, [pathname, authToken, currentUser?.id, currentUser?.role])
+  }, [pathname, authToken, currentUser?.id, currentUser?.clientProfile])
 
   return (
     <ThemeProvider value={navigationTheme}>
@@ -89,103 +89,18 @@ function RootNavigator() {
             animationDuration: 150,
           }}
         >
-          <Stack.Screen 
-            name="index" 
-            options={{ 
-              contentStyle: { backgroundColor: clientThemes.investor.background },
-            }} 
-          />
-          <Stack.Screen 
-            name="login" 
-            options={{ 
-              contentStyle: { backgroundColor: colors.background },
-            }} 
-          />
-          <Stack.Screen 
-            name="create-account" 
-            options={{ 
-              contentStyle: { backgroundColor: colors.background },
-            }} 
-          />
-          <Stack.Screen 
-            name="register" 
-            options={{ 
-              contentStyle: { backgroundColor: colors.background },
-            }} 
-          />
+          <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />
+          <Stack.Screen name="login" options={{ contentStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen name="create-account" options={{ contentStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen name="register" options={{ contentStyle: { backgroundColor: colors.background } }} />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen 
-            name="logout-transition" 
-            options={{ 
-              contentStyle: { backgroundColor: clientThemes.investor.background },
-            }} 
-          />
+          <Stack.Screen name="logout-transition" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />
           <Stack.Screen 
             name="property/[id]" 
             options={{ 
               headerShown: true,
               headerTitle: 'Detalle de Propiedad',
               presentation: 'modal',
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="my-properties-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="add-property-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="property-detail-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="list-property-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="earnings-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="catalog-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="favorites-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="appointments-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="notifications-screen" 
-            options={{ 
-              contentStyle: { backgroundColor },
-            }} 
-          />
-          <Stack.Screen 
-            name="campaigns-screen" 
-            options={{ 
               contentStyle: { backgroundColor },
             }} 
           />

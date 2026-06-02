@@ -1,8 +1,6 @@
-//Imagenes
 import LogoNegro from '../assets/LogoInicioSVGNegro.svg';
 import TextoLogoInicio from '../assets/TextoLogoInicio.svg';
 
-//configuraciones
 import { useState } from 'react'
 import { 
   View, 
@@ -20,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
 import { User, UserPlus, ArrowLeft } from 'lucide-react-native'
 import { apiFetch } from '@/lib/apiFetchData'
+import { getCurrentUser } from '@/lib/api/endpoints/auth'
 
 export default function LoginScreen() {
   const [isAgentMode, setIsAgentMode] = useState(false)
@@ -38,7 +37,6 @@ export default function LoginScreen() {
         },
       })
 
-      const backendUser = data?.user ?? data?.data?.user ?? data
       const authToken =
         data?.accessToken ??
         data?.token ??
@@ -46,16 +44,22 @@ export default function LoginScreen() {
         data?.data?.token ??
         null
 
-      if (!backendUser) {
-        throw new Error('La API no devolvio un usuario valido')
-      }
-
       if (!authToken) {
         throw new Error('La API no devolvio un token de sesion')
       }
 
+      const backendUser = await getCurrentUser(authToken)
+
+      console.log('[auth][users/me]', {
+        id: backendUser._id,
+        email: backendUser.email,
+        name: backendUser.name,
+        phone: backendUser.phone ?? null,
+        country: backendUser.country ?? null,
+        roles: backendUser.roles ?? [],
+      })
+
       await setAuthSession(backendUser, authToken)
-      console.log('usuario recibido', backendUser)
       router.replace('/(tabs)')
     } catch (error) {
       console.error('Error al iniciar sesion', error)
@@ -104,6 +108,8 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
               <TouchableOpacity style={styles.buttonAccent} onPress={handleLogin}>
@@ -169,6 +175,8 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             </View>
             <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>

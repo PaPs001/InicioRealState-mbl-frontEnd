@@ -2,14 +2,16 @@
  * Tipos de Usuario y Autenticacion
  */
 
-export type UserRole = 'investor' | 'searching' | 'tenant' | 'agent' | 'admin'
-
+export type BackendUserRole = 'CLIENT' | 'AGENT' | 'COORDINATOR' | 'ADMIN'
+export type UserProfile = 'SEEKER' | 'TENANT' | 'INVESTOR'
 export interface User {
   id: string
   name: string
   email: string
   phone: string
-  role: UserRole
+  systemRole: BackendUserRole
+  clientProfile: UserProfile
+  permissions?: string[]
   referralCode?: string
   avatar?: string
   createdAt: string
@@ -20,15 +22,15 @@ export interface RegisterRequest {
   email: string
   phone: string
   password: string
-  role: UserRole
+  role: BackendUserRole
   referralCode?: string
+  clientProfile: UserProfile
 }
 
 export interface RegisterResponse {
   success: boolean
   message: string
   user?: User
-  token?: string
   error?: string
 }
 
@@ -40,8 +42,8 @@ export interface LoginRequest {
 export interface LoginResponse {
   success: boolean
   message: string
-  user?: User
-  token?: string
+  accessToken?: string
+  refreshToken?: string
   error?: string
 }
 

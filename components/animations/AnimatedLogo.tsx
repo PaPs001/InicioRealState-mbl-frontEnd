@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { View, StyleSheet, Animated, Easing } from 'react-native'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
-export type AnimatedLogoVariant = 
+export type AnimatedLogoVariant =
   | 'pulse'           // Pulso suave (default)
   | 'breathe'         // Respiracion lenta y elegante
   | 'fade-in'         // Aparicion con fade
@@ -19,6 +19,8 @@ type AnimatedLogoProps = {
   delay?: number
   onAnimationComplete?: () => void
 }
+
+export type AnimationVariant = AnimatedLogoVariant
 
 export default function AnimatedLogo({
   width = 120,

@@ -151,7 +151,7 @@ export default function NotificationsScreen() {
       {unreadCount > 0 && (
         <View style={styles.unreadBanner}>
           <Text style={styles.unreadBannerText}>
-            {unreadCount} {unreadCount === 1 ? 'notificacion sin leer' : 'notificaciones sin leer'}
+            {unreadCount} {unreadCount === 1 ? 'notificación sin leer' : 'notificaciones sin leer'}
           </Text>
         </View>
       )}
@@ -168,7 +168,7 @@ export default function NotificationsScreen() {
             <Bell size={48} color={colors.textMuted} />
             <Text style={styles.emptyStateTitle}>Sin notificaciones</Text>
             <Text style={styles.emptyStateText}>
-              Las notificaciones sobre tus propiedades y citas apareceran aqui
+              Las notificaciones sobre tus propiedades y citas aparecerán aquí
             </Text>
           </View>
         }

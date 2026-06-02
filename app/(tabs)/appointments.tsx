@@ -48,7 +48,7 @@ export default function AppointmentsScreen() {
           <View style={styles.addressRow}>
             <MapPin size={14} color={colors.textMuted} />
             <Text style={styles.addressText} numberOfLines={1}>
-              {property?.address || 'Direccion no disponible'}
+              {property?.address || 'Dirección no disponible'}
             </Text>
           </View>
         </View>
@@ -76,7 +76,7 @@ export default function AppointmentsScreen() {
             <Calendar size={48} color={colors.textMuted} />
             <Text style={styles.emptyStateTitle}>Sin citas programadas</Text>
             <Text style={styles.emptyStateText}>
-              Explora el catalogo y agenda una visita a las propiedades que te interesen
+              Explora el catálogo y agenda una visita a las propiedades que te interesen
             </Text>
           </View>
         }

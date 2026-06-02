@@ -134,8 +134,13 @@ export default function EarningsScreen() {
           onPress={() => setActiveTab('plusvalia')}
         >
           <TrendingUp size={18} color={activeTab === 'plusvalia' ? investorColors.primary : investorColors.textMuted} />
-          <Text style={[styles.tabButtonText, activeTab === 'plusvalia' && styles.tabButtonTextActive]}>
-            Plusvalia
+          <Text
+            style={[styles.tabButtonText, activeTab === 'plusvalia' && styles.tabButtonTextActive]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            Plusvalía
           </Text>
         </TouchableOpacity>
 
@@ -144,7 +149,12 @@ export default function EarningsScreen() {
           onPress={() => setActiveTab('rentas')}
         >
           <Banknote size={18} color={activeTab === 'rentas' ? investorColors.primary : investorColors.textMuted} />
-          <Text style={[styles.tabButtonText, activeTab === 'rentas' && styles.tabButtonTextActive]}>
+          <Text
+            style={[styles.tabButtonText, activeTab === 'rentas' && styles.tabButtonTextActive]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             Rentas
           </Text>
         </TouchableOpacity>
@@ -197,7 +207,7 @@ export default function EarningsScreen() {
               <View style={styles.projectionCard}>
                 <View style={styles.projectionHeader}>
                   <Clock size={20} color={investorColors.accent} />
-                  <Text style={styles.projectionTitle}>En 1 ano</Text>
+                  <Text style={styles.projectionTitle}>En 1 año</Text>
                 </View>
                 <Text style={styles.projectionValue}>{formatCurrency(projectedValue1Year)}</Text>
                 <Text style={styles.projectionGain}>
@@ -208,7 +218,7 @@ export default function EarningsScreen() {
               <View style={styles.projectionCard}>
                 <View style={styles.projectionHeader}>
                   <Target size={20} color={investorColors.accent} />
-                  <Text style={styles.projectionTitle}>En 5 anos</Text>
+                  <Text style={styles.projectionTitle}>En 5 años</Text>
                 </View>
                 <Text style={styles.projectionValue}>{formatCurrency(projectedValue5Years)}</Text>
                 <Text style={styles.projectionGain}>
@@ -254,7 +264,7 @@ export default function EarningsScreen() {
                         </View>
                         
                         <View style={styles.propertyStat}>
-                          <Text style={styles.propertyStatLabel}>En 1 ano</Text>
+                          <Text style={styles.propertyStatLabel}>En 1 año</Text>
                           <Text style={[styles.propertyStatValue, { color: colors.success }]}>
                             +{formatCurrency(gain)}
                           </Text>
@@ -290,7 +300,7 @@ export default function EarningsScreen() {
                 <View style={styles.costDivider} />
                 <View style={[styles.costRow, { marginTop: spacing.sm }]}>
                   <Text style={[styles.costLabel, { fontWeight: '600', color: investorColors.text }]}>
-                    Ganancia neta estimada (1 ano)
+                    Ganancia neta estimada (1 año)
                   </Text>
                   <Text style={[styles.costValue, { color: colors.success, fontWeight: '700' }]}>
                     {formatCurrency(potentialGain - (totalPropertyValue * 0.07) - (potentialGain * 0.35))}
@@ -522,6 +532,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     fontWeight: '500',
     color: investorColors.textMuted,
+    flexShrink: 1,
   },
   tabButtonTextActive: {
     color: investorColors.primary,

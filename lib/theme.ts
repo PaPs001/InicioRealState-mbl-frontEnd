@@ -2,6 +2,7 @@
 export const colors = {
   // Colores principales (default)
   primary: '#1e2d32',
+  secondary: '#31454d',
   primaryDark: '#0c1427',
   accent: '#cbb375',
   
@@ -46,8 +47,30 @@ export const colors = {
   }
 }
 
+export type ClientTheme = {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  surface: string
+  border: string
+  text: string
+  textSecondary: string
+  textMuted: string
+  textLight: string
+  surfaceLight?: string
+  accentLight?: string
+  accentGold?: string
+  green?: string
+  warm?: string
+  warmLight?: string
+  success?: string
+  warning?: string
+  error?: string
+}
+
 // Temas por tipo de cliente
-export const clientThemes = {
+export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor', ClientTheme> = {
   // Usuario buscando propiedad (colores originales claros)
   searching: {
     primary: '#083b52',
@@ -60,6 +83,10 @@ export const clientThemes = {
     textSecondary: '#5a6673',
     textMuted: '#8a949e',
     textLight: '#f5f1ec',
+    warmLight: '#f0e6d9',
+    success: colors.success,
+    warning: colors.warning,
+    error: colors.error,
   },
   
   // Usuario inversionista (azul profundo elegante y dorado)
@@ -76,6 +103,10 @@ export const clientThemes = {
     textMuted: '#5a6a82',
     textLight: '#f5f1ec',
     accentLight: '#e5d4a8',
+    warmLight: '#1a2438',
+    success: colors.success,
+    warning: colors.warning,
+    error: colors.error,
   },
   
   // Usuario inquilino (oscuro elegante pero mas calido - nivel debajo del inversionista)
@@ -94,6 +125,10 @@ export const clientThemes = {
     textLight: '#f5f1ec',
     green: '#3d5a40',
     warm: '#907a63',
+    warmLight: '#4f6750',
+    success: colors.success,
+    warning: colors.warning,
+    error: colors.error,
   },
   
   // Asesor (fondo oscuro azul)
@@ -103,11 +138,16 @@ export const clientThemes = {
     accent: '#cbb375',
     background: '#0c1427',
     surface: '#1f2b38',
+    surfaceLight: '#2a3847',
     border: '#3a4857',
     text: '#e5e5e5',
     textSecondary: '#9ca3af',
     textMuted: '#6b7280',
     textLight: '#e5e5e5',
+    warmLight: '#28384a',
+    success: colors.success,
+    warning: colors.warning,
+    error: colors.error,
   },
 }
 

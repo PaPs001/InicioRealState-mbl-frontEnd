@@ -21,7 +21,7 @@ export function useTheme(): UseThemeResult {
   const { currentUser, isInvestor, isTenant, isAgent, isAdmin } = useAuth()
 
   return useMemo(() => {
-    const isSearching = currentUser?.role === 'searching'
+    const isSearching = currentUser?.clientProfile === 'SEEKER'
     const isAdvisor = isAgent || isAdmin
 
     let themeMode: ThemeMode = 'default'

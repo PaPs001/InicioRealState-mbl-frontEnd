@@ -20,14 +20,12 @@ import {
 } from 'lucide-react-native'
 
 export default function MessagesTab() {
-  const { currentUser, isClient, isAgent, isAdmin } = useAuth()
+  const { currentUser, isAgent, isAdmin } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
 
   // Determinar si es inversionista para usar tema oscuro
-  const isInvestor = currentUser?.role === 'investor'
-  const isDark = isAgent || isAdmin || isInvestor
-  
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
   // Obtener colores segun el tipo de usuario
   const getThemeColors = () => {
     if (isInvestor) return clientThemes.investor
@@ -103,7 +101,7 @@ export default function MessagesTab() {
     return (
       <TouchableOpacity 
         style={[styles.conversationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-        onPress={() => router.push(`/chat/${conversation.id}`)}
+        onPress={() => router.push({ pathname: '/chat/[id]', params: { id: conversation.id } })}
         activeOpacity={0.7}
       >
         <View style={styles.avatarContainer}>
@@ -181,7 +179,7 @@ export default function MessagesTab() {
             <MessageCircle size={48} color={theme.textMuted} />
             <Text style={[styles.emptyStateTitle, { color: theme.text }]}>Sin conversaciones</Text>
             <Text style={[styles.emptyStateText, { color: theme.textMuted }]}>
-              Tus mensajes con asesores e inquilinos apareceran aqui
+              Tus mensajes con asesores e inquilinos aparecerán aquí
             </Text>
           </View>
         }

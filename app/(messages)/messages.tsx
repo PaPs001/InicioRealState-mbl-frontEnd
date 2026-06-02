@@ -75,7 +75,7 @@ export default function MessagesScreen() {
     return (
       <TouchableOpacity 
         style={styles.conversationCard}
-        onPress={() => router.push(`/chat/${conversation.id}`)}
+        onPress={() => router.push({ pathname: '/chat/[id]', params: { id: conversation.id } })}
         activeOpacity={0.7}
       >
         <View style={styles.avatarContainer}>
@@ -159,7 +159,7 @@ export default function MessagesScreen() {
             <MessageCircle size={48} color={colors.textMuted} />
             <Text style={styles.emptyStateTitle}>Sin conversaciones</Text>
             <Text style={styles.emptyStateText}>
-              Tus mensajes con asesores e inquilinos apareceran aqui
+              Tus mensajes con asesores e inquilinos aparecerán aquí
             </Text>
           </View>
         }

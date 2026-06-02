@@ -5,6 +5,7 @@ import {
   TextInput, 
   StyleSheet, 
   TouchableOpacity, 
+  Keyboard,
   Animated,
   Dimensions,
   ActivityIndicator,
@@ -18,6 +19,8 @@ import { ArrowLeft, Check, Home, Plus, ChevronRight, Calendar, MapPin, DollarSig
 import { useRouter } from 'expo-router'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 import * as ImagePicker from 'expo-image-picker'
+import { useAuth } from '@/contexts/AuthContext'
+import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
 
 const { width, height } = Dimensions.get('window')
 
@@ -57,6 +60,7 @@ interface RentalData {
 
 export default function RenterForm() {
   const router = useRouter()
+  const { setAuthSession } = useAuth()
   const [step, setStep] = useState(1)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -155,6 +159,8 @@ export default function RenterForm() {
   const isRentalInfoValid = rentalData.startDate && rentalData.endDate && rentalData.rentalType && rentalData.location && rentalData.monthlyRent
 
   const handleBack = () => {
+    Keyboard.dismiss()
+
     if (step === 1) {
       router.back()
       return
@@ -189,6 +195,8 @@ export default function RenterForm() {
   }
 
   const handleContinue = () => {
+    Keyboard.dismiss()
+
     if (step === 1 && isStepOneValid) {
       setStep(2)
       return
@@ -229,7 +237,7 @@ export default function RenterForm() {
     if (answer === 'now') {
       setStep(7) // Ir a formulario de datos de renta
     } else {
-      handleFinish() // Finalizar y agregar despues
+      void handleFinish() // Finalizar y agregar despues
     }
   }
 
@@ -259,18 +267,32 @@ export default function RenterForm() {
     }
   }
 
-  const handleFinish = () => {
-    router.push({
-      pathname: '/register-transition',
-      params: {
-        title: 'Bienvenido a tu hogar',
-        subtitle: 'Tu espacio para gestionar tu renta esta listo.',
-        loginUserId: 'user-3',
-        nextRoute: '/(tabs)',
-        durationMs: '2200',
-        variant: 'pulse-orb',
+  const completeRegistration = async () => {
+    const result = await completeRegistrationAndLogin(
+      {
+        name: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        role: 'CLIENT',
+        clientProfile: 'TENANT',
       },
-    })
+      setAuthSession
+    )
+
+    if (!result.success) {
+      console.error('Error al registrar el usuario inquilino', result.error)
+      return false
+    }
+
+    return true
+  }
+
+  const handleFinish = async () => {
+    const registered = await completeRegistration()
+    if (!registered) return
+
+    router.replace('/(tabs)')
   }
 
   const isCurrentStepValid =
@@ -295,17 +317,17 @@ export default function RenterForm() {
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Comencemos con lo basico</Text>
-            <Text style={styles.stepSubtitle}>Como te gustaria que te llamemos?</Text>
+            <Text style={styles.stepSubtitle}>¿Cómo te gustaría que te llamemos?</Text>
             
             <View style={styles.formGroup}>
               <Text style={styles.label}>Nombre completo</Text>
               <TextInput
+                key="renter-name"
                 style={styles.input}
                 placeholder="Escribe tu nombre completo"
                 placeholderTextColor={tenantColors.textMuted}
                 value={fullName}
                 onChangeText={setFullName}
-                autoFocus
               />
               <Text style={styles.hint}>Usaremos este nombre para personalizar tu experiencia</Text>
             </View>
@@ -321,6 +343,7 @@ export default function RenterForm() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Correo electronico</Text>
               <TextInput
+                key="renter-email"
                 style={styles.input}
                 placeholder="tu@correo.com"
                 placeholderTextColor={tenantColors.textMuted}
@@ -328,9 +351,8 @@ export default function RenterForm() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                autoFocus
               />
-              <Text style={styles.hint}>Aqui recibiras recordatorios de tu renta</Text>
+              <Text style={styles.hint}>Aquí recibirás recordatorios de tu renta</Text>
             </View>
           </Animated.View>
         )
@@ -342,15 +364,15 @@ export default function RenterForm() {
             <Text style={styles.stepSubtitle}>Para que podamos contactarte</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Numero de telefono</Text>
+              <Text style={styles.label}>Número de teléfono</Text>
               <TextInput
+                key="renter-phone"
                 style={styles.input}
                 placeholder="+52 55 1234 5678"
                 placeholderTextColor={tenantColors.textMuted}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
-                autoFocus
               />
               <Text style={styles.hint}>Solo te contactaremos cuando sea importante</Text>
             </View>
@@ -361,20 +383,22 @@ export default function RenterForm() {
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={styles.stepTitle}>Protege tu cuenta</Text>
-            <Text style={styles.stepSubtitle}>Crea una contrasena segura</Text>
+            <Text style={styles.stepSubtitle}>Crea una contraseña segura</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Contrasena</Text>
+              <Text style={styles.label}>Contraseña</Text>
               <TextInput
+                key="renter-password"
                 style={styles.input}
                 placeholder="Minimo 6 caracteres"
                 placeholderTextColor={tenantColors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
               />
-              <Text style={styles.hint}>Tu informacion esta protegida con encriptacion</Text>
+              <Text style={styles.hint}>Tu información está protegida con encriptación</Text>
             </View>
           </Animated.View>
         )
@@ -388,9 +412,9 @@ export default function RenterForm() {
                 <Home size={48} color={tenantColors.accent} />
               </Animated.View>
               
-              <Text style={styles.questionTitle}>Como rentas actualmente?</Text>
+              <Text style={styles.questionTitle}>¿Cómo rentas actualmente?</Text>
               <Text style={styles.questionSubtitle}>
-                Cuentanos sobre tu situacion de renta para personalizar tu experiencia
+                Cuéntanos sobre tu situación de renta para personalizar tu experiencia
               </Text>
 
               <View style={styles.optionsContainer}>
@@ -416,7 +440,7 @@ export default function RenterForm() {
                     <Plus size={24} color={tenantColors.warm} />
                     <View style={styles.optionTextContainer}>
                       <Text style={styles.optionText}>Rento de manera externa</Text>
-                      <Text style={styles.optionSubtext}>Quiero administrar mi renta aqui</Text>
+                      <Text style={styles.optionSubtext}>Quiero administrar mi renta aquí</Text>
                     </View>
                   </View>
                   <ChevronRight size={20} color={tenantColors.textMuted} />
@@ -438,7 +462,7 @@ export default function RenterForm() {
                 
                 <Text style={styles.successTitle}>Renta vinculada</Text>
                 <Text style={styles.successSubtitle}>
-                  Hemos encontrado tu contrato de renta y lo vinculamos a tu cuenta. Ya puedes acceder a toda la informacion.
+                  Hemos encontrado tu contrato de renta y lo vinculamos a tu cuenta. Ya puedes acceder a toda la información.
                 </Text>
 
                 <View style={styles.propertyPreview}>
@@ -449,7 +473,7 @@ export default function RenterForm() {
                   </View>
                 </View>
 
-                <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
+                <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
                   <Text style={styles.primaryButtonText}>Ir a mi inicio</Text>
                 </TouchableOpacity>
               </View>
@@ -467,7 +491,7 @@ export default function RenterForm() {
               
               <Text style={styles.questionTitle}>Quieres agregar los datos de tu renta?</Text>
               <Text style={styles.questionSubtitle}>
-                Puedes agregar la informacion ahora o hacerlo mas tarde desde la app
+                Puedes agregar la información ahora o hacerlo más tarde desde la app
               </Text>
 
               <View style={styles.optionsContainer}>
@@ -479,7 +503,7 @@ export default function RenterForm() {
                     <Check size={24} color={tenantColors.green} />
                     <View style={styles.optionTextContainer}>
                       <Text style={styles.optionText}>Agregar ahora</Text>
-                      <Text style={styles.optionSubtext}>Completar informacion de mi renta</Text>
+                      <Text style={styles.optionSubtext}>Completar información de mi renta</Text>
                     </View>
                   </View>
                   <ChevronRight size={20} color={tenantColors.textMuted} />
@@ -492,8 +516,8 @@ export default function RenterForm() {
                   <View style={styles.optionContent}>
                     <Clock size={24} color={tenantColors.warm} />
                     <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionText}>Agregar despues</Text>
-                      <Text style={styles.optionSubtext}>Lo hare mas tarde</Text>
+                      <Text style={styles.optionText}>Agregar después</Text>
+                      <Text style={styles.optionSubtext}>Lo haré más tarde</Text>
                     </View>
                   </View>
                   <ChevronRight size={20} color={tenantColors.textMuted} />
@@ -507,8 +531,8 @@ export default function RenterForm() {
       case 7:
         return (
           <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Informacion de tu renta</Text>
-            <Text style={styles.stepSubtitle}>Cuentanos sobre tu contrato</Text>
+            <Text style={styles.stepTitle}>Información de tu renta</Text>
+            <Text style={styles.stepSubtitle}>Cuéntanos sobre tu contrato</Text>
             
             <View style={styles.formGroup}>
               <Text style={styles.label}>Fecha de inicio del contrato</Text>
@@ -557,7 +581,7 @@ export default function RenterForm() {
               <Text style={styles.label}>Ubicacion</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Direccion de la propiedad"
+                placeholder="Dirección de la propiedad"
                 placeholderTextColor={tenantColors.textMuted}
                 value={rentalData.location}
                 onChangeText={(text) => setRentalData(prev => ({ ...prev, location: text }))}
@@ -628,7 +652,7 @@ export default function RenterForm() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Telefono del asesor (opcional)</Text>
+              <Text style={styles.label}>Teléfono del asesor (opcional)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="+52 55 1234 5678"
@@ -643,7 +667,7 @@ export default function RenterForm() {
               <Text style={styles.primaryButtonText}>Continuar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.secondaryButton} onPress={handleFinish}>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => void handleFinish()}>
               <Text style={styles.secondaryButtonText}>Omitir y finalizar</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -693,10 +717,10 @@ export default function RenterForm() {
                 
                 <Text style={styles.notFoundTitle}>No encontramos tu renta</Text>
                 <Text style={styles.notFoundSubtitle}>
-                  No pudimos encontrar un contrato activo con tus datos. Puedes continuar y agregar la informacion manualmente o contactar a tu asesor.
+                  No pudimos encontrar un contrato activo con tus datos. Puedes continuar y agregar la información manualmente o contactar a tu asesor.
                 </Text>
 
-                <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
+                <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
                   <Text style={styles.primaryButtonText}>Continuar de todas formas</Text>
                 </TouchableOpacity>
 
@@ -726,11 +750,11 @@ export default function RenterForm() {
               </View>
             )}
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
+            <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
               <Text style={styles.primaryButtonText}>Finalizar registro</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.secondaryButton} onPress={handleFinish}>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => void handleFinish()}>
               <Text style={styles.secondaryButtonText}>Omitir y finalizar</Text>
             </TouchableOpacity>
           </Animated.View>
