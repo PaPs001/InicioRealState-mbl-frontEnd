@@ -22,7 +22,6 @@ import {
   ChevronRight,
 } from 'lucide-react-native'
 
-// Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor
 
 export default function MyPropertiesScreen() {
@@ -106,7 +105,6 @@ export default function MyPropertiesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -123,14 +121,12 @@ export default function MyPropertiesScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Contador */}
       <View style={styles.counterContainer}>
         <Text style={styles.counterText}>
           {myProperties.length} {myProperties.length === 1 ? 'propiedad' : 'propiedades'} en tu portafolio
         </Text>
       </View>
 
-      {/* Lista de propiedades */}
       <FlatList
         data={myProperties}
         renderItem={renderPropertyCard}

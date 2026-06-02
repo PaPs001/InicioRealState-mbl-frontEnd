@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { User, UserRole, Property, PropertyLead, Appointment, Notification } from '@/lib/types'
+import type { User, UserProfile, BackendUserRole, Property, PropertyLead, Appointment, Notification } from '@/lib/types'
 import { mockUsers, mockProperties, mockLeads, mockAppointments, mockNotifications } from '@/lib/mock-data'
 import { 
   getAllCatalogProperties,
@@ -11,6 +11,7 @@ import {
   getFavoriteProperties,
   deleteFavoriteProperties
 } from '@/lib/api/endpoints/catalog'
+import { getCurrentUser } from '@/lib/api/endpoints/auth'
 
 interface AuthContextType {
   currentUser: User | null
@@ -66,7 +67,9 @@ const CURRENT_USER_ID_STORAGE_KEY = 'currentUserId'
 type BackendUser = Partial<User> & {
   _id?: string
   userId?: string
-  roles?: string[]
+  roles?: BackendUserRole[]
+  permissions?: string[]
+  clientProfile?: UserProfile
 }
 
 function decodeBase64(value: string): string | null {
@@ -108,35 +111,40 @@ function getUserIdFromToken(token: string | null): string | null {
   }
 }
 
-function mapBackendRoleToAppRole(roles?: string[], role?: string): UserRole {
-  const normalizedRoles = roles?.map(item => item.toUpperCase()) ?? []
-  const normalizedRole = role?.toUpperCase()
 
-  if (normalizedRoles.includes('CLIENT') || normalizedRole === 'CLIENT') {
-    return 'searching'
+function mapBackendRolesToSystemRole(roles?: BackendUserRole[], systemRole?: BackendUserRole): BackendUserRole {
+  if (systemRole) {
+    return systemRole
   }
 
-  if (normalizedRoles.includes('AGENT') || normalizedRole === 'AGENT') {
-    return 'agent'
+  if (roles?.includes('ADMIN')) {
+    return 'ADMIN'
   }
 
-  if (normalizedRoles.includes('ADMIN') || normalizedRole === 'ADMIN') {
-    return 'admin'
+  if (roles?.includes('COORDINATOR')) {
+    return 'COORDINATOR'
   }
 
-  if (normalizedRole === 'INVESTOR') {
-    return 'investor'
+  if (roles?.includes('AGENT')) {
+    return 'AGENT'
   }
 
-  if (normalizedRole === 'TENANT') {
-    return 'tenant'
+  return 'CLIENT'
+}
+
+function mapPermissionsToClientProfile(permissions?: string[], clientProfile?: string): UserProfile {
+  const normalizedPermissions = permissions?.map(item => item.toUpperCase()) ?? []
+  const normalizedProfile = clientProfile?.toUpperCase()
+
+  if (normalizedProfile === 'INVESTOR' || normalizedPermissions.includes('INVESTOR')) {
+    return 'INVESTOR'
   }
 
-  if (normalizedRole === 'SEARCHING') {
-    return 'searching'
+  if (normalizedProfile === 'TENANT' || normalizedPermissions.includes('TENANT')) {
+    return 'TENANT'
   }
 
-  return 'searching'
+  return 'SEEKER'
 }
 
 function normalizeUser(user: BackendUser | User | null): User | null {
@@ -149,7 +157,9 @@ function normalizeUser(user: BackendUser | User | null): User | null {
     name: user.name ?? '',
     email: user.email ?? '',
     phone: user.phone ?? '',
-    role: mapBackendRoleToAppRole(backendUser.roles, user.role ? String(user.role) : undefined),
+    systemRole: mapBackendRolesToSystemRole(backendUser.roles, user.systemRole),
+    clientProfile: mapPermissionsToClientProfile(backendUser.permissions, backendUser.clientProfile),
+    permissions: backendUser.permissions ?? user.permissions,
     avatar: user.avatar,
     createdAt: user.createdAt ?? new Date().toISOString(),
   }
@@ -185,6 +195,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? { ...normalizedUser, id: normalizedUser.id || tokenUserId || '' }
       : null
 
+    console.log('[auth][setAuthSession] input', {
+      incomingUserId: normalizedUser?.id ?? null,
+      incomingEmail: normalizedUser?.email ?? null,
+      incomingSystemRole: normalizedUser?.systemRole ?? null,
+      incomingClientProfile: normalizedUser?.clientProfile ?? null,
+      tokenUserId,
+      hasToken: !!token,
+    })
+
     setCurrentUserState(sessionUser)
     setAuthToken(token)
 
@@ -201,17 +220,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
     }
+
+    console.log('[auth][setAuthSession] stored', {
+      sessionUserId: sessionUser?.id ?? null,
+      sessionEmail: sessionUser?.email ?? null,
+      sessionSystemRole: sessionUser?.systemRole ?? null,
+      sessionClientProfile: sessionUser?.clientProfile ?? null,
+      hasToken: !!token,
+    })
   }
+
+  const hydrateSessionFromToken = useCallback(async (token: string) => {
+    const backendUser = await getCurrentUser(token)
+    await setAuthSession(backendUser, token)
+  }, [])
 
   const loadStoredUser = async () => {
     try {
-      const storedUserId = await AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY)
       const storedAuthToken = await AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
       const storedAuthUser = await AsyncStorage.getItem(AUTH_USER_STORAGE_KEY)
-      setAuthToken(storedAuthToken)
-      if (storedAuthUser) {
+      const storedUserId = await AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY)
+
+      if (storedAuthToken) {
+        try {
+          await hydrateSessionFromToken(storedAuthToken)
+        } catch (error) {
+          console.error('Error hydrating session from token:', error)
+          setAuthToken(storedAuthToken)
+          if (storedAuthUser) {
+            setCurrentUserState(JSON.parse(storedAuthUser) as User)
+          }
+        }
+      } else if (storedAuthUser) {
         setCurrentUserState(JSON.parse(storedAuthUser) as User)
       }
+
       if (storedUserId) {
         const storedFavorites = await AsyncStorage.getItem(`favorites_${storedUserId}`)
         if (storedFavorites) {
@@ -251,13 +294,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
     await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
   }
-
-  const isInvestor = currentUser?.role === 'investor'
-  const isSearching = currentUser?.role === 'searching'
-  const isTenant = currentUser?.role === 'tenant'
-  const isAgent = currentUser?.role === 'agent'
-  const isAdmin = currentUser?.role === 'admin'
-  const isClient = isInvestor || isSearching || isTenant
+  const isClient = currentUser?.systemRole === 'CLIENT'
+  const isCoordinator = currentUser?.systemRole === 'COORDINATOR'
+  const isAgent = currentUser?.systemRole === 'AGENT'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
+  const isAdmin = currentUser?.systemRole === 'ADMIN'
 
   const userProperties = mockProperties.filter(p => p.ownerId === currentUser?.id)
   
@@ -279,7 +322,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isAgent || isAdmin) return isAdmin || a.agentId === currentUser?.id
     return false
   })
-  // funciones para manejo de favoritos de propiedades
   const loadFavoriteProperties = useCallback(async () => {
     if(!currentUser?.id){
       setFavoriteProperties([])

@@ -14,7 +14,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+import { colors, spacing, typography, borderRadius, clientThemes, type ClientTheme } from '@/lib/theme'
 import { formatCurrency } from '@/lib/mock-data'
 import { 
   Heart, 
@@ -60,11 +60,11 @@ export default function PropertyDetailScreen() {
   const property = getPropertyById(id || '')
   const favorite = property ? isFavorite(property.id) : false
 
-  const isInvestor = currentUser?.role === 'investor'
-  const isSearching = currentUser?.role === 'searching'
-  const isTenant = currentUser?.role === 'tenant'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
   
-  const theme = useMemo(() => {
+  const theme = useMemo<ClientTheme>(() => {
     if (isInvestor) return clientThemes.investor
     if (isTenant) return clientThemes.tenant
     if (isSearching) return clientThemes.searching
@@ -79,6 +79,9 @@ export default function PropertyDetailScreen() {
       textSecondary: colors.textSecondary,
       textMuted: colors.textMuted,
       textLight: colors.textInverse,
+      success: colors.success,
+      warning: colors.warning,
+      error: colors.error,
     }
   }, [isInvestor, isSearching, isTenant])
 
@@ -222,7 +225,7 @@ export default function PropertyDetailScreen() {
       {/* Descripcion */}
       {property.description && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Descripcion</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Descripción</Text>
           <Text style={[styles.description, { color: theme.textSecondary }]}>{property.description}</Text>
         </View>
       )}
@@ -234,13 +237,13 @@ export default function PropertyDetailScreen() {
             <View style={styles.featureItem}>
               <Bed size={24} color={theme.accent} />
               <Text style={[styles.featureValue, { color: theme.text }]}>{property.bedrooms}</Text>
-              <Text style={[styles.featureLabel, { color: theme.textMuted }]}>Recamaras</Text>
+              <Text style={[styles.featureLabel, { color: theme.textMuted }]}>Recámaras</Text>
             </View>
             <View style={[styles.featureDivider, { backgroundColor: theme.border }]} />
             <View style={styles.featureItem}>
               <Bath size={24} color={theme.accent} />
               <Text style={[styles.featureValue, { color: theme.text }]}>{property.bathrooms}</Text>
-              <Text style={[styles.featureLabel, { color: theme.textMuted }]}>Banos</Text>
+              <Text style={[styles.featureLabel, { color: theme.textMuted }]}>Baños</Text>
             </View>
             <View style={[styles.featureDivider, { backgroundColor: theme.border }]} />
             <View style={styles.featureItem}>
@@ -295,7 +298,7 @@ export default function PropertyDetailScreen() {
             onPress={() => openLink(property.locationUrl)}
           >
             <ExternalLink size={16} color={theme.accent} />
-            <Text style={[styles.linkButtonText, { color: theme.accent }]}>Ver ubicacion en Google Maps</Text>
+            <Text style={[styles.linkButtonText, { color: theme.accent }]}>Ver ubicación en Google Maps</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -359,24 +362,24 @@ export default function PropertyDetailScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Proyeccion de Plusvalia</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Proyección de Plusvalía</Text>
           <Text style={[styles.projectionNote, { color: theme.textMuted }]}>
             Basado en un crecimiento anual estimado del 8%
           </Text>
           
           <View style={styles.projectionsGrid}>
             <View style={[styles.projectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>1 ano</Text>
+              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>1 año</Text>
               <Text style={[styles.projectionValue, { color: theme.text }]}>{formatCurrency(value1Year)}</Text>
               <Text style={[styles.projectionGrowth, { color: colors.success }]}>+{formatCurrency(value1Year - currentValue)}</Text>
             </View>
             <View style={[styles.projectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>3 anos</Text>
+              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>3 años</Text>
               <Text style={[styles.projectionValue, { color: theme.text }]}>{formatCurrency(value3Years)}</Text>
               <Text style={[styles.projectionGrowth, { color: colors.success }]}>+{formatCurrency(value3Years - currentValue)}</Text>
             </View>
             <View style={[styles.projectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>5 anos</Text>
+              <Text style={[styles.projectionYear, { color: theme.textMuted }]}>5 años</Text>
               <Text style={[styles.projectionValue, { color: theme.text }]}>{formatCurrency(value5Years)}</Text>
               <Text style={[styles.projectionGrowth, { color: colors.success }]}>+{formatCurrency(value5Years - currentValue)}</Text>
             </View>
@@ -686,7 +689,7 @@ export default function PropertyDetailScreen() {
             <ArrowLeft size={20} color={theme.accent} />
           </TouchableOpacity>
         </View>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Mas informacion</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Más información</Text>
         <View style={[styles.headerSide, styles.headerActions]}>
           {!isAgent && !isAdmin ? (
             <TouchableOpacity 
@@ -736,7 +739,7 @@ export default function PropertyDetailScreen() {
           >
             <TrendingUp size={18} color={activeTab === 'analysis' ? theme.accent : theme.textMuted} />
             <Text style={[styles.tabText, { color: activeTab === 'analysis' ? theme.accent : theme.textMuted }]}>
-              Plusvalia
+              Plusvalía
             </Text>
           </TouchableOpacity>
         )}

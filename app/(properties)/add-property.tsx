@@ -43,7 +43,7 @@ import {
 
 const investorColors = clientThemes.investor
 
-type PropertyType = 'house' | 'apartment' | 'land'
+type PropertyType = 'house' | 'department' | 'lot'
 type AcquisitionType = 'inicio' | 'external'
 
 const AMENITIES = [
@@ -86,11 +86,11 @@ export default function AddPropertyScreen() {
     const tokenPreview = authToken ? `${authToken.slice(0, 12)}...` : 'SIN_TOKEN'
     console.log('[auth][add-property]', {
       userId: currentUser?.id ?? null,
-      role: currentUser?.role ?? null,
+      role: currentUser?.clientProfile ?? null,
       token: tokenPreview,
       hasToken: !!authToken,
     })
-  }, [authToken, currentUser?.id, currentUser?.role])
+  }, [authToken, currentUser?.id, currentUser?.clientProfile])
 
   const handleSubmit = async () => {
     if (!propertyType) return
@@ -130,7 +130,7 @@ export default function AddPropertyScreen() {
       propertyInformation: acquisitionLabel,
       propertyDescription: formData.description.trim() || formData.title.trim(),
       locationUrl: "https://maps.google.com/...",
-      isALand: propertyType === 'land',
+      isALand: propertyType === 'lot',
       propertyArea: normalizedArea ? `${normalizedArea} m2` : null,
       propertyDimensions: "10x12",
       propertyAmenities: amenityLabels.length > 0 ? amenityLabels.join(', ') : null,
@@ -140,8 +140,8 @@ export default function AddPropertyScreen() {
       maxPrice: null,
       status: 'disponible',
       parking: selectedAmenities.includes('parking') ? '1' : '1',
-      wc: propertyType === 'land' ? null : (formData.bathrooms.trim() || null),
-      bed: propertyType === 'land' ? null : (formData.bedrooms.trim() || null),
+      wc: propertyType === 'lot' ? null : (formData.bathrooms.trim() || null),
+      bed: propertyType === 'lot' ? null : (formData.bedrooms.trim() || null),
       address: formData.address.trim(),
       originalPhotos: "https://example.com/photos/original.jpg",
       editedPhotos: "https://example.com/photos/edited.jpg",
@@ -191,7 +191,6 @@ export default function AddPropertyScreen() {
   }
 
   const handleAddPhoto = () => {
-    // Simulacion - en produccion usaria expo-image-picker
     const mockPhoto = `photo_${photos.length + 1}`
     setPhotos([...photos, mockPhoto])
   }
@@ -234,21 +233,21 @@ export default function AddPropertyScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.optionCard, propertyType === 'apartment' && styles.optionCardSelected]}
-          onPress={() => setPropertyType('apartment')}
+          style={[styles.optionCard, propertyType === 'department' && styles.optionCardSelected]}
+          onPress={() => setPropertyType('department')}
         >
-          <Building2 size={32} color={propertyType === 'apartment' ? investorColors.accent : investorColors.textMuted} />
-          <Text style={[styles.optionLabel, propertyType === 'apartment' && styles.optionLabelSelected]}>
+          <Building2 size={32} color={propertyType === 'department' ? investorColors.accent : investorColors.textMuted} />
+          <Text style={[styles.optionLabel, propertyType === 'department' && styles.optionLabelSelected]}>
             Departamento
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.optionCard, propertyType === 'land' && styles.optionCardSelected]}
-          onPress={() => setPropertyType('land')}
+          style={[styles.optionCard, propertyType === 'lot' && styles.optionCardSelected]}
+          onPress={() => setPropertyType('lot')}
         >
-          <Map size={32} color={propertyType === 'land' ? investorColors.accent : investorColors.textMuted} />
-          <Text style={[styles.optionLabel, propertyType === 'land' && styles.optionLabelSelected]}>
+          <Map size={32} color={propertyType === 'lot' ? investorColors.accent : investorColors.textMuted} />
+          <Text style={[styles.optionLabel, propertyType === 'lot' && styles.optionLabelSelected]}>
             Terreno
           </Text>
         </TouchableOpacity>
@@ -258,7 +257,7 @@ export default function AddPropertyScreen() {
 
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Como adquiriste esta propiedad?</Text>
+      <Text style={styles.stepTitle}>¿Cómo adquiriste esta propiedad?</Text>
       <Text style={styles.stepSubtitle}>Esto nos ayuda a dar mejor seguimiento</Text>
 
       <View style={styles.listingOptions}>
@@ -304,7 +303,7 @@ export default function AddPropertyScreen() {
         <View style={styles.externalAgencyContainer}>
           <View style={styles.formGroup}>
             <Text style={styles.inputLabel}>Inmobiliaria (opcional)</Text>
-            <Text style={styles.inputHint}>Si compraste con alguna inmobiliaria, indicanos cual</Text>
+            <Text style={styles.inputHint}>Si compraste con alguna inmobiliaria, indícanos cuál</Text>
             <TextInput
               style={styles.input}
               placeholder="Ej: Century 21, RE/MAX, etc."
@@ -335,7 +334,7 @@ export default function AddPropertyScreen() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.inputLabel}>Direccion</Text>
+        <Text style={styles.inputLabel}>Dirección</Text>
         <View style={styles.inputWithIcon}>
           <MapPin size={20} color={investorColors.textMuted} />
           <TextInput
@@ -359,10 +358,10 @@ export default function AddPropertyScreen() {
         />
       </View>
 
-      {propertyType !== 'land' && (
+      {propertyType !== 'lot' && (
         <View style={styles.formRow}>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.inputLabel}>Recamaras</Text>
+            <Text style={styles.inputLabel}>Recámaras</Text>
             <View style={styles.inputWithIcon}>
               <Bed size={20} color={investorColors.textMuted} />
               <TextInput
@@ -377,7 +376,7 @@ export default function AddPropertyScreen() {
           </View>
 
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.inputLabel}>Banos</Text>
+            <Text style={styles.inputLabel}>Baños</Text>
             <View style={styles.inputWithIcon}>
               <Bath size={20} color={investorColors.textMuted} />
               <TextInput
@@ -398,7 +397,7 @@ export default function AddPropertyScreen() {
   const renderStep4 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Detalles de la propiedad</Text>
-      <Text style={styles.stepSubtitle}>Informacion sobre precio y tamano</Text>
+      <Text style={styles.stepSubtitle}>Información sobre precio y tamaño</Text>
 
       <View style={styles.formGroup}>
         <Text style={styles.inputLabel}>Precio de compra</Text>
@@ -433,7 +432,7 @@ export default function AddPropertyScreen() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.inputLabel}>Descripcion (opcional)</Text>
+        <Text style={styles.inputLabel}>Descripción (opcional)</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Describe las caracteristicas de tu propiedad..."
@@ -477,7 +476,7 @@ export default function AddPropertyScreen() {
       </View>
 
       <Text style={styles.amenitiesHint}>
-        Puedes agregar o modificar las amenidades despues
+        Puedes agregar o modificar las amenidades después
       </Text>
     </View>
   )
@@ -507,7 +506,7 @@ export default function AddPropertyScreen() {
       <View style={styles.infoBox}>
         <ImageIcon size={20} color={investorColors.accent} />
         <Text style={styles.infoBoxText}>
-          Las fotos te ayudan a mantener un registro visual de tu propiedad. Puedes agregarlas ahora o despues desde el detalle de la propiedad.
+          Las fotos te ayudan a mantener un registro visual de tu propiedad. Puedes agregarlas ahora o después desde el detalle de la propiedad.
         </Text>
       </View>
     </View>

@@ -11,8 +11,7 @@ export default function FavoritesStandaloneScreen() {
   const { favorites, availableProperties, toggleFavorite, userProperties, currentUser } = useAuth()
   const router = useRouter()
 
-  // Detectar si es inversionista para usar tema oscuro
-  const isInvestor = currentUser?.role === 'investor'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
   const theme = isInvestor ? clientThemes.investor : null
 
   const allProperties = [...availableProperties, ...userProperties]
@@ -125,7 +124,7 @@ export default function FavoritesStandaloneScreen() {
               Sin favoritos
             </Text>
             <Text style={[styles.emptyStateText, isInvestor && { color: theme!.textSecondary }]}>
-              Guarda las propiedades que te interesen para verlas despues
+              Guarda las propiedades que te interesen para verlas después
             </Text>
             <TouchableOpacity 
               style={[styles.exploreButton, isInvestor && { backgroundColor: theme!.accent }]}

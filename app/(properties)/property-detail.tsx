@@ -117,7 +117,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.infoRow}>
             <Ruler size={20} color={investorColors.accent} />
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Tamano</Text>
+              <Text style={styles.infoLabel}>Tamaño</Text>
               <Text style={styles.infoValue}>{property.size} m²</Text>
             </View>
           </View>
@@ -414,7 +414,7 @@ export default function PropertyDetailScreen() {
             <DollarSign size={48} color={investorColors.textMuted} />
             <Text style={styles.emptyTabTitle}>Sin ganancias registradas</Text>
             <Text style={styles.emptyTabText}>
-              Cuando esta propiedad genere ingresos, apareceran aqui
+              Cuando esta propiedad genere ingresos, aparecerán aquí
             </Text>
           </View>
 
@@ -438,7 +438,7 @@ export default function PropertyDetailScreen() {
               <View style={styles.infoRow}>
                 <TrendingUp size={20} color={investorColors.accent} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Plusvalia anual estimada</Text>
+                  <Text style={styles.infoLabel}>Plusvalía anual estimada</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
                     {formatCurrency((property.currentValue || property.price) * 0.10)}
                   </Text>

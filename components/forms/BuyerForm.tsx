@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -30,9 +31,9 @@ import {
 } from 'lucide-react-native'
 import { useAuth } from '@/contexts/AuthContext'
 import { spacing, typography, borderRadius, clientThemes, colors } from '@/lib/theme'
-import type { Property, User as AppUser } from '@/lib/types'
+import type { Property } from '@/lib/types'
 import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
-import { registerUser } from '@/lib/registerUser'
+import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
 
 const { width } = Dimensions.get('window')
 
@@ -58,6 +59,13 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [suggestedProperties, setSuggestedProperties] = useState<Property[]>([])
+
+  const updateFormData = (field: keyof typeof formData, value: string) => {
+    setFormData((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
   
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
@@ -144,6 +152,8 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }, [step, hasLoadedCatalog, isCatalogLoading, availableProperties])
 
   const handleNext = () => {
+    Keyboard.dismiss()
+
     switch (step) {
       case 'name':
         if (formData.name.trim()) setStep('email')
@@ -166,6 +176,8 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handleBack = () => {
+    Keyboard.dismiss()
+
     switch (step) {
       case 'email':
         setStep('name')
@@ -185,43 +197,29 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const handleSkipPreferences = async () => {
-    await completeRegistration()
+    const registered = await completeRegistration()
+    if (!registered) return
+    router.replace('/(tabs)')
   }
 
   const completeRegistration = async () => {
-    try {
-      const response = await registerUser({
+    const result = await completeRegistrationAndLogin(
+      {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-      })
+        role: 'CLIENT',
+        clientProfile: formData.searchType === 'rent' ? 'TENANT' : 'SEEKER',
+      },
+      setAuthSession
+    )
 
-      const backendUser = (response as {
-        user?: AppUser
-        data?: { user?: AppUser }
-      }).user ?? (response as { data?: { user?: AppUser } }).data?.user
-
-      const authToken = (response as {
-        accessToken?: string
-        token?: string
-        data?: { accessToken?: string; token?: string }
-      }).accessToken
-        ?? (response as { token?: string }).token
-        ?? (response as { data?: { accessToken?: string; token?: string } }).data?.accessToken
-        ?? (response as { data?: { accessToken?: string; token?: string } }).data?.token
-        ?? null
-
-      if (!backendUser || !authToken) {
-        throw new Error('El registro no devolvio una sesion valida')
-      }
-
-      await setAuthSession(backendUser, authToken)
-      return true
-    } catch(error){
-      console.error('Error al registrar el usuario', error)
-      return false
+    if (!result.success) {
+      console.error('Error al registrar el usuario', result.error)
     }
+
+    return result.success
   }
 
   const handlePropertySelect = async () => {
@@ -263,7 +261,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
           icon: User,
           placeholder: 'Tu nombre completo',
           value: formData.name,
-          onChange: (text: string) => setFormData({ ...formData, name: text }),
+          onChange: (text: string) => updateFormData('name', text),
           keyboardType: 'default' as const,
         }
       case 'email':
@@ -274,29 +272,29 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
           icon: Mail,
           placeholder: 'correo@ejemplo.com',
           value: formData.email,
-          onChange: (text: string) => setFormData({ ...formData, email: text }),
+          onChange: (text: string) => updateFormData('email', text),
           keyboardType: 'email-address' as const,
         }
       case 'phone':
         return {
           title: 'Una linea directa',
-          subtitle: 'Tu numero de telefono',
+          subtitle: 'Tu número de teléfono',
           hint: 'Solo para contactarte sobre propiedades de tu interes',
           icon: Phone,
           placeholder: '55 1234 5678',
           value: formData.phone,
-          onChange: (text: string) => setFormData({ ...formData, phone: text }),
+          onChange: (text: string) => updateFormData('phone', text),
           keyboardType: 'phone-pad' as const,
         }
       case 'password':
         return {
           title: 'Protege tu cuenta',
-          subtitle: 'Crea una contrasena segura',
+          subtitle: 'Crea una contraseña segura',
           hint: 'Minimo 6 caracteres',
           icon: Lock,
-          placeholder: 'Tu contrasena',
+          placeholder: 'Tu contraseña',
           value: formData.password,
-          onChange: (text: string) => setFormData({ ...formData, password: text }),
+          onChange: (text: string) => updateFormData('password', text),
           keyboardType: 'default' as const,
           secureTextEntry: true,
         }
@@ -330,6 +328,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
           <View style={styles.inputWrapper}>
             <Icon size={20} color={theme.textMuted} />
             <TextInput
+              key={`buyer-input-${step}`}
               style={styles.input}
               placeholder={content.placeholder}
               placeholderTextColor={theme.textMuted}
@@ -337,7 +336,9 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
               onChangeText={content.onChange}
               keyboardType={content.keyboardType}
               secureTextEntry={content.secureTextEntry && !showPassword}
-              autoFocus
+              autoCapitalize={step === 'email' || step === 'password' ? 'none' : 'sentences'}
+              autoCorrect={step !== 'email' && step !== 'password'}
+              textContentType={step === 'email' ? 'emailAddress' : step === 'password' ? 'password' : 'none'}
             />
             {content.secureTextEntry && (
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -375,8 +376,8 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       ]}
     >
       <View style={styles.stepHeader}>
-        <Text style={styles.stepTitle}>Que estas buscando?</Text>
-        <Text style={styles.stepSubtitle}>Cuentanos para mostrarte las mejores opciones</Text>
+        <Text style={styles.stepTitle}>¿Qué estás buscando?</Text>
+        <Text style={styles.stepSubtitle}>Cuéntanos para mostrarte las mejores opciones</Text>
       </View>
 
       {/* Selector de tipo: Comprar o Rentar */}
@@ -386,7 +387,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
             styles.searchTypeOption,
             formData.searchType === 'buy' && styles.searchTypeOptionSelected,
           ]}
-          onPress={() => setFormData({ ...formData, searchType: 'buy' })}
+          onPress={() => setFormData((current) => ({ ...current, searchType: 'buy' }))}
         >
           <View style={[
             styles.searchTypeIcon,
@@ -413,7 +414,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
             styles.searchTypeOption,
             formData.searchType === 'rent' && styles.searchTypeOptionSelected,
           ]}
-          onPress={() => setFormData({ ...formData, searchType: 'rent' })}
+          onPress={() => setFormData((current) => ({ ...current, searchType: 'rent' }))}
         >
           <View style={[
             styles.searchTypeIcon,
@@ -477,7 +478,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         <Text style={styles.suggestionsTitle}>
           {suggestedProperties.length > 0 
             ? 'Encontramos opciones para ti!' 
-            : 'Explora nuestro catalogo'}
+            : 'Explora nuestro catálogo'}
         </Text>
         <Text style={styles.suggestionsSubtitle}>
           {suggestedProperties.length > 0
@@ -518,13 +519,13 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         <View style={styles.noResultsContainer}>
           <Search size={48} color={theme.textMuted} />
           <Text style={styles.noResultsText}>
-            No encontramos propiedades con esos criterios, pero tenemos muchas mas opciones
+            No encontramos propiedades con esos criterios, pero tenemos muchas más opciones
           </Text>
         </View>
       )}
 
       <TouchableOpacity style={styles.exploreAllButton} onPress={handleExploreAll}>
-        <Text style={styles.exploreAllButtonText}>Explorar todo el catalogo</Text>
+        <Text style={styles.exploreAllButtonText}>Explorar todo el catálogo</Text>
         <ChevronRight size={20} color={theme.surface} />
       </TouchableOpacity>
     </Animated.View>
@@ -739,7 +740,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
-    backgroundColor: theme.warmLight,
+    backgroundColor: theme.warmLight || theme.surfaceLight || theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -831,7 +832,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: borderRadius.lg,
-    backgroundColor: theme.warmLight,
+    backgroundColor: theme.warmLight || theme.surfaceLight || theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },

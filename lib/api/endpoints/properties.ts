@@ -6,7 +6,7 @@ import { coreApi } from '../client'
 
 export interface CreateUserPropertyPayload {
   id: string
-  propertyType: 'house' | 'apartment' | 'land'
+  propertyType: 'house' | 'department' | 'lot'
   name: string
   banner: boolean
   urlImage: string | null

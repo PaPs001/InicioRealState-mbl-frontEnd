@@ -13,7 +13,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 
-// Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor
 import { mockProperties, formatCurrency } from '@/lib/mock-data'
 import { 
@@ -101,7 +100,6 @@ export default function ListPropertyScreen() {
     )
   }
 
-  // Success Screen
   if (showSuccess) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -121,11 +119,10 @@ export default function ListPropertyScreen() {
     )
   }
 
-  // Step 1: Renta o Venta
   const renderStep1 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Tipo de listado</Text>
-      <Text style={styles.stepSubtitle}>Como deseas enlistar tu propiedad?</Text>
+      <Text style={styles.stepSubtitle}>¿Cómo deseas enlistar tu propiedad?</Text>
 
       <View style={styles.listingOptions}>
         <TouchableOpacity 
@@ -165,7 +162,6 @@ export default function ListPropertyScreen() {
     </View>
   )
 
-  // Step 2: Precio
   const renderStep2 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>
@@ -207,7 +203,6 @@ export default function ListPropertyScreen() {
     </View>
   )
 
-  // Step 3: Imagenes
   const renderStep3 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Imagenes de la propiedad</Text>
@@ -251,7 +246,7 @@ export default function ListPropertyScreen() {
       </Text>
 
       <View style={styles.formGroup}>
-        <Text style={styles.inputLabel}>Direccion completa</Text>
+        <Text style={styles.inputLabel}>Dirección completa</Text>
         <View style={styles.inputWithIcon}>
           <MapPin size={20} color={investorColors.textMuted} />
           <TextInput
@@ -266,7 +261,7 @@ export default function ListPropertyScreen() {
       </View>
 
       <View style={styles.currentAddressCard}>
-        <Text style={styles.currentAddressLabel}>Direccion registrada:</Text>
+        <Text style={styles.currentAddressLabel}>Dirección registrada:</Text>
         <Text style={styles.currentAddressValue}>{property.address}, {property.city}</Text>
       </View>
     </View>

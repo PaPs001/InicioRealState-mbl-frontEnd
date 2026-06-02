@@ -27,13 +27,13 @@ export default function TabsLayout() {
   const { isAgent, isAdmin, isClient, currentUser } = useAuth()
   
   const getClientRole = (): ClientRole => {
-    if (currentUser?.role === 'investor') return 'investor'
-    if (currentUser?.role === 'tenant') return 'tenant'
+    if (currentUser?.clientProfile === 'INVESTOR') return 'investor'
+    if (currentUser?.clientProfile === 'TENANT') return 'tenant'
     return 'searching'
   }
   const clientTheme = isClient ? clientThemes[getClientRole()] : null
   
-  const isInvestor = currentUser?.role === 'investor'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
   const tabBarBg = isClient && clientTheme ? clientTheme.surface : colors.primaryDark
   const tabBarActive = isInvestor ? clientTheme?.accent : (isClient && clientTheme ? clientTheme.primary : colors.accent)
   const tabBarInactive = isClient && clientTheme ? clientTheme.textMuted : colors.textMuted
@@ -72,7 +72,6 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      sceneContainerStyle={{ backgroundColor: sceneBg }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: tabBarActive,
@@ -93,7 +92,6 @@ export default function TabsLayout() {
           backgroundColor: headerBg,
         },
         headerTintColor: colors.textInverse,
-        headerShown: false,
         tabBarIcon: ({ color, size }) => renderTabIcon(route.name, size, color),
       })}
     >

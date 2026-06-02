@@ -18,9 +18,9 @@ export default function FavoritesScreen() {
   } = useAuth()
   const router = useRouter()
 
-  const isInvestor = currentUser?.role === 'investor'
-  const isTenant = currentUser?.role === 'tenant'
-  const isSearching = currentUser?.role === 'searching'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
   const theme = useMemo(() => {
     if (isInvestor) return clientThemes.investor
     if (isTenant) return clientThemes.tenant
@@ -170,7 +170,7 @@ export default function FavoritesScreen() {
             <Heart size={48} color={textMutedColor} />
             <Text style={[styles.emptyStateTitle, { color: textColor }]}>Sin favoritos</Text>
             <Text style={[styles.emptyStateText, { color: textSecondaryColor }]}>
-              Guarda las propiedades que te interesen para verlas aqui.
+              Guarda las propiedades que te interesen para verlas aquí.
             </Text>
           </View>
         }

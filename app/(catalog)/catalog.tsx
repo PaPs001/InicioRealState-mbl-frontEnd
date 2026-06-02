@@ -47,10 +47,9 @@ export default function CatalogStandaloneScreen() {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<'all' | 'house' | 'apartment' | 'land'>('all')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Determinar tema segun tipo de usuario
-  const isInvestor = currentUser?.role === 'investor'
-  const isTenant = currentUser?.role === 'tenant'
-  const isSearching = currentUser?.role === 'searching'
+  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isTenant = currentUser?.clientProfile === 'TENANT'
+  const isSearching = currentUser?.clientProfile === 'SEEKER'
   
   const theme = useMemo(() => {
     if (isInvestor) return clientThemes.investor
@@ -98,7 +97,7 @@ export default function CatalogStandaloneScreen() {
     const favorite = isFavorite(property.id)
     const hasImage = property.images && property.images.length > 0 && property.images[0]
 
-    console.log('[v0] DEBUG - currentUser?.role:', currentUser?.role, 'isInvestor:', isInvestor, 'theme:', theme ? 'EXISTS' : 'NULL')
+    console.log('[v0] DEBUG - currentUser?.role:', currentUser?.clientProfile, 'isInvestor:', isInvestor, 'theme:', theme ? 'EXISTS' : 'NULL')
 
     // Colores de la card segun tema
     const cardBg = theme?.surface || colors.surface
@@ -228,9 +227,7 @@ export default function CatalogStandaloneScreen() {
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: surfaceColor }]}
           onPress={() => {
-            if (isInvestor) router.push('/(investor-tabs)')
-            else if (isTenant) router.push('/(tenant-tabs)')
-            else if (isSearching) router.push('/(searching-tabs)')
+            if (isInvestor || isTenant || isSearching) router.replace('/(tabs)')
             else router.back()
           }}
         >
@@ -311,12 +308,12 @@ export default function CatalogStandaloneScreen() {
             </View>
 
             <View style={styles.filterSection}>
-              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Operacion</Text>
+              <Text style={[styles.filterSectionTitle, { color: textSecondaryColor }]}>Operación</Text>
               <View style={styles.filterOptions}>
                 {[
                   { key: 'all', label: 'Todos' },
-                  { key: 'sale', label: 'Venta' },
-                  { key: 'rent', label: 'Renta' },
+                  { key: 'sale', label: 'Ventas' },
+                  { key: 'rent', label: 'Rentas' },
                   { key: 'favorites', label: 'Favoritos' },
                 ].map(option => (
                   <TouchableOpacity
@@ -328,15 +325,18 @@ export default function CatalogStandaloneScreen() {
                     ]}
                     onPress={() => setFilter(option.key as typeof filter)}
                   >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: textSecondaryColor },
-                        filter === option.key && { color: primaryColor, fontWeight: '600' },
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: textSecondaryColor },
+                          filter === option.key && { color: primaryColor, fontWeight: '600' },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.85}
+                      >
+                        {option.label}
+                      </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -360,15 +360,18 @@ export default function CatalogStandaloneScreen() {
                     ]}
                     onPress={() => setPropertyTypeFilter(option.key as typeof propertyTypeFilter)}
                   >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: textSecondaryColor },
-                        propertyTypeFilter === option.key && { color: primaryColor, fontWeight: '600' },
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: textSecondaryColor },
+                          propertyTypeFilter === option.key && { color: primaryColor, fontWeight: '600' },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.85}
+                      >
+                        {option.label}
+                      </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -517,6 +520,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: typography.bodySmall.fontSize,
+    flexShrink: 1,
   },
   listContent: {
     padding: spacing.md,

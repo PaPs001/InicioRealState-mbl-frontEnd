@@ -463,7 +463,7 @@ export default function SaleRentRegistrationScreen() {
       case 'property-location': return 'Ubicacion'
       case 'property-amenities': return 'Amenidades'
       case 'property-measurements': return 'Medidas'
-      case 'property-photos': return 'Fotografias'
+      case 'property-photos': return 'Fotografías'
       case 'property-pricing': return 'Precio'
       case 'property-name': return 'Nombre del Inmueble'
       case 'owner-info': return 'Datos del Propietario'
@@ -482,7 +482,7 @@ export default function SaleRentRegistrationScreen() {
       case 'transaction-type':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepQuestion}>Que tipo de transaccion deseas registrar?</Text>
+            <Text style={styles.stepQuestion}>¿Qué tipo de transacción deseas registrar?</Text>
             
             <TouchableOpacity
               style={[styles.optionCard, transactionType === 'sale' && styles.optionCardActive]}
@@ -529,7 +529,7 @@ export default function SaleRentRegistrationScreen() {
               </View>
               <View style={styles.optionInfo}>
                 <Text style={[styles.optionTitle, listingSource === 'internal' && styles.optionTitleActive]}>Listado Interno</Text>
-                <Text style={styles.optionDescription}>Propiedad del catalogo de Inicio Real State</Text>
+                <Text style={styles.optionDescription}>Propiedad del catálogo de Inicio Real Estate</Text>
               </View>
               {listingSource === 'internal' && <Check size={24} color={advisorTheme.accent} />}
             </TouchableOpacity>
@@ -560,7 +560,7 @@ export default function SaleRentRegistrationScreen() {
               <Search size={20} color={advisorTheme.textMuted} />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Buscar por nombre o ubicacion..."
+                placeholder="Buscar por nombre o ubicación..."
                 placeholderTextColor={advisorTheme.textMuted}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -676,7 +676,7 @@ export default function SaleRentRegistrationScreen() {
       case 'property-type':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepQuestion}>Que tipo de propiedad es?</Text>
+            <Text style={styles.stepQuestion}>¿Qué tipo de propiedad es?</Text>
             
             <View style={styles.propertyTypeGrid}>
               {PROPERTY_TYPES.map((type) => {
@@ -711,7 +711,7 @@ export default function SaleRentRegistrationScreen() {
             <View style={styles.detailsGrid}>
               <View style={styles.detailItem}>
                 <BedDouble size={20} color={advisorTheme.accent} />
-                <Text style={styles.detailLabel}>Recamaras *</Text>
+                <Text style={styles.detailLabel}>Recámaras *</Text>
                 <TextInput
                   style={styles.detailInput}
                   placeholder="0"
@@ -724,7 +724,7 @@ export default function SaleRentRegistrationScreen() {
 
               <View style={styles.detailItem}>
                 <Bath size={20} color={advisorTheme.accent} />
-                <Text style={styles.detailLabel}>Banos *</Text>
+                <Text style={styles.detailLabel}>Baños *</Text>
                 <TextInput
                   style={styles.detailInput}
                   placeholder="0"
@@ -737,7 +737,7 @@ export default function SaleRentRegistrationScreen() {
 
               <View style={styles.detailItem}>
                 <Bath size={20} color={advisorTheme.textMuted} />
-                <Text style={styles.detailLabel}>Medios banos</Text>
+                <Text style={styles.detailLabel}>Medios baños</Text>
                 <TextInput
                   style={styles.detailInput}
                   placeholder="0"
@@ -793,7 +793,7 @@ export default function SaleRentRegistrationScreen() {
             <Text style={styles.stepQuestion}>Ubicacion del inmueble</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Direccion *</Text>
+              <Text style={styles.inputLabel}>Dirección *</Text>
               <View style={styles.inputBox}>
                 <MapPin size={20} color={advisorTheme.textMuted} />
                 <TextInput
@@ -936,7 +936,7 @@ export default function SaleRentRegistrationScreen() {
       case 'property-photos':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepQuestion}>Fotografias del inmueble (opcional)</Text>
+            <Text style={styles.stepQuestion}>Fotografías del inmueble (opcional)</Text>
             
             <TouchableOpacity style={styles.uploadArea}>
               <Camera size={48} color={advisorTheme.textMuted} />
@@ -1039,7 +1039,7 @@ export default function SaleRentRegistrationScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Descripcion (opcional)</Text>
+              <Text style={styles.inputLabel}>Descripción (opcional)</Text>
               <TextInput
                 style={styles.textArea}
                 placeholder="Describe las caracteristicas principales del inmueble..."
@@ -1105,12 +1105,12 @@ export default function SaleRentRegistrationScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Direccion (opcional)</Text>
+              <Text style={styles.inputLabel}>Dirección (opcional)</Text>
               <View style={styles.inputBox}>
                 <MapPin size={20} color={advisorTheme.textMuted} />
                 <TextInput
                   style={styles.inputField}
-                  placeholder="Direccion del propietario"
+                  placeholder="Dirección del propietario"
                   placeholderTextColor={advisorTheme.textMuted}
                   value={ownerAddress}
                   onChangeText={setOwnerAddress}
@@ -1248,7 +1248,7 @@ export default function SaleRentRegistrationScreen() {
                 <Search size={20} color={advisorTheme.textMuted} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Nombre, telefono o email..."
+                  placeholder="Nombre, teléfono o email..."
                   placeholderTextColor={advisorTheme.textMuted}
                   value={clientSearchQuery}
                   onChangeText={(text) => {
@@ -1458,12 +1458,12 @@ export default function SaleRentRegistrationScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Codigo de referido (opcional)</Text>
+              <Text style={styles.inputLabel}>Código de referido (opcional)</Text>
               <View style={styles.inputBox}>
                 <FileText size={20} color={advisorTheme.textMuted} />
                 <TextInput
                   style={styles.inputField}
-                  placeholder="Codigo de referido"
+                  placeholder="Código de referido"
                   placeholderTextColor={advisorTheme.textMuted}
                   value={referralCode}
                   onChangeText={setReferralCode}
@@ -1481,7 +1481,7 @@ export default function SaleRentRegistrationScreen() {
             
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Tipo de transaccion</Text>
+                <Text style={styles.summaryLabel}>Tipo de transacción</Text>
                 <Text style={styles.summaryValue}>{transactionType === 'sale' ? 'Venta' : 'Renta'}</Text>
               </View>
               
@@ -1605,7 +1605,7 @@ export default function SaleRentRegistrationScreen() {
                 style={[styles.primaryButton, styles.submitButton, currentStepIndex === 0 && styles.fullWidthButton]}
                 onPress={handleSubmit}
               >
-                <Text style={styles.primaryButtonText}>Enviar Registro</Text>
+                <Text style={styles.primaryButtonLabel}>Enviar Registro</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity 
@@ -1617,7 +1617,7 @@ export default function SaleRentRegistrationScreen() {
                 onPress={goNext}
                 disabled={!isCurrentStepValid}
               >
-                <Text style={styles.primaryButtonText}>Siguiente</Text>
+                <Text style={styles.primaryButtonLabel}>Siguiente</Text>
                 <ChevronRight size={20} color={advisorTheme.background} />
               </TouchableOpacity>
             )}
@@ -2295,6 +2295,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  primaryButtonLabel: {
+    color: advisorTheme.background,
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
   },
   primaryButtonDisabled: {
     opacity: 0.5,
