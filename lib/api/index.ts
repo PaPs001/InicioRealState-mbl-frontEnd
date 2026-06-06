@@ -18,16 +18,38 @@
 export { apiClient, coreApi, notificationsApi, API_URLS } from './client'
 
 import * as auth from './endpoints/auth'
+import * as activity from './endpoints/activity'
 import * as catalog from './endpoints/catalog'
+import * as documents from './endpoints/documents'
+import * as investor from './endpoints/investor'
+import * as leads from './endpoints/leads'
+import * as messaging from './endpoints/messaging'
+import * as portfolio from './endpoints/portfolio'
 import * as properties from './endpoints/properties'
 
 export const api = {
+  activity,
   auth,
   catalog,
+  documents,
+  investor,
+  leads,
+  messaging,
+  portfolio,
   properties,
 } as const
 
 export {
+  getAppointmentActivityRecords,
+  getFilteredAppointmentActivityRecords,
+  getFilteredLeadActivityRecords,
+  getLeadActivityRecords,
+  getNotificationActivityRecords,
+} from './endpoints/activity'
+
+export {
+  getCurrentUser,
+  getAuthMockUserById,
   registerUser,
   loginUser,
   checkEmailExists,
@@ -44,7 +66,42 @@ export {
 } from './endpoints/catalog'
 
 export {
+  getDocumentContractRecords,
+  type DocumentContractRecord,
+} from './endpoints/documents'
+
+export {
+  getInvestorCampaignPropertyRecord,
+  getInvestorCampaignRecords,
+  getInvestorPropertyEarningsRecords,
+  getInvestorPropertyRecords,
+} from './endpoints/investor'
+
+export {
+  createLeadRecord,
+  getLeadAgents,
+  getLeadAgentById,
+  getLeadRecordById,
+  getLeadRecords,
+  saveLeadFollowUps,
+} from './endpoints/leads'
+
+export {
+  getConversationPropertyRecord,
+  getConversationRecords,
+  getConversationUserRecord,
+} from './endpoints/messaging'
+
+export {
+  getPortfolioAgentRecord,
+  getPortfolioOwnerProperties,
+  getPortfolioPropertyEarningsRecord,
+  getPortfolioPropertyRecord,
+} from './endpoints/portfolio'
+
+export {
   createUserProperty,
+  getPropertyRecordById,
   getUserProperties,
   updateUserProperty,
   deleteUserProperty,

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { 
   View, 
   Text, 
@@ -9,9 +9,8 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useMessagesDomain } from '@/contexts/auth/use-messages-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { mockConversations, mockUsers, mockProperties } from '@/lib/mock-data'
 import type { Conversation } from '@/lib/types'
 import { 
   ArrowLeft,
@@ -21,52 +20,9 @@ import {
 } from 'lucide-react-native'
 
 export default function MessagesScreen() {
-  const { currentUser } = useAuth()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-
-  const userConversations = useMemo(() => {
-    if (!currentUser) return []
-    return mockConversations.filter(conv => 
-      conv.participants.includes(currentUser.id)
-    )
-  }, [currentUser])
-
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery) return userConversations
-    return userConversations.filter(conv => {
-      const otherParticipantId = conv.participants.find(p => p !== currentUser?.id)
-      const otherUser = mockUsers.find(u => u.id === otherParticipantId)
-      return otherUser?.name.toLowerCase().includes(searchQuery.toLowerCase())
-    })
-  }, [userConversations, searchQuery, currentUser])
-
-  const getOtherParticipant = (conversation: Conversation) => {
-    const otherParticipantId = conversation.participants.find(p => p !== currentUser?.id)
-    return mockUsers.find(u => u.id === otherParticipantId)
-  }
-
-  const getPropertyInfo = (conversation: Conversation) => {
-    if (!conversation.propertyId) return null
-    return mockProperties.find(p => p.id === conversation.propertyId)
-  }
-
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) {
-      return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-    } else if (diffDays === 1) {
-      return 'Ayer'
-    } else if (diffDays < 7) {
-      return date.toLocaleDateString('es-MX', { weekday: 'short' })
-    } else {
-      return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
-    }
-  }
+  const { filteredConversations, getOtherParticipant, getPropertyInfo, formatTime } = useMessagesDomain(searchQuery)
 
   const renderConversationItem = ({ item: conversation }: { item: Conversation }) => {
     const otherUser = getOtherParticipant(conversation)

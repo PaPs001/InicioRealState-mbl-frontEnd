@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
 import { View, StyleSheet, Animated } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { clientThemes, colors } from '@/lib/theme'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
 
 export default function LogoutTransition() {
   const router = useRouter()
-  const { logout } = useAuth()
+  const { logout } = useSessionDomain()
   const { role } = useLocalSearchParams<{ role: string }>()
   const pulseAnim = new Animated.Value(1)
 

@@ -1,189 +1,72 @@
-import { useEffect, useMemo } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native'
+import { useEffect } from 'react'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { formatCurrency } from '@/lib/mock-data'
-import { Heart, Bed, Bath, ArrowLeft, Home, Building2, Map } from 'lucide-react-native'
-import type { Property } from '@/lib/types'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { spacing, typography, borderRadius } from '@/lib/theme'
+import { Heart, ArrowLeft } from 'lucide-react-native'
+import { AppScreen } from '@/components/ui'
+import { useAppTheme } from '@/lib/hooks/useAppTheme'
+import { PropertyListCard } from '@/components/properties/PropertyListCard'
 
 export default function FavoritesScreen() {
   const {
     favoriteProperties,
     toggleFavorite,
-    isFavorite,
     loadFavoriteProperties,
-    currentUser,
-  } = useAuth()
+  } = usePropertyDomain()
   const router = useRouter()
-
-  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
-  const isTenant = currentUser?.clientProfile === 'TENANT'
-  const isSearching = currentUser?.clientProfile === 'SEEKER'
-  const theme = useMemo(() => {
-    if (isInvestor) return clientThemes.investor
-    if (isTenant) return clientThemes.tenant
-    if (isSearching) return clientThemes.searching
-    return null
-  }, [isInvestor, isTenant, isSearching])
+  const { theme } = useAppTheme()
+  const styles = createStyles(theme)
 
   useEffect(() => {
     loadFavoriteProperties()
   }, [loadFavoriteProperties])
 
-  const backgroundColor = theme?.background || colors.background
-  const surfaceColor = theme?.surface || colors.surface
-  const borderColor = theme?.border || colors.border
-  const textColor = theme?.text || colors.text
-  const textSecondaryColor = theme?.textSecondary || colors.textSecondary
-  const textMutedColor = theme?.textMuted || colors.textMuted
-  const accentColor = theme?.accent || colors.accent
-  const primaryColor = theme?.primary || colors.primary
-
-  const getPropertyIcon = (type: Property['type']) => {
-    switch (type) {
-      case 'house': return Home
-      case 'apartment': return Building2
-      case 'land': return Map
-      default: return Home
-    }
-  }
-
-  const renderPropertyCard = ({ item: property }: { item: Property }) => {
-    const Icon = getPropertyIcon(property.type)
-    const favorite = isFavorite(property.id)
-    const hasImage = property.images && property.images.length > 0 && property.images[0]
-
-    return (
-      <TouchableOpacity
-        style={[styles.propertyCard, { backgroundColor: surfaceColor, borderColor }]}
-        onPress={() => router.push(`/property/${property.id}`)}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.imageContainer, { backgroundColor: theme?.primary || backgroundColor }]}>
-          {hasImage ? (
-            <Image
-              source={{ uri: property.images![0] }}
-              style={styles.propertyImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <Icon size={40} color={textMutedColor} />
-          )}
-
-          <View style={styles.badgeContainer}>
-            <View style={[styles.locationBadge, { backgroundColor: surfaceColor }]}>
-              <Text style={[styles.locationBadgeText, { color: accentColor }]}>{property.city}</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.favoriteButton,
-              { backgroundColor: surfaceColor, borderColor },
-              favorite && styles.favoriteButtonActive,
-            ]}
-            onPress={() => toggleFavorite(property.id)}
-          >
-            <Heart
-              size={18}
-              color={favorite ? '#fff' : textMutedColor}
-              fill={favorite ? '#fff' : 'transparent'}
-            />
-          </TouchableOpacity>
-
-          {property.status === 'for_rent' && property.monthlyRent && (
-            <View style={styles.rentBadge}>
-              <Text style={styles.rentBadgeLabel}>RENTA</Text>
-              <Text style={[styles.rentBadgePrice, { backgroundColor: accentColor, color: primaryColor }]}>
-                {formatCurrency(property.monthlyRent)}/mes
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.cardContent}>
-          <Text style={[styles.propertyTitle, { color: textColor }]} numberOfLines={1}>
-            {property.title}
-          </Text>
-          <Text style={[styles.propertyAddress, { color: textSecondaryColor }]} numberOfLines={1}>
-            {property.address}
-          </Text>
-
-          <View style={[styles.divider, { backgroundColor: borderColor }]} />
-
-          <View style={styles.features}>
-            {property.type !== 'land' && (
-              <>
-                <View style={styles.feature}>
-                  <Bed size={16} color={textMutedColor} />
-                  <Text style={[styles.featureText, { color: textSecondaryColor }]}>{property.bedrooms}</Text>
-                </View>
-                <View style={styles.feature}>
-                  <Bath size={16} color={textMutedColor} />
-                  <Text style={[styles.featureText, { color: textSecondaryColor }]}>{property.bathrooms}</Text>
-                </View>
-              </>
-            )}
-          </View>
-
-          <View style={styles.priceRow}>
-            <Text style={[styles.price, { color: textColor }]}>{formatCurrency(property.price)}</Text>
-            <TouchableOpacity
-              style={[styles.viewButton, { backgroundColor: accentColor }]}
-              onPress={() => router.push(`/property/${property.id}`)}
-            >
-              <Text style={[styles.viewButtonText, { color: primaryColor }]}>Ver mas</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-    )
-  }
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top', 'bottom']}>
-      <View style={[styles.header, { backgroundColor, borderBottomColor: borderColor }]}>
+    <AppScreen>
+      <View style={styles.header}>
         <View style={styles.headerSide}>
           <TouchableOpacity
-            style={[styles.headerBackButton, { backgroundColor: surfaceColor, borderColor }]}
+            style={styles.headerBackButton}
             onPress={() => router.replace('/(tabs)')}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <ArrowLeft size={18} color={accentColor} />
-            <Text style={[styles.headerBackButtonText, { color: textColor }]}>Volver</Text>
+            <ArrowLeft size={18} color={theme.accent} />
+            <Text style={styles.headerBackButtonText}>Volver</Text>
           </TouchableOpacity>
         </View>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Favoritos</Text>
+        <Text style={styles.headerTitle}>Favoritos</Text>
         <View style={styles.headerSide} />
       </View>
 
       <FlatList
         data={favoriteProperties}
-        renderItem={renderPropertyCard}
+        renderItem={({ item }) => (
+          <PropertyListCard
+            property={item}
+            favorite
+            onPress={() => router.push(`/property/${item.id}`)}
+            onToggleFavorite={() => toggleFavorite(item.id)}
+          />
+        )}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Heart size={48} color={textMutedColor} />
-            <Text style={[styles.emptyStateTitle, { color: textColor }]}>Sin favoritos</Text>
-            <Text style={[styles.emptyStateText, { color: textSecondaryColor }]}>
+            <Heart size={48} color={theme.textMuted} />
+            <Text style={styles.emptyStateTitle}>Sin favoritos</Text>
+            <Text style={styles.emptyStateText}>
               Guarda las propiedades que te interesen para verlas aquí.
             </Text>
           </View>
         }
       />
-    </SafeAreaView>
+    </AppScreen>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -191,6 +74,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
+    borderBottomColor: theme.border,
   },
   headerSide: {
     width: 112,
@@ -205,141 +89,25 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: 1,
+    backgroundColor: theme.surface,
+    borderColor: theme.border,
   },
   headerBackButtonText: {
     fontSize: typography.bodySmall.fontSize,
     fontWeight: '600',
+    color: theme.text,
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize: typography.h3.fontSize,
     fontWeight: '700',
+    color: theme.text,
   },
   listContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
-  },
-  propertyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.md,
-  },
-  imageContainer: {
-    height: 180,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  propertyImage: {
-    width: '100%',
-    height: '100%',
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  locationBadge: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-  },
-  locationBadgeText: {
-    fontSize: typography.caption.fontSize,
-    fontWeight: '500',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  favoriteButtonActive: {
-    backgroundColor: colors.error,
-  },
-  rentBadge: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    left: '50%',
-    transform: [{ translateX: -60 }],
-    alignItems: 'center',
-  },
-  rentBadgeLabel: {
-    backgroundColor: colors.error,
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderTopLeftRadius: borderRadius.sm,
-    borderTopRightRadius: borderRadius.sm,
-  },
-  rentBadgePrice: {
-    fontSize: typography.bodySmall.fontSize,
-    fontWeight: '700',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderBottomLeftRadius: borderRadius.sm,
-    borderBottomRightRadius: borderRadius.sm,
-  },
-  cardContent: {
-    padding: spacing.md,
-  },
-  propertyTitle: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-  },
-  propertyAddress: {
-    fontSize: typography.bodySmall.fontSize,
-    marginTop: spacing.xs,
-  },
-  divider: {
-    height: 1,
-    marginVertical: spacing.md,
-  },
-  features: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  featureText: {
-    fontSize: typography.bodySmall.fontSize,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  price: {
-    fontSize: typography.h4.fontSize,
-    fontWeight: '700',
-  },
-  viewButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  viewButtonText: {
-    fontSize: typography.bodySmall.fontSize,
-    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
@@ -351,10 +119,12 @@ const styles = StyleSheet.create({
     fontSize: typography.h4.fontSize,
     fontWeight: '600',
     marginTop: spacing.md,
+    color: theme.text,
   },
   emptyStateText: {
     fontSize: typography.bodySmall.fontSize,
     textAlign: 'center',
     marginTop: spacing.sm,
+    color: theme.textSecondary,
   },
 })

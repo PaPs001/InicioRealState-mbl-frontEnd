@@ -13,9 +13,20 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useActivityDomain } from '@/contexts/auth/use-activity-domain'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import {
+  appendLeadFollowUp,
+  createLeadFollowUp,
+  findLeadById,
+  getAssignedAgentById,
+  getLeadPropertyTypeLabel,
+  leadContactTypeLabels,
+} from '@/lib/services/leads-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import type { LeadFollowUp } from '@/lib/types'
+import { formatDate } from '@/lib/utils'
 import {
   ArrowLeft,
   CalendarDays,
@@ -51,7 +62,9 @@ const FOLLOW_UP_TYPE_ICONS: Record<LeadFollowUp['type'], typeof Phone> = {
 export default function LeadInformationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const { userLeads, getPropertyById, isAgent, isAdmin } = useAuth()
+  const { userLeads } = useActivityDomain()
+  const { getPropertyById } = usePropertyDomain()
+  const { isAgent, isAdmin } = useSessionDomain()
   const [activeTab, setActiveTab] = useState<LeadInfoTab>('general')
   const [selectedFollowUp, setSelectedFollowUp] = useState<LeadFollowUp | null>(null)
   const [sheetExpanded, setSheetExpanded] = useState(false)
@@ -61,14 +74,18 @@ export default function LeadInformationScreen() {
   const translateY = useRef(new Animated.Value(0)).current
 
   const lead = useMemo(() => {
-    return userLeads.find(item => item.id === id)
-  }, [id, userLeads])
+    return findLeadById({ id: id ?? '', isAdmin, userLeads })
+  }, [id, isAdmin, userLeads])
 
   const [localFollowUps, setLocalFollowUps] = useState<LeadFollowUp[]>([])
 
   const property = useMemo(() => {
     return lead ? getPropertyById(lead.propertyId) : undefined
   }, [getPropertyById, lead])
+
+  const assignedAgent = useMemo(() => {
+    return getAssignedAgentById(lead?.agentId)
+  }, [lead?.agentId])
 
   useEffect(() => {
     if (lead) {
@@ -105,19 +122,6 @@ export default function LeadInformationScreen() {
     })
   ).current
 
-  const getPropertyTypeLabel = (type?: string) => {
-    switch (type) {
-      case 'house':
-        return 'Casa'
-      case 'apartment':
-        return 'Departamento'
-      case 'land':
-        return 'Terreno'
-      default:
-        return 'Sin categoria'
-    }
-  }
-
   const openFollowUpSheet = (followUp: LeadFollowUp) => {
     setSelectedFollowUp(followUp)
     setSheetExpanded(false)
@@ -141,17 +145,20 @@ export default function LeadInformationScreen() {
       return
     }
 
-    const now = new Date()
-    const formattedDate = now.toLocaleDateString('es-MX')
-
-    const followUp: LeadFollowUp = {
-      id: `${lead?.id || 'lead'}-fu-${Date.now()}`,
-      date: formattedDate,
+    const followUp = createLeadFollowUp({
+      leadId: lead?.id || 'lead',
       type: newFollowUpType,
-      notes: newFollowUpNotes.trim(),
-    }
+      notes: newFollowUpNotes,
+    })
 
-    setLocalFollowUps(prev => [followUp, ...prev])
+    const nextFollowUps = appendLeadFollowUp({
+      leadId: lead?.id || 'lead',
+      followUp,
+      isAdmin,
+      userLeads,
+    })
+
+    setLocalFollowUps(nextFollowUps)
     setActiveTab('followups')
     closeCreateFollowUpModal()
   }
@@ -234,7 +241,7 @@ export default function LeadInformationScreen() {
               </View>
               <View style={styles.infoRow}>
                 <MapPinned size={18} color={colors.accent} />
-                <Text style={styles.infoText}>{getPropertyTypeLabel(property?.type)}</Text>
+                <Text style={styles.infoText}>{getLeadPropertyTypeLabel(property?.type)}</Text>
               </View>
             </View>
 
@@ -245,8 +252,20 @@ export default function LeadInformationScreen() {
                 <Text style={styles.infoText}>{lead.source}</Text>
               </View>
               <View style={styles.infoRow}>
+                <CircleUserRound size={18} color={colors.accent} />
+                <Text style={styles.infoText}>{lead.assignedAgentName || assignedAgent?.name || 'Sin asesor asignado'}</Text>
+              </View>
+              <View style={styles.infoRow}>
                 <CalendarDays size={18} color={colors.accent} />
-                <Text style={styles.infoText}>{lead.createdDate}</Text>
+                <Text style={styles.infoText}>{formatDate(lead.firstContactDate || lead.createdDate)}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <MessageCircle size={18} color={colors.accent} />
+                <Text style={styles.infoText}>{lead.contactType ? leadContactTypeLabels[lead.contactType] : 'Sin tipo de contacto'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <MapPinned size={18} color={colors.accent} />
+                <Text style={styles.infoText}>{lead.searchIntent === 'rent' ? 'Busca renta' : 'Busca compra'}</Text>
               </View>
               {lead.notes && (
                 <View style={styles.noteBox}>

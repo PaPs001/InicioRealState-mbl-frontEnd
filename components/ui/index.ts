@@ -18,7 +18,6 @@
  * ```
  */
 
-// Componentes
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 
@@ -36,3 +35,12 @@ export type { LoadingProps } from './Loading'
 
 export { Badge } from './Badge'
 export type { BadgeProps } from './Badge'
+
+export { AppScreen } from './AppScreen'
+export { AppHeader } from './AppHeader'
+export { SectionCard } from './SectionCard'
+export { InfoRow } from './InfoRow'
+export { FormField } from './FormField'
+export { StatusBadge } from './StatusBadge'
+export { PrimaryButton } from './PrimaryButton'
+export { SecondaryButton } from './SecondaryButton'

@@ -12,11 +12,10 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { formatCurrency } from '@/lib/mock-data'
 import type { Property } from '@/lib/types'
 import { getAgentCatalogRentProperties, getAgentCatalogSaleProperties, PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
+import { formatCurrency } from '@/lib/utils'
 import { 
   Search, 
   Filter, 
@@ -33,7 +32,6 @@ import {
 const advisorColors = clientThemes.advisor
 
 export default function AgentCatalogScreen() {
-  const { currentUser } = useAuth()
   const router = useRouter()
   
   const [properties, setProperties] = useState<Property[]>([])

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -11,8 +11,27 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { LeadCard } from '@/components/leads/LeadCard'
+import { NewLeadModal } from '@/components/leads/NewLeadModal'
+import { LeadStatusFilterModal } from '@/components/leads/LeadStatusFilterModal'
+import { useActivityDomain } from '@/contexts/auth/use-activity-domain'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import {
+  buildLead,
+  filterLeads,
+  getLeadAgentOptions,
+  getLeadCollection,
+  getLeadPropertyOptions,
+  getLeadStatusMeta,
+  getScopedLeads,
+  initialLeadForm,
+  leadStatusLabels,
+  summarizeLeads,
+  type LeadScope,
+  type NewLeadForm,
+} from '@/lib/services/leads-domain'
 import type { PropertyLead } from '@/lib/types'
 import {
   ArrowLeft,
@@ -22,46 +41,58 @@ import {
   MessageCircle,
   User,
   X,
+  Plus,
 } from 'lucide-react-native'
-
-const statusLabels: Record<string, { label: string; color: string }> = {
-  nuevo: { label: 'Nuevo', color: '#22c55e' },
-  contactado: { label: 'Contactado', color: '#3b82f6' },
-  cita_agendada: { label: 'Cita Agendada', color: '#a855f7' },
-  visitado: { label: 'Visitado', color: '#f59e0b' },
-  negociando: { label: 'Negociando', color: '#ec4899' },
-  cerrado: { label: 'Cerrado', color: '#10b981' },
-  descartado: { label: 'Descartado', color: '#6b7280' },
-}
 
 export default function LeadsScreen() {
   const router = useRouter()
-  const { userLeads, getPropertyById } = useAuth()
+  const { userLeads } = useActivityDomain()
+  const { availableProperties, getPropertyById, userProperties } = usePropertyDomain()
+  const { currentUser, isAdmin } = useSessionDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [showFilterModal, setShowFilterModal] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [leadScope, setLeadScope] = useState<LeadScope>('mine')
+  const [newLead, setNewLead] = useState<NewLeadForm>({
+    ...initialLeadForm,
+    agentId: currentUser?.id ?? '',
+  })
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const agentOptions = useMemo(() => {
+    return getLeadAgentOptions()
+  }, [refreshKey])
+
+  const propertyOptions = useMemo(() => {
+    return getLeadPropertyOptions([...availableProperties, ...userProperties])
+  }, [availableProperties, userProperties])
+
+  const allLeads = useMemo(() => {
+    return getLeadCollection({ isAdmin, userLeads })
+  }, [isAdmin, refreshKey, userLeads])
+
+  const scopedLeads = useMemo(() => {
+    return getScopedLeads({
+      allLeads,
+      currentUserId: currentUser?.id,
+      isAdmin,
+      leadScope,
+    })
+  }, [allLeads, currentUser?.id, isAdmin, leadScope])
 
   const filteredLeads = useMemo(() => {
-    return userLeads.filter(lead => {
-      const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.phone.includes(searchQuery)
-      const matchesStatus = statusFilter === 'todos' || lead.status === statusFilter
-      return matchesSearch && matchesStatus
+    return filterLeads({
+      leads: scopedLeads,
+      searchQuery,
+      statusFilter,
+      getPropertyById,
     })
-  }, [userLeads, searchQuery, statusFilter])
+  }, [scopedLeads, getPropertyById, searchQuery, statusFilter])
 
-  const getPropertyTypeLabel = (type?: string) => {
-    switch (type) {
-      case 'house':
-        return 'Casa'
-      case 'apartment':
-        return 'Departamento'
-      case 'land':
-        return 'Terreno'
-      default:
-        return 'Sin categoria'
-    }
-  }
+  const summary = useMemo(() => {
+    return summarizeLeads(filteredLeads)
+  }, [filteredLeads])
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`)
@@ -72,36 +103,26 @@ export default function LeadsScreen() {
     Linking.openURL(`https://wa.me/${sanitizedPhone}`)
   }
 
-  const renderLead = ({ item: lead }: { item: PropertyLead }) => {
-    const property = getPropertyById(lead.propertyId)
+  const resetNewLead = () => {
+    setNewLead({
+      ...initialLeadForm,
+      agentId: currentUser?.id ?? agentOptions[0]?.id ?? '',
+    })
+  }
 
-    return (
-      <TouchableOpacity
-        style={styles.leadCard}
-        activeOpacity={0.8}
-        onPress={() => router.push(`/lead-information/${lead.id}`)}
-      >
-        <View style={styles.leadHeader}>
-          <View style={styles.leadInfo}>
-            <Text style={styles.leadName}>{lead.name}</Text>
-            <Text style={styles.leadProperty} numberOfLines={1}>
-              {property?.title || 'Sin propiedad'}
-            </Text>
-            <Text style={styles.leadCategory}>
-              {getPropertyTypeLabel(property?.type)}
-            </Text>
-          </View>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleCall(lead.phone)}>
-              <Phone size={16} color={colors.accent} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleMessage(lead.phone)}>
-              <MessageCircle size={16} color={colors.accent} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-    )
+  const createLead = () => {
+    if (!newLead.name.trim() || !newLead.phone.trim() || !newLead.source.trim() || !newLead.propertyId) {
+      return
+    }
+
+    buildLead({
+      form: newLead,
+      currentUser,
+      isAdmin,
+    })
+    setRefreshKey(prev => prev + 1)
+    resetNewLead()
+    setShowCreateModal(false)
   }
 
   return (
@@ -112,7 +133,49 @@ export default function LeadsScreen() {
           <Text style={styles.backButtonText}>Volver</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Leads</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity style={styles.addButton} onPress={() => setShowCreateModal(true)}>
+          <Plus size={18} color={colors.primaryDark} />
+        </TouchableOpacity>
+      </View>
+
+      {isAdmin && (
+        <View style={styles.scopeTabs}>
+          <TouchableOpacity
+            style={[styles.scopeTab, leadScope === 'mine' && styles.scopeTabActive]}
+            onPress={() => setLeadScope('mine')}
+          >
+            <Text style={[styles.scopeTabText, leadScope === 'mine' && styles.scopeTabTextActive]}>
+              Mis leads
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.scopeTab, leadScope === 'team' && styles.scopeTabActive]}
+            onPress={() => setLeadScope('team')}
+          >
+            <Text style={[styles.scopeTabText, leadScope === 'team' && styles.scopeTabTextActive]}>
+              Leads del equipo
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{summary.total}</Text>
+          <Text style={styles.statLabel}>Totales</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{summary.pending}</Text>
+          <Text style={styles.statLabel}>Activos</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{summary.sale}</Text>
+          <Text style={styles.statLabel}>Compra</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{summary.rent}</Text>
+          <Text style={styles.statLabel}>Renta</Text>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -120,25 +183,20 @@ export default function LeadsScreen() {
           <Search size={20} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar leads..."
+            placeholder="Buscar por nombre, fuente o propiedad"
             placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilterModal(true)}
-        >
+        <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
           <Filter size={20} color={colors.accent} />
         </TouchableOpacity>
       </View>
 
       {statusFilter !== 'todos' && (
         <View style={styles.activeFilter}>
-          <Text style={styles.activeFilterText}>
-            Filtro: {statusLabels[statusFilter]?.label}
-          </Text>
+          <Text style={styles.activeFilterText}>Filtro: {getLeadStatusMeta(statusFilter).label}</Text>
           <TouchableOpacity onPress={() => setStatusFilter('todos')}>
             <X size={16} color={colors.primaryDark} />
           </TouchableOpacity>
@@ -147,7 +205,17 @@ export default function LeadsScreen() {
 
       <FlatList
         data={filteredLeads}
-        renderItem={renderLead}
+        renderItem={({ item }) => (
+          <LeadCard
+            lead={item}
+            isAdmin={isAdmin}
+            property={getPropertyById(item.propertyId)}
+            onCall={handleCall}
+            onMessage={handleMessage}
+            onPress={() => router.push(`/lead-information/${item.id}`)}
+            styles={styles}
+          />
+        )}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -159,47 +227,28 @@ export default function LeadsScreen() {
         }
       />
 
-      <Modal
+      <LeadStatusFilterModal
         visible={showFilterModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filtrar por Estado</Text>
-              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <X size={24} color={colors.textLight} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowFilterModal(false)}
+        onSelectStatus={setStatusFilter}
+        statusFilter={statusFilter}
+        styles={styles}
+      />
 
-            <TouchableOpacity
-              style={[styles.filterOption, statusFilter === 'todos' && styles.filterOptionActive]}
-              onPress={() => {
-                setStatusFilter('todos')
-                setShowFilterModal(false)
-              }}
-            >
-              <Text style={styles.filterOptionText}>Todos</Text>
-            </TouchableOpacity>
-
-            {Object.entries(statusLabels).map(([key, value]) => (
-              <TouchableOpacity
-                key={key}
-                style={[styles.filterOption, statusFilter === key && styles.filterOptionActive]}
-                onPress={() => {
-                  setStatusFilter(key)
-                  setShowFilterModal(false)
-                }}
-              >
-                <View style={[styles.statusDot, { backgroundColor: value.color }]} />
-                <Text style={styles.filterOptionText}>{value.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      </Modal>
+      <NewLeadModal
+        visible={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false)
+          resetNewLead()
+        }}
+        onSubmit={createLead}
+        newLead={newLead}
+        onChange={(updater) => setNewLead((current) => updater(current))}
+        propertyOptions={propertyOptions}
+        agentOptions={agentOptions}
+        isAdmin={isAdmin}
+        styles={styles}
+      />
     </SafeAreaView>
   )
 }
@@ -241,8 +290,66 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textLight,
   },
-  headerSpacer: {
-    width: 104,
+  addButton: {
+    width: 42,
+    height: 42,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scopeTabs: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  scopeTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surfaceDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    alignItems: 'center',
+  },
+  scopeTabActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  scopeTabText: {
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.textMuted,
+    fontWeight: '600',
+  },
+  scopeTabTextActive: {
+    color: colors.primaryDark,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surfaceDark,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  statValue: {
+    color: colors.textLight,
+    fontSize: typography.h4.fontSize,
+    fontWeight: '700',
+  },
+  statLabel: {
+    color: colors.textMuted,
+    fontSize: typography.caption.fontSize,
+    marginTop: 2,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -296,6 +403,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.md,
+    paddingBottom: spacing.xxl,
   },
   leadCard: {
     backgroundColor: colors.surfaceDark,
@@ -305,29 +413,74 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderDark,
   },
-  leadHeader: {
+  leadCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.xs,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
   },
-  leadInfo: {
+  statusPillText: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: '700',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  intentPill: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  intentPillText: {
+    color: colors.textLight,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '600',
+  },
+  leadMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  leadAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  leadBody: {
     flex: 1,
-    paddingRight: spacing.md,
+    paddingRight: spacing.sm,
   },
   leadName: {
     fontSize: typography.body.fontSize,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textLight,
+  },
+  leadMeta: {
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.accent,
+    marginTop: 2,
   },
   leadProperty: {
     fontSize: typography.bodySmall.fontSize,
     color: colors.textMuted,
-    marginTop: 2,
-  },
-  leadCategory: {
-    fontSize: typography.caption.fontSize,
-    color: colors.accent,
-    fontWeight: '600',
     marginTop: spacing.xs,
   },
   actionButtons: {
@@ -344,6 +497,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderDark,
   },
+  leadFooter: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  infoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  infoChipText: {
+    fontSize: typography.caption.fontSize,
+    color: colors.textSecondary,
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -357,7 +531,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.72)',
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -367,6 +541,14 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+  createModalContent: {
+    maxHeight: '88%',
+    backgroundColor: colors.surfaceDark,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -375,7 +557,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: typography.h4.fontSize,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textLight,
   },
   filterOption: {
@@ -394,9 +576,88 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     color: colors.textLight,
   },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  inputLabel: {
+    color: colors.textLight,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  textField: {
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    color: colors.textLight,
+    fontSize: typography.body.fontSize,
+  },
+  chipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  choiceChip: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  choiceChipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  choiceChipText: {
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+  },
+  choiceChipTextActive: {
+    color: colors.primaryDark,
+  },
+  segmentedRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  segmentedButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  segmentedButtonActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  segmentedButtonText: {
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+  },
+  segmentedButtonTextActive: {
+    color: colors.primaryDark,
+  },
+  primaryButton: {
+    marginTop: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent,
+  },
+  primaryButtonText: {
+    color: colors.primaryDark,
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
   },
 })

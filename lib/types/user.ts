@@ -3,14 +3,14 @@
  */
 
 export type BackendUserRole = 'CLIENT' | 'AGENT' | 'COORDINATOR' | 'ADMIN'
-export type UserProfile = 'SEEKER' | 'TENANT' | 'INVESTOR'
 export interface User {
   id: string
   name: string
   email: string
   phone: string
   systemRole: BackendUserRole
-  clientProfile: UserProfile
+  investment: boolean
+  tenant: boolean
   permissions?: string[]
   referralCode?: string
   avatar?: string
@@ -23,8 +23,9 @@ export interface RegisterRequest {
   phone: string
   password: string
   role: BackendUserRole
+  investment: boolean
+  tenant: boolean
   referralCode?: string
-  clientProfile: UserProfile
 }
 
 export interface RegisterResponse {
@@ -44,6 +45,9 @@ export interface LoginResponse {
   message: string
   accessToken?: string
   refreshToken?: string
+  investment?: boolean
+  tenant?: boolean
+  roles?: BackendUserRole[]
   error?: string
 }
 

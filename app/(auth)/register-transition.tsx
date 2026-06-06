@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import RegisterTransition from '@/components/animations/register-transition'
 import type { RegisterTransitionVariant } from '@/components/animations/register-transition'
 
 export default function RegisterTransitionRoute() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login } = useSessionDomain()
   const params = useLocalSearchParams<{
     title?: string
     subtitle?: string

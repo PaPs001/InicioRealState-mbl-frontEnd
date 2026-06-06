@@ -1,34 +1,27 @@
-// Paleta de colores para la aplicacion
 export const colors = {
-  // Colores principales (default)
   primary: '#1e2d32',
   secondary: '#31454d',
   primaryDark: '#0c1427',
   accent: '#cbb375',
   
-  // Fondos
   background: '#f5f1ec',
   surface: '#ffffff',
   surfaceDark: '#1f2b38',
   
-  // Bordes
   border: '#e5e0d8',
   borderDark: '#3a4857',
   
-  // Textos
   text: '#1e2d32',
   textSecondary: '#6b7280',
   textMuted: '#9ca3af',
   textLight: '#e5e5e5',
   textInverse: '#f5f1ec',
   
-  // Estados
   success: '#22c55e',
   warning: '#f59e0b',
   error: '#dc2626',
   info: '#6366f1',
   
-  // Tema oscuro (asesores/coordinadores)
   dark: {
     background: '#0c1427',
     surface: '#1f2b38',
@@ -37,7 +30,6 @@ export const colors = {
     textSecondary: '#9ca3af',
   },
   
-  // Tema claro (clientes)
   light: {
     background: '#f5f1ec',
     surface: '#ffffff',
@@ -69,9 +61,17 @@ export type ClientTheme = {
   error?: string
 }
 
-// Temas por tipo de cliente
+export type AppThemeMode = 'searching' | 'investor' | 'tenant' | 'advisor' | 'default'
+
+export type AppTheme = ClientTheme & {
+  mode: AppThemeMode
+  isDark: boolean
+  success: string
+  warning: string
+  error: string
+}
+
 export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor', ClientTheme> = {
-  // Usuario buscando propiedad (colores originales claros)
   searching: {
     primary: '#083b52',
     secondary: '#0c74af',
@@ -89,7 +89,6 @@ export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor
     error: colors.error,
   },
   
-  // Usuario inversionista (azul profundo elegante y dorado)
   investor: {
     primary: '#0a1628',
     secondary: '#152238',
@@ -109,7 +108,6 @@ export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor
     error: colors.error,
   },
   
-  // Usuario inquilino (oscuro elegante pero mas calido - nivel debajo del inversionista)
   tenant: {
     primary: '#3d5a40',
     secondary: '#4a6d4d',
@@ -131,7 +129,6 @@ export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor
     error: colors.error,
   },
   
-  // Asesor (fondo oscuro azul)
   advisor: {
     primary: '#0c1427',
     secondary: '#1f2b38',
@@ -151,14 +148,50 @@ export const clientThemes: Record<'searching' | 'investor' | 'tenant' | 'advisor
   },
 }
 
-// Funcion para obtener el tema segun el rol del usuario
 export type ClientRole = 'searching' | 'investor' | 'tenant'
 
 export function getClientTheme(role: ClientRole) {
   return clientThemes[role] || clientThemes.searching
 }
 
-// Espaciado
+function ensureAppTheme(mode: AppThemeMode, theme: ClientTheme, isDark: boolean): AppTheme {
+  return {
+    ...theme,
+    mode,
+    isDark,
+    success: theme.success || colors.success,
+    warning: theme.warning || colors.warning,
+    error: theme.error || colors.error,
+  }
+}
+
+export function getAppThemeByRole(params: {
+  isInvestor?: boolean
+  isTenant?: boolean
+  isSearching?: boolean
+  isAdvisor?: boolean
+}): AppTheme {
+  const { isAdvisor, isInvestor, isSearching, isTenant } = params
+
+  if (isInvestor) {
+    return ensureAppTheme('investor', clientThemes.investor, true)
+  }
+
+  if (isTenant) {
+    return ensureAppTheme('tenant', clientThemes.tenant, true)
+  }
+
+  if (isAdvisor) {
+    return ensureAppTheme('advisor', clientThemes.advisor, true)
+  }
+
+  if (isSearching) {
+    return ensureAppTheme('searching', clientThemes.searching, false)
+  }
+
+  return ensureAppTheme('default', clientThemes.searching, false)
+}
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -168,7 +201,6 @@ export const spacing = {
   xxl: 48,
 }
 
-// Tipografia
 export const typography = {
   h1: {
     fontSize: 32,
@@ -207,7 +239,6 @@ export const typography = {
   },
 }
 
-// Bordes redondeados
 export const borderRadius = {
   sm: 4,
   md: 8,
@@ -216,7 +247,6 @@ export const borderRadius = {
   full: 9999,
 }
 
-// Sombras
 export const shadows = {
   sm: {
     shadowColor: '#000',

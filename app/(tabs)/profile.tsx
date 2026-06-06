@@ -1,10 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
-import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { colors, spacing, typography, borderRadius } from '@/lib/theme'
 import { 
-  User, 
   Mail, 
   Phone, 
   HelpCircle, 
@@ -18,35 +16,14 @@ import {
   Settings,
   Edit3,
 } from 'lucide-react-native'
+import { AppScreen, SectionCard } from '@/components/ui'
+import { useAppTheme } from '@/lib/hooks/useAppTheme'
 
 export default function ProfileScreen() {
-  const { currentUser, logout, isClient, isAgent, isAdmin } = useAuth()
+  const { currentUser, isClient, isAgent, isAdmin, isInvestor, isTenant, isSearching } = useSessionDomain()
   const router = useRouter()
-
-  // Determinar tipo de cliente
-  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
-  const isTenant = currentUser?.clientProfile === 'TENANT'
-  const isSearching = currentUser?.clientProfile === 'SEEKER'
-  const isDark = isAgent || isAdmin || isInvestor
-
-  // Obtener colores segun el tipo de usuario cliente
-  const getThemeColors = () => {
-    if (isInvestor) return clientThemes.investor
-    if (isSearching) return clientThemes.searching
-    if (isTenant) return clientThemes.tenant
-    if (isAgent || isAdmin) return {
-      background: colors.primaryDark,
-      surface: colors.surfaceDark,
-      border: colors.borderDark,
-      text: colors.textLight,
-      textSecondary: colors.textMuted,
-      textMuted: colors.textMuted,
-      accent: colors.accent,
-    }
-    return clientThemes.searching // Default para clientes
-  }
-  
-  const theme = getThemeColors()
+  const { theme } = useAppTheme()
+  const styles = createStyles(theme)
 
   const handleLogout = () => {
     Alert.alert(
@@ -59,7 +36,7 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: () => {
             // Navegar a pantalla de transicion con el rol del usuario
-            router.replace(`/logout-transition?role=${currentUser?.clientProfile || 'searching'}`)
+            router.replace(`/logout-transition?role=${isInvestor ? 'investor' : isTenant ? 'tenant' : 'searching'}`)
           }
         }
       ]
@@ -77,9 +54,9 @@ export default function ProfileScreen() {
     if (currentUser?.systemRole === 'COORDINATOR') return 'Coordinador'
     if (currentUser?.systemRole === 'ADMIN') return 'Administrador'
 
-    if (currentUser?.clientProfile === 'INVESTOR') return 'Inversionista'
-    if (currentUser?.clientProfile === 'TENANT') return 'Inquilino'
-    if (currentUser?.clientProfile === 'SEEKER') return 'Buscador'
+    if (currentUser?.investment) return 'Inversionista'
+    if (currentUser?.tenant) return 'Inquilino'
+    if (!currentUser?.investment && !currentUser?.tenant) return 'Buscador'
 
     return 'Cliente'
   }
@@ -87,7 +64,7 @@ export default function ProfileScreen() {
   const memberSince = 'Enero 2024'
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['bottom']}>
+    <AppScreen edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Avatar y nombre */}
         <View style={styles.header}>
@@ -108,9 +85,9 @@ export default function ProfileScreen() {
         </View>
 
         {/* Informacion de contacto */}
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <SectionCard style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Informacion Personal</Text>
+            <Text style={styles.sectionTitle}>Informacion Personal</Text>
             <TouchableOpacity>
               <Text style={[styles.editLink, { color: theme.accent }]}>Editar</Text>
             </TouchableOpacity>
@@ -121,8 +98,8 @@ export default function ProfileScreen() {
               <Mail size={18} color={theme.accent} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Correo electronico</Text>
-              <Text style={[styles.infoText, { color: theme.text }]}>{currentUser?.email}</Text>
+              <Text style={styles.infoLabel}>Correo electronico</Text>
+              <Text style={styles.infoText}>{currentUser?.email}</Text>
             </View>
           </View>
           
@@ -133,8 +110,8 @@ export default function ProfileScreen() {
               <Phone size={18} color={theme.accent} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Telefono</Text>
-              <Text style={[styles.infoText, { color: theme.text }]}>{currentUser?.phone}</Text>
+              <Text style={styles.infoLabel}>Telefono</Text>
+              <Text style={styles.infoText}>{currentUser?.phone}</Text>
             </View>
           </View>
 
@@ -145,8 +122,8 @@ export default function ProfileScreen() {
               <MapPin size={18} color={theme.accent} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Ubicacion</Text>
-              <Text style={[styles.infoText, { color: theme.text }]}>Monterrey, NL</Text>
+              <Text style={styles.infoLabel}>Ubicacion</Text>
+              <Text style={styles.infoText}>Monterrey, NL</Text>
             </View>
           </View>
 
@@ -157,16 +134,16 @@ export default function ProfileScreen() {
               <Calendar size={18} color={theme.accent} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Miembro desde</Text>
-              <Text style={[styles.infoText, { color: theme.text }]}>{memberSince}</Text>
+              <Text style={styles.infoLabel}>Miembro desde</Text>
+              <Text style={styles.infoText}>{memberSince}</Text>
             </View>
           </View>
-        </View>
+        </SectionCard>
 
         {/* Stats segun tipo de cliente */}
         {isClient && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+          <SectionCard style={styles.card}>
+            <Text style={styles.sectionTitle}>
               {isInvestor ? 'Resumen de Portafolio' : isSearching ? 'Tu Busqueda' : 'Tu Renta'}
             </Text>
             
@@ -219,21 +196,21 @@ export default function ProfileScreen() {
                 </>
               )}
             </View>
-          </View>
+          </SectionCard>
         )}
 
         {/* Configuracion - para todos los clientes */}
         {isClient && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Configuracion</Text>
+          <SectionCard style={styles.card}>
+            <Text style={styles.sectionTitle}>Configuracion</Text>
             
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: theme.accent + '15' }]}>
                 <Shield size={18} color={theme.accent} />
               </View>
               <View style={styles.menuContent}>
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Seguridad</Text>
-                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Contrasena y autenticacion</Text>
+                <Text style={styles.menuItemText}>Seguridad</Text>
+                <Text style={styles.menuItemHint}>Contrasena y autenticacion</Text>
               </View>
               <ChevronRight size={20} color={theme.textMuted} />
             </TouchableOpacity>
@@ -245,8 +222,8 @@ export default function ProfileScreen() {
                 <Settings size={18} color={theme.accent} />
               </View>
               <View style={styles.menuContent}>
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Preferencias</Text>
-                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Idioma, moneda y mas</Text>
+                <Text style={styles.menuItemText}>Preferencias</Text>
+                <Text style={styles.menuItemHint}>Idioma, moneda y mas</Text>
               </View>
               <ChevronRight size={20} color={theme.textMuted} />
             </TouchableOpacity>
@@ -258,12 +235,12 @@ export default function ProfileScreen() {
                 <HelpCircle size={18} color={theme.accent} />
               </View>
               <View style={styles.menuContent}>
-                <Text style={[styles.menuItemText, { color: theme.text }]}>Ayuda y Soporte</Text>
-                <Text style={[styles.menuItemHint, { color: theme.textMuted }]}>Centro de ayuda</Text>
+                <Text style={styles.menuItemText}>Ayuda y Soporte</Text>
+                <Text style={styles.menuItemHint}>Centro de ayuda</Text>
               </View>
               <ChevronRight size={20} color={theme.textMuted} />
             </TouchableOpacity>
-          </View>
+          </SectionCard>
         )}
 
         {/* Cerrar sesion */}
@@ -276,17 +253,14 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={[styles.version, { color: theme.textMuted }]}>Version 1.0.0</Text>
+          <Text style={styles.version}>Version 1.0.0</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) => StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
@@ -347,6 +321,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
+    color: theme.text,
   },
   editLink: {
     fontSize: typography.bodySmall.fontSize,
@@ -371,10 +346,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: typography.caption.fontSize,
     marginBottom: 2,
+    color: theme.textMuted,
   },
   infoText: {
     fontSize: typography.body.fontSize,
     fontWeight: '500',
+    color: theme.text,
   },
   infoDivider: {
     height: 1,
@@ -395,9 +372,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: typography.h4.fontSize,
     fontWeight: '700',
+    color: theme.text,
   },
   statLabel: {
     fontSize: typography.caption.fontSize,
+    color: theme.textMuted,
   },
   referralContainer: {
     flexDirection: 'row',
@@ -437,10 +416,12 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: typography.body.fontSize,
     fontWeight: '500',
+    color: theme.text,
   },
   menuItemHint: {
     fontSize: typography.caption.fontSize,
     marginTop: 2,
+    color: theme.textMuted,
   },
   menuDivider: {
     height: 1,
@@ -467,5 +448,6 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: typography.caption.fontSize,
+    color: theme.textMuted,
   },
 })
