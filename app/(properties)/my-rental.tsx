@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { 
   View, 
   Text, 
@@ -9,9 +8,10 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { getActiveRentalSnapshotByTenantId } from '@/lib/services/active-rental-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { mockActiveRental, mockUsers, mockProperties, formatCurrency, formatDate } from '@/lib/mock-data'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
   ArrowLeft,
   Home,
@@ -33,46 +33,13 @@ import {
 } from 'lucide-react-native'
 
 export default function MyRentalScreen() {
-  const { currentUser } = useAuth()
+  const { currentUser } = useSessionDomain()
   const router = useRouter()
-
-  const rental = useMemo(() => {
-    if (!currentUser) return null
-    if (mockActiveRental.tenantId === currentUser.id) {
-      return mockActiveRental
-    }
-    return null
-  }, [currentUser])
-
-  const property = useMemo(() => {
-    if (!rental) return null
-    return mockProperties.find(p => p.id === rental.propertyId)
-  }, [rental])
-
-  const landlord = useMemo(() => {
-    if (!rental) return null
-    return mockUsers.find(u => u.id === rental.landlordId)
-  }, [rental])
-
-  const agent = useMemo(() => {
-    if (!rental) return null
-    return mockUsers.find(u => u.id === rental.agentId)
-  }, [rental])
+  const { rental, property, landlord, agent, daysUntilPayment } = getActiveRentalSnapshotByTenantId(currentUser?.id)
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`)
   }
-
-  const daysUntilPayment = useMemo(() => {
-    if (!rental) return 0
-    const today = new Date()
-    const paymentDate = new Date(today.getFullYear(), today.getMonth(), rental.paymentDay)
-    if (paymentDate < today) {
-      paymentDate.setMonth(paymentDate.getMonth() + 1)
-    }
-    const diffTime = paymentDate.getTime() - today.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  }, [rental])
 
   if (!rental || !property) {
     return (

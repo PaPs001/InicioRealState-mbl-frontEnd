@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { clientThemes } from '@/lib/theme'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 import { Animated } from 'react-native'
 
 export default function Index() {
-  const { isLoading, isLoggedIn, currentUser } = useAuth()
+  const { isLoading, isLoggedIn, currentUser } = useSessionDomain()
   const router = useRouter()
   const pulseAnim = new Animated.Value(1)
 

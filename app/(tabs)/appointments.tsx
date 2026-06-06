@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useActivityDomain } from '@/contexts/auth/use-activity-domain'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatDate } from '@/lib/mock-data'
+import { formatDate } from '@/lib/utils'
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native'
 
 export default function AppointmentsScreen() {
-  const { userAppointments, getPropertyById } = useAuth()
+  const { userAppointments } = useActivityDomain()
+  const { getPropertyById } = usePropertyDomain()
 
   const getStatusInfo = (status: string) => {
     switch (status) {

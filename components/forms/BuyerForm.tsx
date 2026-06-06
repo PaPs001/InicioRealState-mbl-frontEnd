@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   Keyboard,
@@ -13,27 +10,25 @@ import {
   Dimensions,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowLeft,
-  Home,
-  Key,
-  Search,
-  ChevronRight,
-  Check,
-  Building2,
-  MapPin,
-} from 'lucide-react-native'
-import { useAuth } from '@/contexts/AuthContext'
-import { spacing, typography, borderRadius, clientThemes, colors } from '@/lib/theme'
-import type { Property } from '@/lib/types'
+import { Lock, Mail, Phone, User } from 'lucide-react-native'
+import { BuyerInputStep } from '@/components/forms/buyer/BuyerInputStep'
+import { BuyerLoadingStep } from '@/components/forms/buyer/BuyerLoadingStep'
+import { BuyerSearchPreferencesStep } from '@/components/forms/buyer/BuyerSearchPreferencesStep'
+import { BuyerSuggestionsStep } from '@/components/forms/buyer/BuyerSuggestionsStep'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { AnimatedLinearFormStepperHeader } from '@/components/forms/shared/AnimatedLinearFormStepperHeader'
+import { useLinearStepper } from '@/lib/hooks/use-linear-stepper'
+import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import LogoNegro from '@/app/assets/LogoInicioSVGNegro.svg'
-import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
+import type { BuyerFormData, BuyerInputStepContent, BuyerStep, SuggestedProperty } from '@/components/forms/buyer/types'
+import { registerBuyer } from '@/lib/services/registration-flows'
+import {
+  hasEmailShape,
+  hasMinTrimmedLength,
+  hasPasswordLength,
+  hasPhoneLength,
+} from '@/lib/services/form-validation'
 
 const { width } = Dimensions.get('window')
 
@@ -43,22 +38,23 @@ interface BuyerFormProps {
   onBack: () => void
 }
 
-type Step = 'name' | 'email' | 'phone' | 'password' | 'search-preferences' | 'loading' | 'suggestions'
+const linearSteps = ['name', 'email', 'phone', 'password', 'search-preferences'] as const
 
 export default function BuyerForm({ onBack }: BuyerFormProps) {
   const router = useRouter()
-  const { setAuthSession, availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = useAuth()
+  const { setAuthSession } = useSessionDomain()
+  const { availableProperties, loadCatalogProperties, hasLoadedCatalog, isCatalogLoading } = usePropertyDomain()
   
-  const [step, setStep] = useState<Step>('name')
-  const [formData, setFormData] = useState({
+  const [step, setStep] = useState<BuyerStep>('name')
+  const [formData, setFormData] = useState<BuyerFormData>({
     name: '',
     email: '',
     phone: '',
     password: '',
-    searchType: '' as 'buy' | 'rent' | '',
+    searchType: '',
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [suggestedProperties, setSuggestedProperties] = useState<Property[]>([])
+  const [suggestedProperties, setSuggestedProperties] = useState<SuggestedProperty[]>([])
 
   const updateFormData = (field: keyof typeof formData, value: string) => {
     setFormData((current) => ({
@@ -72,9 +68,40 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   const progressAnim = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
 
-  const steps: Step[] = ['name', 'email', 'phone', 'password', 'search-preferences', 'loading', 'suggestions']
-  const currentStepIndex = steps.indexOf(step)
-  const totalSteps = 5 
+  const stepValidity: Record<(typeof linearSteps)[number], boolean> = {
+    name: hasMinTrimmedLength(formData.name, 2),
+    email: hasEmailShape(formData.email),
+    phone: hasPhoneLength(formData.phone),
+    password: hasPasswordLength(formData.password),
+    'search-preferences': formData.searchType !== '',
+  }
+
+  const {
+    currentIndex: currentStepIndex,
+    totalSteps,
+    progress,
+    isCurrentStepValid,
+    goBack,
+    goNext,
+  } = useLinearStepper({
+    currentStep: step,
+    steps: linearSteps,
+    isStepValid: (currentStep) => {
+      switch (currentStep) {
+        case 'name':
+        case 'email':
+        case 'phone':
+        case 'password':
+        case 'search-preferences':
+          return stepValidity[currentStep]
+        default:
+          return false
+      }
+    },
+    onStepChange: setStep,
+    onExit: onBack,
+    onComplete: () => setStep('loading'),
+  })
 
   useEffect(() => {
     fadeAnim.setValue(0)
@@ -94,13 +121,12 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       }),
     ]).start()
 
-    const progress = Math.min(currentStepIndex + 1, totalSteps) / totalSteps
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 300,
       useNativeDriver: false,
     }).start()
-  }, [step])
+  }, [step, progress])
 
   useEffect(() => {
     if (step === 'loading') {
@@ -153,47 +179,12 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
 
   const handleNext = () => {
     Keyboard.dismiss()
-
-    switch (step) {
-      case 'name':
-        if (formData.name.trim()) setStep('email')
-        break
-      case 'email':
-        if (formData.email.trim()) setStep('phone')
-        break
-      case 'phone':
-        if (formData.phone.trim()) setStep('password')
-        break
-      case 'password':
-        if (formData.password.trim()) setStep('search-preferences')
-        break
-      case 'search-preferences':
-        if (formData.searchType) {
-          setStep('loading')
-        }
-        break
-    }
+    void goNext()
   }
 
   const handleBack = () => {
     Keyboard.dismiss()
-
-    switch (step) {
-      case 'email':
-        setStep('name')
-        break
-      case 'phone':
-        setStep('email')
-        break
-      case 'password':
-        setStep('phone')
-        break
-      case 'search-preferences':
-        setStep('password')
-        break
-      default:
-        onBack()
-    }
+    void goBack()
   }
 
   const handleSkipPreferences = async () => {
@@ -203,14 +194,13 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
   }
 
   const completeRegistration = async () => {
-    const result = await completeRegistrationAndLogin(
+    const result = await registerBuyer(
       {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role: 'CLIENT',
-        clientProfile: formData.searchType === 'rent' ? 'TENANT' : 'SEEKER',
+        searchType: formData.searchType,
       },
       setAuthSession
     )
@@ -234,24 +224,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     router.replace('/(tabs)/catalog')
   }
 
-  const canContinue = () => {
-    switch (step) {
-      case 'name':
-        return formData.name.trim().length >= 2
-      case 'email':
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-      case 'phone':
-        return formData.phone.trim().length >= 10
-      case 'password':
-        return formData.password.length >= 6
-      case 'search-preferences':
-        return formData.searchType !== ''
-      default:
-        return false
-    }
-  }
-
-  const getStepContent = () => {
+  const getStepContent = (): BuyerInputStepContent | null => {
     switch (step) {
       case 'name':
         return {
@@ -303,233 +276,7 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     }
   }
 
-  const renderInputStep = () => {
-    const content = getStepContent()
-    if (!content) return null
-
-    const Icon = content.icon
-
-    return (
-      <Animated.View 
-        style={[
-          styles.stepContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }
-        ]}
-      >
-        <View style={styles.stepHeader}>
-          <Text style={styles.stepTitle}>{content.title}</Text>
-          <Text style={styles.stepSubtitle}>{content.subtitle}</Text>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <Icon size={20} color={theme.textMuted} />
-            <TextInput
-              key={`buyer-input-${step}`}
-              style={styles.input}
-              placeholder={content.placeholder}
-              placeholderTextColor={theme.textMuted}
-              value={content.value}
-              onChangeText={content.onChange}
-              keyboardType={content.keyboardType}
-              secureTextEntry={content.secureTextEntry && !showPassword}
-              autoCapitalize={step === 'email' || step === 'password' ? 'none' : 'sentences'}
-              autoCorrect={step !== 'email' && step !== 'password'}
-              textContentType={step === 'email' ? 'emailAddress' : step === 'password' ? 'password' : 'none'}
-            />
-            {content.secureTextEntry && (
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                {showPassword ? (
-                  <EyeOff size={20} color={theme.textMuted} />
-                ) : (
-                  <Eye size={20} color={theme.textMuted} />
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-          <Text style={styles.inputHint}>{content.hint}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.continueButton, !canContinue() && styles.continueButtonDisabled]}
-          onPress={handleNext}
-          disabled={!canContinue()}
-        >
-          <Text style={styles.continueButtonText}>Continuar</Text>
-          <ChevronRight size={20} color={theme.textLight} />
-        </TouchableOpacity>
-      </Animated.View>
-    )
-  }
-
-  const renderSearchPreferences = () => (
-    <Animated.View 
-      style={[
-        styles.stepContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }
-      ]}
-    >
-      <View style={styles.stepHeader}>
-        <Text style={styles.stepTitle}>¿Qué estás buscando?</Text>
-        <Text style={styles.stepSubtitle}>Cuéntanos para mostrarte las mejores opciones</Text>
-      </View>
-
-      {/* Selector de tipo: Comprar o Rentar */}
-      <View style={styles.searchTypeContainer}>
-        <TouchableOpacity
-          style={[
-            styles.searchTypeOption,
-            formData.searchType === 'buy' && styles.searchTypeOptionSelected,
-          ]}
-          onPress={() => setFormData((current) => ({ ...current, searchType: 'buy' }))}
-        >
-          <View style={[
-            styles.searchTypeIcon,
-            formData.searchType === 'buy' && styles.searchTypeIconSelected,
-          ]}>
-            <Key size={28} color={formData.searchType === 'buy' ? theme.surface : theme.primary} />
-          </View>
-          <Text style={[
-            styles.searchTypeTitle,
-            formData.searchType === 'buy' && styles.searchTypeTitleSelected,
-          ]}>
-            Comprar
-          </Text>
-          <Text style={styles.searchTypeDesc}>Encuentra tu proximo hogar</Text>
-          {formData.searchType === 'buy' && (
-            <View style={styles.checkBadge}>
-              <Check size={14} color={theme.surface} />
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.searchTypeOption,
-            formData.searchType === 'rent' && styles.searchTypeOptionSelected,
-          ]}
-          onPress={() => setFormData((current) => ({ ...current, searchType: 'rent' }))}
-        >
-          <View style={[
-            styles.searchTypeIcon,
-            formData.searchType === 'rent' && styles.searchTypeIconSelected,
-          ]}>
-            <Home size={28} color={formData.searchType === 'rent' ? theme.surface : theme.primary} />
-          </View>
-          <Text style={[
-            styles.searchTypeTitle,
-            formData.searchType === 'rent' && styles.searchTypeTitleSelected,
-          ]}>
-            Rentar
-          </Text>
-          <Text style={styles.searchTypeDesc}>Opciones flexibles para ti</Text>
-          {formData.searchType === 'rent' && (
-            <View style={styles.checkBadge}>
-              <Check size={14} color={theme.surface} />
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.preferencesButtons}>
-        <TouchableOpacity
-          style={[styles.continueButton, !canContinue() && styles.continueButtonDisabled]}
-          onPress={handleNext}
-          disabled={!canContinue()}
-        >
-          <Search size={20} color={theme.textLight} />
-          <Text style={styles.continueButtonText}>Buscar propiedades</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkipPreferences}>
-          <Text style={styles.skipButtonText}>Prefiero explorar todo</Text>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
-  )
-
-  const renderLoading = () => (
-    <View style={styles.loadingContainer}>
-      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <LogoNegro width={280} height={95} />
-      </Animated.View>
-
-      <Text style={styles.loadingText}>Buscando las mejores opciones...</Text>
-    </View>
-  )
-
-  const renderSuggestions = () => (
-    <Animated.View 
-      style={[
-        styles.suggestionsContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }
-      ]}
-    >
-      <View style={styles.suggestionsHeader}>
-        <Text style={styles.suggestionsTitle}>
-          {suggestedProperties.length > 0 
-            ? 'Encontramos opciones para ti!' 
-            : 'Explora nuestro catálogo'}
-        </Text>
-        <Text style={styles.suggestionsSubtitle}>
-          {suggestedProperties.length > 0
-            ? 'Selecciona una para ver mas detalles'
-            : 'Miles de propiedades te esperan'}
-        </Text>
-      </View>
-
-      {suggestedProperties.length > 0 ? (
-        <ScrollView style={styles.propertiesList} showsVerticalScrollIndicator={false}>
-          {suggestedProperties.map((property) => (
-            <TouchableOpacity
-              key={property.id}
-              style={styles.propertyCard}
-              onPress={handlePropertySelect}
-            >
-              <View style={styles.propertyIconContainer}>
-                <Building2 size={24} color={theme.primary} />
-              </View>
-              <View style={styles.propertyInfo}>
-                <Text style={styles.propertyTitle} numberOfLines={1}>{property.title}</Text>
-                <View style={styles.propertyLocation}>
-                  <MapPin size={12} color={theme.textMuted} />
-                  <Text style={styles.propertyAddress} numberOfLines={1}>
-                    {property.address}, {property.city}
-                  </Text>
-                </View>
-                <Text style={styles.propertyPrice}>
-                  ${property.price?.toLocaleString('es-MX')}
-                  {formData.searchType === 'rent' && property.monthlyRent && '/mes'}
-                </Text>
-              </View>
-              <ChevronRight size={20} color={theme.textMuted} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ) : (
-        <View style={styles.noResultsContainer}>
-          <Search size={48} color={theme.textMuted} />
-          <Text style={styles.noResultsText}>
-            No encontramos propiedades con esos criterios, pero tenemos muchas más opciones
-          </Text>
-        </View>
-      )}
-
-      <TouchableOpacity style={styles.exploreAllButton} onPress={handleExploreAll}>
-        <Text style={styles.exploreAllButtonText}>Explorar todo el catálogo</Text>
-        <ChevronRight size={20} color={theme.surface} />
-      </TouchableOpacity>
-    </Animated.View>
-  )
+  const inputStepContent = getStepContent()
 
   return (
     <View style={styles.container}>
@@ -544,33 +291,20 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
       >
         {/* Header con progreso */}
         {step !== 'loading' && step !== 'suggestions' && (
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <ArrowLeft size={24} color={theme.text} />
-            </TouchableOpacity>
-
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <Animated.View 
-                  style={[
-                    styles.progressFill,
-                  {
-                    width: progressAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0%', '100%'],
-                    }),
-                  }
-                ]}
-              />
-            </View>
-            <Text style={styles.progressText}>
-              Paso {Math.min(currentStepIndex + 1, totalSteps)} de {totalSteps}
-            </Text>
-          </View>
-
-          <View style={styles.headerPlaceholder} />
-        </View>
-      )}
+          <AnimatedLinearFormStepperHeader
+            onBack={handleBack}
+            backColor={theme.text}
+            progressTrackColor={theme.border}
+            progressFillColor={theme.primary}
+            progressTextColor={theme.textMuted}
+            currentStep={Math.min(currentStepIndex + 1, totalSteps)}
+            totalSteps={totalSteps}
+            progressWidth={progressAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0%', '100%'],
+            })}
+          />
+        )}
 
       <ScrollView 
         style={styles.content}
@@ -578,10 +312,58 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {step === 'loading' && renderLoading()}
-        {step === 'suggestions' && renderSuggestions()}
-        {step === 'search-preferences' && renderSearchPreferences()}
-        {['name', 'email', 'phone', 'password'].includes(step) && renderInputStep()}
+        {step === 'loading' && (
+          <BuyerLoadingStep
+            styles={styles}
+            pulseStyle={{ transform: [{ scale: pulseAnim }] }}
+            Logo={LogoNegro}
+          />
+        )}
+        {step === 'suggestions' && (
+          <BuyerSuggestionsStep
+            animatedStyle={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            }}
+            styles={styles}
+            theme={theme}
+            suggestedProperties={suggestedProperties}
+            searchType={formData.searchType}
+            onSelectProperty={() => void handlePropertySelect()}
+            onExploreAll={() => void handleExploreAll()}
+          />
+        )}
+        {step === 'search-preferences' && (
+          <BuyerSearchPreferencesStep
+            animatedStyle={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            }}
+            styles={styles}
+            theme={theme}
+            formData={formData}
+            isCurrentStepValid={isCurrentStepValid}
+            onSelectSearchType={(value) => updateFormData('searchType', value)}
+            onContinue={handleNext}
+            onSkip={() => void handleSkipPreferences()}
+          />
+        )}
+        {['name', 'email', 'phone', 'password'].includes(step) && inputStepContent ? (
+          <BuyerInputStep
+            animatedStyle={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            }}
+            styles={styles}
+            theme={theme}
+            step={step}
+            content={inputStepContent}
+            showPassword={showPassword}
+            onTogglePassword={() => setShowPassword((current) => !current)}
+            onContinue={handleNext}
+            isCurrentStepValid={isCurrentStepValid}
+          />
+        ) : null}
       </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -609,46 +391,6 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
     zIndex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.full,
-    backgroundColor: theme.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  progressContainer: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: theme.border,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: theme.primary,
-    borderRadius: borderRadius.full,
-  },
-  progressText: {
-    fontSize: typography.caption.fontSize,
-    color: theme.textMuted,
-    textAlign: 'center',
-  },
-  headerPlaceholder: {
-    width: 44,
   },
   content: {
     flex: 1,

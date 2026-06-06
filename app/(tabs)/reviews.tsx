@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatCurrency, formatDate } from '@/lib/mock-data'
+import { getPendingReviewRegistrations } from '@/lib/services/reviews-domain'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
   CheckCircle, 
   XCircle, 
@@ -12,33 +13,9 @@ import {
   AlertCircle
 } from 'lucide-react-native'
 
-// Datos mock de registros pendientes
-const mockPendingRegistrations = [
-  {
-    id: 'reg-1',
-    type: 'sale',
-    propertyTitle: 'Departamento Vista al Mar',
-    agentName: 'Ana Lopez',
-    clientName: 'Pedro Hernandez',
-    amount: 4200000,
-    commissionAmount: 210000,
-    status: 'pending_review',
-    createdDate: '2024-05-03',
-  },
-  {
-    id: 'reg-2',
-    type: 'rent',
-    propertyTitle: 'Penthouse en Santa Fe',
-    agentName: 'Ana Lopez',
-    clientName: 'Laura Diaz',
-    amount: 85000,
-    commissionAmount: 8500,
-    status: 'pending_review',
-    createdDate: '2024-05-02',
-  },
-]
-
 export default function ReviewsScreen() {
+  const pendingRegistrations = getPendingReviewRegistrations()
+
   const handleApprove = (id: string) => {
     Alert.alert(
       'Aprobar Registro',
@@ -61,7 +38,7 @@ export default function ReviewsScreen() {
     )
   }
 
-  const renderRegistration = ({ item }: { item: typeof mockPendingRegistrations[0] }) => (
+  const renderRegistration = ({ item }: { item: typeof pendingRegistrations[number] }) => (
     <View style={styles.registrationCard}>
       <View style={styles.cardHeader}>
         <View style={[styles.typeBadge, { backgroundColor: item.type === 'sale' ? colors.success : colors.info }]}>
@@ -133,12 +110,12 @@ export default function ReviewsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Registros Pendientes</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>{mockPendingRegistrations.length}</Text>
+          <Text style={styles.countBadgeText}>{pendingRegistrations.length}</Text>
         </View>
       </View>
 
       <FlatList
-        data={mockPendingRegistrations}
+        data={pendingRegistrations}
         renderItem={renderRegistration}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}

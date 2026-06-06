@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -24,44 +24,26 @@ import {
   Target,
 } from 'lucide-react-native'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { mockCampaigns, mockProperties, formatCurrency, formatDate } from '@/lib/mock-data'
-import { useAuth } from '@/contexts/AuthContext'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { useCampaignsDomain } from '@/contexts/auth/use-campaigns-domain'
+import type { Campaign } from '@/lib/types'
 
 // Colores del inversionista
 const theme = clientThemes.investor
 
 export default function CampaignsScreen() {
   const router = useRouter()
-  const { currentUser } = useAuth()
+  const {
+    activeCampaigns,
+    historyCampaigns,
+    activeStats,
+    historyStats,
+    getProperty,
+    getDaysRemaining,
+    getProgressPercent,
+    getResultText,
+  } = useCampaignsDomain()
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active')
-
-  // Filtrar campanas del usuario actual
-  const userCampaigns = useMemo(() => {
-    return mockCampaigns.filter(c => c.ownerId === currentUser?.id)
-  }, [currentUser])
-
-  // Campanas activas (active + paused)
-  const activeCampaigns = useMemo(() => {
-    return userCampaigns.filter(c => c.status === 'active' || c.status === 'paused')
-  }, [userCampaigns])
-
-  // Campanas historicas (completed + cancelled)
-  const historyCampaigns = useMemo(() => {
-    return userCampaigns.filter(c => c.status === 'completed' || c.status === 'cancelled')
-  }, [userCampaigns])
-
-  // Obtener propiedad por ID
-  const getProperty = (propertyId: string) => {
-    return mockProperties.find(p => p.id === propertyId)
-  }
-
-  // Calcular dias restantes
-  const getDaysRemaining = (endDate: string) => {
-    const end = new Date(endDate)
-    const now = new Date()
-    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    return diff > 0 ? diff : 0
-  }
 
   // Obtener icono de estado
   const getStatusIcon = (status: string) => {
@@ -94,42 +76,10 @@ export default function CampaignsScreen() {
     }
   }
 
-  // Obtener texto de resultado
-  const getResultText = (result?: string) => {
-    switch (result) {
-      case 'rented':
-        return 'Rentada'
-      case 'sold':
-        return 'Vendida'
-      case 'not_achieved':
-        return 'No logrado'
-      case 'cancelled':
-        return 'Cancelada'
-      default:
-        return 'Pendiente'
-    }
-  }
-
-  // Stats de campanas activas
-  const activeStats = useMemo(() => {
-    const totalBudget = activeCampaigns.reduce((acc, c) => acc + c.budget, 0)
-    const totalSpent = activeCampaigns.reduce((acc, c) => acc + c.spentBudget, 0)
-    const totalLeads = activeCampaigns.reduce((acc, c) => acc + c.leadsCount, 0)
-    return { totalBudget, totalSpent, totalLeads, count: activeCampaigns.length }
-  }, [activeCampaigns])
-
-  // Stats de historial
-  const historyStats = useMemo(() => {
-    const totalSpent = historyCampaigns.reduce((acc, c) => acc + c.spentBudget, 0)
-    const totalLeads = historyCampaigns.reduce((acc, c) => acc + c.leadsCount, 0)
-    const successful = historyCampaigns.filter(c => c.result === 'rented' || c.result === 'sold').length
-    return { totalSpent, totalLeads, successful, count: historyCampaigns.length }
-  }, [historyCampaigns])
-
-  const renderActiveCampaign = (campaign: typeof mockCampaigns[0]) => {
+  const renderActiveCampaign = (campaign: Campaign) => {
     const property = getProperty(campaign.propertyId)
     const daysRemaining = getDaysRemaining(campaign.endDate)
-    const progressPercent = (campaign.spentBudget / campaign.budget) * 100
+    const progressPercent = getProgressPercent(campaign)
 
     return (
       <View key={campaign.id} style={styles.campaignCard}>
@@ -226,7 +176,7 @@ export default function CampaignsScreen() {
     )
   }
 
-  const renderHistoryCampaign = (campaign: typeof mockCampaigns[0]) => {
+  const renderHistoryCampaign = (campaign: Campaign) => {
     const property = getProperty(campaign.propertyId)
 
     return (
