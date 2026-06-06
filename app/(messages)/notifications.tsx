@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react'
 import { 
   View, 
   Text, 
@@ -8,9 +7,8 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useNotificationsDomain } from '@/contexts/auth/use-notifications-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { mockNotifications } from '@/lib/mock-data'
 import type { Notification } from '@/lib/types'
 import { 
   ArrowLeft,
@@ -23,34 +21,9 @@ import {
 } from 'lucide-react-native'
 
 export default function NotificationsScreen() {
-  const { currentUser } = useAuth()
   const router = useRouter()
-  const [notifications, setNotifications] = useState(mockNotifications)
-
-  const userNotifications = useMemo(() => {
-    if (!currentUser) return []
-    return notifications.filter(n => n.userId === currentUser.id)
-  }, [currentUser, notifications])
-
-  const unreadCount = useMemo(() => {
-    return userNotifications.filter(n => !n.read).length
-  }, [userNotifications])
-
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    )
-  }
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.userId === currentUser?.id ? { ...n, read: true } : n
-      )
-    )
-  }
+  const { notifications: userNotifications, unreadCount, markAsRead, markAllAsRead, formatTime } =
+    useNotificationsDomain()
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -67,25 +40,6 @@ export default function NotificationsScreen() {
       case 'warning': return colors.warning
       case 'error': return colors.error
       default: return colors.info
-    }
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMins < 60) {
-      return `Hace ${diffMins} min`
-    } else if (diffHours < 24) {
-      return `Hace ${diffHours}h`
-    } else if (diffDays < 7) {
-      return `Hace ${diffDays}d`
-    } else {
-      return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
     }
   }
 

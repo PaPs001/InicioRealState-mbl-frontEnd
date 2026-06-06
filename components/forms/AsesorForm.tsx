@@ -1,11 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard, KeyboardAvoidingView, ScrollView, Platform, Animated, Dimensions } from 'react-native'
+import { View, StyleSheet, Keyboard, KeyboardAvoidingView, ScrollView, Platform, Dimensions } from 'react-native'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import TextoLogoInicio from '@/app/assets/TextoLogoInicio.svg'
-import { useAuth } from '@/contexts/AuthContext'
-import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
+import { AdvisorOnboardingStep } from '@/components/forms/advisor/AdvisorOnboardingStep'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { LinearFormStepperFooter } from '@/components/forms/shared/LinearFormStepperFooter'
+import { LinearFormStepperHeader } from '@/components/forms/shared/LinearFormStepperHeader'
+import { useLinearStepper } from '@/lib/hooks/use-linear-stepper'
+import { registerAdvisor } from '@/lib/services/registration-flows'
+import {
+  hasEmailShape,
+  hasPasswordLength,
+  hasPhoneLength,
+  hasRequiredText,
+} from '@/lib/services/form-validation'
 
 const { width, height } = Dimensions.get('window')
 
@@ -23,7 +32,7 @@ const advisorColors = {
 
 export default function AsesorForm() {
   const router = useRouter()
-  const { setAuthSession } = useAuth()
+  const { setAuthSession } = useSessionDomain()
   const [step, setStep] = useState(1)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -31,20 +40,21 @@ export default function AsesorForm() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
 
-  const isStepOneValid = firstName.trim().length > 0 && lastName.trim().length > 0
-  const isStepTwoValid = email.trim().length > 0
-  const isStepThreeValid = phone.trim().length > 0
-  const isStepFourValid = password.trim().length > 0
+  const stepValidity = {
+    1: hasRequiredText(firstName) && hasRequiredText(lastName),
+    2: hasEmailShape(email),
+    3: hasPhoneLength(phone),
+    4: hasPasswordLength(password),
+  } as const
 
   const completeRegistration = async () => {
-    const result = await completeRegistrationAndLogin(
+    const result = await registerAdvisor(
       {
-        name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
+        firstName,
+        lastName,
+        email,
+        phone,
         password,
-        role: 'AGENT',
-        clientProfile: 'SEEKER',
       },
       setAuthSession
     )
@@ -57,49 +67,29 @@ export default function AsesorForm() {
     return true
   }
 
-  const handleBack = () => {
-    Keyboard.dismiss()
-
-    if (step === 1) {
-      router.back()
-      return
-    }
-
-    setStep((currentStep) => currentStep - 1)
-  }
-
-  const handleContinue = async () => {
-    Keyboard.dismiss()
-
-    if (step === 1 && isStepOneValid) {
-      setStep(2)
-      return
-    }
-
-    if (step === 2 && isStepTwoValid) {
-      setStep(3)
-      return
-    }
-
-    if (step === 3 && isStepThreeValid) {
-      setStep(4)
-      return
-    }
-
-    if (step === 4 && isStepFourValid) {
+  const { totalSteps, progress, isCurrentStepValid, goBack, goNext } = useLinearStepper({
+    currentStep: step,
+    steps: [1, 2, 3, 4] as const,
+    isStepValid: (currentStep) => stepValidity[currentStep as keyof typeof stepValidity],
+    onStepChange: setStep,
+    onExit: () => router.back(),
+    onComplete: async () => {
       const registered = await completeRegistration()
       if (!registered) return
 
       router.replace('/(tabs)')
-      return
-    }
+    },
+  })
+
+  const handleBack = () => {
+    Keyboard.dismiss()
+    void goBack()
   }
 
-  const isCurrentStepValid =
-    (step === 1 && isStepOneValid) ||
-    (step === 2 && isStepTwoValid) ||
-    (step === 3 && isStepThreeValid) ||
-    (step === 4 && isStepFourValid)
+  const handleContinue = async () => {
+    Keyboard.dismiss()
+    await goNext()
+  }
 
   return (
     <View style={styles.container}>
@@ -116,124 +106,42 @@ export default function AsesorForm() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <ArrowLeft size={20} color={advisorColors.accent} />
-              <Text style={styles.backButtonText}>Regresar</Text>
-            </TouchableOpacity>
-          </View>
+          <LinearFormStepperHeader
+            onBack={handleBack}
+            backColor={advisorColors.accent}
+            progressTrackColor={advisorColors.border}
+            progressFillColor={advisorColors.accent}
+            progressTextColor={advisorColors.textMuted}
+            currentStep={step}
+            totalSteps={totalSteps}
+            progress={progress}
+          />
 
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${(step / 4) * 100}%` }]} />
-            </View>
-            <Text style={styles.progressText}>Paso {step} de 4</Text>
-          </View>
-
-          <View style={styles.stepContent}>
-            {step === 1 ? (
-              <>
-                <Text style={styles.title}>Como te gustaria que te llamemos?</Text>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Nombre</Text>
-                  <TextInput
-                    key="advisor-first-name"
-                    style={styles.input}
-                    placeholder="Escribe tu nombre"
-                    placeholderTextColor={advisorColors.textMuted}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                  />
-                </View>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Apellido</Text>
-                  <TextInput
-                    key="advisor-last-name"
-                    style={styles.input}
-                    placeholder="Escribe tu apellido"
-                    placeholderTextColor={advisorColors.textMuted}
-                    value={lastName}
-                    onChangeText={setLastName}
-                  />
-                </View>
-              </>
-            ) : null}
-
-            {step === 2 ? (
-              <>
-                <Text style={styles.title}>Ahora escribe tu correo electronico.</Text>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Correo electronico</Text>
-                  <TextInput
-                    key="advisor-email"
-                    style={styles.input}
-                    placeholder="correo@ejemplo.com"
-                    placeholderTextColor={advisorColors.textMuted}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </>
-            ) : null}
-
-            {step === 3 ? (
-              <>
-                <Text style={styles.title}>Agrega tu número de teléfono.</Text>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Número de teléfono</Text>
-                  <TextInput
-                    key="advisor-phone"
-                    style={styles.input}
-                    placeholder="Escribe tu numero"
-                    placeholderTextColor={advisorColors.textMuted}
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                  />
-                </View>
-              </>
-            ) : null}
-
-            {step === 4 ? (
-              <>
-                <Text style={styles.title}>Por último, crea tu contraseña.</Text>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Contraseña</Text>
-                  <TextInput
-                    key="advisor-password"
-                    style={styles.input}
-                    placeholder="Crea una contraseña"
-                    placeholderTextColor={advisorColors.textMuted}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                </View>
-              </>
-            ) : null}
-          </View>
+          <AdvisorOnboardingStep
+            step={step}
+            styles={styles}
+            colors={advisorColors}
+            firstName={firstName}
+            lastName={lastName}
+            email={email}
+            phone={phone}
+            password={password}
+            onChangeFirstName={setFirstName}
+            onChangeLastName={setLastName}
+            onChangeEmail={setEmail}
+            onChangePhone={setPhone}
+            onChangePassword={setPassword}
+          />
 
           {/* Boton continuar */}
-          <View style={styles.footer}>
-            <TouchableOpacity
-              disabled={!isCurrentStepValid}
-              style={[styles.continueButton, !isCurrentStepValid && styles.disabledButton]}
-              onPress={handleContinue}
-            >
-              <Text style={styles.continueButtonText}>
-                {step === 4 ? 'Finalizar' : 'Continuar'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <LinearFormStepperFooter
+            disabled={!isCurrentStepValid}
+            label={step === totalSteps ? 'Finalizar' : 'Continuar'}
+            onPress={() => void handleContinue()}
+            buttonColor={advisorColors.accent}
+            textColor={advisorColors.background}
+            disabledButtonColor={advisorColors.border}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -266,41 +174,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: spacing.lg,
   },
-  header: {
-    marginBottom: spacing.md,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  backButtonText: {
-    color: advisorColors.accent,
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    marginLeft: spacing.xs,
-  },
-  progressContainer: {
-    marginBottom: spacing.xl,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: advisorColors.border,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: advisorColors.accent,
-    borderRadius: borderRadius.full,
-  },
-  progressText: {
-    color: advisorColors.textMuted,
-    fontSize: typography.bodySmall.fontSize,
-    marginTop: spacing.xs,
-    textAlign: 'right',
-  },
   stepContent: {
     flex: 1,
   },
@@ -332,19 +205,5 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: spacing.lg,
     paddingBottom: spacing.lg,
-  },
-  continueButton: {
-    backgroundColor: advisorColors.accent,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  continueButtonText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '700',
-    color: advisorColors.background,
-    textAlign: 'center',
   },
 })

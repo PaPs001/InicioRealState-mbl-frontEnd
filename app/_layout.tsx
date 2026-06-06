@@ -1,5 +1,6 @@
 import { Stack, usePathname } from 'expo-router'
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import * as NavigationBar from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
@@ -9,12 +10,9 @@ import { Platform, View } from 'react-native'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
-  const { currentUser, authToken, isAgent, isAdmin } = useAuth()
+  const { currentUser, authToken, isAgent, isAdmin, isInvestor, isTenant, isSearching } = useSessionDomain()
   const pathname = usePathname()
   
-  // Determinar tipo de usuario
-  const userRole = currentUser?.clientProfile
-  const isInvestor = userRole === 'INVESTOR'
   const isAdvisor = isAgent || isAdmin
   
   // Usuarios con fondo oscuro: inversionista y asesor
@@ -29,9 +27,9 @@ function RootNavigator() {
       backgroundColor = clientThemes.investor.background
     } else if (isAdvisor) {
       backgroundColor = clientThemes.advisor.background
-    } else if (userRole === 'TENANT') {
+    } else if (isTenant) {
       backgroundColor = clientThemes.tenant.background
-    } else if (userRole === 'SEEKER') {
+    } else if (isSearching) {
       backgroundColor = clientThemes.searching.background
     } else {
       backgroundColor = colors.background
@@ -71,11 +69,12 @@ function RootNavigator() {
     console.log('[auth][route]', {
       pathname,
       userId: currentUser?.id ?? null,
-      role: currentUser?.clientProfile ?? null,
+      investment: currentUser?.investment ?? null,
+      tenant: currentUser?.tenant ?? null,
       token: tokenPreview,
       hasToken: !!authToken,
     })
-  }, [pathname, authToken, currentUser?.id, currentUser?.clientProfile])
+  }, [pathname, authToken, currentUser?.id, currentUser?.investment, currentUser?.tenant])
 
   return (
     <ThemeProvider value={navigationTheme}>

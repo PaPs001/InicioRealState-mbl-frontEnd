@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react'
 import { 
   View, 
   Text, 
@@ -6,18 +5,13 @@ import {
   ScrollView, 
   TouchableOpacity,
 } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-
-// Colores del inversionista (negro y dorado)
-const investorColors = clientThemes.investor
-import { mockProperties, mockUsers, mockActiveRental, mockPropertyEarnings, formatCurrency, formatDate } from '@/lib/mock-data'
+import { colors, spacing, typography, borderRadius, type AppTheme } from '@/lib/theme'
+import { usePortfolioPropertyDetail } from '@/lib/hooks/use-portfolio-property-detail'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
   ArrowLeft,
-  Home,
-  Building2,
-  Map,
   MapPin,
   Calendar,
   User,
@@ -36,52 +30,23 @@ import {
   ListPlus,
 } from 'lucide-react-native'
 
-type TabType = 'general' | 'tenant' | 'earnings'
-
 export default function PropertyDetailScreen() {
   const router = useRouter()
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const [activeTab, setActiveTab] = useState<TabType>('general')
-
-  const property = useMemo(() => {
-    return mockProperties.find(p => p.id === id)
-  }, [id])
-
-  const earnings = useMemo(() => {
-    return mockPropertyEarnings.find(e => e.propertyId === id)
-  }, [id])
-
-  const rental = useMemo(() => {
-    if (property?.status === 'rented') {
-      return mockActiveRental.propertyId === id ? mockActiveRental : null
-    }
-    return null
-  }, [property, id])
-
-  const tenant = useMemo(() => {
-    if (rental) {
-      return mockUsers.find(u => u.id === rental.tenantId)
-    }
-    return null
-  }, [rental])
-
-  const agent = useMemo(() => {
-    if (property?.agentId) {
-      return mockUsers.find(u => u.id === property.agentId)
-    }
-    return null
-  }, [property])
-
-  const getPropertyIcon = (type: string) => {
-    switch (type) {
-      case 'house': return Home
-      case 'apartment': return Building2
-      case 'land': return Map
-      default: return Home
-    }
-  }
-
-  const isRented = property?.status === 'rented'
+  const {
+    theme,
+    activeTab,
+    setActiveTab,
+    agent,
+    earnings,
+    property,
+    rental,
+    tenant,
+    isRented,
+    incomeProjection,
+    PropertyIcon,
+  } = usePortfolioPropertyDetail()
+  const investorColors = theme
+  const styles = createStyles(theme)
 
   if (!property) {
     return (
@@ -103,8 +68,7 @@ export default function PropertyDetailScreen() {
       </SafeAreaView>
     )
   }
-
-  const Icon = getPropertyIcon(property.type)
+  const Icon = PropertyIcon
 
   // Tab de Informacion General
   const renderGeneralTab = () => (
@@ -428,7 +392,7 @@ export default function PropertyDetailScreen() {
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Si se renta (estimado)</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
-                    {formatCurrency((property.currentValue || property.price) * 0.006)}/mes
+                    {formatCurrency(incomeProjection!.estimatedMonthlyRent)}/mes
                   </Text>
                 </View>
               </View>
@@ -440,7 +404,7 @@ export default function PropertyDetailScreen() {
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Plusvalía anual estimada</Text>
                   <Text style={[styles.infoValue, { color: colors.success }]}>
-                    {formatCurrency((property.currentValue || property.price) * 0.10)}
+                    {formatCurrency(incomeProjection!.estimatedAnnualAppreciation)}
                   </Text>
                 </View>
               </View>
@@ -626,7 +590,10 @@ export default function PropertyDetailScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => {
+  const investorColors = theme
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: investorColors.background,
@@ -908,3 +875,4 @@ const styles = StyleSheet.create({
     color: investorColors.primary,
   },
 })
+}

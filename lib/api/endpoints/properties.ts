@@ -3,6 +3,8 @@
  */
 
 import { coreApi } from '../client'
+import { mockProperties } from '@/lib/mock-data'
+import type { Property } from '@/lib/types'
 
 export interface CreateUserPropertyPayload {
   id: string
@@ -81,4 +83,12 @@ export async function deleteUserProperty(
     method: 'DELETE',
     token,
   })
+}
+
+export function getPropertyRecordById(propertyId?: string | null): Property | null {
+  if (!propertyId) {
+    return null
+  }
+
+  return mockProperties.find((property) => property.id === propertyId) ?? null
 }

@@ -14,41 +14,40 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
 import { User, UserPlus, ArrowLeft } from 'lucide-react-native'
-import { apiFetch } from '@/lib/apiFetchData'
-import { getCurrentUser } from '@/lib/api/endpoints/auth'
+import { getCurrentUser, loginUser } from '@/lib/api/endpoints/auth'
 
 export default function LoginScreen() {
   const [isAgentMode, setIsAgentMode] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login, setAuthSession } = useAuth()
+  const { login, setAuthSession } = useSessionDomain()
   const router = useRouter()
 
   const handleLogin = async () => {
     try {
-      const data = await apiFetch<any>('/auth/login', {
-        method: 'POST',
-        body: {
-          email,
-          password,
-        },
+      const loginResponse = await loginUser({
+        email,
+        password,
       })
 
       const authToken =
-        data?.accessToken ??
-        data?.token ??
-        data?.data?.accessToken ??
-        data?.data?.token ??
+        loginResponse.accessToken ??
         null
 
       if (!authToken) {
-        throw new Error('La API no devolvio un token de sesion')
+        throw new Error(loginResponse.error || 'La API no devolvio un token de sesion')
       }
 
       const backendUser = await getCurrentUser(authToken)
+      const sessionUser = {
+        ...backendUser,
+        roles: loginResponse.roles ?? backendUser.roles,
+        investment: loginResponse.investment ?? backendUser.investment ?? false,
+        tenant: loginResponse.tenant ?? backendUser.tenant ?? false,
+      }
 
       console.log('[auth][users/me]', {
         id: backendUser._id,
@@ -59,7 +58,19 @@ export default function LoginScreen() {
         roles: backendUser.roles ?? [],
       })
 
-      await setAuthSession(backendUser, authToken)
+      await setAuthSession(sessionUser, authToken)
+
+      console.log('[auth][login-session]', {
+        userId: sessionUser._id ?? null,
+        email: sessionUser.email,
+        name: sessionUser.name,
+        roles: sessionUser.roles ?? [],
+        investment: sessionUser.investment ?? null,
+        tenant: sessionUser.tenant ?? null,
+        hasAccessToken: !!authToken,
+        accessTokenPreview: authToken.slice(0, 16),
+      })
+
       router.replace('/(tabs)')
     } catch (error) {
       console.error('Error al iniciar sesion', error)

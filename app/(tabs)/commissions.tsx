@@ -1,45 +1,56 @@
+import { useMemo, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import {
+  getAgentCommissionSummaries,
+  getCommissionAgentName,
+  getCommissionStatusInfo,
+  getCommissionTotals,
+  getVisibleCommissions,
+  type CommissionScope,
+} from '@/lib/services/commissions-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatCurrency, formatDate, mockCommissions } from '@/lib/mock-data'
-import { 
-  Wallet, 
-  TrendingUp, 
+import { formatCurrency, formatDate } from '@/lib/utils'
+import {
+  Wallet,
+  TrendingUp,
   Clock,
   CheckCircle,
-  DollarSign,
-  Building2
+  Building2,
+  UserRound,
+  Banknote,
 } from 'lucide-react-native'
 
 export default function CommissionsScreen() {
-  const { getPropertyById } = useAuth()
+  const { getPropertyById } = usePropertyDomain()
+  const { currentUser, isAdmin } = useSessionDomain()
+  const [scope, setScope] = useState<CommissionScope>(isAdmin ? 'team' : 'mine')
 
-  const totalPending = mockCommissions
-    .filter(c => c.status === 'pending')
-    .reduce((acc, c) => acc + c.amount, 0)
+  const visibleCommissions = useMemo(() => {
+    return getVisibleCommissions({
+      currentUserId: currentUser?.id,
+      isAdmin,
+      scope,
+    })
+  }, [currentUser?.id, isAdmin, scope])
 
-  const totalPaid = mockCommissions
-    .filter(c => c.status === 'paid')
-    .reduce((acc, c) => acc + c.amount, 0)
+  const { approved: totalApproved, paid: totalPaid, pending: totalPending, total } = useMemo(
+    () => getCommissionTotals(visibleCommissions),
+    [visibleCommissions],
+  )
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return { label: 'Pagada', color: colors.success, Icon: CheckCircle }
-      case 'pending':
-        return { label: 'Pendiente', color: colors.warning, Icon: Clock }
-      case 'approved':
-        return { label: 'Aprobada', color: colors.info, Icon: TrendingUp }
-      default:
-        return { label: 'Pendiente', color: colors.textMuted, Icon: Clock }
-    }
-  }
+  const groupedByAgent = useMemo(() => getAgentCommissionSummaries(), [])
 
-  const renderCommission = ({ item }: { item: typeof mockCommissions[0] }) => {
+  const renderCommission = ({ item }: { item: typeof visibleCommissions[number] }) => {
     const property = getPropertyById(item.propertyId)
-    const statusInfo = getStatusInfo(item.status)
-    const StatusIcon = statusInfo.Icon
+    const agentName = getCommissionAgentName(item.agentId)
+    const statusInfo = getCommissionStatusInfo(item.status)
+    const StatusIcon =
+      item.status === 'paid' ? CheckCircle : item.status === 'approved' ? TrendingUp : Clock
+    const statusColor =
+      item.status === 'paid' ? colors.success : item.status === 'approved' ? colors.info : colors.warning
 
     return (
       <View style={styles.commissionCard}>
@@ -49,11 +60,9 @@ export default function CommissionsScreen() {
               {item.transactionType === 'sale' ? 'VENTA' : 'RENTA'}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
-            <StatusIcon size={14} color={statusInfo.color} />
-            <Text style={[styles.statusText, { color: statusInfo.color }]}>
-              {statusInfo.label}
-            </Text>
+          <View style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}>
+            <StatusIcon size={14} color={statusColor} />
+            <Text style={[styles.statusText, { color: statusColor }]}>{statusInfo.label}</Text>
           </View>
         </View>
 
@@ -64,25 +73,27 @@ export default function CommissionsScreen() {
           </Text>
         </View>
 
+        <View style={styles.agentRow}>
+          <UserRound size={15} color={colors.textMuted} />
+          <Text style={styles.agentText}>{agentName}</Text>
+        </View>
+
         <View style={styles.commissionDetails}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Tasa</Text>
             <Text style={styles.detailValue}>{item.rate}%</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Comision</Text>
-            <Text style={[styles.detailValue, styles.amount]}>
-              {formatCurrency(item.amount)}
-            </Text>
+            <Text style={styles.detailLabel}>Monto</Text>
+            <Text style={[styles.detailValue, styles.amount]}>{formatCurrency(item.amount)}</Text>
           </View>
         </View>
 
         <View style={styles.cardFooter}>
           <Text style={styles.dateText}>
-            {item.status === 'paid' && item.paidDate 
+            {item.status === 'paid' && item.paidDate
               ? `Pagada: ${formatDate(item.paidDate)}`
-              : `Registrada: ${formatDate(item.createdDate)}`
-            }
+              : `Registrada: ${formatDate(item.createdDate)}`}
           </Text>
         </View>
       </View>
@@ -91,31 +102,76 @@ export default function CommissionsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <View style={styles.statIcon}>
-            <Clock size={24} color={colors.warning} />
-          </View>
-          <Text style={styles.statLabel}>Pendiente</Text>
-          <Text style={styles.statValue}>{formatCurrency(totalPending)}</Text>
+      {isAdmin && (
+        <View style={styles.scopeTabs}>
+          <TouchableOpacity
+            style={[styles.scopeTab, scope === 'team' && styles.scopeTabActive]}
+            onPress={() => setScope('team')}
+          >
+            <Text style={[styles.scopeTabText, scope === 'team' && styles.scopeTabTextActive]}>
+              Todos los asesores
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.scopeTab, scope === 'mine' && styles.scopeTabActive]}
+            onPress={() => setScope('mine')}
+          >
+            <Text style={[styles.scopeTabText, scope === 'mine' && styles.scopeTabTextActive]}>
+              Mis comisiones
+            </Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.statCard}>
-          <View style={styles.statIcon}>
-            <CheckCircle size={24} color={colors.success} />
+      )}
+
+      <View style={styles.statsContainer}>
+        <View style={styles.heroCard}>
+          <Text style={styles.heroLabel}>{isAdmin && scope === 'team' ? 'Comisiones del equipo' : 'Mis comisiones'}</Text>
+          <Text style={styles.heroValue}>{formatCurrency(total)}</Text>
+          <Text style={styles.heroMeta}>{visibleCommissions.length} operaciones registradas</Text>
+        </View>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Clock size={20} color={colors.warning} />
+            <Text style={styles.statLabel}>Pendiente</Text>
+            <Text style={styles.statValue}>{formatCurrency(totalPending)}</Text>
           </View>
-          <Text style={styles.statLabel}>Pagado</Text>
-          <Text style={styles.statValue}>{formatCurrency(totalPaid)}</Text>
+          <View style={styles.statCard}>
+            <TrendingUp size={20} color={colors.info} />
+            <Text style={styles.statLabel}>Aprobada</Text>
+            <Text style={styles.statValue}>{formatCurrency(totalApproved)}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <CheckCircle size={20} color={colors.success} />
+            <Text style={styles.statLabel}>Pagada</Text>
+            <Text style={styles.statValue}>{formatCurrency(totalPaid)}</Text>
+          </View>
         </View>
       </View>
 
-      {/* Lista de comisiones */}
+      {isAdmin && scope === 'team' && (
+        <View style={styles.teamSection}>
+          <Text style={styles.sectionTitle}>Resumen por asesor</Text>
+          {groupedByAgent.map(agent => (
+            <View key={agent.agentId} style={styles.agentSummaryCard}>
+              <View>
+                <Text style={styles.agentSummaryName}>{agent.name}</Text>
+                <Text style={styles.agentSummaryMeta}>{agent.operations} operaciones</Text>
+              </View>
+              <View style={styles.agentSummaryValues}>
+                <Text style={styles.agentSummaryTotal}>{formatCurrency(agent.total)}</Text>
+                <Text style={styles.agentSummarySub}>Pendiente: {formatCurrency(agent.pending)}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       <View style={styles.listHeader}>
-        <Text style={styles.listTitle}>Historial de Comisiones</Text>
+        <Text style={styles.listTitle}>Detalle de comisiones</Text>
       </View>
 
       <FlatList
-        data={mockCommissions}
+        data={visibleCommissions}
         renderItem={renderCommission}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
@@ -136,39 +192,122 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryDark,
   },
-  statsContainer: {
+  scopeTabs: {
     flexDirection: 'row',
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
+  },
+  scopeTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    backgroundColor: colors.surfaceDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  scopeTabActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  scopeTabText: {
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
+  },
+  scopeTabTextActive: {
+    color: colors.primaryDark,
+  },
+  statsContainer: {
+    padding: spacing.md,
     gap: spacing.md,
+  },
+  heroCard: {
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+  },
+  heroLabel: {
+    color: colors.primaryDark + 'cc',
+    fontSize: typography.bodySmall.fontSize,
+  },
+  heroValue: {
+    color: colors.primaryDark,
+    fontSize: 32,
+    fontWeight: '800',
+    marginTop: spacing.xs,
+  },
+  heroMeta: {
+    color: colors.primaryDark + 'cc',
+    fontSize: typography.caption.fontSize,
+    marginTop: spacing.xs,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.surfaceDark,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.borderDark,
   },
-  statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primaryDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
   statLabel: {
-    fontSize: typography.caption.fontSize,
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    fontSize: typography.caption.fontSize,
+    marginTop: spacing.sm,
   },
   statValue: {
-    fontSize: typography.h4.fontSize,
+    color: colors.textLight,
+    fontSize: typography.body.fontSize,
     fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  teamSection: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
+    color: colors.textLight,
+  },
+  agentSummaryCard: {
+    backgroundColor: colors.surfaceDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  agentSummaryName: {
+    color: colors.textLight,
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
+  },
+  agentSummaryMeta: {
+    color: colors.textMuted,
+    fontSize: typography.caption.fontSize,
+    marginTop: 2,
+  },
+  agentSummaryValues: {
+    alignItems: 'flex-end',
+  },
+  agentSummaryTotal: {
     color: colors.accent,
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
+  },
+  agentSummarySub: {
+    color: colors.textMuted,
+    fontSize: typography.caption.fontSize,
+    marginTop: 2,
   },
   listHeader: {
     paddingHorizontal: spacing.md,
@@ -176,7 +315,7 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontSize: typography.body.fontSize,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textLight,
   },
   listContent: {
@@ -223,17 +362,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.md,
   },
   propertyTitle: {
     flex: 1,
     fontSize: typography.body.fontSize,
     color: colors.textLight,
+    fontWeight: '600',
+  },
+  agentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  agentText: {
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
   },
   commissionDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: spacing.md,
+    marginTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.borderDark,
   },

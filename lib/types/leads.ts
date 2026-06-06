@@ -3,26 +3,32 @@
  */
 
 export type LeadStatus = 'nuevo' | 'contactado' | 'cita_agendada' | 'visitado' | 'negociando' | 'cerrado' | 'descartado'
+export type LeadContactType = 'call' | 'whatsapp' | 'email' | 'visit' | 'meeting'
+export type LeadSearchIntent = 'sale' | 'rent'
 
 export interface PropertyLead {
   id: string
   propertyId: string
   agentId: string
+  assignedAgentName?: string
   name: string
   phone: string
   email?: string
   status: LeadStatus
   source: string
+  contactType?: LeadContactType
+  searchIntent?: LeadSearchIntent
   notes?: string
   followUps?: LeadFollowUp[]
   createdDate: string
+  firstContactDate?: string
   lastContactDate?: string
 }
 
 export interface LeadFollowUp {
   id: string
   date: string
-  type: 'call' | 'whatsapp' | 'email' | 'visit' | 'meeting'
+  type: LeadContactType
   notes: string
   nextAction?: string
   nextActionDate?: string

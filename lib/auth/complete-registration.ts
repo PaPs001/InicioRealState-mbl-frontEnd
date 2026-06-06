@@ -24,7 +24,8 @@ export async function completeRegistrationAndLogin(
     console.log('[auth][complete-registration] start', {
       email: data.email.trim().toLowerCase(),
       role: data.role,
-      clientProfile: data.clientProfile,
+      investment: data.investment,
+      tenant: data.tenant,
       hasPhone: !!data.phone?.trim(),
       passwordLength: data.password.length,
     })
@@ -37,7 +38,8 @@ export async function completeRegistrationAndLogin(
       userId: response.user?.id ?? null,
       userEmail: response.user?.email ?? null,
       userSystemRole: response.user?.systemRole ?? null,
-      userClientProfile: response.user?.clientProfile ?? null,
+      userInvestment: response.user?.investment ?? null,
+      userTenant: response.user?.tenant ?? null,
     })
 
     if (!response.success) {

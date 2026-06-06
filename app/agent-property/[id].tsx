@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
 import { PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
 import { 
@@ -63,7 +63,12 @@ const getStatusColor = (status: string | null) => {
 export default function AgentPropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const { agentCatalogRawData, loadAgentCatalogProperties, isAgentCatalogLoading, hasLoadedAgentCatalog } = useAuth()
+  const {
+    agentCatalogRawData,
+    loadAgentCatalogProperties,
+    isAgentCatalogLoading,
+    hasLoadedAgentCatalog,
+  } = usePropertyDomain()
 
   // Cargar datos si no están disponibles
   useEffect(() => {

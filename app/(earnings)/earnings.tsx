@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { 
   View, 
   Text, 
@@ -8,9 +8,9 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useEarningsDomain } from '@/contexts/auth/use-earnings-domain'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { mockProperties, mockPropertyEarnings, formatCurrency } from '@/lib/mock-data'
+import { formatCurrency } from '@/lib/utils'
 import { 
   ArrowLeft,
   DollarSign,
@@ -31,87 +31,10 @@ const investorColors = clientThemes.investor
 type TabType = 'plusvalia' | 'rentas'
 
 export default function EarningsScreen() {
-  const { currentUser } = useAuth()
+  const { userProperties, summary, propertyValueBreakdown, propertyEarningsData, rentProjections } =
+    useEarningsDomain()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('plusvalia')
-
-  const myProperties = useMemo(() => {
-    if (!currentUser) return []
-    return mockProperties.filter(p => p.ownerId === currentUser.id)
-  }, [currentUser])
-
-  const totalEarnings = useMemo(() => {
-    return mockPropertyEarnings.reduce((sum, e) => {
-      const property = myProperties.find(p => p.id === e.propertyId)
-      if (property) {
-        return sum + e.totalEarnings
-      }
-      return sum
-    }, 0)
-  }, [myProperties])
-
-  const monthlyIncome = useMemo(() => {
-    return myProperties
-      .filter(p => p.status === 'rented' && p.monthlyRent)
-      .reduce((sum, p) => sum + (p.monthlyRent || 0), 0)
-  }, [myProperties])
-
-  const projectedAnnual = useMemo(() => {
-    return monthlyIncome * 12
-  }, [monthlyIncome])
-
-  // Calculos de plusvalia
-  const totalPropertyValue = useMemo(() => {
-    return myProperties.reduce((sum, p) => sum + p.price, 0)
-  }, [myProperties])
-
-  const projectedValue1Year = useMemo(() => {
-    // Asumiendo 8% de plusvalia anual promedio
-    return totalPropertyValue * 1.08
-  }, [totalPropertyValue])
-
-  const projectedValue5Years = useMemo(() => {
-    // Plusvalia compuesta al 8% anual
-    return totalPropertyValue * Math.pow(1.08, 5)
-  }, [totalPropertyValue])
-
-  const potentialGain = useMemo(() => {
-    return projectedValue1Year - totalPropertyValue
-  }, [projectedValue1Year, totalPropertyValue])
-
-  const propertyEarningsData = useMemo(() => {
-    return myProperties.map(property => {
-      const earnings = mockPropertyEarnings.find(e => e.propertyId === property.id)
-      return {
-        property,
-        earnings: earnings || {
-          propertyId: property.id,
-          totalEarnings: 0,
-          monthlyEarnings: 0,
-          occupancyRate: 0,
-          paymentHistory: [],
-        },
-      }
-    })
-  }, [myProperties])
-
-  // Proyecciones de renta por propiedad
-  const rentProjections = useMemo(() => {
-    return myProperties.map(property => {
-      // Estimacion de renta mensual basada en el valor (0.5% del valor)
-      const estimatedRent = property.monthlyRent || Math.round(property.price * 0.005)
-      const annualRent = estimatedRent * 12
-      const roi = ((annualRent / property.price) * 100).toFixed(1)
-      
-      return {
-        property,
-        estimatedRent,
-        annualRent,
-        roi,
-        currentlyRented: property.status === 'rented',
-      }
-    })
-  }, [myProperties])
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -171,7 +94,7 @@ export default function EarningsScreen() {
             {/* Valor Actual Card */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Valor actual de tu portafolio</Text>
-              <Text style={styles.summaryAmount}>{formatCurrency(totalPropertyValue)}</Text>
+              <Text style={styles.summaryAmount}>{formatCurrency(summary.totalPropertyValue)}</Text>
               
               <View style={styles.summaryDivider} />
               
@@ -183,7 +106,7 @@ export default function EarningsScreen() {
                   <View>
                     <Text style={styles.summaryItemLabel}>Ganancia potencial</Text>
                     <Text style={[styles.summaryItemValue, { color: colors.success }]}>
-                      +{formatCurrency(potentialGain)}
+                      +{formatCurrency(summary.potentialGain)}
                     </Text>
                   </View>
                 </View>
@@ -194,7 +117,7 @@ export default function EarningsScreen() {
                   </View>
                   <View>
                     <Text style={styles.summaryItemLabel}>Tasa anual est.</Text>
-                    <Text style={styles.summaryItemValue}>8%</Text>
+                    <Text style={styles.summaryItemValue}>{summary.annualAppreciationRateLabel}</Text>
                   </View>
                 </View>
               </View>
@@ -209,9 +132,9 @@ export default function EarningsScreen() {
                   <Clock size={20} color={investorColors.accent} />
                   <Text style={styles.projectionTitle}>En 1 año</Text>
                 </View>
-                <Text style={styles.projectionValue}>{formatCurrency(projectedValue1Year)}</Text>
+                <Text style={styles.projectionValue}>{formatCurrency(summary.projectedValue1Year)}</Text>
                 <Text style={styles.projectionGain}>
-                  +{formatCurrency(projectedValue1Year - totalPropertyValue)} de plusvalia
+                  +{formatCurrency(summary.projectedValue1Year - summary.totalPropertyValue)} de plusvalia
                 </Text>
               </View>
 
@@ -220,9 +143,9 @@ export default function EarningsScreen() {
                   <Target size={20} color={investorColors.accent} />
                   <Text style={styles.projectionTitle}>En 5 años</Text>
                 </View>
-                <Text style={styles.projectionValue}>{formatCurrency(projectedValue5Years)}</Text>
+                <Text style={styles.projectionValue}>{formatCurrency(summary.projectedValue5Years)}</Text>
                 <Text style={styles.projectionGain}>
-                  +{formatCurrency(projectedValue5Years - totalPropertyValue)} de plusvalia
+                  +{formatCurrency(summary.projectedValue5Years - summary.totalPropertyValue)} de plusvalia
                 </Text>
               </View>
             </View>
@@ -231,10 +154,7 @@ export default function EarningsScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Valor por propiedad</Text>
 
-              {myProperties.map(property => {
-                const value1Year = property.price * 1.08
-                const gain = value1Year - property.price
-                
+              {propertyValueBreakdown.map(({ property, gain }) => {
                 return (
                   <TouchableOpacity 
                     key={property.id}
@@ -259,7 +179,7 @@ export default function EarningsScreen() {
                         <View style={styles.propertyStat}>
                           <Text style={styles.propertyStatLabel}>Valor actual</Text>
                           <Text style={styles.propertyStatValue}>
-                            {formatCurrency(property.price)}
+                            {formatCurrency(property.currentValue || property.price)}
                           </Text>
                         </View>
                         
@@ -285,17 +205,17 @@ export default function EarningsScreen() {
               <View style={styles.costsCard}>
                 <View style={styles.costRow}>
                   <Text style={styles.costLabel}>Comision inmobiliaria (5%)</Text>
-                  <Text style={styles.costValue}>{formatCurrency(totalPropertyValue * 0.05)}</Text>
+                  <Text style={styles.costValue}>{formatCurrency(summary.saleCommission)}</Text>
                 </View>
                 <View style={styles.costDivider} />
                 <View style={styles.costRow}>
                   <Text style={styles.costLabel}>Gastos notariales (2%)</Text>
-                  <Text style={styles.costValue}>{formatCurrency(totalPropertyValue * 0.02)}</Text>
+                  <Text style={styles.costValue}>{formatCurrency(summary.notaryCosts)}</Text>
                 </View>
                 <View style={styles.costDivider} />
                 <View style={styles.costRow}>
                   <Text style={styles.costLabel}>ISR (estimado)</Text>
-                  <Text style={styles.costValue}>{formatCurrency(potentialGain * 0.35)}</Text>
+                  <Text style={styles.costValue}>{formatCurrency(summary.estimatedIsr)}</Text>
                 </View>
                 <View style={styles.costDivider} />
                 <View style={[styles.costRow, { marginTop: spacing.sm }]}>
@@ -303,7 +223,7 @@ export default function EarningsScreen() {
                     Ganancia neta estimada (1 año)
                   </Text>
                   <Text style={[styles.costValue, { color: colors.success, fontWeight: '700' }]}>
-                    {formatCurrency(potentialGain - (totalPropertyValue * 0.07) - (potentialGain * 0.35))}
+                    {formatCurrency(summary.estimatedNetGain)}
                   </Text>
                 </View>
               </View>
@@ -317,7 +237,7 @@ export default function EarningsScreen() {
             {/* Summary Card - Rentas */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Ingresos por renta</Text>
-              <Text style={styles.summaryAmount}>{formatCurrency(totalEarnings)}</Text>
+              <Text style={styles.summaryAmount}>{formatCurrency(summary.totalEarnings)}</Text>
               
               <View style={styles.summaryDivider} />
               
@@ -328,7 +248,7 @@ export default function EarningsScreen() {
                   </View>
                   <View>
                     <Text style={styles.summaryItemLabel}>Mensual</Text>
-                    <Text style={styles.summaryItemValue}>{formatCurrency(monthlyIncome)}</Text>
+                    <Text style={styles.summaryItemValue}>{formatCurrency(summary.monthlyIncome)}</Text>
                   </View>
                 </View>
 
@@ -338,7 +258,7 @@ export default function EarningsScreen() {
                   </View>
                   <View>
                     <Text style={styles.summaryItemLabel}>Proyeccion anual</Text>
-                    <Text style={styles.summaryItemValue}>{formatCurrency(projectedAnnual)}</Text>
+                    <Text style={styles.summaryItemValue}>{formatCurrency(summary.projectedAnnual)}</Text>
                   </View>
                 </View>
               </View>
@@ -349,7 +269,7 @@ export default function EarningsScreen() {
               <View style={styles.statCard}>
                 <Home size={24} color={investorColors.accent} />
                 <Text style={styles.statValue}>
-                  {myProperties.filter(p => p.status === 'rented').length}
+                  {summary.rentedCount}
                 </Text>
                 <Text style={styles.statLabel}>Rentadas</Text>
               </View>
@@ -357,7 +277,7 @@ export default function EarningsScreen() {
               <View style={styles.statCard}>
                 <Building2 size={24} color={colors.info} />
                 <Text style={styles.statValue}>
-                  {myProperties.filter(p => p.status !== 'rented').length}
+                  {summary.availableCount}
                 </Text>
                 <Text style={styles.statLabel}>Disponibles</Text>
               </View>

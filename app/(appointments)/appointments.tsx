@@ -1,17 +1,21 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { useActivityDomain } from '@/contexts/auth/use-activity-domain'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { colors, spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { formatDate } from '@/lib/mock-data'
+import { formatDate } from '@/lib/utils'
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle, ArrowLeft } from 'lucide-react-native'
 
 export default function AppointmentsStandaloneScreen() {
-  const { userAppointments, getPropertyById, currentUser } = useAuth()
+  const { userAppointments } = useActivityDomain()
+  const { getPropertyById } = usePropertyDomain()
+  const { currentUser } = useSessionDomain()
   const router = useRouter()
   
   // Detectar si es inversionista para usar tema oscuro
-  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
+  const isInvestor = !!currentUser?.investment
   const theme = isInvestor ? clientThemes.investor : null
 
   const getStatusInfo = (status: string) => {

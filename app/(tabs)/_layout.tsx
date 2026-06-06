@@ -8,7 +8,7 @@ import ProfileIcon from '../assets/profileIconMobile.svg'
 import RegistryIcon from '../assets/RegistryIconMobile.svg'
 
 import { Tabs } from 'expo-router'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { colors, clientThemes, ClientRole } from '@/lib/theme'
 import { 
   Home, 
@@ -24,16 +24,15 @@ import {
 } from 'lucide-react-native'
 
 export default function TabsLayout() {
-  const { isAgent, isAdmin, isClient, currentUser } = useAuth()
+  const { isAgent, isAdmin, isClient, isInvestor, isTenant } = useSessionDomain()
   
   const getClientRole = (): ClientRole => {
-    if (currentUser?.clientProfile === 'INVESTOR') return 'investor'
-    if (currentUser?.clientProfile === 'TENANT') return 'tenant'
+    if (isInvestor) return 'investor'
+    if (isTenant) return 'tenant'
     return 'searching'
   }
   const clientTheme = isClient ? clientThemes[getClientRole()] : null
   
-  const isInvestor = currentUser?.clientProfile === 'INVESTOR'
   const tabBarBg = isClient && clientTheme ? clientTheme.surface : colors.primaryDark
   const tabBarActive = isInvestor ? clientTheme?.accent : (isClient && clientTheme ? clientTheme.primary : colors.accent)
   const tabBarInactive = isClient && clientTheme ? clientTheme.textMuted : colors.textMuted
@@ -153,21 +152,9 @@ export default function TabsLayout() {
             }}
           />
           <Tabs.Screen
-            name="leads"
+            name="messages"
             options={{
-              title: 'Leads',
-            }}
-          />
-          <Tabs.Screen
-            name="reviews"
-            options={{
-              title: 'Revisar',
-            }}
-          />
-          <Tabs.Screen
-            name="commissions"
-            options={{
-              title: 'Comisiones',
+              title: 'Mensajes',
             }}
           />
           <Tabs.Screen
@@ -183,12 +170,12 @@ export default function TabsLayout() {
       <Tabs.Screen name="catalog" options={{ href: null }} />
       <Tabs.Screen name="appointments" options={{ href: null }} />
       <Tabs.Screen name="favorites" options={{ href: null }} />
-      <Tabs.Screen name="messages" options={{ href: isClient || isAgent ? undefined : null }} />
-      <Tabs.Screen name="leads" options={{ href: isAdmin ? undefined : null }} />
+      <Tabs.Screen name="messages" options={{ href: isClient || isAgent || isAdmin ? undefined : null }} />
+      <Tabs.Screen name="leads" options={{ href: null }} />
       <Tabs.Screen name="properties" options={{ href: null }} />
       <Tabs.Screen name="registration" options={{ href: null }} />
-      <Tabs.Screen name="reviews" options={{ href: isAdmin ? undefined : null }} />
-      <Tabs.Screen name="commissions" options={{ href: isAdmin ? undefined : null }} />
+      <Tabs.Screen name="reviews" options={{ href: null }} />
+      <Tabs.Screen name="commissions" options={{ href: null }} />
     </Tabs>
   )
 }

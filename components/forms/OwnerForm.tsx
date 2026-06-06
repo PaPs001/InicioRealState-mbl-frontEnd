@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { 
   View, 
   Text, 
-  TextInput, 
   StyleSheet, 
   TouchableOpacity, 
   Keyboard,
@@ -14,10 +13,23 @@ import {
   ScrollView,
 } from 'react-native'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { ArrowLeft, Check, Building2, Plus, ChevronRight } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@/contexts/AuthContext'
-import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
+import { OwnerBenefitsStep } from '@/components/forms/owner/OwnerBenefitsStep'
+import { OwnerPropertiesFoundStep } from '@/components/forms/owner/OwnerPropertiesFoundStep'
+import { OwnerPropertiesNotFoundStep } from '@/components/forms/owner/OwnerPropertiesNotFoundStep'
+import { OwnerPropertyQuestionStep } from '@/components/forms/owner/OwnerPropertyQuestionStep'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { OnboardingInputStep } from '@/components/forms/shared/OnboardingInputStep'
+import { LinearFormStepperFooter } from '@/components/forms/shared/LinearFormStepperFooter'
+import { LinearFormStepperHeader } from '@/components/forms/shared/LinearFormStepperHeader'
+import { useLinearStepper } from '@/lib/hooks/use-linear-stepper'
+import { registerOwner } from '@/lib/services/registration-flows'
+import {
+  hasEmailShape,
+  hasMinTrimmedLength,
+  hasPasswordLength,
+  hasPhoneLength,
+} from '@/lib/services/form-validation'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 
 const { width, height } = Dimensions.get('window')
@@ -48,8 +60,10 @@ type Step =
   | 'properties-not-found'
   | 'benefits'
 
+const progressSteps = ['name', 'email', 'phone', 'password', 'property-question'] as const
+
 export default function OwnerForm() {
-  const { setAuthSession } = useAuth()
+  const { setAuthSession } = useSessionDomain()
   
   const router = useRouter()
   const [step, setStep] = useState<Step>('name')
@@ -66,9 +80,6 @@ export default function OwnerForm() {
   const logoScale = useRef(new Animated.Value(0.8)).current
   const logoOpacity = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
-  const progressSteps: Step[] = ['name', 'email', 'phone', 'password', 'property-question']
-  const currentStepIndex = progressSteps.indexOf(step)
-  const totalSteps = progressSteps.length
 
   useEffect(() => {
     fadeAnim.setValue(0)
@@ -125,20 +136,21 @@ export default function OwnerForm() {
     }
   }, [isSearching])
 
-  const isStepOneValid = fullName.trim().length >= 3
-  const isStepTwoValid = email.trim().includes('@') && email.trim().includes('.')
-  const isStepThreeValid = phone.trim().length >= 10
-  const isStepFourValid = password.trim().length >= 6
+  const stepValidity: Record<(typeof progressSteps)[number], boolean> = {
+    name: hasMinTrimmedLength(fullName, 3),
+    email: hasEmailShape(email),
+    phone: hasPhoneLength(phone),
+    password: hasPasswordLength(password),
+    'property-question': true,
+  }
 
   const completeRegistration = async () => {
-    const result = await completeRegistrationAndLogin(
+    const result = await registerOwner(
       {
-        name: fullName.trim(),
+        fullName,
         email,
         phone,
         password,
-        role: 'CLIENT',
-        clientProfile: 'INVESTOR',
       },
       setAuthSession
     )
@@ -150,24 +162,42 @@ export default function OwnerForm() {
     return result.success
   }
 
+  const {
+    currentIndex: currentStepIndex,
+    totalSteps,
+    progress,
+    isCurrentStepValid,
+    goBack,
+    goNext,
+  } = useLinearStepper({
+    currentStep: step,
+    steps: progressSteps,
+    isStepValid: (currentStep) => {
+      switch (currentStep) {
+        case 'name':
+        case 'email':
+        case 'phone':
+        case 'password':
+        case 'property-question':
+          return stepValidity[currentStep]
+        default:
+          return false
+      }
+    },
+    onStepChange: setStep,
+    onExit: () => router.back(),
+  })
+
   const handleBack = () => {
     Keyboard.dismiss()
 
     switch (step) {
       case 'name':
-        router.back()
-        return
       case 'email':
-        setStep('name')
-        return
       case 'phone':
-        setStep('email')
-        return
       case 'password':
-        setStep('phone')
-        return
       case 'property-question':
-        setStep('password')
+        void goBack()
         return
       case 'properties-found':
       case 'properties-not-found':
@@ -186,16 +216,10 @@ export default function OwnerForm() {
 
     switch (step) {
       case 'name':
-        if (isStepOneValid) setStep('email')
-        return
       case 'email':
-        if (isStepTwoValid) setStep('phone')
-        return
       case 'phone':
-        if (isStepThreeValid) setStep('password')
-        return
       case 'password':
-        if (isStepFourValid) setStep('property-question')
+        void goNext()
         return
     }
   }
@@ -222,242 +246,124 @@ export default function OwnerForm() {
     router.replace('/(tabs)')
   }
 
-  const isCurrentStepValid =
-    (step === 'name' && isStepOneValid) ||
-    (step === 'email' && isStepTwoValid) ||
-    (step === 'phone' && isStepThreeValid) ||
-    (step === 'password' && isStepFourValid)
-
   const renderStep = () => {
+    const animatedStepStyle = { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+
     switch (step) {
       case 'name':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Comencemos con lo basico</Text>
-            <Text style={styles.stepSubtitle}>¿Cómo te gustaría que te llamemos?</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nombre completo</Text>
-              <TextInput
-                key="owner-name"
-                style={styles.input}
-                placeholder="Escribe tu nombre completo"
-                placeholderTextColor={investorColors.textMuted}
-                value={fullName}
-                onChangeText={setFullName}
-              />
-              <Text style={styles.hint}>Usaremos este nombre para personalizar tu experiencia</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+            styles={styles}
+            title="Comencemos con lo basico"
+            subtitle="¿Cómo te gustaría que te llamemos?"
+            label="Nombre completo"
+            inputKey="owner-name"
+            placeholder="Escribe tu nombre completo"
+            placeholderTextColor={investorColors.textMuted}
+            value={fullName}
+            hint="Usaremos este nombre para personalizar tu experiencia"
+            onChangeText={setFullName}
+          />
         )
 
       case 'email':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Mantente conectado</Text>
-            <Text style={styles.stepSubtitle}>Tu correo sera tu acceso exclusivo</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Correo electronico</Text>
-              <TextInput
-                key="owner-email"
-                style={styles.input}
-                placeholder="tu@correo.com"
-                placeholderTextColor={investorColors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <Text style={styles.hint}>Aqui recibiras actualizaciones de tus inversiones</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+            styles={styles}
+            title="Mantente conectado"
+            subtitle="Tu correo sera tu acceso exclusivo"
+            label="Correo electronico"
+            inputKey="owner-email"
+            placeholder="tu@correo.com"
+            placeholderTextColor={investorColors.textMuted}
+            value={email}
+            hint="Aqui recibiras actualizaciones de tus inversiones"
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         )
 
       case 'phone':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Una linea directa</Text>
-            <Text style={styles.stepSubtitle}>Para que tu asesor pueda contactarte</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Número de teléfono</Text>
-              <TextInput
-                key="owner-phone"
-                style={styles.input}
-                placeholder="+52 55 1234 5678"
-                placeholderTextColor={investorColors.textMuted}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-              <Text style={styles.hint}>Solo te contactaremos cuando sea importante</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+            styles={styles}
+            title="Una linea directa"
+            subtitle="Para que tu asesor pueda contactarte"
+            label="Número de teléfono"
+            inputKey="owner-phone"
+            placeholder="+52 55 1234 5678"
+            placeholderTextColor={investorColors.textMuted}
+            value={phone}
+            hint="Solo te contactaremos cuando sea importante"
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
         )
 
       case 'password':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Protege tu cuenta</Text>
-            <Text style={styles.stepSubtitle}>Crea una contraseña segura</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput
-                key="owner-password"
-                style={styles.input}
-                placeholder="Minimo 6 caracteres"
-                placeholderTextColor={investorColors.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <Text style={styles.hint}>Tu información está protegida con encriptación</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+            styles={styles}
+            title="Protege tu cuenta"
+            subtitle="Crea una contraseña segura"
+            label="Contraseña"
+            inputKey="owner-password"
+            placeholder="Minimo 6 caracteres"
+            placeholderTextColor={investorColors.textMuted}
+            value={password}
+            hint="Tu información está protegida con encriptación"
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
         )
 
       case 'property-question':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.questionContainer}>
-              <Animated.View style={[styles.logoContainer, { transform: [{ scale: pulseAnim }] }]}>
-                <Building2 size={48} color={investorColors.gold} />
-              </Animated.View>
-              
-              <Text style={styles.questionTitle}>¿Ya tienes propiedades con nosotros?</Text>
-              <Text style={styles.questionSubtitle}>
-                Si ya has invertido con Inicio, podemos vincular automáticamente tus propiedades a tu nueva cuenta
-              </Text>
-
-              <View style={styles.optionsContainer}>
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handlePropertyQuestion(true)}
-                >
-                  <View style={styles.optionContent}>
-                    <Check size={24} color={investorColors.gold} />
-                    <Text style={styles.optionText}>Sí, tengo propiedades</Text>
-                  </View>
-                  <ChevronRight size={20} color={investorColors.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handlePropertyQuestion(false)}
-                >
-                  <View style={styles.optionContent}>
-                    <Plus size={24} color={investorColors.textSecondary} />
-                    <Text style={styles.optionText}>No, soy nuevo</Text>
-                  </View>
-                  <ChevronRight size={20} color={investorColors.textMuted} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
+          <OwnerPropertyQuestionStep
+            animatedStyle={animatedStepStyle}
+            colors={investorColors}
+            styles={styles}
+            pulseStyle={{ transform: [{ scale: pulseAnim }] }}
+            onSelect={handlePropertyQuestion}
+          />
         )
 
       case 'properties-found':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.successContainer}>
-              <View style={styles.successIcon}>
-                <Check size={40} color={investorColors.background} />
-              </View>
-              
-              <Text style={styles.successTitle}>Propiedades vinculadas</Text>
-              <Text style={styles.successSubtitle}>
-                Hemos encontrado y vinculado tus propiedades a tu cuenta. Ya puedes acceder a toda la información desde tu dashboard.
-              </Text>
-
-              <View style={styles.propertyPreview}>
-                <Building2 size={24} color={investorColors.gold} />
-                <View style={styles.propertyPreviewText}>
-                  <Text style={styles.propertyPreviewTitle}>2 propiedades encontradas</Text>
-                  <Text style={styles.propertyPreviewSubtitle}>Listas para gestionar</Text>
-                </View>
-              </View>
-
-              <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
-                <Text style={styles.primaryButtonText}>Ir a mi dashboard</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
+          <OwnerPropertiesFoundStep
+            animatedStyle={animatedStepStyle}
+            colors={investorColors}
+            styles={styles}
+            onFinish={handleFinish}
+          />
         )
 
       case 'properties-not-found':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.notFoundContainer}>
-              <View style={styles.notFoundIcon}>
-                <Building2 size={40} color={investorColors.goldMuted} />
-              </View>
-              
-              <Text style={styles.notFoundTitle}>No encontramos propiedades</Text>
-              <Text style={styles.notFoundSubtitle}>
-                No pudimos vincular propiedades automaticamente. Puedes agregarlas manualmente desde tu dashboard o contactar a tu asesor.
-              </Text>
-
-              <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
-                <Text style={styles.primaryButtonText}>Continuar al dashboard</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep('property-question')}>
-                <Text style={styles.secondaryButtonText}>Intentar de nuevo</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
+          <OwnerPropertiesNotFoundStep
+            animatedStyle={animatedStepStyle}
+            colors={investorColors}
+            styles={styles}
+            onFinish={handleFinish}
+            onRetry={() => setStep('property-question')}
+          />
         )
 
       case 'benefits':
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.benefitsContainer}>
-              <Text style={styles.benefitsTitle}>Bienvenido al mundo de las inversiones</Text>
-              <Text style={styles.benefitsSubtitle}>
-                Como inversionista de Inicio tendrás acceso a:
-              </Text>
-
-              <View style={styles.benefitsList}>
-                <View style={styles.benefitItem}>
-                  <View style={styles.benefitIcon}>
-                    <Building2 size={20} color={investorColors.gold} />
-                  </View>
-                  <View style={styles.benefitText}>
-                    <Text style={styles.benefitTitle}>Dashboard personal</Text>
-                    <Text style={styles.benefitDescription}>Monitorea todas tus propiedades en un solo lugar</Text>
-                  </View>
-                </View>
-
-                <View style={styles.benefitItem}>
-                  <View style={styles.benefitIcon}>
-                    <Check size={20} color={investorColors.gold} />
-                  </View>
-                  <View style={styles.benefitText}>
-                    <Text style={styles.benefitTitle}>Control total</Text>
-                    <Text style={styles.benefitDescription}>Gestiona rentas, inquilinos y documentos</Text>
-                  </View>
-                </View>
-
-                <View style={styles.benefitItem}>
-                  <View style={styles.benefitIcon}>
-                    <Plus size={20} color={investorColors.gold} />
-                  </View>
-                  <View style={styles.benefitText}>
-                    <Text style={styles.benefitTitle}>Proyecciones</Text>
-                    <Text style={styles.benefitDescription}>Visualiza el potencial de tus inversiones</Text>
-                  </View>
-                </View>
-              </View>
-
-              <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
-                <Text style={styles.primaryButtonText}>Comenzar ahora</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
+          <OwnerBenefitsStep
+            animatedStyle={animatedStepStyle}
+            colors={investorColors}
+            styles={styles}
+            onFinish={handleFinish}
+          />
         )
 
       default:
@@ -500,45 +406,33 @@ export default function OwnerForm() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-        {/* Header sin logo */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={20} color={investorColors.gold} />
-            <Text style={styles.backButtonText}>Regresar</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Indicador de progreso (solo para pasos 1-4) */}
-        {progressSteps.includes(step) && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <Animated.View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }
-                ]} 
-              />
-            </View>
-            <Text style={styles.progressText}>Paso {Math.min(currentStepIndex + 1, totalSteps)} de {totalSteps}</Text>
-          </View>
-        )}
+        <LinearFormStepperHeader
+          onBack={handleBack}
+          backColor={investorColors.gold}
+          progressTrackColor={investorColors.surface}
+          progressFillColor={investorColors.gold}
+          progressTextColor={investorColors.textMuted}
+          currentStep={Math.max(currentStepIndex + 1, 1)}
+          totalSteps={totalSteps}
+          progress={progress}
+          showProgress={progressSteps.includes(step as (typeof progressSteps)[number])}
+          headerStyle={styles.header}
+          backButtonStyle={styles.backButton}
+        />
 
         {/* Contenido del paso */}
         {renderStep()}
 
         {/* Boton continuar (solo para pasos 1-4) */}
         {['name', 'email', 'phone', 'password'].includes(step) && (
-          <View style={styles.footer}>
-            <TouchableOpacity
-              disabled={!isCurrentStepValid}
-              style={[styles.continueButton, !isCurrentStepValid && styles.disabledButton]}
-              onPress={handleContinue}
-            >
-              <Text style={styles.continueButtonText}>
-                {step === 'password' ? 'Crear cuenta' : 'Continuar'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <LinearFormStepperFooter
+            disabled={!isCurrentStepValid}
+            label={step === 'password' ? 'Crear cuenta' : 'Continuar'}
+            onPress={handleContinue}
+            buttonColor={investorColors.gold}
+            textColor={investorColors.background}
+            disabledButtonColor={investorColors.surface}
+          />
         )}
       </ScrollView>
       </KeyboardAvoidingView>
@@ -579,32 +473,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
-  },
-  backButtonText: {
-    color: investorColors.gold,
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    marginLeft: spacing.xs,
-  },
-  progressContainer: {
-    marginBottom: spacing.xl,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: investorColors.surface,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: investorColors.gold,
-    borderRadius: borderRadius.full,
-  },
-  progressText: {
-    color: investorColors.textMuted,
-    fontSize: typography.caption.fontSize,
-    textAlign: 'center',
-    marginTop: spacing.sm,
   },
   stepContent: {
     flex: 1,
@@ -649,20 +517,6 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  continueButton: {
-    backgroundColor: investorColors.gold,
-    paddingVertical: spacing.md + 4,
-    borderRadius: borderRadius.lg,
-  },
-  disabledButton: {
-    opacity: 0.4,
-  },
-  continueButtonText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '700',
-    color: investorColors.background,
-    textAlign: 'center',
   },
 
   // Pantalla de pregunta de propiedades

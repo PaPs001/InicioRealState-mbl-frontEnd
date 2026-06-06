@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { 
   View, 
   Text, 
-  TextInput, 
   StyleSheet, 
   TouchableOpacity, 
   Keyboard,
@@ -12,15 +11,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { ArrowLeft, Check, Home, Plus, ChevronRight, Calendar, MapPin, DollarSign, User, Phone, FileText, Camera, Clock } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
 import * as ImagePicker from 'expo-image-picker'
-import { useAuth } from '@/contexts/AuthContext'
-import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
+import { RenterRentalContactsStep } from '@/components/forms/renter/RenterRentalContactsStep'
+import { RenterRentalDetailsStep } from '@/components/forms/renter/RenterRentalDetailsStep'
+import { RenterRentalDocumentsStep } from '@/components/forms/renter/RenterRentalDocumentsStep'
+import { RenterRentalPhotosStep } from '@/components/forms/renter/RenterRentalPhotosStep'
+import { RenterRentalResolutionStep } from '@/components/forms/renter/RenterRentalResolutionStep'
+import { RenterRentalTypeStep } from '@/components/forms/renter/RenterRentalTypeStep'
+import { OnboardingInputStep } from '@/components/forms/shared/OnboardingInputStep'
+import type { AddDataNow, RentalData, RentalType } from '@/components/forms/renter/types'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { LinearFormStepperFooter } from '@/components/forms/shared/LinearFormStepperFooter'
+import { LinearFormStepperHeader } from '@/components/forms/shared/LinearFormStepperHeader'
+import { useLinearStepper } from '@/lib/hooks/use-linear-stepper'
+import { registerRenter } from '@/lib/services/registration-flows'
+import {
+  hasEmailShape,
+  hasMinTrimmedLength,
+  hasPasswordLength,
+  hasPhoneLength,
+  hasRequiredText,
+} from '@/lib/services/form-validation'
 
 const { width, height } = Dimensions.get('window')
 
@@ -41,26 +56,9 @@ const tenantColors = {
   error: '#ef4444',
 }
 
-type RentalType = 'with_us' | 'external' | null
-type AddDataNow = 'now' | 'later' | null
-
-interface RentalData {
-  startDate: string
-  endDate: string
-  rentalType: 'house' | 'apartment' | 'room' | 'office' | ''
-  location: string
-  landlordName: string
-  landlordPhone: string
-  agentName: string
-  agentPhone: string
-  monthlyRent: string
-  photos: string[]
-  documents: string[]
-}
-
 export default function RenterForm() {
   const router = useRouter()
-  const { setAuthSession } = useAuth()
+  const { setAuthSession } = useSessionDomain()
   const [step, setStep] = useState(1)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -89,8 +87,6 @@ export default function RenterForm() {
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
-  const logoScale = useRef(new Animated.Value(0.8)).current
-  const logoOpacity = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
 
   // Animacion de entrada al cambiar de paso
@@ -111,23 +107,6 @@ export default function RenterForm() {
       }),
     ]).start()
   }, [step])
-
-  // Animacion del logo al inicio
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(logoOpacity, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(logoScale, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [])
 
   // Animacion de pulso para el loader
   useEffect(() => {
@@ -152,17 +131,33 @@ export default function RenterForm() {
   }, [isSearching])
 
   // Validaciones
-  const isStepOneValid = fullName.trim().length >= 3
-  const isStepTwoValid = email.trim().includes('@') && email.trim().includes('.')
-  const isStepThreeValid = phone.trim().length >= 10
-  const isStepFourValid = password.trim().length >= 6
-  const isRentalInfoValid = rentalData.startDate && rentalData.endDate && rentalData.rentalType && rentalData.location && rentalData.monthlyRent
+  const stepValidity = {
+    1: hasMinTrimmedLength(fullName, 3),
+    2: hasEmailShape(email),
+    3: hasPhoneLength(phone),
+    4: hasPasswordLength(password),
+  } as const
+  const isRentalInfoValid =
+    hasRequiredText(rentalData.startDate) &&
+    hasRequiredText(rentalData.endDate) &&
+    hasRequiredText(rentalData.rentalType) &&
+    hasRequiredText(rentalData.location) &&
+    hasRequiredText(rentalData.monthlyRent)
+
+  const { totalSteps, isCurrentStepValid, goBack, goNext } = useLinearStepper({
+    currentStep: step,
+    steps: [1, 2, 3, 4] as const,
+    isStepValid: (currentStep) => stepValidity[currentStep as keyof typeof stepValidity],
+    onStepChange: setStep,
+    onExit: () => router.back(),
+    onComplete: () => setStep(5),
+  })
 
   const handleBack = () => {
     Keyboard.dismiss()
 
-    if (step === 1) {
-      router.back()
+    if (step <= totalSteps) {
+      void goBack()
       return
     }
     if (step === 6 && rentalType === 'external') {
@@ -197,22 +192,16 @@ export default function RenterForm() {
   const handleContinue = () => {
     Keyboard.dismiss()
 
-    if (step === 1 && isStepOneValid) {
-      setStep(2)
-      return
+    if (step <= totalSteps) {
+      void goNext()
     }
-    if (step === 2 && isStepTwoValid) {
-      setStep(3)
-      return
-    }
-    if (step === 3 && isStepThreeValid) {
-      setStep(4)
-      return
-    }
-    if (step === 4 && isStepFourValid) {
-      setStep(5) // Ir a pregunta de tipo de renta
-      return
-    }
+  }
+
+  const updateRentalData = <K extends keyof RentalData>(field: K, value: RentalData[K]) => {
+    setRentalData((current) => ({
+      ...current,
+      [field]: value,
+    }))
   }
 
   const handleRentalTypeQuestion = (type: RentalType) => {
@@ -268,14 +257,12 @@ export default function RenterForm() {
   }
 
   const completeRegistration = async () => {
-    const result = await completeRegistrationAndLogin(
+    const result = await registerRenter(
       {
-        name: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
+        fullName,
+        email,
+        phone,
         password,
-        role: 'CLIENT',
-        clientProfile: 'TENANT',
       },
       setAuthSession
     )
@@ -294,470 +281,169 @@ export default function RenterForm() {
 
     router.replace('/(tabs)')
   }
-
-  const isCurrentStepValid =
-    (step === 1 && isStepOneValid) ||
-    (step === 2 && isStepTwoValid) ||
-    (step === 3 && isStepThreeValid) ||
-    (step === 4 && isStepFourValid)
-
-  const totalSteps = 4
-
-  const rentalTypes = [
-    { value: 'house', label: 'Casa' },
-    { value: 'apartment', label: 'Departamento' },
-    { value: 'room', label: 'Cuarto' },
-    { value: 'office', label: 'Oficina' },
-  ]
+  const animatedStepStyle = {
+    opacity: fadeAnim,
+    transform: [{ translateY: slideAnim }],
+  }
 
   // Renderizar contenido segun el paso
   const renderStep = () => {
     switch (step) {
       case 1:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Comencemos con lo basico</Text>
-            <Text style={styles.stepSubtitle}>¿Cómo te gustaría que te llamemos?</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nombre completo</Text>
-              <TextInput
-                key="renter-name"
-                style={styles.input}
-                placeholder="Escribe tu nombre completo"
-                placeholderTextColor={tenantColors.textMuted}
-                value={fullName}
-                onChangeText={setFullName}
-              />
-              <Text style={styles.hint}>Usaremos este nombre para personalizar tu experiencia</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={animatedStepStyle}
+            styles={styles}
+            title="Comencemos con lo basico"
+            subtitle="¿Cómo te gustaría que te llamemos?"
+            label="Nombre completo"
+            inputKey="renter-name"
+            placeholder="Escribe tu nombre completo"
+            placeholderTextColor={tenantColors.textMuted}
+            value={fullName}
+            hint="Usaremos este nombre para personalizar tu experiencia"
+            onChangeText={setFullName}
+          />
         )
 
       case 2:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Mantente conectado</Text>
-            <Text style={styles.stepSubtitle}>Tu correo sera tu acceso</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Correo electronico</Text>
-              <TextInput
-                key="renter-email"
-                style={styles.input}
-                placeholder="tu@correo.com"
-                placeholderTextColor={tenantColors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <Text style={styles.hint}>Aquí recibirás recordatorios de tu renta</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={animatedStepStyle}
+            styles={styles}
+            title="Mantente conectado"
+            subtitle="Tu correo sera tu acceso"
+            label="Correo electronico"
+            inputKey="renter-email"
+            placeholder="tu@correo.com"
+            placeholderTextColor={tenantColors.textMuted}
+            value={email}
+            hint="Aquí recibirás recordatorios de tu renta"
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         )
 
       case 3:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Una linea directa</Text>
-            <Text style={styles.stepSubtitle}>Para que podamos contactarte</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Número de teléfono</Text>
-              <TextInput
-                key="renter-phone"
-                style={styles.input}
-                placeholder="+52 55 1234 5678"
-                placeholderTextColor={tenantColors.textMuted}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-              <Text style={styles.hint}>Solo te contactaremos cuando sea importante</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={animatedStepStyle}
+            styles={styles}
+            title="Una linea directa"
+            subtitle="Para que podamos contactarte"
+            label="Número de teléfono"
+            inputKey="renter-phone"
+            placeholder="+52 55 1234 5678"
+            placeholderTextColor={tenantColors.textMuted}
+            value={phone}
+            hint="Solo te contactaremos cuando sea importante"
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
         )
 
       case 4:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Protege tu cuenta</Text>
-            <Text style={styles.stepSubtitle}>Crea una contraseña segura</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput
-                key="renter-password"
-                style={styles.input}
-                placeholder="Minimo 6 caracteres"
-                placeholderTextColor={tenantColors.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <Text style={styles.hint}>Tu información está protegida con encriptación</Text>
-            </View>
-          </Animated.View>
+          <OnboardingInputStep
+            animatedStyle={animatedStepStyle}
+            styles={styles}
+            title="Protege tu cuenta"
+            subtitle="Crea una contraseña segura"
+            label="Contraseña"
+            inputKey="renter-password"
+            placeholder="Minimo 6 caracteres"
+            placeholderTextColor={tenantColors.textMuted}
+            value={password}
+            hint="Tu información está protegida con encriptación"
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
         )
 
       // Pregunta: Rentas con nosotros o externo?
       case 5:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.questionContainer}>
-              <Animated.View style={[styles.logoContainer, { transform: [{ scale: pulseAnim }] }]}>
-                <Home size={48} color={tenantColors.accent} />
-              </Animated.View>
-              
-              <Text style={styles.questionTitle}>¿Cómo rentas actualmente?</Text>
-              <Text style={styles.questionSubtitle}>
-                Cuéntanos sobre tu situación de renta para personalizar tu experiencia
-              </Text>
-
-              <View style={styles.optionsContainer}>
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handleRentalTypeQuestion('with_us')}
-                >
-                  <View style={styles.optionContent}>
-                    <Check size={24} color={tenantColors.green} />
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionText}>Rento con Inicio</Text>
-                      <Text style={styles.optionSubtext}>Ya tengo un contrato con ustedes</Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color={tenantColors.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handleRentalTypeQuestion('external')}
-                >
-                  <View style={styles.optionContent}>
-                    <Plus size={24} color={tenantColors.warm} />
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionText}>Rento de manera externa</Text>
-                      <Text style={styles.optionSubtext}>Quiero administrar mi renta aquí</Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color={tenantColors.textMuted} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
+          <RenterRentalTypeStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            onSelectType={handleRentalTypeQuestion}
+          />
         )
 
       // Renta con nosotros encontrada
       case 6:
-        if (rentalType === 'with_us') {
-          return (
-            <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <View style={styles.successContainer}>
-                <View style={styles.successIcon}>
-                  <Check size={40} color={tenantColors.background} />
-                </View>
-                
-                <Text style={styles.successTitle}>Renta vinculada</Text>
-                <Text style={styles.successSubtitle}>
-                  Hemos encontrado tu contrato de renta y lo vinculamos a tu cuenta. Ya puedes acceder a toda la información.
-                </Text>
-
-                <View style={styles.propertyPreview}>
-                  <Home size={24} color={tenantColors.green} />
-                  <View style={styles.propertyPreviewText}>
-                    <Text style={styles.propertyPreviewTitle}>Tu renta activa</Text>
-                    <Text style={styles.propertyPreviewSubtitle}>Lista para gestionar</Text>
-                  </View>
-                </View>
-
-                <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
-                  <Text style={styles.primaryButtonText}>Ir a mi inicio</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          )
-        }
-        
-        // Externo: Preguntar si quiere agregar datos ahora
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.questionContainer}>
-              <Animated.View style={[styles.logoContainer, { transform: [{ scale: pulseAnim }] }]}>
-                <FileText size={48} color={tenantColors.accent} />
-              </Animated.View>
-              
-              <Text style={styles.questionTitle}>Quieres agregar los datos de tu renta?</Text>
-              <Text style={styles.questionSubtitle}>
-                Puedes agregar la información ahora o hacerlo más tarde desde la app
-              </Text>
-
-              <View style={styles.optionsContainer}>
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handleAddDataQuestion('now')}
-                >
-                  <View style={styles.optionContent}>
-                    <Check size={24} color={tenantColors.green} />
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionText}>Agregar ahora</Text>
-                      <Text style={styles.optionSubtext}>Completar información de mi renta</Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color={tenantColors.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.optionButton}
-                  onPress={() => handleAddDataQuestion('later')}
-                >
-                  <View style={styles.optionContent}>
-                    <Clock size={24} color={tenantColors.warm} />
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionText}>Agregar después</Text>
-                      <Text style={styles.optionSubtext}>Lo haré más tarde</Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color={tenantColors.textMuted} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
+          <RenterRentalResolutionStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            pulseStyle={{ transform: [{ scale: pulseAnim }] }}
+            rentalType={rentalType}
+            onFinish={() => void handleFinish()}
+            onSelectAddData={handleAddDataQuestion}
+          />
         )
 
       // Datos de la renta - Informacion basica
       case 7:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Información de tu renta</Text>
-            <Text style={styles.stepSubtitle}>Cuéntanos sobre tu contrato</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Fecha de inicio del contrato</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="DD/MM/AAAA"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.startDate}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, startDate: text }))}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Fecha de terminacion</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="DD/MM/AAAA"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.endDate}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, endDate: text }))}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Tipo de propiedad</Text>
-              <View style={styles.typeSelector}>
-                {rentalTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.value}
-                    style={[
-                      styles.typeOption,
-                      rentalData.rentalType === type.value && styles.typeOptionSelected
-                    ]}
-                    onPress={() => setRentalData(prev => ({ ...prev, rentalType: type.value as any }))}
-                  >
-                    <Text style={[
-                      styles.typeOptionText,
-                      rentalData.rentalType === type.value && styles.typeOptionTextSelected
-                    ]}>{type.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Ubicacion</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Dirección de la propiedad"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.location}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, location: text }))}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Costo mensual de renta</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="$0.00"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.monthlyRent}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, monthlyRent: text }))}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <TouchableOpacity 
-              style={[styles.primaryButton, !isRentalInfoValid && styles.disabledButton]} 
-              onPress={() => setStep(8)}
-              disabled={!isRentalInfoValid}
-            >
-              <Text style={styles.primaryButtonText}>Continuar</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <RenterRentalDetailsStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            rentalData={rentalData}
+            isValid={isRentalInfoValid}
+            onChangeField={updateRentalData}
+            onContinue={() => setStep(8)}
+          />
         )
 
       // Datos del arrendador
       case 8:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Contactos</Text>
-            <Text style={styles.stepSubtitle}>Quien es tu arrendador o asesor?</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nombre del arrendador</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Nombre del dueno/arrendador"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.landlordName}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, landlordName: text }))}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Telefono del arrendador</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+52 55 1234 5678"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.landlordPhone}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, landlordPhone: text }))}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nombre del asesor (opcional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Si tienes un asesor"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.agentName}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, agentName: text }))}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Teléfono del asesor (opcional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+52 55 1234 5678"
-                placeholderTextColor={tenantColors.textMuted}
-                value={rentalData.agentPhone}
-                onChangeText={(text) => setRentalData(prev => ({ ...prev, agentPhone: text }))}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <TouchableOpacity style={styles.primaryButton} onPress={() => setStep(9)}>
-              <Text style={styles.primaryButtonText}>Continuar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => void handleFinish()}>
-              <Text style={styles.secondaryButtonText}>Omitir y finalizar</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <RenterRentalContactsStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            rentalData={rentalData}
+            onChangeField={updateRentalData}
+            onContinue={() => setStep(9)}
+            onSkip={() => void handleFinish()}
+          />
         )
 
       // Fotos de la propiedad (opcional)
       case 9:
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Fotos de la propiedad</Text>
-            <Text style={styles.stepSubtitle}>Opcional - Agrega fotos de tu espacio</Text>
-            
-            <TouchableOpacity style={styles.uploadArea} onPress={handlePhotoPicker}>
-              <Camera size={40} color={tenantColors.accent} />
-              <Text style={styles.uploadText}>Toca para agregar fotos</Text>
-              <Text style={styles.uploadHint}>Puedes agregar varias</Text>
-            </TouchableOpacity>
-
-            {rentalData.photos.length > 0 && (
-              <View style={styles.photosPreview}>
-                {rentalData.photos.map((photo, index) => (
-                  <Image key={index} source={{ uri: photo }} style={styles.photoThumb} />
-                ))}
-              </View>
-            )}
-
-            <TouchableOpacity style={styles.primaryButton} onPress={() => setStep(10)}>
-              <Text style={styles.primaryButtonText}>Continuar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep(10)}>
-              <Text style={styles.secondaryButtonText}>Omitir</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <RenterRentalPhotosStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            rentalData={rentalData}
+            onPickPhotos={() => void handlePhotoPicker()}
+            onContinue={() => setStep(10)}
+            onSkip={() => setStep(10)}
+          />
         )
 
       // Documentacion (opcional) - paso 10 para externos que agregan datos
       case 10:
-        if (rentalType === 'with_us' && !rentalFound) {
-          // Renta no encontrada
-          return (
-            <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <View style={styles.notFoundContainer}>
-                <View style={styles.notFoundIcon}>
-                  <Home size={40} color={tenantColors.warm} />
-                </View>
-                
-                <Text style={styles.notFoundTitle}>No encontramos tu renta</Text>
-                <Text style={styles.notFoundSubtitle}>
-                  No pudimos encontrar un contrato activo con tus datos. Puedes continuar y agregar la información manualmente o contactar a tu asesor.
-                </Text>
-
-                <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
-                  <Text style={styles.primaryButtonText}>Continuar de todas formas</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep(5)}>
-                  <Text style={styles.secondaryButtonText}>Intentar de nuevo</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          )
-        }
-
-        // Documentacion para externos
         return (
-          <Animated.View style={[styles.stepContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Text style={styles.stepTitle}>Documentacion</Text>
-            <Text style={styles.stepSubtitle}>Opcional - Guarda tus documentos importantes</Text>
-            
-            <TouchableOpacity style={styles.uploadArea} onPress={handleDocumentPicker}>
-              <FileText size={40} color={tenantColors.accent} />
-              <Text style={styles.uploadText}>Agregar documentos</Text>
-              <Text style={styles.uploadHint}>Contrato, comprobantes, etc.</Text>
-            </TouchableOpacity>
-
-            {rentalData.documents.length > 0 && (
-              <View style={styles.documentsPreview}>
-                <Text style={styles.documentsCount}>{rentalData.documents.length} documento(s) agregado(s)</Text>
-              </View>
-            )}
-
-            <TouchableOpacity style={styles.primaryButton} onPress={() => void handleFinish()}>
-              <Text style={styles.primaryButtonText}>Finalizar registro</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => void handleFinish()}>
-              <Text style={styles.secondaryButtonText}>Omitir y finalizar</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <RenterRentalDocumentsStep
+            animatedStyle={animatedStepStyle}
+            colors={tenantColors}
+            styles={styles}
+            rentalType={rentalType}
+            rentalFound={rentalFound}
+            rentalData={rentalData}
+            onPickDocuments={() => void handleDocumentPicker()}
+            onFinish={() => void handleFinish()}
+            onRetry={() => setStep(5)}
+          />
         )
 
       default:
@@ -800,45 +486,36 @@ export default function RenterForm() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={20} color={tenantColors.accent} />
-            <Text style={styles.backButtonText}>Regresar</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Indicador de progreso (solo para pasos 1-4) */}
-        {step <= 4 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <Animated.View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${(step / totalSteps) * 100}%` }
-                ]} 
-              />
-            </View>
-            <Text style={styles.progressText}>Paso {step} de {totalSteps}</Text>
-          </View>
-        )}
+          <LinearFormStepperHeader
+            onBack={handleBack}
+            backColor={tenantColors.accent}
+            progressTrackColor={tenantColors.surface}
+            progressFillColor={tenantColors.green ?? tenantColors.accent}
+            progressTextColor={tenantColors.textMuted}
+            currentStep={Math.min(step, totalSteps)}
+            totalSteps={totalSteps}
+          progress={Math.min(step, totalSteps) / totalSteps}
+          showProgress={step <= 4}
+          progressTextAlign="right"
+          headerStyle={styles.header}
+          backButtonStyle={styles.backButton}
+        />
 
         {/* Contenido del paso */}
         {renderStep()}
 
         {/* Boton continuar (solo para pasos 1-4) */}
         {step <= 4 && (
-          <View style={styles.footer}>
-            <TouchableOpacity
-              disabled={!isCurrentStepValid}
-              style={[styles.continueButton, !isCurrentStepValid && styles.disabledButton]}
-              onPress={handleContinue}
-            >
-              <Text style={[styles.continueButtonText, !isCurrentStepValid && styles.disabledButtonText]}>
-                Continuar
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <LinearFormStepperFooter
+            disabled={!isCurrentStepValid}
+            label="Continuar"
+            onPress={handleContinue}
+            buttonColor={tenantColors.green ?? tenantColors.accent}
+            textColor={tenantColors.background}
+            disabledButtonColor={tenantColors.surface}
+            disabledTextColor={tenantColors.textMuted}
+            footerStyle={styles.footer}
+          />
         )}
       </ScrollView>
       </KeyboardAvoidingView>
@@ -879,32 +556,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
-  },
-  backButtonText: {
-    color: tenantColors.accent,
-    fontSize: typography.body.fontSize,
-    fontWeight: '500',
-    marginLeft: spacing.xs,
-  },
-  progressContainer: {
-    marginBottom: spacing.xl,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: tenantColors.surface,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: tenantColors.green,
-    borderRadius: 2,
-  },
-  progressText: {
-    color: tenantColors.textMuted,
-    fontSize: typography.caption.fontSize,
-    marginTop: spacing.sm,
-    textAlign: 'right',
   },
   stepContent: {
     flex: 1,
@@ -948,17 +599,6 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  continueButton: {
-    backgroundColor: tenantColors.green,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    color: tenantColors.text,
-    fontSize: typography.body.fontSize,
-    fontWeight: '700',
   },
   disabledButton: {
     backgroundColor: tenantColors.surface,

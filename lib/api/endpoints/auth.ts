@@ -3,13 +3,13 @@
  */
 
 import { coreApi } from '../client'
+import { mockUsers } from '@/lib/mock-data'
 import type {
   RegisterRequest,
   RegisterResponse,
   LoginRequest,
   LoginResponse,
   User,
-  UserProfile,
   BackendUserRole,
 } from '@/lib/types'
 
@@ -39,8 +39,13 @@ export type BackendCurrentUser = {
   phone?: string
   country?: string
   roles?: BackendUserRole[]
-  clientProfile?: UserProfile
   permissions?: string[]
+  investment?: boolean
+  tenant?: boolean
+}
+
+export function getAuthMockUserById(userId: string): User | null {
+  return mockUsers.find((user) => user.id === userId) ?? null
 }
 
 type RegisterApiPayload =
@@ -55,10 +60,16 @@ type LoginApiPayload = {
   accessToken?: string
   refreshToken?: string
   token?: string
+  investment?: boolean
+  tenant?: boolean
+  roles?: BackendUserRole[]
   data?: {
     accessToken?: string
     refreshToken?: string
     token?: string
+    investment?: boolean
+    tenant?: boolean
+    roles?: BackendUserRole[]
   }
 }
 
@@ -85,6 +96,18 @@ function extractLoginTokens(payload: LoginApiPayload): {
   return {
     accessToken: payload.accessToken ?? payload.token ?? payload.data?.accessToken ?? payload.data?.token,
     refreshToken: payload.refreshToken ?? payload.data?.refreshToken,
+  }
+}
+
+function extractLoginMeta(payload: LoginApiPayload): {
+  investment?: boolean
+  tenant?: boolean
+  roles?: BackendUserRole[]
+} {
+  return {
+    investment: payload.investment ?? payload.data?.investment,
+    tenant: payload.tenant ?? payload.data?.tenant,
+    roles: payload.roles ?? payload.data?.roles,
   }
 }
 
@@ -118,10 +141,6 @@ export function validateRegistrationData(data: RegisterRequest): { valid: boolea
     errors.push('El rol de usuario es invalido')
   }
 
-  if (!data.clientProfile || !['INVESTOR', 'SEEKER', 'TENANT'].includes(data.clientProfile)) {
-    errors.push('El perfil de usuario es invalido')
-  }
-
   return { valid: errors.length === 0, errors }
 }
 
@@ -142,7 +161,8 @@ export async function registerUser(data: RegisterRequest): Promise<RegisterRespo
       phone: data.phone.trim(),
       password: data.password,
       role: data.role,
-      clientProfile: data.clientProfile,
+      investment: data.investment,
+      tenant: data.tenant,
     }
 
     console.log('[auth][register] payload', payload)
@@ -197,10 +217,14 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
     })
 
     const { accessToken, refreshToken } = extractLoginTokens(result)
+    const { investment, tenant, roles } = extractLoginMeta(result)
 
     console.log('[auth][login] response', {
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
+      investment: investment ?? null,
+      tenant: tenant ?? null,
+      roles: roles ?? [],
     })
 
     return {
@@ -208,6 +232,9 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
       message: 'Sesion iniciada exitosamente',
       accessToken,
       refreshToken,
+      investment,
+      tenant,
+      roles,
       error: accessToken ? undefined : 'La API no devolvio un token de sesion',
     }
   } catch (error) {

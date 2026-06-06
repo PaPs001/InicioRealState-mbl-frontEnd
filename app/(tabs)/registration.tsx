@@ -9,9 +9,9 @@ import {
   Alert
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatCurrency } from '@/lib/mock-data'
+import { formatCurrency } from '@/lib/utils'
 import { 
   Building2, 
   DollarSign, 
@@ -25,7 +25,7 @@ import {
 } from 'lucide-react-native'
 
 export default function RegistrationScreen() {
-  const { availableProperties } = useAuth()
+  const { availableProperties } = usePropertyDomain()
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent')
   const [selectedProperty, setSelectedProperty] = useState('')
   const [showPropertyPicker, setShowPropertyPicker] = useState(false)

@@ -1,31 +1,36 @@
 import { useState, useMemo, useEffect } from 'react'
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  TextInput 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@/contexts/AuthContext'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
-import { formatCurrency } from '@/lib/mock-data'
+import { getPropertyAgentName, getPropertyOwnerName } from '@/lib/services/property-domain'
 import type { Property } from '@/lib/types'
-import { 
-  Search, 
+import { formatCurrency } from '@/lib/utils'
+import {
+  Search,
   Home,
   Building2,
   Map,
   Bed,
   Bath,
   Maximize,
-  MapPin
+  MapPin,
+  Plus,
+  ChevronRight,
+  UserRound,
+  ShieldCheck,
 } from 'lucide-react-native'
+import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 
 export default function PropertiesScreen() {
-  const { availableProperties, isCatalogLoading, hasLoadedCatalog, loadCatalogProperties } = useAuth()
+  const { availableProperties, isCatalogLoading, hasLoadedCatalog, loadCatalogProperties } = usePropertyDomain()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'sale' | 'rent'>('all')
@@ -40,87 +45,140 @@ export default function PropertiesScreen() {
     const visibleProperties = hasLoadedCatalog ? availableProperties : []
 
     return visibleProperties.filter(property => {
-      const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.city.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      const matchesFilter = filter === 'all' ||
-        (filter === 'sale' && (property.status === 'for_sale' || property.status === 'available' || property.status === 'pending_sale')) ||
-        (filter === 'rent' && (property.status === 'for_rent' || property.status === 'available' || property.status === 'pending_rent'))
-      
+      const matchesSearch =
+        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        property.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        property.address.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesFilter =
+        filter === 'all' ||
+        (filter === 'sale' &&
+          (property.status === 'for_sale' || property.status === 'available' || property.status === 'pending_sale')) ||
+        (filter === 'rent' &&
+          (property.status === 'for_rent' || property.status === 'available' || property.status === 'pending_rent'))
+
       return matchesSearch && matchesFilter
     })
   }, [availableProperties, hasLoadedCatalog, searchQuery, filter])
 
   const getPropertyIcon = (type: Property['type']) => {
     switch (type) {
-      case 'house': return Home
-      case 'apartment': return Building2
-      case 'land': return Map
-      default: return Home
+      case 'house':
+        return Home
+      case 'apartment':
+        return Building2
+      case 'land':
+        return Map
+      default:
+        return Home
     }
   }
 
   const getStatusLabel = (status: Property['status']) => {
     switch (status) {
-      case 'for_sale': return { label: 'En Venta', color: colors.success }
-      case 'for_rent': return { label: 'En Renta', color: colors.info }
-      case 'available': return { label: 'Disponible', color: colors.accent }
-      case 'pending_sale': return { label: 'Venta en Proceso', color: colors.warning }
-      case 'pending_rent': return { label: 'Renta en Proceso', color: colors.warning }
-      case 'rented': return { label: 'Rentada', color: colors.textMuted }
-      default: return { label: 'Disponible', color: colors.textMuted }
+      case 'for_sale':
+        return { label: 'En venta', color: colors.success }
+      case 'for_rent':
+        return { label: 'En renta', color: colors.info }
+      case 'available':
+        return { label: 'Disponible', color: colors.accent }
+      case 'pending_sale':
+        return { label: 'Venta en proceso', color: colors.warning }
+      case 'pending_rent':
+        return { label: 'Renta en proceso', color: colors.warning }
+      case 'rented':
+        return { label: 'Rentada', color: colors.textMuted }
+      default:
+        return { label: 'Disponible', color: colors.textMuted }
     }
   }
 
   const renderProperty = ({ item: property }: { item: Property }) => {
     const Icon = getPropertyIcon(property.type)
     const status = getStatusLabel(property.status)
+    const agentName = getPropertyAgentName(property)
+    const ownerName = getPropertyOwnerName(property)
 
     return (
-      <TouchableOpacity 
-        style={styles.propertyCard}
-        onPress={() => router.push(`/property/${property.id}`)}
-      >
-        <View style={styles.imageContainer}>
-          <Icon size={32} color={colors.borderDark} />
-          <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
-            <Text style={styles.statusText}>{status.label}</Text>
+      <TouchableOpacity style={styles.propertyCard} onPress={() => router.push(`/property/${property.id}`)}>
+        <View style={styles.cardTopRow}>
+          <View style={styles.imageContainer}>
+            <Icon size={32} color={colors.accent} />
+          </View>
+          <View style={styles.headerInfo}>
+            <View style={[styles.statusBadge, { backgroundColor: `${status.color}22` }]}>
+              <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+            </View>
+            <Text style={styles.propertyTitle}>{property.title}</Text>
+            <View style={styles.locationRow}>
+              <MapPin size={14} color={colors.textMuted} />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {property.address}, {property.city}
+              </Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.cardContent}>
-          <Text style={styles.propertyTitle} numberOfLines={1}>{property.title}</Text>
-          
-          <View style={styles.locationRow}>
-            <MapPin size={14} color={colors.textMuted} />
-            <Text style={styles.locationText}>{property.city}</Text>
-          </View>
-
-          <View style={styles.features}>
-            {property.type !== 'land' && (
-              <>
-                <View style={styles.feature}>
-                  <Bed size={14} color={colors.textMuted} />
-                  <Text style={styles.featureText}>{property.bedrooms}</Text>
-                </View>
-                <View style={styles.feature}>
-                  <Bath size={14} color={colors.textMuted} />
-                  <Text style={styles.featureText}>{property.bathrooms}</Text>
-                </View>
-              </>
-            )}
-            {/*<View style={styles.feature}>
-              <Maximize size={14} color={colors.textMuted} />
-              <Text style={styles.featureText}>{property.sqMeters}m2</Text>
-            </View>*/}
-          </View>
-
-          <Text style={styles.price}>{formatCurrency(property.price)}</Text>
-          {property.monthlyRent && (
-            <Text style={styles.rentPrice}>
-              Renta: {formatCurrency(property.monthlyRent)}/mes
-            </Text>
+        <View style={styles.features}>
+          {property.type !== 'land' && (
+            <>
+              <View style={styles.feature}>
+                <Bed size={14} color={colors.textMuted} />
+                <Text style={styles.featureText}>{property.bedrooms || 0} rec</Text>
+              </View>
+              <View style={styles.feature}>
+                <Bath size={14} color={colors.textMuted} />
+                <Text style={styles.featureText}>{property.bathrooms || 0} baños</Text>
+              </View>
+            </>
           )}
+          <View style={styles.feature}>
+            <Maximize size={14} color={colors.textMuted} />
+            <Text style={styles.featureText}>{property.sqMeters} m²</Text>
+          </View>
+        </View>
+
+        <View style={styles.metaGrid}>
+          <View style={styles.metaItem}>
+            <Text style={styles.metaLabel}>Precio</Text>
+            <Text style={styles.metaValue}>{formatCurrency(property.price)}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Text style={styles.metaLabel}>Renta mensual</Text>
+            <Text style={styles.metaValue}>
+              {property.monthlyRent ? formatCurrency(property.monthlyRent) : 'No aplica'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.description} numberOfLines={2}>
+          {property.description || 'Sin descripción disponible.'}
+        </Text>
+
+        <View style={styles.peopleRow}>
+          <View style={styles.personChip}>
+            <UserRound size={13} color={colors.textMuted} />
+            <Text style={styles.personChipText}>{agentName}</Text>
+          </View>
+          <View style={styles.personChip}>
+            <ShieldCheck size={13} color={colors.textMuted} />
+            <Text style={styles.personChipText}>{ownerName}</Text>
+          </View>
+        </View>
+
+        {property.features?.length ? (
+          <View style={styles.tagRow}>
+            {property.features.slice(0, 3).map(feature => (
+              <View key={feature} style={styles.tag}>
+                <Text style={styles.tagText}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.cardFooter}>
+          <Text style={styles.footerText}>Ver información completa</Text>
+          <ChevronRight size={18} color={colors.accent} />
         </View>
       </TouchableOpacity>
     )
@@ -128,64 +186,46 @@ export default function PropertiesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* Barra de busqueda */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color={colors.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar propiedades..."
-            placeholderTextColor={colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+      <View style={styles.topBar}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Search size={20} color={colors.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar propiedades..."
+              placeholderTextColor={colors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
         </View>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/add-property')}>
+          <Plus size={20} color={colors.primaryDark} />
+        </TouchableOpacity>
       </View>
 
-      {/* Tabs de filtro */}
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.pageTitle}>Propiedades</Text>
+          <Text style={styles.pageSubtitle}>Agrega más inmuebles y consulta datos clave del catálogo.</Text>
+        </View>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/list-property')}>
+          <Text style={styles.secondaryButtonText}>Nueva</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.filterTabs}>
-        <TouchableOpacity 
-          style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
-          onPress={() => setFilter('all')}
-        >
-          <Text
-            style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-          >
-            Todas
-          </Text>
+        <TouchableOpacity style={[styles.filterTab, filter === 'all' && styles.filterTabActive]} onPress={() => setFilter('all')}>
+          <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>Todas</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.filterTab, filter === 'sale' && styles.filterTabActive]}
-          onPress={() => setFilter('sale')}
-        >
-          <Text
-            style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-          >
-            Ventas
-          </Text>
+        <TouchableOpacity style={[styles.filterTab, filter === 'sale' && styles.filterTabActive]} onPress={() => setFilter('sale')}>
+          <Text style={[styles.filterTabText, filter === 'sale' && styles.filterTabTextActive]}>Ventas</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.filterTab, filter === 'rent' && styles.filterTabActive]}
-          onPress={() => setFilter('rent')}
-        >
-          <Text
-            style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-          >
-            Rentas
-          </Text>
+        <TouchableOpacity style={[styles.filterTab, filter === 'rent' && styles.filterTabActive]} onPress={() => setFilter('rent')}>
+          <Text style={[styles.filterTabText, filter === 'rent' && styles.filterTabTextActive]}>Rentas</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista de propiedades */}
       <FlatList
         data={filteredProperties}
         renderItem={renderProperty}
@@ -210,9 +250,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryDark,
   },
-  searchContainer: {
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm,
+  },
+  searchContainer: {
+    flex: 1,
   },
   searchInputContainer: {
     flexDirection: 'row',
@@ -229,6 +275,46 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     fontSize: typography.body.fontSize,
     color: colors.textLight,
+  },
+  addButton: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  pageTitle: {
+    fontSize: typography.h3.fontSize,
+    fontWeight: '700',
+    color: colors.textLight,
+  },
+  pageSubtitle: {
+    marginTop: spacing.xs,
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.textMuted,
+    maxWidth: 260,
+  },
+  secondaryButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    backgroundColor: colors.surfaceDark,
+  },
+  secondaryButtonText: {
+    color: colors.textLight,
+    fontWeight: '600',
+    fontSize: typography.bodySmall.fontSize,
   },
   filterTabs: {
     flexDirection: 'row',
@@ -251,51 +337,54 @@ const styles = StyleSheet.create({
   filterTabText: {
     fontSize: typography.bodySmall.fontSize,
     color: colors.textMuted,
-    flexShrink: 1,
+    fontWeight: '600',
   },
   filterTabTextActive: {
     color: colors.primaryDark,
-    fontWeight: '600',
   },
   listContent: {
     padding: spacing.md,
+    paddingTop: spacing.sm,
   },
   propertyCard: {
-    flexDirection: 'row',
     backgroundColor: colors.surfaceDark,
     borderRadius: borderRadius.xl,
-    overflow: 'hidden',
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.borderDark,
+    padding: spacing.md,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   imageContainer: {
-    width: 100,
+    width: 74,
+    height: 74,
+    borderRadius: borderRadius.lg,
     backgroundColor: colors.primaryDark,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  headerInfo: {
+    flex: 1,
   },
   statusBadge: {
-    position: 'absolute',
-    top: spacing.xs,
-    left: spacing.xs,
-    paddingVertical: 2,
-    paddingHorizontal: spacing.xs,
-    borderRadius: borderRadius.sm,
+    alignSelf: 'flex-start',
+    paddingVertical: 5,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginBottom: spacing.sm,
   },
   statusText: {
-    fontSize: 9,
+    fontSize: typography.caption.fontSize,
     fontWeight: '700',
-    color: colors.primaryDark,
-  },
-  cardContent: {
-    flex: 1,
-    padding: spacing.md,
   },
   propertyTitle: {
     fontSize: typography.body.fontSize,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textLight,
   },
   locationRow: {
@@ -307,11 +396,13 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: typography.bodySmall.fontSize,
     color: colors.textMuted,
+    flex: 1,
   },
   features: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   feature: {
     flexDirection: 'row',
@@ -322,16 +413,86 @@ const styles = StyleSheet.create({
     fontSize: typography.caption.fontSize,
     color: colors.textMuted,
   },
-  price: {
-    fontSize: typography.body.fontSize,
-    fontWeight: '700',
-    color: colors.accent,
-    marginTop: spacing.sm,
+  metaGrid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
-  rentPrice: {
+  metaItem: {
+    flex: 1,
+    backgroundColor: colors.primaryDark,
+    borderRadius: borderRadius.lg,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  metaLabel: {
     fontSize: typography.caption.fontSize,
     color: colors.textMuted,
-    marginTop: 2,
+  },
+  metaValue: {
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '700',
+    color: colors.textLight,
+    marginTop: spacing.xs,
+  },
+  description: {
+    fontSize: typography.bodySmall.fontSize,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginTop: spacing.md,
+  },
+  peopleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  personChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  personChipText: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  tag: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent + '18',
+  },
+  tagText: {
+    color: colors.accent,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '600',
+  },
+  cardFooter: {
+    marginTop: spacing.md,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderDark,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: colors.textLight,
+    fontSize: typography.bodySmall.fontSize,
+    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
