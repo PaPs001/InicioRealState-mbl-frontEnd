@@ -38,6 +38,7 @@ export type BackendCurrentUser = {
   name: string
   phone?: string
   country?: string
+  role?: BackendUserRole
   roles?: BackendUserRole[]
   permissions?: string[]
   investment?: boolean

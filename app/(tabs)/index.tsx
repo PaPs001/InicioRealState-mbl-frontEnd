@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ClientHomeHeader } from '@/components/home/ClientHomeHeader'
@@ -24,6 +24,7 @@ import {
   FolderOpen,
   Megaphone,
   TrendingUp,
+  Eye,
 } from 'lucide-react-native'
 import { Linking } from 'react-native'
 
@@ -33,6 +34,7 @@ export default function HomeScreen() {
     isClient, 
     isAgent, 
     isAdmin,
+    isCoordinator,
     isInvestor,
     isSearching,
     isTenant,
@@ -58,6 +60,7 @@ export default function HomeScreen() {
   const router = useRouter()
   const [refreshing, setRefreshing] = useState(false)
   const [tenantActiveTab, setTenantActiveTab] = useState<'general' | 'services'>('general')
+  const isCoordinatorPanel = isAdmin || isCoordinator
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -70,6 +73,16 @@ export default function HomeScreen() {
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`)
+  }
+
+  useEffect(() => {
+    if (isCoordinator) {
+      router.replace('/coordinator-rent-user' as never)
+    }
+  }, [isCoordinator, router])
+
+  if (isCoordinator) {
+    return null
   }
 
   const clientQuickAccessItems: QuickAccessItem[] = isInvestor
@@ -190,7 +203,7 @@ export default function HomeScreen() {
           } satisfies StaffQuickAccessItem,
         ]
       : []),
-    ...(isAdmin
+    ...(isCoordinatorPanel
       ? [
           {
             icon: ClipboardCheck,
@@ -324,16 +337,29 @@ export default function HomeScreen() {
         <View style={styles.headerDark}>
           <Text style={styles.greetingDark}>Hola, {currentUser?.name.split(' ')[0]}</Text>
           <Text style={styles.subGreetingDark}>
-            {isAdmin ? 'Panel de Coordinador' : 'Panel de Asesor'}
+            {isCoordinatorPanel ? 'Panel de Coordinador' : 'Panel de Asesor'}
           </Text>
         </View>
 
+        {isCoordinatorPanel ? (
+          <View style={styles.previewSectionDark}>
+            <TouchableOpacity
+              style={styles.previewButtonDark}
+              onPress={() => router.push('/coordinator-rent-user' as never)}
+              activeOpacity={0.85}
+            >
+              <Eye size={20} color={colors.primaryDark} />
+              <Text style={styles.previewButtonTextDark}>Vista previa</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         <StaffDashboardSection
-          isAdmin={isAdmin}
+          isAdmin={isCoordinatorPanel}
           pendingAppointments={pendingAppointments}
           pendingLeads={pendingLeads}
           primaryAction={
-            isAgent || isAdmin
+            isAgent || isCoordinatorPanel
               ? {
                   title: 'Registrar Venta/Renta',
                   subtitle: 'Crear un nuevo registro comercial',
@@ -417,6 +443,24 @@ const styles = StyleSheet.create({
   primaryActionSectionDark: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+  },
+  previewSectionDark: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  previewButtonDark: {
+    height: 44,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  previewButtonTextDark: {
+    color: colors.primaryDark,
+    fontSize: typography.body.fontSize,
+    fontWeight: '700',
   },
   primaryActionButtonDark: {
     flexDirection: 'row',

@@ -18,7 +18,7 @@ export function useHomeDashboard() {
   const activity = useActivityDomain()
 
   useEffect(() => {
-    if ((session.isAgent || session.isAdmin) && !property.hasLoadedCatalog && !property.isCatalogLoading) {
+    if ((session.isAgent || session.isAdmin || session.isCoordinator) && !property.hasLoadedCatalog && !property.isCatalogLoading) {
       property.loadCatalogProperties()
     }
   }, [
@@ -27,6 +27,7 @@ export function useHomeDashboard() {
     property.loadCatalogProperties,
     session.isAdmin,
     session.isAgent,
+    session.isCoordinator,
   ])
 
   const portfolioSummary = useMemo(
@@ -67,7 +68,7 @@ export function useHomeDashboard() {
   )
 
   const refreshHomeData = async () => {
-    if (session.isAgent || session.isAdmin) {
+    if (session.isAgent || session.isAdmin || session.isCoordinator) {
       await property.loadCatalogProperties()
     }
   }
