@@ -22,9 +22,10 @@ import {
   Wallet,
   MessageCircle,
 } from 'lucide-react-native'
-
+///aqui se hara uno de los cambios para el tipo de usuario
 export default function TabsLayout() {
-  const { isAgent, isAdmin, isClient, isInvestor, isTenant } = useSessionDomain()
+  const { isAgent, isAdmin, isCoordinator, isClient, isInvestor, isTenant } = useSessionDomain()
+  const isCoordinatorPanel = isAdmin || isCoordinator
   
   const getClientRole = (): ClientRole => {
     if (isInvestor) return 'investor'
@@ -143,7 +144,7 @@ export default function TabsLayout() {
       )}
 
       {/* Pantallas para coordinadores */}
-      {isAdmin && (
+      {isCoordinatorPanel && (
         <>
           <Tabs.Screen
             name="index"
@@ -170,7 +171,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="catalog" options={{ href: null }} />
       <Tabs.Screen name="appointments" options={{ href: null }} />
       <Tabs.Screen name="favorites" options={{ href: null }} />
-      <Tabs.Screen name="messages" options={{ href: isClient || isAgent || isAdmin ? undefined : null }} />
+      <Tabs.Screen name="messages" options={{ href: isClient || isAgent || isCoordinatorPanel ? undefined : null }} />
       <Tabs.Screen name="leads" options={{ href: null }} />
       <Tabs.Screen name="properties" options={{ href: null }} />
       <Tabs.Screen name="registration" options={{ href: null }} />

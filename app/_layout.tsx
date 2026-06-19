@@ -10,10 +10,10 @@ import { Platform, View } from 'react-native'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
-  const { currentUser, authToken, isAgent, isAdmin, isInvestor, isTenant, isSearching } = useSessionDomain()
+  const { currentUser, authToken, isAgent, isAdmin, isCoordinator, isInvestor, isTenant, isSearching } = useSessionDomain()
   const pathname = usePathname()
   
-  const isAdvisor = isAgent || isAdmin
+  const isAdvisor = isAgent || isAdmin || isCoordinator
   
   // Usuarios con fondo oscuro: inversionista y asesor
   // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)

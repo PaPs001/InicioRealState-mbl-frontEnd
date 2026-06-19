@@ -15,17 +15,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isInvestor = !!currentUser?.investment
   const isTenant = !!currentUser?.tenant
   const isSearching = isClient && !isInvestor && !isTenant
+  const isCoordinator = currentUser?.systemRole === 'COORDINATOR'
   const isAdmin = currentUser?.systemRole === 'ADMIN'
+  const isStaffCoordinator = isAdmin || isCoordinator
 
   const propertyDomain = usePropertyState({
     authToken,
     currentUserId: currentUser?.id,
-    isAdmin,
+    isAdmin: isStaffCoordinator,
     isAgent,
   })
   const activityDomain = useActivityState({
     currentUserId: currentUser?.id,
-    isAdmin,
+    isAdmin: isStaffCoordinator,
     isAgent,
     isClient,
   })
@@ -82,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoggedIn: !!currentUser,
       isInvestor,
       isSearching,
+      isCoordinator,
       isTenant,
       isAgent,
       isAdmin,

@@ -20,6 +20,7 @@ export { apiClient, coreApi, notificationsApi, API_URLS } from './client'
 import * as auth from './endpoints/auth'
 import * as activity from './endpoints/activity'
 import * as catalog from './endpoints/catalog'
+import * as dates from './endpoints/dates'
 import * as documents from './endpoints/documents'
 import * as investor from './endpoints/investor'
 import * as leads from './endpoints/leads'
@@ -31,6 +32,7 @@ export const api = {
   activity,
   auth,
   catalog,
+  dates,
   documents,
   investor,
   leads,
@@ -69,6 +71,29 @@ export {
   getDocumentContractRecords,
   type DocumentContractRecord,
 } from './endpoints/documents'
+
+export {
+  createGoogleCalendarDate,
+  deleteGoogleCalendarDate,
+  disconnectGoogleCalendar,
+  getGoogleCalendarConnectionStatus,
+  getGoogleCalendars,
+  getGoogleCalendarAuthUrl,
+  getGoogleCalendarDates,
+  getGoogleCalendarTasks,
+  getSelectedGoogleCalendars,
+  saveSelectedGoogleCalendars,
+  syncGoogleCalendars,
+  type GoogleCalendarDate,
+  type GoogleCalendarDateFilters,
+  type CreateGoogleCalendarDatePayload,
+  type GoogleCalendarConnectionStatus,
+  type GoogleCalendarOption,
+  type GoogleCalendarSyncResponse,
+  type SelectedGoogleCalendar,
+  type GoogleTask,
+  type GoogleTaskList,
+} from './endpoints/dates'
 
 export {
   getInvestorCampaignPropertyRecord,
