@@ -11,6 +11,7 @@ export interface AuthContextType {
   isSearching: boolean
   isTenant: boolean
   isAgent: boolean
+  isCoordinator: boolean
   isAdmin: boolean
   isClient: boolean
   login: (userId: string) => Promise<void>
@@ -54,6 +55,7 @@ export type SessionDomain = Pick<
   | 'isSearching'
   | 'isTenant'
   | 'isAgent'
+  | 'isCoordinator'
   | 'isAdmin'
   | 'isClient'
   | 'login'

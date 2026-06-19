@@ -9,6 +9,7 @@ const CURRENT_USER_ID_STORAGE_KEY = 'currentUserId'
 export type BackendUser = Partial<User> & {
   _id?: string
   userId?: string
+  role?: BackendUserRole
   roles?: BackendUserRole[]
   permissions?: string[]
   investment?: boolean
@@ -37,9 +38,17 @@ function decodeBase64(value: string): string | null {
   }
 }
 
-function mapBackendRolesToSystemRole(roles?: BackendUserRole[], systemRole?: BackendUserRole): BackendUserRole {
+function mapBackendRolesToSystemRole(
+  roles?: BackendUserRole[],
+  systemRole?: BackendUserRole,
+  role?: BackendUserRole,
+): BackendUserRole {
   if (systemRole) {
     return systemRole
+  }
+
+  if (role) {
+    return role
   }
 
   if (roles?.includes('ADMIN')) {
@@ -104,7 +113,7 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     name: user.name ?? '',
     email: user.email ?? '',
     phone: user.phone ?? '',
-    systemRole: mapBackendRolesToSystemRole(backendUser.roles, user.systemRole),
+    systemRole: mapBackendRolesToSystemRole(backendUser.roles, user.systemRole, backendUser.role),
     investment: deriveInvestmentFlag(backendUser.permissions, backendUser.investment),
     tenant: deriveTenantFlag(backendUser.permissions, backendUser.tenant),
     permissions: backendUser.permissions ?? user.permissions,
