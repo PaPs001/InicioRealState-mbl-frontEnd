@@ -10,6 +10,7 @@ export interface PropertyLead {
   id: string
   propertyId: string
   agentId: string
+  advisorId?: string
   assignedAgentName?: string
   name: string
   phone: string
@@ -27,8 +28,12 @@ export interface PropertyLead {
 
 export interface LeadFollowUp {
   id: string
+  leadId?: string
+  clientId?: string
+  followNumber?: string
   date: string
   type: LeadContactType
+  result?: string
   notes: string
   nextAction?: string
   nextActionDate?: string

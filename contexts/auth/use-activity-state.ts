@@ -1,7 +1,7 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 
-import { getNotificationActivityRecords } from '@/lib/api'
-import type { Notification } from '@/lib/types'
+import { getBackendLeadRecords, getNotificationActivityRecords } from '@/lib/api'
+import type { Notification, PropertyLead } from '@/lib/types'
 import {
   getUnreadNotificationsCount,
   getUserAppointments,
@@ -12,6 +12,7 @@ import {
 } from '@/lib/services/activity-domain'
 
 type ActivityStateParams = {
+  authToken?: string | null
   currentUserId?: string | null
   isAdmin: boolean
   isAgent: boolean
@@ -19,18 +20,50 @@ type ActivityStateParams = {
 }
 
 export function useActivityState(params: ActivityStateParams) {
-  const { currentUserId, isAdmin, isAgent, isClient } = params
+  const { authToken, currentUserId, isAdmin, isAgent, isClient } = params
   const [notifications, setNotifications] = useState<Notification[]>(() => getNotificationActivityRecords())
+  const [backendLeads, setBackendLeads] = useState<PropertyLead[] | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    if (!authToken || (!isAgent && !isAdmin)) {
+      setBackendLeads(null)
+      return
+    }
+
+    getBackendLeadRecords(authToken)
+      .then((leads) => {
+        if (isMounted) {
+          setBackendLeads(leads)
+        }
+      })
+      .catch((error) => {
+        console.error('Error cargando leads reales:', error)
+        if (isMounted) {
+          setBackendLeads(null)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [authToken, isAdmin, isAgent])
 
   const userLeads = useMemo(
-    () =>
-      getUserLeads({
+    () => {
+      if (backendLeads) {
+        return backendLeads
+      }
+
+      return getUserLeads({
         currentUserId,
         isAdmin,
         isAgent,
         isClient,
-      }),
-    [currentUserId, isAdmin, isAgent, isClient],
+      })
+    },
+    [backendLeads, currentUserId, isAdmin, isAgent, isClient],
   )
 
   const userAppointments = useMemo(

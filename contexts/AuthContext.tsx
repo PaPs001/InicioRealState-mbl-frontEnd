@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAgent,
   })
   const activityDomain = useActivityState({
+    authToken,
     currentUserId: currentUser?.id,
     isAdmin: isStaffCoordinator,
     isAgent,

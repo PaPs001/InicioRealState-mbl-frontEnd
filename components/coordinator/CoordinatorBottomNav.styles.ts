@@ -23,14 +23,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 54,
+    zIndex: 2,
   },
   navItemActive: {
     flex: 1,
     minWidth: 0,
     height: 68,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     marginTop: -8,
+    zIndex: 2,
   },
   navLabel: {
     color: '#3d3d3d',
@@ -42,14 +44,17 @@ export const styles = StyleSheet.create({
   navActiveScoop: {
     position: 'absolute',
     top: -1,
+    left: 0,
     width: 74,
     height: 62,
     borderBottomLeftRadius: 34,
     borderBottomRightRadius: 34,
     backgroundColor: '#c2a661bb',
+    zIndex: 1,
   },
   navActiveButton: {
-    paddingTop: 16,
+    paddingTop: 6,
+    zIndex: 2,
   },
   badge: {
     position: 'absolute',

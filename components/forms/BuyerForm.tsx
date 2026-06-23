@@ -53,7 +53,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
     password: '',
     searchType: '',
   })
-  const [showPassword, setShowPassword] = useState(false)
   const [suggestedProperties, setSuggestedProperties] = useState<SuggestedProperty[]>([])
 
   const updateFormData = (field: keyof typeof formData, value: string) => {
@@ -358,8 +357,6 @@ export default function BuyerForm({ onBack }: BuyerFormProps) {
             theme={theme}
             step={step}
             content={inputStepContent}
-            showPassword={showPassword}
-            onTogglePassword={() => setShowPassword((current) => !current)}
             onContinue={handleNext}
             isCurrentStepValid={isCurrentStepValid}
           />

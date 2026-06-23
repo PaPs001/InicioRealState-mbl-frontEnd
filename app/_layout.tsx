@@ -1,4 +1,4 @@
-import { Stack, usePathname } from 'expo-router'
+import { Stack, usePathname, useRouter } from 'expo-router'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import * as NavigationBar from 'expo-navigation-bar'
@@ -10,20 +10,24 @@ import { Platform, View } from 'react-native'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
-  const { currentUser, authToken, isAgent, isAdmin, isCoordinator, isInvestor, isTenant, isSearching } = useSessionDomain()
+  const { currentUser, authToken, isLoading, isAgent, isAdmin, isCoordinator, isInvestor, isTenant, isSearching } = useSessionDomain()
   const pathname = usePathname()
+  const router = useRouter()
   
   const isAdvisor = isAgent || isAdmin || isCoordinator
+  const isCoordinatorRoute = pathname.startsWith('/coordinator')
   
   // Usuarios con fondo oscuro: inversionista y asesor
   // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)
-  const isDarkTheme = isInvestor || isAdvisor
+  const isDarkTheme = !isCoordinatorRoute && (isInvestor || isAdvisor)
   
   // Color de fondo basado en el tipo de usuario
   let backgroundColor = colors.background // Default claro para login/registro
   
   if (currentUser) {
-    if (isInvestor) {
+    if (isCoordinatorRoute) {
+      backgroundColor = '#ffffff'
+    } else if (isInvestor) {
       backgroundColor = clientThemes.investor.background
     } else if (isAdvisor) {
       backgroundColor = clientThemes.advisor.background
@@ -75,6 +79,19 @@ function RootNavigator() {
       hasToken: !!authToken,
     })
   }, [pathname, authToken, currentUser?.id, currentUser?.investment, currentUser?.tenant])
+
+  useEffect(() => {
+    const isAuthRoute =
+      pathname === '/login' ||
+      pathname === '/create-account' ||
+      pathname === '/register' ||
+      pathname === '/register-transition' ||
+      pathname === '/logout-transition'
+
+    if (!isLoading && !authToken && !isAuthRoute) {
+      router.replace('/login')
+    }
+  }, [authToken, isLoading, pathname, router])
 
   return (
     <ThemeProvider value={navigationTheme}>

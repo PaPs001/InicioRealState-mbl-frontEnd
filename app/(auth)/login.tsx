@@ -18,6 +18,7 @@ import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
 import { User, UserPlus, ArrowLeft } from 'lucide-react-native'
 import { getCurrentUser, loginUser } from '@/lib/api/endpoints/auth'
+import { PasswordTextInput } from '@/components/ui/PasswordTextInput'
 
 export default function LoginScreen() {
   const [isAgentMode, setIsAgentMode] = useState(false)
@@ -112,15 +113,16 @@ export default function LoginScreen() {
                 />
               </View>
               <View style={styles.inputContainerDark}>
-                <TextInput
-                  style={styles.inputDark}
+                <PasswordTextInput
+                  style={[styles.inputDark, styles.passwordInput]}
                   placeholder="Contraseña"
                   placeholderTextColor={colors.textMuted}
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
+                  iconColor={colors.textMuted}
+                  toggleStyle={styles.passwordToggle}
                 />
               </View>
               <TouchableOpacity style={styles.buttonAccent} onPress={handleLogin}>
@@ -179,15 +181,16 @@ export default function LoginScreen() {
               />
             </View>
             <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
+              <PasswordTextInput
+                style={[styles.input, styles.passwordInput]}
                 placeholder="Contraseña"
                 placeholderTextColor={colors.textMuted}
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                iconColor={colors.textMuted}
+                toggleStyle={styles.passwordToggle}
               />
             </View>
             <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>
@@ -205,16 +208,16 @@ export default function LoginScreen() {
               <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
             </TouchableOpacity>
           </View>
-          <View style={{ marginTop: 16, alignItems: 'center' }}>
+          {/*<View style={{ marginTop: 16, alignItems: 'center' }}>
             <TouchableOpacity
               style={{ paddingVertical: 8, paddingHorizontal: 16 }}
               onPress={() => router.push('/animation-demo-screen')}
             >
               <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Ver demos de animacion</Text>
             </TouchableOpacity>
-          </View>
+          </View>*/}
 
-          <View style={styles.quickAccessContainer}>
+          {/*<View style={styles.quickAccessContainer}>
             <Text style={styles.quickAccessLabelLight}>Acceso rapido (Demo)</Text>
             <View style={styles.quickAccessButtonsRow}>
               <TouchableOpacity 
@@ -236,7 +239,7 @@ export default function LoginScreen() {
                 <Text style={styles.quickButtonClientText}>Inquilino</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </View>*/}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -331,9 +334,11 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: spacing.md,
+    position: 'relative',
   },
   inputContainerDark: {
     marginBottom: spacing.md,
+    position: 'relative',
   },
   input: {
     backgroundColor: colors.surface,
@@ -352,6 +357,16 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     fontSize: typography.body.fontSize,
     color: colors.textLight,
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
   },
   buttonPrimary: {
     backgroundColor: colors.primary,

@@ -77,7 +77,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (isCoordinator) {
-      router.replace('/coordinator-rent-user' as never)
+      router.replace('/coordinator' as never)
     }
   }, [isCoordinator, router])
 
@@ -345,7 +345,7 @@ export default function HomeScreen() {
           <View style={styles.previewSectionDark}>
             <TouchableOpacity
               style={styles.previewButtonDark}
-              onPress={() => router.push('/coordinator-rent-user' as never)}
+              onPress={() => router.push('/coordinator' as never)}
               activeOpacity={0.85}
             >
               <Eye size={20} color={colors.primaryDark} />

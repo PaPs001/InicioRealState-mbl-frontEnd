@@ -5,11 +5,10 @@ import {
   Text,
   StyleSheet,
   TextInputProps as RNTextInputProps,
-  TouchableOpacity,
   ViewStyle,
 } from 'react-native'
-import { Eye, EyeOff } from 'lucide-react-native'
 import { colors, spacing, typography, borderRadius } from '@/lib/theme'
+import { PasswordTextInput } from './PasswordTextInput'
 
 export interface InputProps extends RNTextInputProps {
   /** Etiqueta del input */
@@ -50,7 +49,6 @@ export function Input({
   theme: customTheme,
   ...props
 }: InputProps) {
-  const [showPassword, setShowPassword] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
 
   const theme = {
@@ -93,39 +91,50 @@ export function Input({
           </View>
         )}
         
-        <RNTextInput
-          style={[
-            styles.input,
-            { color: theme.text },
-            leftIcon ? styles.inputWithLeftIcon : null,
-            rightIcon || isPassword ? styles.inputWithRightIcon : null,
-            style,
-          ]}
-          placeholderTextColor={theme.textMuted}
-          secureTextEntry={isPassword && !showPassword}
-          onFocus={(e) => {
-            setIsFocused(true)
-            props.onFocus?.(e)
-          }}
-          onBlur={(e) => {
-            setIsFocused(false)
-            props.onBlur?.(e)
-          }}
-          {...props}
-        />
-        
-        {isPassword && (
-          <TouchableOpacity
-            style={styles.iconRight}
-            onPress={() => setShowPassword(!showPassword)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            {showPassword ? (
-              <EyeOff size={20} color={theme.textMuted} />
-            ) : (
-              <Eye size={20} color={theme.textMuted} />
-            )}
-          </TouchableOpacity>
+        {isPassword ? (
+          <PasswordTextInput
+            {...props}
+            value={String(props.value ?? '')}
+            onChangeText={props.onChangeText ?? (() => {})}
+            iconColor={theme.textMuted}
+            style={[
+              styles.input,
+              { color: theme.text },
+              leftIcon ? styles.inputWithLeftIcon : null,
+              styles.inputWithRightIcon,
+              style,
+            ]}
+            placeholderTextColor={theme.textMuted}
+            toggleStyle={styles.iconRight}
+            onFocus={(e) => {
+              setIsFocused(true)
+              props.onFocus?.(e)
+            }}
+            onBlur={(e) => {
+              setIsFocused(false)
+              props.onBlur?.(e)
+            }}
+          />
+        ) : (
+          <RNTextInput
+            style={[
+              styles.input,
+              { color: theme.text },
+              leftIcon ? styles.inputWithLeftIcon : null,
+              rightIcon ? styles.inputWithRightIcon : null,
+              style,
+            ]}
+            placeholderTextColor={theme.textMuted}
+            onFocus={(e) => {
+              setIsFocused(true)
+              props.onFocus?.(e)
+            }}
+            onBlur={(e) => {
+              setIsFocused(false)
+              props.onBlur?.(e)
+            }}
+            {...props}
+          />
         )}
         
         {rightIcon && !isPassword && (
