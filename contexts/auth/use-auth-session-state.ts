@@ -82,8 +82,6 @@ export function useAuthSessionState(): AuthSessionState {
             setCurrentUserState(storedUser)
           }
         }
-      } else if (storedUser) {
-        setCurrentUserState(storedUser)
       }
 
       if (storedUserId) {

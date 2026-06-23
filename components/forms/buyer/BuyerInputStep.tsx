@@ -1,5 +1,6 @@
 import { Animated, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { ChevronRight, Eye, EyeOff } from 'lucide-react-native'
+import { ChevronRight } from 'lucide-react-native'
+import { PasswordTextInput } from '@/components/ui/PasswordTextInput'
 import type { BuyerInputStepContent, BuyerStep } from './types'
 
 interface BuyerInputStepProps {
@@ -8,8 +9,6 @@ interface BuyerInputStepProps {
   theme: any
   step: BuyerStep
   content: BuyerInputStepContent
-  showPassword: boolean
-  onTogglePassword: () => void
   onContinue: () => void
   isCurrentStepValid: boolean
 }
@@ -20,8 +19,6 @@ export function BuyerInputStep({
   theme,
   step,
   content,
-  showPassword,
-  onTogglePassword,
   onContinue,
   isCurrentStepValid,
 }: BuyerInputStepProps) {
@@ -37,28 +34,35 @@ export function BuyerInputStep({
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
           <Icon size={20} color={theme.textMuted} />
-          <TextInput
-            key={`buyer-input-${step}`}
-            style={styles.input}
-            placeholder={content.placeholder}
-            placeholderTextColor={theme.textMuted}
-            value={content.value}
-            onChangeText={content.onChange}
-            keyboardType={content.keyboardType}
-            secureTextEntry={content.secureTextEntry && !showPassword}
-            autoCapitalize={step === 'email' || step === 'password' ? 'none' : 'sentences'}
-            autoCorrect={step !== 'email' && step !== 'password'}
-            textContentType={step === 'email' ? 'emailAddress' : step === 'password' ? 'password' : 'none'}
-          />
           {content.secureTextEntry ? (
-            <TouchableOpacity onPress={onTogglePassword}>
-              {showPassword ? (
-                <EyeOff size={20} color={theme.textMuted} />
-              ) : (
-                <Eye size={20} color={theme.textMuted} />
-              )}
-            </TouchableOpacity>
-          ) : null}
+            <PasswordTextInput
+              key={`buyer-input-${step}`}
+              style={styles.input}
+              placeholder={content.placeholder}
+              placeholderTextColor={theme.textMuted}
+              value={content.value}
+              onChangeText={content.onChange}
+              keyboardType={content.keyboardType}
+              autoCapitalize="none"
+              autoCorrect={false}
+              textContentType="password"
+              iconColor={theme.textMuted}
+              toggleStyle={styles.passwordToggle}
+            />
+          ) : (
+            <TextInput
+              key={`buyer-input-${step}`}
+              style={styles.input}
+              placeholder={content.placeholder}
+              placeholderTextColor={theme.textMuted}
+              value={content.value}
+              onChangeText={content.onChange}
+              keyboardType={content.keyboardType}
+              autoCapitalize={step === 'email' ? 'none' : 'sentences'}
+              autoCorrect={step !== 'email'}
+              textContentType={step === 'email' ? 'emailAddress' : 'none'}
+            />
+          )}
         </View>
         <Text style={styles.inputHint}>{content.hint}</Text>
       </View>

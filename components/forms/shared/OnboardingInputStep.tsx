@@ -1,4 +1,5 @@
-import { Animated, Text, TextInput, View } from 'react-native'
+import { Animated, StyleSheet, Text, TextInput, View } from 'react-native'
+import { PasswordTextInput } from '@/components/ui/PasswordTextInput'
 
 interface OnboardingInputStepProps {
   animatedStyle: object
@@ -42,20 +43,53 @@ export function OnboardingInputStep({
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>{label}</Text>
-        <TextInput
-          key={inputKey}
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor={placeholderTextColor}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          secureTextEntry={secureTextEntry}
-          autoCorrect={autoCorrect}
-        />
+        {secureTextEntry ? (
+          <View style={[localStyles.passwordInputWrapper, styles.passwordInputWrapper]}>
+            <PasswordTextInput
+              key={inputKey}
+              style={[styles.input, localStyles.passwordInput, styles.passwordInput]}
+              placeholder={placeholder}
+              placeholderTextColor={placeholderTextColor}
+              value={value}
+              onChangeText={onChangeText}
+              keyboardType={keyboardType}
+              autoCapitalize={autoCapitalize}
+              autoCorrect={autoCorrect}
+              iconColor={placeholderTextColor}
+              toggleStyle={[localStyles.passwordToggle, styles.passwordToggle]}
+            />
+          </View>
+        ) : (
+          <TextInput
+            key={inputKey}
+            style={styles.input}
+            placeholder={placeholder}
+            placeholderTextColor={placeholderTextColor}
+            value={value}
+            onChangeText={onChangeText}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            autoCorrect={autoCorrect}
+          />
+        )}
         {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       </View>
     </Animated.View>
   )
 }
+
+const localStyles = StyleSheet.create({
+  passwordInputWrapper: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+})
