@@ -25,6 +25,7 @@ import * as documents from './endpoints/documents'
 import * as investor from './endpoints/investor'
 import * as leads from './endpoints/leads'
 import * as messaging from './endpoints/messaging'
+import * as pdfReports from './endpoints/pdfReports'
 import * as portfolio from './endpoints/portfolio'
 import * as properties from './endpoints/properties'
 
@@ -37,6 +38,7 @@ export const api = {
   investor,
   leads,
   messaging,
+  pdfReports,
   portfolio,
   properties,
 } as const
@@ -104,12 +106,29 @@ export {
 
 export {
   createLeadRecord,
+  createBackendLeadFollowUp,
+  getBackendLeadRecords,
+  getBackendLeadFollowUps,
   getLeadAgents,
   getLeadAgentById,
   getLeadRecordById,
   getLeadRecords,
+  mapBackendLeadToPropertyLead,
+  mapBackendFollowUpToLeadFollowUp,
   saveLeadFollowUps,
+  type CreateBackendLeadFollowUpPayload,
 } from './endpoints/leads'
+
+export {
+  createAndOpenTemporaryPropertyListPdf,
+  createTemporaryPropertyListPdfUrl,
+  type GeneratePropertyListPdfPayload,
+  type TemporaryPdfReport,
+  type PdfReportAction,
+  type PdfReportAgentName,
+  type PdfReportDesign,
+  type PdfReportList,
+} from './endpoints/pdfReports'
 
 export {
   getConversationPropertyRecord,

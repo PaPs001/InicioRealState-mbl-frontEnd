@@ -87,7 +87,7 @@ export function getLeadCollection(params: {
   userLeads: PropertyLead[]
 }) {
   const { isAdmin, userLeads } = params
-  const baseLeads = isAdmin ? undefined : userLeads
+  const baseLeads = userLeads.length > 0 ? userLeads : isAdmin ? undefined : userLeads
   return getLeadRecords(baseLeads)
 }
 

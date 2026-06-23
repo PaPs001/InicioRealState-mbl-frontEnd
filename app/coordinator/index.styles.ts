@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native'
 
+const LARGE_NUMBER_FONT = 'Castoro Titling'
+
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -15,11 +17,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   iconButton: {
     width: 44,
@@ -38,37 +35,13 @@ export const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 11,
-    color: '#19191f',
+    color: '#ffffff',
   },
-  logoutButton: {
-    height: 26,
-    borderRadius: 5,
-    backgroundColor: '#3d5a40',
-    flexDirection: 'row',
+  brandLogoWrap: {
+    marginTop: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 9,
-    marginRight: 4,
-  },
-  logoutButtonText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  brand: {
-    marginTop: 4,
-    textAlign: 'center',
-    color: '#3d5a40',
-    fontSize: 36,
-    lineHeight: 38,
-    fontWeight: '300',
-  },
-  brandSmall: {
-    textAlign: 'center',
-    color: '#a46b40',
-    fontSize: 12,
-    letterSpacing: 0,
+    minHeight: 48,
   },
   propertiesListButton: {
     marginTop: 12,
@@ -93,11 +66,22 @@ export const styles = StyleSheet.create({
   headerBlock: {
     marginTop: 18,
     minHeight: 86,
+    position: 'relative',
+    zIndex: 5,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 12,
+    paddingRight: 4,
   },
   overline: {
+    flex: 1,
+    minWidth: 0,
     color: '#3d5a40',
     fontSize: 19,
-    marginBottom: 12,
   },
   profileRow: {
     flexDirection: 'row',
@@ -117,6 +101,54 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  profileMenu: {
+    position: 'absolute',
+    left: 70,
+    top: 46,
+    minWidth: 154,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e0d2bb',
+    padding: 6,
+    gap: 6,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 20,
+  },
+  profileMenuButton: {
+    height: 31,
+    borderRadius: 6,
+    backgroundColor: '#f8f2ee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+  },
+  profileMenuButtonText: {
+    color: '#3d5a40',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  profileLogoutButton: {
+    height: 31,
+    borderRadius: 6,
+    backgroundColor: '#3d5a40',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+  },
+  profileLogoutText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   avatarText: {
     fontSize: 15,
     fontWeight: '700',
@@ -124,6 +156,7 @@ export const styles = StyleSheet.create({
   },
   greeting: {
     color: '#232323',
+    fontFamily: "cormorant",
     fontSize: 25,
     lineHeight: 29,
   },
@@ -135,7 +168,7 @@ export const styles = StyleSheet.create({
   headerBell: {
     position: 'absolute',
     right: 20,
-    bottom: 28,
+    bottom: 15,
   },
   heroCards: {
     flexDirection: 'row',
@@ -158,6 +191,7 @@ export const styles = StyleSheet.create({
   },
   propertiesValue: {
     color: '#cbb375',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 50,
     lineHeight: 59,
   },
@@ -182,6 +216,7 @@ export const styles = StyleSheet.create({
   },
   moneyValue: {
     color: '#2d3134',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 50,
     lineHeight: 45,
   },
@@ -236,6 +271,7 @@ export const styles = StyleSheet.create({
   },
   priorityValue: {
     color: '#cbb375',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 40,
     lineHeight: 43,
   },
@@ -281,6 +317,7 @@ export const styles = StyleSheet.create({
   },
   rentCurrent: {
     color: '#232323',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 26,
     lineHeight: 30,
   },
@@ -320,6 +357,42 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 10,
   },
+  settingsScreen: {
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 26,
+  },
+  settingsHeader: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  settingsBackButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: '#f8f2ee',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e0d2bb',
+  },
+  settingsHeaderCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  settingsTitle: {
+    color: '#0c6740',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  settingsSubtitle: {
+    color: '#7e8b86',
+    fontSize: 12,
+    marginTop: 2,
+  },
   refreshCalendarButton: {
     alignSelf: 'flex-start',
     minHeight: 30,
@@ -338,13 +411,13 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   appointmentsScroll: {
-    maxHeight: 216,
+    maxHeight: 300,
   },
   appointments: {
     gap: 4,
   },
   emptyAppointments: {
-    minHeight: 82,
+    minHeight: 200,
     borderRadius: 6,
     backgroundColor: '#f8f2ee',
     alignItems: 'center',
@@ -356,6 +429,20 @@ export const styles = StyleSheet.create({
     color: '#3d5a40',
     fontSize: 12,
     lineHeight: 16,
+    textAlign: 'center',
+  },
+  emptyLeadState: {
+    minHeight: 92,
+    borderRadius: 6,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  emptyLeadStateText: {
+    color: '#737373',
+    fontSize: 13,
+    lineHeight: 17,
     textAlign: 'center',
   },
   appointmentCard: {
@@ -739,6 +826,44 @@ export const styles = StyleSheet.create({
     color: '#3d5a40',
     fontSize: 14,
   },
+  appointmentModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(25, 25, 31, 0.42)',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  appointmentModalPanel: {
+    maxHeight: '88%',
+    borderRadius: 8,
+    backgroundColor: '#fffcfc',
+    padding: 12,
+  },
+  appointmentModalHeader: {
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 6,
+  },
+  appointmentModalTitle: {
+    flex: 1,
+    color: '#0c6740',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  appointmentModalClose: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: '#f1ebda',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appointmentModalContent: {
+    paddingBottom: 6,
+  },
   followGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -756,6 +881,7 @@ export const styles = StyleSheet.create({
   },
   statValue: {
     color: '#3d5a40',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 28,
     lineHeight: 35,
   },
@@ -785,6 +911,7 @@ export const styles = StyleSheet.create({
   },
   funnelValue: {
     color: '#3d5a40',
+    fontFamily: LARGE_NUMBER_FONT,
     fontSize: 27,
   },
   funnelLabel: {
@@ -814,6 +941,7 @@ export const styles = StyleSheet.create({
     paddingTop: 7,
     paddingBottom: 6,
     marginTop: 2,
+    marginBottom: 9,
   },
   focusRow: {
     height: 37,
@@ -851,10 +979,10 @@ export const styles = StyleSheet.create({
     marginTop: 14,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 29,
+    gap: 8,
   },
   miniButton: {
-    width: 158,
+    flex: 1,
     height: 33,
     borderRadius: 6,
     backgroundColor: '#ffffff',

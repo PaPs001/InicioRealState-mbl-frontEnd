@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { styles } from './coordinator-rent-user.styles'
-import { CoordinatorBottomNav } from '@/components/coordinator/CoordinatorBottomNav'
+import { styles } from './index.styles'
+import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
 import { usePathname, useRouter } from 'expo-router'
 import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
@@ -12,6 +12,7 @@ import {
   disconnectGoogleCalendar,
   createGoogleCalendarDate,
   deleteGoogleCalendarDate,
+  getBackendLeadRecords,
   getGoogleCalendars,
   getGoogleCalendarAuthUrl,
   getGoogleCalendarConnectionStatus,
@@ -37,17 +38,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Eye,
-  FilePlus2,
   Info,
   LogOut,
   PieChart,
-  Search,
+  Plus,
+  Settings,
   StopCircle,
   Trash2,
-  UserRound,
+  X,
 } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import type { LeadFollowUp, PropertyLead } from '@/lib/types'
 WebBrowser.maybeCompleteAuthSession()
 
 const priorities = [
@@ -55,7 +56,7 @@ const priorities = [
   { value: '3', label: 'Mensajes sin\nresponder' },
   { value: '2', label: 'Propiedades\nen edicion' },
   { value: '1', label: 'Incidencia \nurgente' },
-  { value: '3', label: 'Campanas\nfinalizaron' },
+  { value: '3', label: 'Campañas\nfinalizaron' },
   { value: '5', label: 'Citas hoy' },
 ]
 
@@ -78,17 +79,10 @@ interface AppointmentPreviewItem {
   canDelete: boolean
 }
 
-const leadAlerts = [
-  '7 leads sin movimiento en 3 dias',
-  '3 con proximo contacto vencido',
-  '4 sin siguiente accion definida',
-]
-
-const focusedAdvisors = [
-  ['Jorge Sanchez', '16 leads', '6 atrasados'],
-  ['Citlalli Tapia', '13 leads', '1 atrasado'],
-  ['Carlos Trujeque', '11 leads', '2 pendientes'],
-]
+interface LeadFollowUpEntry {
+  lead: PropertyLead
+  followUp: LeadFollowUp
+}
 
 const campaignRows = [
   ['C13 CASA - VILLA PARADISO', '28 de abril de 2026 -> 10 de mayo de 2026', 'Por agotarse ', '$514', '#704022'],
@@ -133,6 +127,11 @@ export default function CoordinatorRentUserScreen() {
   const [selectedGoogleCalendars, setSelectedGoogleCalendars] = useState<SelectedGoogleCalendar[]>([])
   const [googleConnectionStatus, setGoogleConnectionStatus] = useState<GoogleCalendarConnectionStatus | null>(null)
   const [isTestingCalendarAction, setIsTestingCalendarAction] = useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isCalendarSettingsScreenOpen, setIsCalendarSettingsScreenOpen] = useState(false)
+  const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false)
+  const [coordinatorLeads, setCoordinatorLeads] = useState<PropertyLead[]>([])
+  const [isCoordinatorLeadsLoading, setIsCoordinatorLeadsLoading] = useState(false)
   const [testAppointmentForm, setTestAppointmentForm] = useState<CreateGoogleCalendarDatePayload>({
     title: 'Visita de prueba',
     description: 'Cita creada desde el panel temporal',
@@ -150,6 +149,32 @@ export default function CoordinatorRentUserScreen() {
       loadCatalogProperties()
     }
   }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
+
+  const loadCoordinatorLeads = useCallback(async () => {
+    if (!authToken) {
+      setCoordinatorLeads([])
+      return
+    }
+
+    setIsCoordinatorLeadsLoading(true)
+    try {
+      const leads = await getBackendLeadRecords(authToken, { includeFollowUps: true })
+      setCoordinatorLeads(leads)
+    } catch (error) {
+      console.warn('No se pudieron cargar los leads reales del coordinador:', error)
+      setCoordinatorLeads([])
+    } finally {
+      setIsCoordinatorLeadsLoading(false)
+    }
+  }, [authToken])
+
+  useEffect(() => {
+    loadCoordinatorLeads()
+  }, [loadCoordinatorLeads])
+
+  const refreshCurrentCoordinatorLeads = () => {
+    loadCoordinatorLeads()
+  }
 
   const loadCalendarDates = useCallback(async (options: { sync?: boolean } = {}) => {
     if (!authToken) {
@@ -239,6 +264,102 @@ export default function CoordinatorRentUserScreen() {
       opportunityAmount: totalRent * 0.05,
     }
   }, [availableProperties, catalogProperties])
+
+  const leadSummary = useMemo(() => {
+    const activeLeads = coordinatorLeads.filter(lead => !['cerrado', 'descartado'].includes(lead.status))
+    const followUpEntries: LeadFollowUpEntry[] = coordinatorLeads.flatMap(lead =>
+      (lead.followUps ?? []).map(followUp => ({ lead, followUp })),
+    )
+    const followUps = followUpEntries.map(entry => entry.followUp)
+    const upcomingFollowUps = followUps.filter(hasUpcomingFollowUpDate)
+    const overdueFollowUps = followUps.filter(isOverdueFollowUp)
+    const contactMadeFollowUps = followUps.filter(followUp => followUp.result === 'contactMade')
+    const noAnswerFollowUps = followUps.filter(followUp => followUp.result === 'noAnswer')
+    const appointmentFollowUps = followUps.filter(followUp => followUp.result === 'appointmentScheduled')
+    const leadsWithFollowUps = activeLeads.filter(lead => (lead.followUps ?? []).length > 0)
+    const leadsWithoutNextAction = activeLeads.filter(lead =>
+      !(lead.followUps ?? []).some(followUp => Boolean(followUp.nextActionDate)),
+    )
+    const attentionLeads = activeLeads
+      .map(lead => {
+        const leadFollowUps = lead.followUps ?? []
+        const lateCount = leadFollowUps.filter(isOverdueFollowUp).length
+        const lastFollowUpDate = leadFollowUps
+          .map(followUp => getFollowUpSortTime(followUp.date))
+          .filter(time => time > 0)
+          .sort((current, next) => next - current)[0] ?? 0
+
+        return {
+          lead,
+          followUps: leadFollowUps.length,
+          lateCount,
+          lastFollowUpDate,
+        }
+      })
+      .filter(item => item.followUps > 0 || item.lateCount > 0)
+      .sort((current, next) =>
+        next.lateCount - current.lateCount ||
+        next.followUps - current.followUps ||
+        next.lastFollowUpDate - current.lastFollowUpDate,
+      )
+      .slice(0, 3)
+
+    const advisorWorkload = Array.from(
+      activeLeads.reduce((groups, lead) => {
+        const advisorId = lead.advisorId || lead.agentId || 'sin-asesor'
+        const current = groups.get(advisorId) ?? {
+          id: advisorId,
+          name: lead.assignedAgentName || advisorId,
+          leads: 0,
+          followUps: 0,
+          late: 0,
+        }
+        const leadFollowUps = lead.followUps ?? []
+        current.leads += 1
+        current.followUps += leadFollowUps.length
+        current.late += leadFollowUps.filter(isOverdueFollowUp).length
+        groups.set(advisorId, current)
+        return groups
+      }, new Map<string, { id: string; name: string; leads: number; followUps: number; late: number }>())
+      .values(),
+    )
+      .sort((current, next) =>
+        next.late - current.late ||
+        next.followUps - current.followUps ||
+        next.leads - current.leads,
+      )
+      .slice(0, 3)
+
+    const alertRows = [
+      overdueFollowUps.length > 0 ? `${overdueFollowUps.length} seguimientos vencidos requieren accion` : null,
+      noAnswerFollowUps.length > 0 ? `${noAnswerFollowUps.length} seguimientos quedaron sin respuesta` : null,
+      leadsWithoutNextAction.length > 0 ? `${leadsWithoutNextAction.length} leads no tienen proximo contacto` : null,
+    ].filter(Boolean) as string[]
+
+    return {
+      activeLeads: activeLeads.length,
+      followUps: followUps.length,
+      overdueFollowUps: overdueFollowUps.length,
+      upcomingFollowUps: upcomingFollowUps.length,
+      contactMadeFollowUps: contactMadeFollowUps.length,
+      noAnswerFollowUps: noAnswerFollowUps.length,
+      appointmentFollowUps: appointmentFollowUps.length,
+      leadsWithoutNextAction: leadsWithoutNextAction.length,
+      alertRows,
+      attentionLeads,
+      advisorWorkload,
+      funnel: [
+        ['Nuevos', activeLeads.filter(lead => (lead.followUps ?? []).length === 0).length],
+        ['En seguimiento', leadsWithFollowUps.length],
+        ['Por cerrar', coordinatorLeads.filter(lead =>
+          lead.status === 'negociando' ||
+          (lead.followUps ?? []).some(followUp => ['appointmentScheduled', 'reserved', 'signed'].includes(followUp.result ?? '')),
+        ).length],
+        ['Ganados', coordinatorLeads.filter(lead => lead.status === 'cerrado').length],
+        ['Perdidos', coordinatorLeads.filter(lead => lead.status === 'descartado').length],
+      ] satisfies [string, number][],
+    }
+  }, [coordinatorLeads])
 
   const handleConnectGoogleCalendar = async () => {
     if (!authToken || isConnectingCalendar) {
@@ -403,59 +524,6 @@ export default function CoordinatorRentUserScreen() {
     }))
   }
 
-  const handleTestConnectionStatus = async () => {
-    if (!authToken || isTestingCalendarAction) return
-
-    setIsTestingCalendarAction(true)
-    try {
-      const status = await getGoogleCalendarConnectionStatus(authToken)
-      setGoogleConnectionStatus(status)
-      Alert.alert(
-        'Estado Google',
-        `Estado: ${status.status}\nCalendarios activos: ${status.enabledCalendarsCount}`,
-      )
-    } catch (error) {
-      console.warn('No se pudo consultar el estado de Google:', error)
-      Alert.alert('Error', 'No se pudo consultar el estado de Google.')
-    } finally {
-      setIsTestingCalendarAction(false)
-    }
-  }
-
-  const handleTestSyncAndReload = async () => {
-    if (!authToken || isTestingCalendarAction) return
-
-    setIsTestingCalendarAction(true)
-    try {
-      const result = await syncGoogleCalendars(authToken)
-      await loadCalendarDates()
-      Alert.alert(
-        'Sync finalizado',
-        `Creadas: ${result.created}\nActualizadas: ${result.updated}\nConflictos: ${result.conflicts}\nOmitidas: ${result.skipped}`,
-      )
-    } catch (error) {
-      console.warn('No se pudo sincronizar Google Calendar:', error)
-      Alert.alert('Error', 'No se pudo sincronizar Google Calendar.')
-    } finally {
-      setIsTestingCalendarAction(false)
-    }
-  }
-
-  const handleTestLoadMongoDates = async () => {
-    if (!authToken || isTestingCalendarAction) return
-
-    setIsTestingCalendarAction(true)
-    try {
-      await loadCalendarDates()
-      Alert.alert('Citas recargadas', 'Se volvieron a cargar las citas desde Mongo.')
-    } catch (error) {
-      console.warn('No se pudieron recargar citas:', error)
-      Alert.alert('Error', 'No se pudieron recargar las citas.')
-    } finally {
-      setIsTestingCalendarAction(false)
-    }
-  }
-
   const handleRefreshCalendarDates = async () => {
     await loadCalendarDates({ sync: true })
   }
@@ -505,16 +573,30 @@ export default function CoordinatorRentUserScreen() {
     try {
       await createGoogleCalendarDate(authToken, testAppointmentForm)
       await loadCalendarDates()
-      Alert.alert('Cita creada', 'La cita se creo en Google y se guardo en Mongo.')
+      Alert.alert('Cita creada', 'La cita se creo correctamente.')
+      setIsAppointmentModalVisible(false)
     } catch (error) {
       console.warn('No se pudo crear la cita de prueba:', error)
-      Alert.alert('Error', 'No se pudo crear la cita de prueba.')
+      Alert.alert('Error', 'No se pudo crear la cita.')
     } finally {
       setIsTestingCalendarAction(false)
     }
   }
 
+  const handleOpenCalendarSettings = () => {
+    setIsProfileMenuOpen(false)
+    setIsCalendarSettingsScreenOpen(true)
+    if (authToken) {
+      loadGoogleCalendarSettings()
+    }
+  }
+
+  const handleOpenAppointmentModal = () => {
+    setIsAppointmentModalVisible(true)
+  }
+
   const handleLogout = () => {
+    setIsProfileMenuOpen(false)
     Alert.alert(
       'Cerrar Sesion',
       'Estas seguro que deseas cerrar sesion?',
@@ -531,55 +613,174 @@ export default function CoordinatorRentUserScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={styles.topChrome}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => router.back()} activeOpacity={0.8}>
-            <ChevronLeft size={22} color="#19191f" />
-          </TouchableOpacity>
-          <View style={styles.topActions}>
-            <View style={styles.datePill}>
-              <CalendarDays size={14} color="#19191f" />
-              <Text style={styles.dateText}>13 de junio, 2026</Text>
-            </View>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.85}>
-              <LogOut size={16} color="#ffffff" />
-              <Text style={styles.logoutButtonText}>Salir</Text>
+      {isCalendarSettingsScreenOpen ? (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.settingsScreen}>
+          <View style={styles.settingsHeader}>
+            <TouchableOpacity
+              style={styles.settingsBackButton}
+              onPress={() => setIsCalendarSettingsScreenOpen(false)}
+              activeOpacity={0.85}
+            >
+              <ChevronLeft size={20} color="#3d5a40" />
             </TouchableOpacity>
+            <View style={styles.settingsHeaderCopy}>
+              <Text style={styles.settingsTitle}>Configuracion</Text>
+              <Text style={styles.settingsSubtitle}>Calendarios y conexion de Google</Text>
+            </View>
           </View>
+
+          <View style={styles.panel}>
+            <SectionHeader title="Google Calendar" compact />
+            {isGoogleConnected ? (
+              <TouchableOpacity
+                style={styles.disconnectGoogleButton}
+                onPress={handleDisconnectGoogleCalendar}
+                activeOpacity={0.85}
+                disabled={isDisconnectingCalendar}
+              >
+                <LogOut size={18} color="#3d5a40" />
+                <Text style={styles.disconnectGoogleButtonText}>
+                  {isDisconnectingCalendar ? 'Desconectando Google...' : 'Desconectar Google'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.googleCalendarButton}
+                onPress={handleConnectGoogleCalendar}
+                activeOpacity={0.85}
+                disabled={isConnectingCalendar}
+              >
+                <CalendarDays size={18} color="#ffffff" />
+                <Text style={styles.googleCalendarButtonText}>
+                  {isConnectingCalendar ? 'Abriendo Google...' : 'Conectar Google Calendar'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {isGoogleConnected ? (
+              <View style={styles.googleCalendarSettings}>
+                <View style={styles.calendarSettingsHeader}>
+                  <Text style={styles.calendarSettingsTitle}>Calendarios conectados</Text>
+                  <TouchableOpacity
+                    style={styles.calendarSmallButton}
+                    onPress={loadGoogleCalendarSettings}
+                    activeOpacity={0.85}
+                    disabled={isCalendarSettingsLoading}
+                  >
+                    <Text style={styles.calendarSmallButtonText}>
+                      {isCalendarSettingsLoading ? 'Cargando' : 'Actualizar'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {googleCalendars.length === 0 ? (
+                  <Text style={styles.calendarSettingsEmpty}>
+                    {isCalendarSettingsLoading ? 'Buscando calendarios...' : 'No hay calendarios disponibles.'}
+                  </Text>
+                ) : (
+                  <View style={styles.calendarList}>
+                    {googleCalendars.slice(0, 8).map(calendar => {
+                      const selection = getCalendarSelection(calendar.calendarId)
+                      const isEnabled = selection?.enabled === true
+                      const isPrimary = selection?.primaryForCreate === true
+
+                      return (
+                        <View key={calendar.calendarId ?? calendar.summary} style={styles.calendarOptionRow}>
+                          <TouchableOpacity
+                            style={[styles.calendarToggle, isEnabled && styles.calendarToggleActive]}
+                            onPress={() => toggleGoogleCalendar(calendar)}
+                            activeOpacity={0.85}
+                          >
+                            <Text style={[styles.calendarToggleText, isEnabled && styles.calendarToggleTextActive]}>
+                              {isEnabled ? 'ON' : 'OFF'}
+                            </Text>
+                          </TouchableOpacity>
+                          <View style={styles.calendarOptionCopy}>
+                            <Text style={styles.calendarOptionTitle} numberOfLines={1}>
+                              {calendar.summary || 'Calendario sin nombre'}
+                            </Text>
+                            <Text style={styles.calendarOptionMeta} numberOfLines={1}>
+                              {selection?.appointmentType || getDefaultAppointmentType(calendar.summary)}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={[styles.calendarPrimaryButton, isPrimary && styles.calendarPrimaryButtonActive]}
+                            onPress={() => markPrimaryGoogleCalendar(calendar)}
+                            activeOpacity={0.85}
+                          >
+                            <Text style={[styles.calendarPrimaryButtonText, isPrimary && styles.calendarPrimaryButtonTextActive]}>
+                              Crear
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )
+                    })}
+                  </View>
+                )}
+                <View style={styles.calendarActionsRow}>
+                  <TouchableOpacity
+                    style={styles.calendarActionButton}
+                    onPress={handleSaveGoogleCalendarSelection}
+                    activeOpacity={0.85}
+                    disabled={isSavingCalendarSelection}
+                  >
+                    <Text style={styles.calendarActionButtonText}>
+                      {isSavingCalendarSelection ? 'Guardando y sincronizando...' : 'Guardar y sincronizar'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        </ScrollView>
+      ) : (
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <View style={styles.brandLogoWrap}>
+          <LogoIRSPrincipal width={146} height={48} />
         </View>
 
-        <Text style={styles.brand}>INICIO</Text>
-        <Text style={styles.brandSmall}>REAL ESTATE</Text>
-
-        <TouchableOpacity
-          style={styles.propertiesListButton}
-          onPress={() => router.push('/coordinator-properties-list' as never)}
-          activeOpacity={0.85}
-        >
-          <Building2 size={19} color="#3d5a40" />
-          <Text style={styles.propertiesListButtonText}>Ver listado de propiedades</Text>
-        </TouchableOpacity>
-
         <View style={styles.headerBlock}>
-          <Text style={styles.overline}>Coordinacion de Rentas</Text>
-          <View style={styles.profileRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>AD</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.overline} numberOfLines={1}>Coordinacion de Rentas</Text>
+            <View style={styles.datePill}>
+              <CalendarDays size={14} color="#ffffff" />
+              <Text style={styles.dateText}>13 de junio, 2026</Text>
             </View>
+          </View>
+          <View style={styles.profileRow}>
+            <TouchableOpacity
+              style={styles.avatar}
+              onPress={() => setIsProfileMenuOpen(current => !current)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.avatarText}>AD</Text>
+            </TouchableOpacity>
             <View style={styles.profileCopy}>
               <Text style={styles.greeting}>Hola, Alexa Diaz</Text>
               <Text style={styles.helper}>Aqui esta lo importante de hoy</Text>
             </View>
           </View>
-          <Bell style={styles.headerBell} size={20} color="#19191f" fill="#19191f" />
+          {isProfileMenuOpen ? (
+            <View style={styles.profileMenu}>
+              <TouchableOpacity style={styles.profileMenuButton} onPress={handleOpenCalendarSettings} activeOpacity={0.85}>
+                <Settings size={15} color="#3d5a40" />
+                <Text style={styles.profileMenuButtonText}>Configuracion</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.profileLogoutButton} onPress={handleLogout} activeOpacity={0.85}>
+                <LogOut size={15} color="#ffffff" />
+                <Text style={styles.profileLogoutText}>Salir</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <Bell style={styles.headerBell} size={27} color="#CFA46A" />
         </View>
 
         <View style={styles.heroCards}>
-          <View style={styles.propertiesCard}>
+          <TouchableOpacity style={styles.propertiesCard} onPress={() => router.push('/coordinator/properties' as never)}
+          activeOpacity={0.85}>
             <Text style={styles.metricOverline}>PROPIEDADES</Text>
             <Text style={styles.propertiesValue}>{rentSummary.propertyCount}</Text>
             <Text style={styles.metricOverline}>DISPONIBLES</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.monthCard}>
             <Text style={styles.monthLabel}>TU OPORTUNIDAD DEL MES</Text>
             <View style={styles.moneyRow}>
@@ -678,197 +879,9 @@ export default function CoordinatorRentUserScreen() {
               </Text>
             </TouchableOpacity>
           )}
-          {isGoogleConnected ? (
-            <View style={styles.googleCalendarSettings}>
-              <View style={styles.calendarSettingsHeader}>
-                <Text style={styles.calendarSettingsTitle}>Calendarios conectados</Text>
-                <TouchableOpacity
-                  style={styles.calendarSmallButton}
-                  onPress={loadGoogleCalendarSettings}
-                  activeOpacity={0.85}
-                  disabled={isCalendarSettingsLoading}
-                >
-                  <Text style={styles.calendarSmallButtonText}>
-                    {isCalendarSettingsLoading ? 'Cargando' : 'Actualizar'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {googleCalendars.length === 0 ? (
-                <Text style={styles.calendarSettingsEmpty}>
-                  {isCalendarSettingsLoading ? 'Buscando calendarios...' : 'No hay calendarios disponibles.'}
-                </Text>
-              ) : (
-                <View style={styles.calendarList}>
-                  {googleCalendars.slice(0, 8).map(calendar => {
-                    const selection = getCalendarSelection(calendar.calendarId)
-                    const isEnabled = selection?.enabled === true
-                    const isPrimary = selection?.primaryForCreate === true
-
-                    return (
-                      <View key={calendar.calendarId ?? calendar.summary} style={styles.calendarOptionRow}>
-                        <TouchableOpacity
-                          style={[styles.calendarToggle, isEnabled && styles.calendarToggleActive]}
-                          onPress={() => toggleGoogleCalendar(calendar)}
-                          activeOpacity={0.85}
-                        >
-                          <Text style={[styles.calendarToggleText, isEnabled && styles.calendarToggleTextActive]}>
-                            {isEnabled ? 'ON' : 'OFF'}
-                          </Text>
-                        </TouchableOpacity>
-                        <View style={styles.calendarOptionCopy}>
-                          <Text style={styles.calendarOptionTitle} numberOfLines={1}>
-                            {calendar.summary || 'Calendario sin nombre'}
-                          </Text>
-                          <Text style={styles.calendarOptionMeta} numberOfLines={1}>
-                            {selection?.appointmentType || getDefaultAppointmentType(calendar.summary)}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          style={[styles.calendarPrimaryButton, isPrimary && styles.calendarPrimaryButtonActive]}
-                          onPress={() => markPrimaryGoogleCalendar(calendar)}
-                          activeOpacity={0.85}
-                        >
-                          <Text style={[styles.calendarPrimaryButtonText, isPrimary && styles.calendarPrimaryButtonTextActive]}>
-                            Crear
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    )
-                  })}
-                </View>
-              )}
-              <View style={styles.calendarActionsRow}>
-                <TouchableOpacity
-                  style={styles.calendarActionButton}
-                  onPress={handleSaveGoogleCalendarSelection}
-                  activeOpacity={0.85}
-                  disabled={isSavingCalendarSelection}
-                >
-                  <Text style={styles.calendarActionButtonText}>
-                    {isSavingCalendarSelection ? 'Guardando y sincronizando...' : 'Guardar y sincronizar'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : null}
-          {isGoogleConnected ? (
-            <View style={styles.calendarTestPanel}>
-              <Text style={styles.calendarTestTitle}>Pruebas de integracion</Text>
-              <Text style={styles.calendarTestMeta}>
-                Estado: {googleConnectionStatus?.status ?? 'sin consultar'} · Activos: {googleConnectionStatus?.enabledCalendarsCount ?? 0}
-              </Text>
-              <Text style={styles.calendarTestLabel}>Calendario destino</Text>
-              {enabledSelectedCalendars.length === 0 ? (
-                <Text style={styles.calendarSettingsEmpty}>
-                  Activa y guarda al menos un calendario antes de crear citas.
-                </Text>
-              ) : (
-                <View style={styles.calendarDestinationList}>
-                  {enabledSelectedCalendars.map(calendar => {
-                    const isSelected = testAppointmentForm.calendarId === calendar.calendarId
-
-                    return (
-                      <TouchableOpacity
-                        key={calendar.calendarId}
-                        style={[styles.calendarDestinationChip, isSelected && styles.calendarDestinationChipActive]}
-                        onPress={() => selectTestAppointmentCalendar(calendar)}
-                        activeOpacity={0.85}
-                      >
-                        <Text
-                          style={[styles.calendarDestinationChipText, isSelected && styles.calendarDestinationChipTextActive]}
-                          numberOfLines={1}
-                        >
-                          {calendar.summary || calendar.appointmentType || 'Calendario'}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
-              )}
-              <View style={styles.calendarTestActions}>
-                <TouchableOpacity
-                  style={styles.calendarTestButton}
-                  onPress={handleTestConnectionStatus}
-                  activeOpacity={0.85}
-                  disabled={isTestingCalendarAction}
-                >
-                  <Text style={styles.calendarTestButtonText}>Estado</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.calendarTestButton}
-                  onPress={handleTestSyncAndReload}
-                  activeOpacity={0.85}
-                  disabled={isTestingCalendarAction}
-                >
-                  <Text style={styles.calendarTestButtonText}>Sync</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.calendarTestButton}
-                  onPress={handleTestLoadMongoDates}
-                  activeOpacity={0.85}
-                  disabled={isTestingCalendarAction}
-                >
-                  <Text style={styles.calendarTestButtonText}>Mongo</Text>
-                </TouchableOpacity>
-              </View>
-              <Text>Titulo de la cita</Text>
-              <TextInput
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.title}
-                onChangeText={value => updateTestAppointmentForm('title', value)}
-                placeholder="Titulo"
-                placeholderTextColor="#8d8d8d"
-              />
-              <Text>Ubicacion de la cita</Text>
-              <TextInput
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.location ?? ''}
-                onChangeText={value => updateTestAppointmentForm('location', value)}
-                placeholder="Ubicacion"
-                placeholderTextColor="#8d8d8d"
-              />
-              <Text>Descripcion de la cita</Text>
-              <TextInput 
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.description ?? ''}
-                onChangeText={value => updateTestAppointmentForm('description', value)}
-                placeholder='descripcion'
-                placeholderTextColor="#8d8d8d"
-              />
-              <Text>Fecha de la cita</Text>
-              <CalendarPick
-                value={testAppointmentForm.startDateTime}
-                onChange={value => updateTestAppointmentForm('startDateTime', value)}
-              />
-              <Text>Fecha de terminacion</Text>
-              <CalendarPick
-                value={testAppointmentForm.endDateTime}
-                onChange={value => updateTestAppointmentForm('endDateTime', value)}
-              />
-              <Text>Calendario</Text>
-              <TextInput
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.appointmentType ?? ''}
-                onChangeText={value => updateTestAppointmentForm('appointmentType', value)}
-                placeholder="Tipo"
-                placeholderTextColor="#8d8d8d"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={styles.calendarTestCreateButton}
-                onPress={handleTestCreateAppointment}
-                activeOpacity={0.85}
-                disabled={isTestingCalendarAction}
-              >
-                <Text style={styles.calendarTestCreateButtonText}>
-                  {isTestingCalendarAction ? 'Procesando...' : 'Crear cita de prueba'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-          <TouchableOpacity style={styles.centerButton} activeOpacity={0.85}>
-            <CalendarDays size={23} color="#3d5a40" />
-            <Text style={styles.centerButtonText}>Agendar cita </Text>
+          <TouchableOpacity style={styles.centerButton} onPress={handleOpenAppointmentModal} activeOpacity={0.85}>
+            <Plus size={22} color="#3d5a40" />
+            <Text style={styles.centerButtonText}>Agregar cita </Text>
           </TouchableOpacity>
         </View>
 
@@ -876,54 +889,127 @@ export default function CoordinatorRentUserScreen() {
           <SectionHeader title="Seguimientos" action="Ver mas " compact />
           <Text style={styles.panelSubtitle}>Panorama general de actividad de leads</Text>
 
-          <View style={styles.followGrid}>
-            <StatTile icon={<PieChart size={22} color="#cbb375" />} value="777" label="Leads activos " />
-            <StatTile icon={<Clock3 size={22} color="#cbb375" />} value="17" label="Seguimientos pendientes" />
-            <StatTile icon={<Info size={22} color="#ff6666" />} value="5" label="Atrasados" />
-            <StatTile icon={<CalendarDays size={22} color="#cbb375" />} value="3" label="Proximos hoy" />
-          </View>
-
-          <Text style={styles.subSectionTitle}>Vista rapida</Text>
-          <View style={styles.funnelRow}>
-            {[
-              ['77', 'Nuevos'],
-              ['34', 'En seguimiento'],
-              ['8', 'Por cerrar'],
-              ['7', 'Ganados'],
-              ['3', 'Perdidos'],
-            ].map(([value, label]) => (
-              <View key={label} style={styles.funnelItem}>
-                <Text style={styles.funnelValue}>{value}</Text>
-                <Text style={styles.funnelLabel}>{label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {leadAlerts.map((alert, index) => (
-            <View key={alert} style={styles.alertRow}>
-              {index === 0 ? <Bell size={18} color="#ff6666" /> : index === 1 ? <Clock3 size={18} color="#ff6666" /> : <FilePlus2 size={18} color="#ff6666" />}
-              <Text style={styles.alertText}>{alert}</Text>
-              <ChevronRight size={17} color="#3d5a40" />
+          {isCoordinatorLeadsLoading ? (
+            <View style={styles.emptyLeadState}>
+              <Text style={styles.emptyLeadStateText}>Cargando leads...</Text>
             </View>
-          ))}
-
-          <View style={styles.focusBox}>
-            <Text style={styles.subSectionTitle}>Asesores con foco</Text>
-            {focusedAdvisors.map((item, index) => (
-              <View key={item[0]} style={[styles.focusRow, index < focusedAdvisors.length - 1 && styles.focusDivider]}>
-                <Text style={styles.focusName}>{item[0]}</Text>
-                <UserRound size={18} color="#0c6740" />
-                <Text style={styles.focusMetric}>{item[1]}</Text>
-                <View style={styles.alertDot} />
-                <Text style={styles.focusLate}>{item[2]}</Text>
+          ) : coordinatorLeads.length === 0 ? (
+            <View style={styles.emptyLeadState}>
+              <Text style={styles.emptyLeadStateText}>Sin leads para revisar </Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.followGrid}>
+                <StatTile icon={<PieChart size={22} color="#cbb375" />} value={String(leadSummary.activeLeads)} label="Leads activos " />
+                <StatTile icon={<Clock3 size={22} color="#cbb375" />} value={String(leadSummary.followUps)} label="Seguimientos" />
+                <StatTile icon={<Info size={22} color="#ff6666" />} value={String(leadSummary.overdueFollowUps)} label="Atrasados" />
+                <StatTile icon={<CalendarDays size={22} color="#cbb375" />} value={String(leadSummary.upcomingFollowUps)} label="Proximos" />
               </View>
-            ))}
-          </View>
 
-          <View style={styles.detailButtons}>
-            <MiniButton icon={<Eye size={20} color="#0c6740" />} label="Ver detalle " />
-            <MiniButton icon={<Search size={20} color="#ffffff" />} label="Ver por asesor " variant="primary" />
-          </View>
+              {leadSummary.alertRows.map(alert => (
+                <View key={alert} style={styles.alertRow}>
+                  <Info size={17} color="#b84343" />
+                  <Text style={styles.alertText} numberOfLines={1}>{alert}</Text>
+                  <ChevronRight size={14} color="#b84343" />
+                </View>
+              ))}
+
+              <Text style={styles.subSectionTitle}>Vista rapida</Text>
+              <View style={styles.funnelRow}>
+                {leadSummary.funnel.map(([label, value]) => (
+                  <View key={label} style={styles.funnelItem}>
+                    <Text style={styles.funnelValue}>{value}</Text>
+                    <Text style={styles.funnelLabel}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.subSectionTitle}>Resultados de contacto</Text>
+              <View style={styles.funnelRow}>
+                <View style={styles.funnelItem}>
+                  <Text style={styles.funnelValue}>{leadSummary.contactMadeFollowUps}</Text>
+                  <Text style={styles.funnelLabel}>Contactos efectivos</Text>
+                </View>
+                <View style={styles.funnelItem}>
+                  <Text style={styles.funnelValue}>{leadSummary.noAnswerFollowUps}</Text>
+                  <Text style={styles.funnelLabel}>Sin respuesta</Text>
+                </View>
+                <View style={styles.funnelItem}>
+                  <Text style={styles.funnelValue}>{leadSummary.appointmentFollowUps}</Text>
+                  <Text style={styles.funnelLabel}>Citas agendadas</Text>
+                </View>
+                <View style={styles.funnelItem}>
+                  <Text style={styles.funnelValue}>{leadSummary.leadsWithoutNextAction}</Text>
+                  <Text style={styles.funnelLabel}>Sin proximo contacto</Text>
+                </View>
+              </View>
+
+              {leadSummary.attentionLeads.length > 0 ? (
+                <>
+                  <Text style={styles.subSectionTitle}>Leads que requieren foco</Text>
+                  <View style={styles.focusBox}>
+                    {leadSummary.attentionLeads.map((item, index) => (
+                      <View
+                        key={item.lead.id}
+                        style={[styles.focusRow, index < leadSummary.attentionLeads.length - 1 && styles.focusDivider]}
+                      >
+                        <View style={styles.alertDot} />
+                        <Text style={styles.focusName} numberOfLines={1}>{item.lead.name}</Text>
+                        <Text style={styles.focusMetric} numberOfLines={1}>{item.followUps} seg.</Text>
+                        <Text style={styles.focusLate} numberOfLines={1}>
+                          {item.lateCount > 0 ? `${item.lateCount} tarde` : 'Al dia'}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : null}
+
+              {leadSummary.advisorWorkload.length > 0 ? (
+                <>
+                  <Text style={styles.subSectionTitle}>Carga por asesor</Text>
+                  <View style={styles.focusBox}>
+                    {leadSummary.advisorWorkload.map((advisor, index) => (
+                      <View
+                        key={advisor.id}
+                        style={[styles.focusRow, index < leadSummary.advisorWorkload.length - 1 && styles.focusDivider]}
+                      >
+                        <View style={styles.alertDot} />
+                        <Text style={styles.focusName} numberOfLines={1}>{advisor.name}</Text>
+                        <Text style={styles.focusMetric} numberOfLines={1}>{advisor.followUps} seg.</Text>
+                        <Text style={styles.focusLate} numberOfLines={1}>{advisor.late} tarde</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : null}
+
+              {leadSummary.followUps === 0 ? (
+                <View style={styles.emptyLeadState}>
+                  <Text style={styles.emptyLeadStateText}>Sin seguimientos para revisar</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.detailButtons}>
+                <TouchableOpacity
+                  style={styles.miniButton}
+                  onPress={() => router.push('/coordinator/leads' as never)}
+                  activeOpacity={0.85}
+                >
+                  <ChevronRight size={17} color="#0c6740" />
+                  <Text style={styles.miniButtonText}>Ver seguimientos </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.miniButton, styles.miniButtonPrimary]}
+                  onPress={refreshCurrentCoordinatorLeads}
+                  activeOpacity={0.85}
+                >
+                  <Clock3 size={16} color="#ffffff" />
+                  <Text style={[styles.miniButtonText, styles.miniButtonTextPrimary]}>Actualizar </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.panel}>
@@ -958,8 +1044,115 @@ export default function CoordinatorRentUserScreen() {
           </View>
         </View>
       </ScrollView>
+      )}
 
-      <CoordinatorBottomNav />
+      <Modal
+        visible={isAppointmentModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsAppointmentModalVisible(false)}
+      >
+        <View style={styles.appointmentModalOverlay}>
+          <View style={styles.appointmentModalPanel}>
+            <View style={styles.appointmentModalHeader}>
+              <Text style={styles.appointmentModalTitle}>Agregar cita</Text>
+              <TouchableOpacity
+                style={styles.appointmentModalClose}
+                onPress={() => setIsAppointmentModalVisible(false)}
+                activeOpacity={0.85}
+              >
+                <X size={18} color="#3d5a40" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+              <Text style={styles.calendarTestLabel}>Calendario destino</Text>
+              {enabledSelectedCalendars.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>
+                  {isGoogleConnected
+                    ? 'Activa y guarda al menos un calendario antes de crear citas.'
+                    : 'Conecta Google Calendar desde configuracion antes de crear citas.'}
+                </Text>
+              ) : (
+                <View style={styles.calendarDestinationList}>
+                  {enabledSelectedCalendars.map(calendar => {
+                    const isSelected = testAppointmentForm.calendarId === calendar.calendarId
+
+                    return (
+                      <TouchableOpacity
+                        key={calendar.calendarId}
+                        style={[styles.calendarDestinationChip, isSelected && styles.calendarDestinationChipActive]}
+                        onPress={() => selectTestAppointmentCalendar(calendar)}
+                        activeOpacity={0.85}
+                      >
+                        <Text
+                          style={[styles.calendarDestinationChipText, isSelected && styles.calendarDestinationChipTextActive]}
+                          numberOfLines={1}
+                        >
+                          {calendar.summary || calendar.appointmentType || 'Calendario'}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              )}
+              <Text style={styles.calendarTestLabel}>Titulo de la cita</Text>
+              <TextInput
+                style={styles.calendarTestInput}
+                value={testAppointmentForm.title}
+                onChangeText={value => updateTestAppointmentForm('title', value)}
+                placeholder="Titulo"
+                placeholderTextColor="#8d8d8d"
+              />
+              <Text style={styles.calendarTestLabel}>Ubicacion de la cita</Text>
+              <TextInput
+                style={styles.calendarTestInput}
+                value={testAppointmentForm.location ?? ''}
+                onChangeText={value => updateTestAppointmentForm('location', value)}
+                placeholder="Ubicacion"
+                placeholderTextColor="#8d8d8d"
+              />
+              <Text style={styles.calendarTestLabel}>Descripcion de la cita</Text>
+              <TextInput
+                style={styles.calendarTestInput}
+                value={testAppointmentForm.description ?? ''}
+                onChangeText={value => updateTestAppointmentForm('description', value)}
+                placeholder="Descripcion"
+                placeholderTextColor="#8d8d8d"
+              />
+              <Text style={styles.calendarTestLabel}>Fecha de la cita</Text>
+              <CalendarPick
+                value={testAppointmentForm.startDateTime}
+                onChange={value => updateTestAppointmentForm('startDateTime', value)}
+              />
+              <Text style={styles.calendarTestLabel}>Fecha de terminacion</Text>
+              <CalendarPick
+                value={testAppointmentForm.endDateTime}
+                onChange={value => updateTestAppointmentForm('endDateTime', value)}
+              />
+              <Text style={styles.calendarTestLabel}>Tipo de calendario</Text>
+              <TextInput
+                style={styles.calendarTestInput}
+                value={testAppointmentForm.appointmentType ?? ''}
+                onChangeText={value => updateTestAppointmentForm('appointmentType', value)}
+                placeholder="Tipo"
+                placeholderTextColor="#8d8d8d"
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={styles.calendarTestCreateButton}
+                onPress={handleTestCreateAppointment}
+                activeOpacity={0.85}
+                disabled={isTestingCalendarAction}
+              >
+                <Text style={styles.calendarTestCreateButtonText}>
+                  {isTestingCalendarAction ? 'Procesando...' : 'Crear cita'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   )
 }
@@ -982,6 +1175,35 @@ function mapGoogleDateToAppointment(date: GoogleCalendarDate): AppointmentPrevie
     sortTime: getCalendarSortTime(startValue),
     canDelete: Boolean(date._id),
   }
+}
+
+function getFollowUpDate(followUp: LeadFollowUp) {
+  return followUp.nextActionDate || followUp.date
+}
+
+function getFollowUpSortTime(value?: string) {
+  if (!value) return 0
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime()
+}
+
+function hasUpcomingFollowUpDate(followUp: LeadFollowUp) {
+  const dateValue = getFollowUpDate(followUp)
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return false
+
+  const now = new Date()
+  return date >= now
+}
+
+function isOverdueFollowUp(followUp: LeadFollowUp) {
+  const dateValue = followUp.nextActionDate
+  if (!dateValue) return false
+
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return false
+
+  return date < new Date()
 }
 
 function mapGoogleTasksToAppointments(taskLists: GoogleTaskList[]): AppointmentPreviewItem[] {
@@ -1110,15 +1332,6 @@ function StatTile({ icon, value, label }: { icon: ReactNode; value: string; labe
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
-  )
-}
-
-function MiniButton({ icon, label, variant }: { icon: ReactNode; label: string; variant?: 'primary' }) {
-  return (
-    <TouchableOpacity style={[styles.miniButton, variant === 'primary' && styles.miniButtonPrimary]} activeOpacity={0.85}>
-      {icon}
-      <Text style={[styles.miniButtonText, variant === 'primary' && styles.miniButtonTextPrimary]}>{label}</Text>
-    </TouchableOpacity>
   )
 }
 
