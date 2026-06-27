@@ -796,6 +796,18 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
+  calendarPickerInput: {
+    flex: 1,
+    minHeight: 32,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ded6ca',
+    color: '#232323',
+    fontSize: 11,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    backgroundColor: '#fffcfc',
+  },
   calendarTestCreateButton: {
     minHeight: 32,
     borderRadius: 6,

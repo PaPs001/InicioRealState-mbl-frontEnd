@@ -1,0 +1,242 @@
+import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
+import { StyleSheet } from 'react-native'
+
+export const loginStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  containerDark: {
+    flex: 1,
+    backgroundColor: colors.primaryDark,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  backButtonText: {
+    color: colors.accent,
+    fontSize: typography.bodySmall.fontSize,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  logoPlaceholder: {
+    width: 150,
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surfaceDark,
+  },
+  logoPlaceholderLight: {
+    width: 150,
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary,
+  },
+  logoText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.accent,
+  },
+  logoSubtext: {
+    fontSize: 12,
+    color: colors.accent,
+    letterSpacing: 2,
+  },
+  logoTextLight: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.accent,
+  },
+  logoSubtextLight: {
+    fontSize: 12,
+    color: colors.accent,
+    letterSpacing: 2,
+  },
+  subtitleDark: {
+    textAlign: 'center',
+    color: colors.textMuted,
+    fontSize: typography.bodySmall.fontSize,
+    marginBottom: spacing.lg,
+  },
+  formContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  formContainerDark: {
+    backgroundColor: colors.surfaceDark,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+  },
+  inputContainer: {
+    marginBottom: spacing.md,
+    position: 'relative',
+  },
+  inputContainerDark: {
+    marginBottom: spacing.md,
+    position: 'relative',
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    fontSize: typography.body.fontSize,
+    color: colors.text,
+  },
+  inputDark: {
+    backgroundColor: colors.primaryDark,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    fontSize: typography.body.fontSize,
+    color: colors.textLight,
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  buttonPrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  buttonPrimaryText: {
+    color: colors.textInverse,
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+  },
+  buttonAccent: {
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  buttonAccentText: {
+    color: colors.primaryDark,
+    fontSize: typography.body.fontSize,
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.md,
+  },
+  buttonGhost: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  buttonGhostText: {
+    color: colors.text,
+    fontSize: typography.body.fontSize,
+  },
+  quickAccessContainer: {
+    marginTop: spacing.xl,
+  },
+  quickAccessLabel: {
+    textAlign: 'center',
+    color: colors.textMuted,
+    fontSize: typography.caption.fontSize,
+    marginBottom: spacing.md,
+  },
+  quickAccessLabelLight: {
+    textAlign: 'center',
+    color: colors.textMuted,
+    fontSize: typography.caption.fontSize,
+    marginBottom: spacing.md,
+  },
+  quickAccessButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  quickAccessButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  quickButtonAgent: {
+    backgroundColor: '#0c74af',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  quickButtonAgentText: {
+    color: colors.textLight,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+  quickButtonAdmin: {
+    backgroundColor: colors.accent,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  quickButtonAdminText: {
+    color: colors.primaryDark,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+  quickButtonInvestor: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  quickButtonInvestorText: {
+    color: colors.accent,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+  quickButtonClient: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  quickButtonClientText: {
+    color: colors.textInverse,
+    fontSize: typography.caption.fontSize,
+    fontWeight: '500',
+  },
+})

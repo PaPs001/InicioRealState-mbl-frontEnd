@@ -45,6 +45,42 @@ export type BackendCurrentUser = {
   tenant?: boolean
 }
 
+function mapBackendRolesToSystemRole(roles?: BackendUserRole[], role?: BackendUserRole): BackendUserRole {
+  if (roles?.includes('ADMIN')) {
+    return 'ADMIN'
+  }
+
+  if (roles?.includes('COORDINATOR')) {
+    return 'COORDINATOR'
+  }
+
+  if (roles?.includes('AGENT')) {
+    return 'AGENT'
+  }
+
+  return role ?? 'CLIENT'
+}
+
+function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
+  if (!user) return undefined
+
+  const roles = user.roles ?? (user.role ? [user.role] : ['CLIENT'])
+
+  return {
+    id: user.id ?? user._id ?? '',
+    name: user.name ?? '',
+    email: user.email ?? '',
+    phone: user.phone ?? '',
+    country: user.country ?? null,
+    systemRole: mapBackendRolesToSystemRole(roles, user.role),
+    roles,
+    investment: user.investment ?? false,
+    tenant: user.tenant ?? false,
+    permissions: user.permissions,
+    createdAt: new Date().toISOString(),
+  }
+}
+
 export function getAuthMockUserById(userId: string): User | null {
   return mockUsers.find((user) => user.id === userId) ?? null
 }
@@ -60,34 +96,28 @@ type RegisterApiPayload =
 type LoginApiPayload = {
   accessToken?: string
   refreshToken?: string
-  token?: string
-  investment?: boolean
-  tenant?: boolean
-  roles?: BackendUserRole[]
+  user?: BackendCurrentUser
   data?: {
     accessToken?: string
     refreshToken?: string
-    token?: string
-    investment?: boolean
-    tenant?: boolean
-    roles?: BackendUserRole[]
+    user?: BackendCurrentUser
   }
 }
 
 function extractRegisteredUser(payload: RegisterApiPayload): User | undefined {
   if ('id' in payload && 'email' in payload) {
-    return payload
+    return mapBackendAuthUser(payload as BackendCurrentUser)
   }
 
   if (payload.user) {
-    return payload.user
+    return mapBackendAuthUser(payload.user as BackendCurrentUser)
   }
 
   if (payload.data && 'id' in payload.data && 'email' in payload.data) {
-    return payload.data
+    return mapBackendAuthUser(payload.data as BackendCurrentUser)
   }
 
-  return payload.data?.user
+  return mapBackendAuthUser(payload.data?.user as BackendCurrentUser | undefined)
 }
 
 function extractLoginTokens(payload: LoginApiPayload): {
@@ -95,21 +125,13 @@ function extractLoginTokens(payload: LoginApiPayload): {
   refreshToken?: string
 } {
   return {
-    accessToken: payload.accessToken ?? payload.token ?? payload.data?.accessToken ?? payload.data?.token,
+    accessToken: payload.accessToken ?? payload.data?.accessToken,
     refreshToken: payload.refreshToken ?? payload.data?.refreshToken,
   }
 }
 
-function extractLoginMeta(payload: LoginApiPayload): {
-  investment?: boolean
-  tenant?: boolean
-  roles?: BackendUserRole[]
-} {
-  return {
-    investment: payload.investment ?? payload.data?.investment,
-    tenant: payload.tenant ?? payload.data?.tenant,
-    roles: payload.roles ?? payload.data?.roles,
-  }
+function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefined {
+  return payload.user ?? payload.data?.user
 }
 
 export async function getCurrentUser(token: string): Promise<BackendCurrentUser> {
@@ -134,11 +156,11 @@ export function validateRegistrationData(data: RegisterRequest): { valid: boolea
     errors.push('El telefono debe tener al menos 10 digitos')
   }
 
-  if (!data.password || data.password.length < 6) {
-    errors.push('La contrasena debe tener al menos 6 caracteres')
+  if (!data.password || data.password.length < 8 || !/[A-Za-z]/.test(data.password) || !/\d/.test(data.password)) {
+    errors.push('La contrasena debe tener al menos 8 caracteres e incluir letras y numeros')
   }
 
-  if (!data.role || !['CLIENT', 'AGENT', 'COORDINATOR', 'ADMIN'].includes(data.role)) {
+  if (!Array.isArray(data.roles) || data.roles.length !== 1 || !['CLIENT', 'AGENT'].includes(data.roles[0])) {
     errors.push('El rol de usuario es invalido')
   }
 
@@ -160,8 +182,9 @@ export async function registerUser(data: RegisterRequest): Promise<RegisterRespo
       name: data.name.trim(),
       email: data.email.trim().toLowerCase(),
       phone: data.phone.trim(),
+      country: data.country?.trim() || null,
       password: data.password,
-      role: data.role,
+      roles: data.roles,
       investment: data.investment,
       tenant: data.tenant,
     }
@@ -218,14 +241,16 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
     })
 
     const { accessToken, refreshToken } = extractLoginTokens(result)
-    const { investment, tenant, roles } = extractLoginMeta(result)
+    const user = mapBackendAuthUser(extractLoginUser(result))
 
     console.log('[auth][login] response', {
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
-      investment: investment ?? null,
-      tenant: tenant ?? null,
-      roles: roles ?? [],
+      userId: user?.id ?? null,
+      systemRole: user?.systemRole ?? null,
+      roles: user?.roles ?? null,
+      investment: user?.investment ?? null,
+      tenant: user?.tenant ?? null,
     })
 
     return {
@@ -233,9 +258,7 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
       message: 'Sesion iniciada exitosamente',
       accessToken,
       refreshToken,
-      investment,
-      tenant,
-      roles,
+      user,
       error: accessToken ? undefined : 'La API no devolvio un token de sesion',
     }
   } catch (error) {

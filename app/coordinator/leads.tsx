@@ -10,10 +10,10 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft, CalendarDays, ChevronRight, Clock3, MessageSquareText, Search, UserRound, Users } from 'lucide-react-native'
-import { getBackendLeadFollowUps, getBackendLeadRecords, getLeadAgents } from '@/lib/api'
+import { getBackendLeadRecords } from '@/lib/api'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
-import type { LeadFollowUp, PropertyLead, User } from '@/lib/types'
+import type { LeadFollowUp, PropertyLead } from '@/lib/types'
 import { styles } from './leads.styles'
 
 type AdvisorLeadGroup = {
@@ -41,10 +41,6 @@ export default function CoordinatorLeadsScreen() {
   const [selectedLead, setSelectedLead] = useState<PropertyLead | null>(null)
   const [selectedFollowUp, setSelectedFollowUp] = useState<LeadFollowUp | null>(null)
   const [followUps, setFollowUps] = useState<LeadFollowUp[]>([])
-  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false)
-  const [followUpsError, setFollowUpsError] = useState<string | null>(null)
-
-  const advisors = useMemo(() => getLeadAgents(), [])
 
   const loadLeads = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (mode === 'initial') setIsLoading(true)
@@ -68,7 +64,7 @@ export default function CoordinatorLeadsScreen() {
     loadLeads()
   }, [loadLeads])
 
-  const advisorGroups = useMemo(() => buildAdvisorGroups(leads, advisors), [advisors, leads])
+  const advisorGroups = useMemo(() => buildAdvisorGroups(leads), [leads])
   const selectedAdvisor = useMemo(
     () => advisorGroups.find((advisor) => advisor.id === selectedAdvisorId) ?? null,
     [advisorGroups, selectedAdvisorId],
@@ -124,7 +120,6 @@ export default function CoordinatorLeadsScreen() {
     setSelectedLead(null)
     setSelectedFollowUp(null)
     setFollowUps([])
-    setFollowUpsError(null)
     setSearchQuery('')
   }
 
@@ -133,7 +128,6 @@ export default function CoordinatorLeadsScreen() {
     setSelectedLead(null)
     setSelectedFollowUp(null)
     setFollowUps([])
-    setFollowUpsError(null)
     setSearchQuery('')
   }
 
@@ -141,31 +135,12 @@ export default function CoordinatorLeadsScreen() {
     setSelectedLead(null)
     setSelectedFollowUp(null)
     setFollowUps([])
-    setFollowUpsError(null)
   }
 
-  const openLeadFollowUps = async (lead: PropertyLead) => {
+  const openLeadFollowUps = (lead: PropertyLead) => {
     setSelectedLead(lead)
     setSelectedFollowUp(null)
     setFollowUps(lead.followUps ?? [])
-    setFollowUpsError(null)
-
-    if (lead.followUps) {
-      setIsLoadingFollowUps(false)
-      return
-    }
-
-    setIsLoadingFollowUps(true)
-
-    try {
-      const records = await getBackendLeadFollowUps(lead.id, authToken)
-      setFollowUps(records)
-    } catch (error) {
-      console.error('Error cargando seguimientos del lead:', error)
-      setFollowUpsError('No se pudieron cargar los seguimientos')
-    } finally {
-      setIsLoadingFollowUps(false)
-    }
   }
 
   const refreshCurrentView = () => loadLeads('refresh')
@@ -182,10 +157,8 @@ export default function CoordinatorLeadsScreen() {
         ) : selectedLead ? (
           <FollowUpsView
             followUps={followUps}
-            isLoading={isLoadingFollowUps}
             lead={selectedLead}
             onBack={goBackToAdvisorLeads}
-            errorMessage={followUpsError}
             onFollowUpPress={setSelectedFollowUp}
           />
         ) : selectedAdvisor ? (
@@ -356,16 +329,12 @@ function AdvisorLeadsView({
 }
 
 function FollowUpsView({
-  errorMessage,
   followUps,
-  isLoading,
   lead,
   onBack,
   onFollowUpPress,
 }: {
-  errorMessage: string | null
   followUps: LeadFollowUp[]
-  isLoading: boolean
   lead: PropertyLead
   onBack: () => void
   onFollowUpPress: (followUp: LeadFollowUp) => void
@@ -385,29 +354,20 @@ function FollowUpsView({
         </Text>
       </View>
 
-      {isLoading ? (
-        <View style={styles.followLoadingState}>
-          <ActivityIndicator color="#0c6740" />
-          <Text style={styles.loadingText}>Cargando seguimientos...</Text>
-        </View>
-      ) : errorMessage ? (
-        <Text style={styles.followErrorText}>{errorMessage}</Text>
-      ) : (
-        <FlatList
-          data={followUps}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <FollowUpRow followUp={item} onPress={() => onFollowUpPress(item)} />}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          contentContainerStyle={styles.followListContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyFollowState}>
-              <MessageSquareText size={38} color="#c8c1b8" />
-              <Text style={styles.emptyStateText}>Sin seguimientos para revisar</Text>
-            </View>
-          }
-        />
-      )}
+      <FlatList
+        data={followUps}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <FollowUpRow followUp={item} onPress={() => onFollowUpPress(item)} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        contentContainerStyle={styles.followListContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyFollowState}>
+            <MessageSquareText size={38} color="#c8c1b8" />
+            <Text style={styles.emptyStateText}>Sin seguimientos para revisar</Text>
+          </View>
+        }
+      />
     </>
   )
 }
@@ -528,54 +488,37 @@ function LeadRow({ lead, propertyName, onPress }: { lead: PropertyLead; property
   )
 }
 
-function buildAdvisorGroups(leads: PropertyLead[], advisors: User[]): AdvisorLeadGroup[] {
-  const advisorGroups = advisors.map((advisor) => createAdvisorGroup(advisor.id, advisor.name, advisor, getLeadsByAdvisorId(leads, advisor.id)))
-  const knownAdvisorIds = new Set(advisors.map((advisor) => advisor.id))
-
-  const externalGroups = Array.from(
-    leads
-      .filter((lead) => {
-        const advisorId = getLeadAdvisorId(lead)
-        return advisorId && !knownAdvisorIds.has(advisorId)
-      })
-      .reduce<Map<string, PropertyLead[]>>((groups, lead) => {
-        const advisorId = getLeadAdvisorId(lead)
-        if (!advisorId) return groups
-        groups.set(advisorId, [...(groups.get(advisorId) ?? []), lead])
-        return groups
-      }, new Map())
-      .entries(),
-  ).map(([advisorId, advisorLeads]) => {
-    const advisorName = advisorLeads.find((lead) => lead.assignedAgentName)?.assignedAgentName || advisorId
-    return createAdvisorGroup(advisorId, advisorName, undefined, advisorLeads, true)
-  })
-
-  return [...advisorGroups, ...externalGroups]
-    .filter((advisor) => advisor.total > 1)
+function buildAdvisorGroups(leads: PropertyLead[]): AdvisorLeadGroup[] {
+  return Array.from(
+    leads.reduce<Map<string, PropertyLead[]>>((groups, lead) => {
+      const advisorId = getLeadAdvisorId(lead) || 'sin-asesor'
+      groups.set(advisorId, [...(groups.get(advisorId) ?? []), lead])
+      return groups
+    }, new Map()).entries(),
+  )
+    .map(([advisorId, advisorLeads]) => createAdvisorGroup(advisorId, getAdvisorName(advisorId, advisorLeads), advisorLeads))
+    .filter((advisor) => advisor.total > 0)
     .sort((current, next) => current.name.localeCompare(next.name, 'es'))
 }
 
-function getLeadsByAdvisorId(leads: PropertyLead[], advisorId: string) {
-  return leads.filter((lead) => getLeadAdvisorId(lead) === advisorId)
-}
-
-function createAdvisorGroup(id: string, name: string, advisor: User | undefined, leads: PropertyLead[], isFallback = false): AdvisorLeadGroup {
+function createAdvisorGroup(id: string, name: string, leads: PropertyLead[]): AdvisorLeadGroup {
   return {
     id,
     name,
-    email: advisor?.email,
-    phone: advisor?.phone,
     total: leads.length,
     active: leads.filter((lead) => !['cerrado', 'descartado'].includes(lead.status)).length,
     rent: leads.filter((lead) => lead.searchIntent === 'rent').length,
     sale: leads.filter((lead) => lead.searchIntent === 'sale').length,
     leads,
-    isFallback,
   }
 }
 
 function getLeadAdvisorId(lead: PropertyLead) {
   return lead.advisorId || lead.agentId
+}
+
+function getAdvisorName(advisorId: string, leads: PropertyLead[]) {
+  return leads.find((lead) => lead.assignedAgentName)?.assignedAgentName || advisorId || 'Sin asesor'
 }
 
 function normalizeSearch(value: string) {

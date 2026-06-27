@@ -45,7 +45,7 @@ export default function ProfileScreen() {
 
   // Si no hay usuario, redirigir al login
   if (!currentUser) {
-    router.replace('/login')
+    router.replace('/login-new')
     return null
   }
 

@@ -47,7 +47,6 @@ import {
   Trash2,
   X,
 } from 'lucide-react-native'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import type { LeadFollowUp, PropertyLead } from '@/lib/types'
 WebBrowser.maybeCompleteAuthSession()
 
@@ -370,11 +369,23 @@ export default function CoordinatorRentUserScreen() {
     try {
       const currentScreenPath = pathname.replace(/^\//, '')
       const returnTo = Linking.createURL(currentScreenPath)
+      console.info('[Google Calendar][mobile] starting OAuth', {
+        currentScreenPath,
+        returnTo,
+      })
       const response = await getGoogleCalendarAuthUrl(authToken, returnTo)
+      console.info('[Google Calendar][mobile] auth URL received', {
+        authUrlHost: getUrlHost(response.url),
+        authUrlPath: getUrlPath(response.url),
+      })
       const result = await WebBrowser.openAuthSessionAsync(
         response.url,
         returnTo,
       )
+      console.info('[Google Calendar][mobile] OAuth browser result', {
+        type: result.type,
+        url: result.type === 'success' ? result.url : undefined,
+      })
 
       if (result.type === 'success') {
         await loadGoogleCalendarSettings()
@@ -1206,6 +1217,22 @@ function isOverdueFollowUp(followUp: LeadFollowUp) {
   return date < new Date()
 }
 
+function getUrlHost(url: string) {
+  try {
+    return new URL(url).host
+  } catch {
+    return 'invalid-url'
+  }
+}
+
+function getUrlPath(url: string) {
+  try {
+    return new URL(url).pathname
+  } catch {
+    return 'invalid-url'
+  }
+}
+
 function mapGoogleTasksToAppointments(taskLists: GoogleTaskList[]): AppointmentPreviewItem[] {
   return taskLists.flatMap(taskList =>
     (taskList.tasks ?? [])
@@ -1335,55 +1362,79 @@ function StatTile({ icon, value, label }: { icon: ReactNode; value: string; labe
   )
 }
 
-type CalendarPickerMode = 'date' | 'time'
-
 function getPickerDate(value: string) {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? new Date() : date
 }
 
+function formatDateInput(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatTimeInput(date: Date) {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+function updateDatePart(value: string, nextDatePart: string) {
+  const date = getPickerDate(value)
+  const [year, month, day] = nextDatePart.split('-').map(Number)
+
+  if (!year || !month || !day) {
+    return value
+  }
+
+  date.setFullYear(year, month - 1, day)
+  return date.toISOString()
+}
+
+function updateTimePart(value: string, nextTimePart: string) {
+  const date = getPickerDate(value)
+  const [hours, minutes] = nextTimePart.split(':').map(Number)
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return value
+  }
+
+  date.setHours(hours, minutes, 0, 0)
+  return date.toISOString()
+}
+
 function CalendarPick({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const date = getPickerDate(value)
-  const [mode, setMode] = useState<CalendarPickerMode>('date')
-  const [show, setShow] = useState(false)
+  const [dateText, setDateText] = useState(formatDateInput(date))
+  const [timeText, setTimeText] = useState(formatTimeInput(date))
 
-  const showMode = (currentMode: CalendarPickerMode) => {
-    setShow(true)
-    setMode(currentMode)
-  }
-
-  const showDatepicker = () => {
-    showMode('date')
-  }
-
-  const showTimepicker = () => {
-    showMode('time')
-  }
+  useEffect(() => {
+    setDateText(formatDateInput(date))
+    setTimeText(formatTimeInput(date))
+  }, [value])
 
   return (
     <View style={styles.calendarPicker}>
       <Text style={styles.calendarPickerValue}>{date.toLocaleString()}</Text>
       <View style={styles.calendarPickerActions}>
-        <TouchableOpacity style={styles.calendarPickerButton} onPress={showDatepicker} activeOpacity={0.85}>
-          <Text style={styles.calendarPickerButtonText}>Fecha</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.calendarPickerButton} onPress={showTimepicker} activeOpacity={0.85}>
-          <Text style={styles.calendarPickerButtonText}>Hora</Text>
-        </TouchableOpacity>
-      </View>
-      {show && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={date}
-          mode={mode}
-          is24Hour={true}
-          onValueChange={(_event, selectedDate) => {
-            onChange(selectedDate.toISOString())
-            setShow(false)
-          }}
-          onDismiss={() => setShow(false)}
+        <TextInput
+          style={styles.calendarPickerInput}
+          value={dateText}
+          onChangeText={setDateText}
+          onBlur={() => onChange(updateDatePart(value, dateText))}
+          placeholder="YYYY-MM-DD"
+          autoCapitalize="none"
         />
-      )}
+        <TextInput
+          style={styles.calendarPickerInput}
+          value={timeText}
+          onChangeText={setTimeText}
+          onBlur={() => onChange(updateTimePart(value, timeText))}
+          placeholder="HH:mm"
+          autoCapitalize="none"
+        />
+      </View>
     </View>
   )
 }

@@ -16,7 +16,12 @@ interface ApiError {
   message: string
   status: number
   error?: string
+  path?: string
+  details?: unknown
 }
+
+const shouldLogApiDebug = (path: string) =>
+  path.startsWith('/dates/') || path.includes('/dates/')
 
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
@@ -45,6 +50,10 @@ export async function apiClient<T>(
     ...headers,
   }
 
+  if (baseUrl.includes('ngrok-free')) {
+    requestHeaders['ngrok-skip-browser-warning'] = 'true'
+  }
+
   if (token) {
     requestHeaders['Authorization'] = `Bearer ${token}`
   }
@@ -55,11 +64,39 @@ export async function apiClient<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
+  if (shouldLogApiDebug(path)) {
+    console.info('[API][dates] response', {
+      method,
+      path,
+      baseUrl,
+      status: response.status,
+      ok: response.ok,
+    })
+  }
+
   if (!response.ok) {
+    let details: unknown
+    try {
+      details = await response.clone().json()
+    } catch {
+      details = undefined
+    }
     const errorMessage = await extractErrorMessage(response)
     const error: ApiError = {
       message: errorMessage,
       status: response.status,
+      path,
+      details,
+    }
+    if (shouldLogApiDebug(path)) {
+      console.warn('[API][dates] error response', {
+        method,
+        path,
+        baseUrl,
+        status: response.status,
+        message: errorMessage,
+        details,
+      })
     }
     throw error
   }

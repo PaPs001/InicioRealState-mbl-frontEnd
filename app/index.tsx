@@ -35,7 +35,7 @@ export default function Index() {
       if (isLoggedIn) {
         router.replace('/(tabs)')
       } else {
-        router.replace('/login')
+        router.replace('/login-new')
       }
     }
   }, [isLoading, isLoggedIn])

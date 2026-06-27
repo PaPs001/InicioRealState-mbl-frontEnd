@@ -43,14 +43,6 @@ function mapBackendRolesToSystemRole(
   systemRole?: BackendUserRole,
   role?: BackendUserRole,
 ): BackendUserRole {
-  if (systemRole) {
-    return systemRole
-  }
-
-  if (role) {
-    return role
-  }
-
   if (roles?.includes('ADMIN')) {
     return 'ADMIN'
   }
@@ -61,6 +53,14 @@ function mapBackendRolesToSystemRole(
 
   if (roles?.includes('AGENT')) {
     return 'AGENT'
+  }
+
+  if (role) {
+    return role
+  }
+
+  if (systemRole) {
+    return systemRole
   }
 
   return 'CLIENT'
@@ -113,7 +113,9 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     name: user.name ?? '',
     email: user.email ?? '',
     phone: user.phone ?? '',
+    country: user.country ?? backendUser.country ?? null,
     systemRole: mapBackendRolesToSystemRole(backendUser.roles, user.systemRole, backendUser.role),
+    roles: backendUser.roles ?? user.roles,
     investment: deriveInvestmentFlag(backendUser.permissions, backendUser.investment),
     tenant: deriveTenantFlag(backendUser.permissions, backendUser.tenant),
     permissions: backendUser.permissions ?? user.permissions,
