@@ -13,7 +13,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { spacing, typography, borderRadius, clientThemes } from '@/lib/theme'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { OwnerBenefitsStep } from '@/components/forms/owner/OwnerBenefitsStep'
 import { OwnerPropertiesFoundStep } from '@/components/forms/owner/OwnerPropertiesFoundStep'
 import { OwnerPropertiesNotFoundStep } from '@/components/forms/owner/OwnerPropertiesNotFoundStep'
@@ -66,11 +66,24 @@ export default function OwnerForm() {
   const { setAuthSession } = useSessionDomain()
   
   const router = useRouter()
-  const [step, setStep] = useState<Step>('name')
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
+  const params = useLocalSearchParams<{
+    ownerAccess?: string
+    fullName?: string
+    email?: string
+    phone?: string
+    password?: string
+  }>()
+  const hasOwnerAccessData =
+    params.ownerAccess === '1' &&
+    Boolean(params.fullName) &&
+    Boolean(params.email) &&
+    Boolean(params.phone) &&
+    Boolean(params.password)
+  const [step, setStep] = useState<Step>(hasOwnerAccessData ? 'property-question' : 'name')
+  const [fullName, setFullName] = useState(params.fullName ?? '')
+  const [email, setEmail] = useState(params.email ?? '')
+  const [phone, setPhone] = useState(params.phone ?? '')
+  const [password, setPassword] = useState(params.password ?? '')
   const [hasPropertiesWithUs, setHasPropertiesWithUs] = useState<boolean | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [propertiesFound, setPropertiesFound] = useState<boolean | null>(null)
@@ -196,7 +209,14 @@ export default function OwnerForm() {
       case 'email':
       case 'phone':
       case 'password':
+        void goBack()
+        return
       case 'property-question':
+        if (hasOwnerAccessData) {
+          router.back()
+          return
+        }
+
         void goBack()
         return
       case 'properties-found':

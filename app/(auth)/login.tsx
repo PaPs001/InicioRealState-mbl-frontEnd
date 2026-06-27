@@ -1,11 +1,9 @@
-import LogoNegro from '../assets/LogoInicioSVGNegro.svg';
 import TextoLogoInicio from '../assets/TextoLogoInicio.svg';
-
+import { loginStyles } from './login.style'
 import { useState } from 'react'
 import { 
   View, 
   Text, 
-  StyleSheet, 
   TouchableOpacity, 
   TextInput,
   ScrollView,
@@ -15,10 +13,10 @@ import {
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
-import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme'
-import { User, UserPlus, ArrowLeft } from 'lucide-react-native'
-import { getCurrentUser, loginUser } from '@/lib/api/endpoints/auth'
+import { Sparkles, User, UserPlus } from 'lucide-react-native'
+import { loginUser } from '@/lib/api/endpoints/auth'
 import { PasswordTextInput } from '@/components/ui/PasswordTextInput'
+import { colors } from '@/lib/theme'
 
 export default function LoginScreen() {
   const [isAgentMode, setIsAgentMode] = useState(false)
@@ -42,30 +40,18 @@ export default function LoginScreen() {
         throw new Error(loginResponse.error || 'La API no devolvio un token de sesion')
       }
 
-      const backendUser = await getCurrentUser(authToken)
-      const sessionUser = {
-        ...backendUser,
-        roles: loginResponse.roles ?? backendUser.roles,
-        investment: loginResponse.investment ?? backendUser.investment ?? false,
-        tenant: loginResponse.tenant ?? backendUser.tenant ?? false,
+      const sessionUser = loginResponse.user ?? null
+      if (!sessionUser) {
+        throw new Error('La API no devolvio el usuario autenticado')
       }
-
-      console.log('[auth][users/me]', {
-        id: backendUser._id,
-        email: backendUser.email,
-        name: backendUser.name,
-        phone: backendUser.phone ?? null,
-        country: backendUser.country ?? null,
-        roles: backendUser.roles ?? [],
-      })
 
       await setAuthSession(sessionUser, authToken)
 
       console.log('[auth][login-session]', {
-        userId: sessionUser._id ?? null,
+        userId: sessionUser.id ?? null,
         email: sessionUser.email,
         name: sessionUser.name,
-        roles: sessionUser.roles ?? [],
+        systemRole: sessionUser.systemRole ?? null,
         investment: sessionUser.investment ?? null,
         tenant: sessionUser.tenant ?? null,
         hasAccessToken: !!authToken,
@@ -85,25 +71,25 @@ export default function LoginScreen() {
 
   if (isAgentMode) {
     return (
-      <SafeAreaView style={styles.containerDark}>
+      <SafeAreaView style={loginStyles.containerDark}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+          style={loginStyles.keyboardView}
         >
-          <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ScrollView contentContainerStyle={loginStyles.scrollContent}>
             <TouchableOpacity 
-              style={styles.logoContainer}
+              style={loginStyles.logoContainer}
               onPress={() => setIsAgentMode(false)}
             >
               <TextoLogoInicio width={200} height={80} />
             </TouchableOpacity>
 
-            <Text style={styles.subtitleDark}>Portal de Asesores y Coordinadores</Text>
+            <Text style={loginStyles.subtitleDark}>Portal de Asesores y Coordinadores</Text>
 
-            <View style={styles.formContainerDark}>
-              <View style={styles.inputContainerDark}>
+            <View style={loginStyles.formContainerDark}>
+              <View style={loginStyles.inputContainerDark}>
                 <TextInput
-                  style={styles.inputDark}
+                  style={loginStyles.inputDark}
                   placeholder="Correo electronico"
                   placeholderTextColor={colors.textMuted}
                   value={email}
@@ -112,9 +98,9 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                 />
               </View>
-              <View style={styles.inputContainerDark}>
+              <View style={loginStyles.inputContainerDark}>
                 <PasswordTextInput
-                  style={[styles.inputDark, styles.passwordInput]}
+                  style={[loginStyles.inputDark, loginStyles.passwordInput]}
                   placeholder="Contraseña"
                   placeholderTextColor={colors.textMuted}
                   value={password}
@@ -122,32 +108,34 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoCorrect={false}
                   iconColor={colors.textMuted}
-                  toggleStyle={styles.passwordToggle}
+                  toggleStyle={loginStyles.passwordToggle}
                 />
               </View>
-              <TouchableOpacity style={styles.buttonAccent} onPress={handleLogin}>
+              <TouchableOpacity style={loginStyles.buttonAccent} onPress={handleLogin}>
                 <User size={18} color={colors.primaryDark} />
-                <Text style={styles.buttonAccentText}>Iniciar Sesion</Text>
+                <Text style={loginStyles.buttonAccentText}>Iniciar Sesion</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.quickAccessContainer}>
-              <Text style={styles.quickAccessLabel}>Acceso rapido (Demo)</Text>
-              <View style={styles.quickAccessButtons}>
-                <TouchableOpacity 
-                  style={styles.quickButtonAgent}
-                  onPress={() => handleQuickLogin('user-4')}
-                >
-                  <Text style={styles.quickButtonAgentText}>Asesor</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.quickButtonAdmin}
-                  onPress={() => handleQuickLogin('user-5')}
-                >
-                  <Text style={styles.quickButtonAdminText}>Coordinador</Text>
-                </TouchableOpacity>
+            {__DEV__ ? (
+              <View style={loginStyles.quickAccessContainer}>
+                <Text style={loginStyles.quickAccessLabel}>Acceso rapido (Demo)</Text>
+                <View style={loginStyles.quickAccessButtons}>
+                  <TouchableOpacity 
+                    style={loginStyles.quickButtonAgent}
+                    onPress={() => handleQuickLogin('user-4')}
+                  >
+                    <Text style={loginStyles.quickButtonAgentText}>Asesor</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={loginStyles.quickButtonAdmin}
+                    onPress={() => handleQuickLogin('user-5')}
+                  >
+                    <Text style={loginStyles.quickButtonAdminText}>Coordinador</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            ) : null}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -155,23 +143,23 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={loginStyles.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={loginStyles.keyboardView}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={loginStyles.scrollContent}>
           <TouchableOpacity 
-            style={styles.logoContainer}
+            style={loginStyles.logoContainer}
             onPress={() => setIsAgentMode(true)}
           >
             <TextoLogoInicio width={200} height={80} />
           </TouchableOpacity>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
+          <View style={loginStyles.formContainer}>
+            <View style={loginStyles.inputContainer}>
               <TextInput
-                style={styles.input}
+                style={loginStyles.input}
                 placeholder="Correo electronico"
                 placeholderTextColor={colors.textMuted}
                 value={email}
@@ -180,9 +168,9 @@ export default function LoginScreen() {
                 autoCapitalize="none"
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={loginStyles.inputContainer}>
               <PasswordTextInput
-                style={[styles.input, styles.passwordInput]}
+                style={[loginStyles.input, loginStyles.passwordInput]}
                 placeholder="Contraseña"
                 placeholderTextColor={colors.textMuted}
                 value={password}
@@ -190,298 +178,36 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 iconColor={colors.textMuted}
-                toggleStyle={styles.passwordToggle}
+                toggleStyle={loginStyles.passwordToggle}
               />
             </View>
-            <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>
+            <TouchableOpacity style={loginStyles.buttonPrimary} onPress={handleLogin}>
               <User size={18} color={colors.textInverse} />
-              <Text style={styles.buttonPrimaryText}>Iniciar Sesion</Text>
+              <Text style={loginStyles.buttonPrimaryText}>Iniciar Sesion</Text>
             </TouchableOpacity>
             
-            <View style={styles.divider} />
+            <View style={loginStyles.divider} />
             
             <TouchableOpacity
-              style={styles.buttonGhost}
+              style={loginStyles.buttonGhost}
               onPress={() => router.push('/create-account')}
             >
               <UserPlus size={18} color={colors.text} />
-              <Text style={styles.buttonGhostText}>Crear cuenta nueva</Text>
+              <Text style={loginStyles.buttonGhostText}>Crear cuenta nueva</Text>
             </TouchableOpacity>
-          </View>
-          {/*<View style={{ marginTop: 16, alignItems: 'center' }}>
-            <TouchableOpacity
-              style={{ paddingVertical: 8, paddingHorizontal: 16 }}
-              onPress={() => router.push('/animation-demo-screen')}
-            >
-              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Ver demos de animacion</Text>
-            </TouchableOpacity>
-          </View>*/}
 
-          {/*<View style={styles.quickAccessContainer}>
-            <Text style={styles.quickAccessLabelLight}>Acceso rapido (Demo)</Text>
-            <View style={styles.quickAccessButtonsRow}>
-              <TouchableOpacity 
-                style={styles.quickButtonInvestor}
-                onPress={() => handleQuickLogin('user-1')}
+            {__DEV__ ? (
+              <TouchableOpacity
+                style={loginStyles.buttonGhost}
+                onPress={() => router.push('/login-new')}
               >
-                <Text style={styles.quickButtonInvestorText}>Inversionista</Text>
+                <Sparkles size={18} color={colors.text} />
+                <Text style={loginStyles.buttonGhostText}>Ver nuevo login</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.quickButtonClient}
-                onPress={() => handleQuickLogin('user-2')}
-              >
-                <Text style={styles.quickButtonClientText}>Buscando</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.quickButtonClient}
-                onPress={() => handleQuickLogin('user-3')}
-              >
-                <Text style={styles.quickButtonClientText}>Inquilino</Text>
-              </TouchableOpacity>
-            </View>
-          </View>*/}
+            ) : null}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  containerDark: {
-    flex: 1,
-    backgroundColor: colors.primaryDark,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  backButtonText: {
-    color: colors.accent,
-    fontSize: typography.bodySmall.fontSize,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  logoPlaceholder: {
-    width: 150,
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.surfaceDark,
-  },
-  logoPlaceholderLight: {
-    width: 150,
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary,
-  },
-  logoText: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.accent,
-  },
-  logoSubtext: {
-    fontSize: 12,
-    color: colors.accent,
-    letterSpacing: 2,
-  },
-  logoTextLight: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.accent,
-  },
-  logoSubtextLight: {
-    fontSize: 12,
-    color: colors.accent,
-    letterSpacing: 2,
-  },
-  subtitleDark: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: typography.bodySmall.fontSize,
-    marginBottom: spacing.lg,
-  },
-  formContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.md,
-  },
-  formContainerDark: {
-    backgroundColor: colors.surfaceDark,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-  },
-  inputContainer: {
-    marginBottom: spacing.md,
-    position: 'relative',
-  },
-  inputContainerDark: {
-    marginBottom: spacing.md,
-    position: 'relative',
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    fontSize: typography.body.fontSize,
-    color: colors.text,
-  },
-  inputDark: {
-    backgroundColor: colors.primaryDark,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    fontSize: typography.body.fontSize,
-    color: colors.textLight,
-  },
-  passwordInput: {
-    paddingRight: 48,
-  },
-  passwordToggle: {
-    position: 'absolute',
-    right: 16,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  buttonPrimaryText: {
-    color: colors.textInverse,
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-  },
-  buttonAccent: {
-    backgroundColor: colors.accent,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  buttonAccentText: {
-    color: colors.primaryDark,
-    fontSize: typography.body.fontSize,
-    fontWeight: '600',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.md,
-  },
-  buttonGhost: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
-  },
-  buttonGhostText: {
-    color: colors.text,
-    fontSize: typography.body.fontSize,
-  },
-  quickAccessContainer: {
-    marginTop: spacing.xl,
-  },
-  quickAccessLabel: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: typography.caption.fontSize,
-    marginBottom: spacing.md,
-  },
-  quickAccessLabelLight: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: typography.caption.fontSize,
-    marginBottom: spacing.md,
-  },
-  quickAccessButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-  quickAccessButtonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  quickButtonAgent: {
-    backgroundColor: '#0c74af',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  quickButtonAgentText: {
-    color: colors.textLight,
-    fontSize: typography.caption.fontSize,
-    fontWeight: '500',
-  },
-  quickButtonAdmin: {
-    backgroundColor: colors.accent,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  quickButtonAdminText: {
-    color: colors.primaryDark,
-    fontSize: typography.caption.fontSize,
-    fontWeight: '500',
-  },
-  quickButtonInvestor: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  quickButtonInvestorText: {
-    color: colors.accent,
-    fontSize: typography.caption.fontSize,
-    fontWeight: '500',
-  },
-  quickButtonClient: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  quickButtonClientText: {
-    color: colors.textInverse,
-    fontSize: typography.caption.fontSize,
-    fontWeight: '500',
-  },
-})

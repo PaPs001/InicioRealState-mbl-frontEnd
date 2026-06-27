@@ -8,7 +8,9 @@ const followUpsStore = new Map<string, LeadFollowUp[]>()
 type BackendLead = {
   _id?: string
   id?: string | null
+  sourceId?: string | null
   clientName?: string | null
+  name?: string | null
   status?: string | null
   phone?: string | null
   dateFirstContact?: string | Date | null
@@ -23,6 +25,7 @@ type BackendLead = {
   assignedAgentName?: string | null
   agentId?: string | null
   agentName?: string | null
+  source?: string | null
   followUps?: BackendFollowUp[] | null
   createdAt?: string | Date | null
   updatedAt?: string | Date | null
@@ -119,16 +122,16 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
   const advisorId = getBackendAdvisorId(lead)
 
   return {
-    id: lead.id || lead._id || `lead-${Date.now()}`,
+    id: lead.id || lead.sourceId || lead._id || `lead-${Date.now()}`,
     propertyId,
     agentId: advisorId,
     advisorId,
     assignedAgentName: getBackendAdvisorName(lead),
-    name: lead.clientName || 'Lead sin nombre',
+    name: lead.clientName || lead.name || 'Lead sin nombre',
     phone: lead.phone || '',
     email: lead.email || undefined,
     status: backendStatusToLeadStatus[lead.status || ''] ?? 'nuevo',
-    source: lead.leadOrigin || lead.campaign || 'Backend',
+    source: lead.leadOrigin || lead.source || lead.campaign || 'Backend',
     contactType: 'whatsapp',
     searchIntent: typeOfOperation === 'FOR RENT' ? 'rent' : 'sale',
     notes: lead.campaign ? `Campana: ${lead.campaign}` : undefined,
@@ -141,15 +144,7 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
 
 export function mapBackendFollowUpToLeadFollowUp(followUp: BackendFollowUp): LeadFollowUp {
   const leadId = followUp.leadId || followUp.clientId || followUp.client || undefined
-  const notes =
-    followUp.contactSummary ||
-    followUp.summary ||
-    followUp.summaryContact ||
-    followUp.commintContact ||
-    followUp.followUp ||
-    followUp.contactResult ||
-    followUp.rawContactResult ||
-    'Seguimiento sin notas'
+  const notes = followUp.contactSummary || followUp.summary || followUp.followUp || 'Seguimiento sin notas'
 
   return {
     id: followUp.id || followUp._id || `follow-${Date.now()}`,
@@ -249,4 +244,3 @@ export function saveLeadFollowUps(leadId: string, followUps: LeadFollowUp[]) {
 
   return followUps
 }
-

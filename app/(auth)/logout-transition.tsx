@@ -49,7 +49,7 @@ export default function LogoutTransition() {
 
     const timer = setTimeout(async () => {
       await logout()
-      router.replace('/login')
+      router.replace('/login-new')
     }, 1500)
 
     return () => {
