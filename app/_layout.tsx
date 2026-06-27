@@ -83,13 +83,21 @@ function RootNavigator() {
   useEffect(() => {
     const isAuthRoute =
       pathname === '/login' ||
+      pathname === '/login-new' ||
       pathname === '/create-account' ||
+      pathname === '/register-new' ||
+      pathname === '/register-owner' ||
+      pathname === '/register-owner-access' ||
+      pathname === '/register-owner-verify' ||
+      pathname === '/register-owner-welcome' ||
+      pathname === '/register-owner-profile' ||
+      pathname === '/register-owner-final' ||
       pathname === '/register' ||
       pathname === '/register-transition' ||
       pathname === '/logout-transition'
 
     if (!isLoading && !authToken && !isAuthRoute) {
-      router.replace('/login')
+      router.replace('/login-new')
     }
   }, [authToken, isLoading, pathname, router])
 
@@ -107,7 +115,15 @@ function RootNavigator() {
         >
           <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />
           <Stack.Screen name="login" options={{ contentStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen name="login-new" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
           <Stack.Screen name="create-account" options={{ contentStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen name="register-new" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner-access" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner-verify" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner-welcome" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner-profile" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="register-owner-final" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
           <Stack.Screen name="register" options={{ contentStyle: { backgroundColor: colors.background } }} />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="logout-transition" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />

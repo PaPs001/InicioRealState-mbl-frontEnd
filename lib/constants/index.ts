@@ -70,7 +70,7 @@ export const STORAGE_KEYS = {
 // Rutas de navegacion
 export const ROUTES = {
   // Auth
-  LOGIN: '/login',
+  LOGIN: '/login-new',
   REGISTER: '/register',
   CREATE_ACCOUNT: '/create-account',
   LOGOUT_TRANSITION: '/logout-transition',

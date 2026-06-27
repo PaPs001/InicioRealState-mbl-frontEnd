@@ -1,9 +1,8 @@
-import { getCurrentUser, loginUser } from '@/lib/api/endpoints/auth'
-import type { BackendCurrentUser } from '@/lib/api/endpoints/auth'
+import { loginUser } from '@/lib/api/endpoints/auth'
 import { registerUser } from '@/lib/registerUser'
 import type { RegisterRequest, User } from '@/lib/types'
 
-type SetAuthSession = (user: User | BackendCurrentUser | null, token: string | null) => Promise<void>
+type SetAuthSession = (user: User | null, token: string | null) => Promise<void>
 
 export type CompleteRegistrationResult =
   | {
@@ -23,7 +22,7 @@ export async function completeRegistrationAndLogin(
   try {
     console.log('[auth][complete-registration] start', {
       email: data.email.trim().toLowerCase(),
-      role: data.role,
+      roles: data.roles,
       investment: data.investment,
       tenant: data.tenant,
       hasPhone: !!data.phone?.trim(),
@@ -68,10 +67,7 @@ export async function completeRegistrationAndLogin(
       }
     }
 
-    const sessionUser = await getCurrentUser(loginResponse.accessToken).catch((error) => {
-      console.error('[auth][complete-registration] getCurrentUser failed', error)
-      return response.user ?? null
-    })
+    const sessionUser = loginResponse.user ?? response.user ?? null
 
     console.log('[auth][complete-registration] setAuthSession start', {
       email: sessionUser?.email ?? response.user?.email ?? data.email.trim().toLowerCase(),

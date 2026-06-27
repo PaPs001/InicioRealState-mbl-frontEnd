@@ -4,11 +4,11 @@
     "slug": "inicio-real-estate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/iconoIRS.png",
+    "icon": "./app/assets/iconoIRSprincipaltransparencia.png",
     "userInterfaceStyle": "automatic",
     "scheme": "inicio-real-estate",
     "splash": {
-      "image": "./assets/iconoIRS.png",
+      "image": "./app/assets/iconoIRSprincipaltransparencia.png",
       "resizeMode": "contain",
       "backgroundColor": "#1e2d32"
     },
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/iconoIRS.png",
+        "foregroundImage": "./app/assets/iconoIRSprincipaltransparencia.png",
         "backgroundColor": "#1e2d32"
       },
       "package": "com.iniciorealestate.app"
@@ -29,11 +29,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/iconoIRS.png"
+      "favicon": "./app/assets/iconoIRSprincipaltransparencia.png"
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

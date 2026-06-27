@@ -8,7 +8,9 @@ export interface User {
   name: string
   email: string
   phone: string
+  country?: string | null
   systemRole: BackendUserRole
+  roles?: BackendUserRole[]
   investment: boolean
   tenant: boolean
   permissions?: string[]
@@ -21,8 +23,9 @@ export interface RegisterRequest {
   name: string
   email: string
   phone: string
+  country?: string | null
   password: string
-  role: BackendUserRole
+  roles: BackendUserRole[]
   investment: boolean
   tenant: boolean
   referralCode?: string
@@ -45,9 +48,7 @@ export interface LoginResponse {
   message: string
   accessToken?: string
   refreshToken?: string
-  investment?: boolean
-  tenant?: boolean
-  roles?: BackendUserRole[]
+  user?: User
   error?: string
 }
 
