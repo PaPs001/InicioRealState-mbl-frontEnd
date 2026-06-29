@@ -65,9 +65,23 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
   if (!user) return undefined
 
   const roles = user.roles ?? (user.role ? [user.role] : ['CLIENT'])
+  const resolvedId = user.id ?? user._id ?? ''
+
+  console.info('[auth][map-user]', {
+    rawKeys: Object.keys(user),
+    rawId: user.id ?? null,
+    rawMongoId: user._id ?? null,
+    resolvedId,
+    email: user.email ?? null,
+    role: user.role ?? null,
+    roles,
+    hasPermissions: Array.isArray(user.permissions),
+    investment: user.investment ?? null,
+    tenant: user.tenant ?? null,
+  })
 
   return {
-    id: user.id ?? user._id ?? '',
+    id: resolvedId,
     name: user.name ?? '',
     email: user.email ?? '',
     phone: user.phone ?? '',
@@ -133,6 +147,9 @@ function extractLoginTokens(payload: LoginApiPayload): {
 function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefined {
   return payload.user ?? payload.data?.user
 }
+
+const previewToken = (token?: string) =>
+  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
 
 export async function getCurrentUser(token: string): Promise<BackendCurrentUser> {
   return coreApi<BackendCurrentUser>('/users/me', {
@@ -240,13 +257,25 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
       body: payload
     })
 
+    console.info('[auth][login] raw response shape', {
+      rootKeys: Object.keys(result),
+      dataKeys: result.data ? Object.keys(result.data) : [],
+      hasRootAccessToken: !!result.accessToken,
+      hasDataAccessToken: !!result.data?.accessToken,
+      hasRootUser: !!result.user,
+      hasDataUser: !!result.data?.user,
+    })
+
     const { accessToken, refreshToken } = extractLoginTokens(result)
-    const user = mapBackendAuthUser(extractLoginUser(result))
+    const rawUser = extractLoginUser(result)
+    const user = mapBackendAuthUser(rawUser)
 
     console.log('[auth][login] response', {
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
+      accessTokenPreview: previewToken(accessToken),
       userId: user?.id ?? null,
+      rawUserKeys: rawUser ? Object.keys(rawUser) : [],
       systemRole: user?.systemRole ?? null,
       roles: user?.roles ?? null,
       investment: user?.investment ?? null,
