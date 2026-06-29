@@ -6,6 +6,9 @@ const AUTH_USER_STORAGE_KEY = 'authUser'
 const AUTH_TOKEN_STORAGE_KEY = 'authToken'
 const CURRENT_USER_ID_STORAGE_KEY = 'currentUserId'
 
+const previewToken = (token: string | null) =>
+  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
+
 export type BackendUser = Partial<User> & {
   _id?: string
   userId?: string
@@ -97,8 +100,21 @@ export function getUserIdFromToken(token: string | null): string | null {
     if (!decodedPayload) return null
 
     const parsedPayload = JSON.parse(decodedPayload) as { userId?: string }
-    return parsedPayload.userId ?? null
+    const tokenUserId = parsedPayload.userId ?? null
+
+    console.info('[auth][token-decode]', {
+      hasToken: true,
+      tokenPreview: previewToken(token),
+      tokenUserId,
+      payloadKeys: Object.keys(parsedPayload),
+    })
+
+    return tokenUserId
   } catch {
+    console.warn('[auth][token-decode] failed', {
+      hasToken: true,
+      tokenPreview: previewToken(token),
+    })
     return null
   }
 }
@@ -127,13 +143,33 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
 export function buildSessionUser(user: BackendUser | User | null, token: string | null): User | null {
   const normalizedUser = normalizeAuthUser(user)
   const tokenUserId = getUserIdFromToken(token)
-
-  return normalizedUser
+  const sessionUser = normalizedUser
     ? { ...normalizedUser, id: normalizedUser.id || tokenUserId || '' }
     : null
+
+  console.info('[auth][build-session-user]', {
+    hasInputUser: !!user,
+    inputUserKeys: user ? Object.keys(user) : [],
+    normalizedUserId: normalizedUser?.id ?? null,
+    tokenUserId,
+    finalUserId: sessionUser?.id ?? null,
+    email: sessionUser?.email ?? null,
+    systemRole: sessionUser?.systemRole ?? null,
+    hasToken: !!token,
+  })
+
+  return sessionUser
 }
 
 export async function persistAuthSession(user: User | null, token: string | null): Promise<void> {
+  console.info('[auth][storage-write] start', {
+    userId: user?.id ?? null,
+    email: user?.email ?? null,
+    hasToken: !!token,
+    tokenPreview: previewToken(token),
+    willStoreUser: !!user?.id,
+  })
+
   if (user?.id) {
     await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, user.id)
     await AsyncStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user))
@@ -147,12 +183,34 @@ export async function persistAuthSession(user: User | null, token: string | null
   } else {
     await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
   }
+
+  const [storedUserId, storedAuthUser, storedToken] = await Promise.all([
+    AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY),
+    AsyncStorage.getItem(AUTH_USER_STORAGE_KEY),
+    AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY),
+  ])
+
+  console.info('[auth][storage-write] done', {
+    storedUserId,
+    hasStoredUser: !!storedAuthUser,
+    storedUserLength: storedAuthUser?.length ?? 0,
+    hasStoredToken: !!storedToken,
+    storedTokenPreview: previewToken(storedToken),
+  })
 }
 
 export async function restoreAuthSession(): Promise<RestoredAuthSession> {
   const storedToken = await AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
   const storedAuthUser = await AsyncStorage.getItem(AUTH_USER_STORAGE_KEY)
   const storedUserId = await AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY)
+
+  console.info('[auth][storage-read]', {
+    storedUserId,
+    hasStoredUser: !!storedAuthUser,
+    storedUserLength: storedAuthUser?.length ?? 0,
+    hasStoredToken: !!storedToken,
+    storedTokenPreview: previewToken(storedToken),
+  })
 
   return {
     storedToken,

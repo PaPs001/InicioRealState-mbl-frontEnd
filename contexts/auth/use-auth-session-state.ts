@@ -13,6 +13,9 @@ import {
 } from '@/lib/services/auth-session'
 import type { User } from '@/lib/types'
 
+const previewToken = (token: string | null) =>
+  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
+
 type AuthSessionState = {
   authToken: string | null
   currentUser: User | null
@@ -35,6 +38,13 @@ export function useAuthSessionState(): AuthSessionState {
   }, [])
 
   const setAuthSession = useCallback(async (user: BackendUser | User | null, token: string | null) => {
+    console.info('[auth][set-session] start', {
+      hasUser: !!user,
+      inputUserKeys: user ? Object.keys(user) : [],
+      hasToken: !!token,
+      tokenPreview: previewToken(token),
+    })
+
     const sessionUser = buildSessionUser(user, token)
 
     setCurrentUserState(sessionUser)
@@ -49,12 +59,29 @@ export function useAuthSessionState(): AuthSessionState {
       tenant: sessionUser?.tenant ?? null,
       resolvedUserId: sessionUser?.id ?? null,
       hasToken: !!token,
+      tokenPreview: previewToken(token),
     })
   }, [])
 
   const hydrateSessionFromToken = useCallback(
     async (token: string, storedUser?: User | null) => {
+      console.info('[auth][hydrate-token] start', {
+        hasStoredUser: !!storedUser,
+        storedUserId: storedUser?.id ?? null,
+        hasToken: !!token,
+        tokenPreview: previewToken(token),
+      })
+
       const backendUser = await getCurrentUser(token)
+      console.info('[auth][hydrate-token] backend-user', {
+        backendUserKeys: backendUser ? Object.keys(backendUser) : [],
+        backendUserId: backendUser?.id ?? null,
+        backendMongoId: backendUser?._id ?? null,
+        email: backendUser?.email ?? null,
+        role: backendUser?.role ?? null,
+        roles: backendUser?.roles ?? null,
+      })
+
       await setAuthSession(
         {
           ...storedUser,
@@ -72,26 +99,58 @@ export function useAuthSessionState(): AuthSessionState {
     try {
       const { storedToken, storedUser, storedUserId } = await restoreAuthSession()
 
+      console.info('[auth][load-stored-user] restored', {
+        storedUserId,
+        storedUserObjectId: storedUser?.id ?? null,
+        hasStoredUser: !!storedUser,
+        hasStoredToken: !!storedToken,
+        storedTokenPreview: previewToken(storedToken),
+      })
+
       if (storedToken) {
         try {
           await hydrateSessionFromToken(storedToken, storedUser)
         } catch (error) {
-          console.error('Error hydrating session from token:', error)
+          console.error('[auth][hydrate-token] failed', {
+            error,
+            hasStoredUser: !!storedUser,
+            storedUserId: storedUser?.id ?? null,
+            hasStoredToken: true,
+            storedTokenPreview: previewToken(storedToken),
+          })
           setAuthToken(storedToken)
           if (storedUser) {
             setCurrentUserState(storedUser)
+            console.info('[auth][hydrate-token] fallback-stored-user', {
+              storedUserId: storedUser.id,
+              email: storedUser.email,
+              systemRole: storedUser.systemRole,
+            })
+          } else {
+            console.warn('[auth][hydrate-token] fallback-token-only', {
+              hasStoredToken: true,
+              storedTokenPreview: previewToken(storedToken),
+            })
           }
         }
+      } else {
+        console.info('[auth][load-stored-user] no stored token')
       }
 
       if (storedUserId) {
         const storedFavorites = await AsyncStorage.getItem(`favorites_${storedUserId}`)
         setHydratedFavorites(storedFavorites ? JSON.parse(storedFavorites) : [])
+        console.info('[auth][favorites] hydrated', {
+          storedUserId,
+          hasStoredFavorites: !!storedFavorites,
+          favoritesCount: storedFavorites ? JSON.parse(storedFavorites).length : 0,
+        })
       }
     } catch (error) {
-      console.error('Error loading stored user:', error)
+      console.error('[auth][load-stored-user] failed', error)
     } finally {
       setIsLoading(false)
+      console.info('[auth][load-stored-user] done')
     }
   }, [hydrateSessionFromToken])
 

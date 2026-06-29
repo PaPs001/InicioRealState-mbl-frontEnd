@@ -23,6 +23,12 @@ interface ApiError {
 const shouldLogApiDebug = (path: string) =>
   path.startsWith('/dates/') || path.includes('/dates/')
 
+const shouldLogAuthDebug = (path: string) =>
+  path.startsWith('/auth/') || path === '/users/me'
+
+const previewToken = (token?: string) =>
+  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
+
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
     const data = await response.json() as { message?: string; error?: string }
@@ -58,11 +64,34 @@ export async function apiClient<T>(
     requestHeaders['Authorization'] = `Bearer ${token}`
   }
 
+  if (shouldLogAuthDebug(path)) {
+    console.info('[API][auth] request', {
+      method,
+      path,
+      baseUrl,
+      hasToken: !!token,
+      tokenPreview: previewToken(token),
+      hasNgrokBypass: requestHeaders['ngrok-skip-browser-warning'] === 'true',
+      bodyKeys: body && typeof body === 'object' ? Object.keys(body as Record<string, unknown>) : [],
+    })
+  }
+
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
+
+  if (shouldLogAuthDebug(path)) {
+    console.info('[API][auth] response', {
+      method,
+      path,
+      baseUrl,
+      status: response.status,
+      ok: response.ok,
+      contentType: response.headers.get('content-type'),
+    })
+  }
 
   if (shouldLogApiDebug(path)) {
     console.info('[API][dates] response', {
@@ -90,6 +119,16 @@ export async function apiClient<T>(
     }
     if (shouldLogApiDebug(path)) {
       console.warn('[API][dates] error response', {
+        method,
+        path,
+        baseUrl,
+        status: response.status,
+        message: errorMessage,
+        details,
+      })
+    }
+    if (shouldLogAuthDebug(path)) {
+      console.warn('[API][auth] error response', {
         method,
         path,
         baseUrl,
