@@ -3,7 +3,6 @@
  */
 
 import { coreApi } from '../client'
-import { mockProperties } from '@/lib/mock-data'
 import type { Property } from '@/lib/types'
 
 export interface CreateUserPropertyPayload {
@@ -90,5 +89,5 @@ export function getPropertyRecordById(propertyId?: string | null): Property | nu
     return null
   }
 
-  return mockProperties.find((property) => property.id === propertyId) ?? null
+  return null
 }

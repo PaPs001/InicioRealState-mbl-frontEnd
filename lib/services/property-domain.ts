@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { getAuthMockUserById } from '@/lib/api'
 import {
   addFavoriteProperty,
   deleteFavoriteProperties,
@@ -145,7 +144,7 @@ export function getPropertyAgentName(property?: Property | null) {
     return 'Sin asesor'
   }
 
-  return getAuthMockUserById(property.agentId)?.name ?? 'Sin asesor'
+  return property.agentId ? 'Asesor asignado' : 'Sin asesor'
 }
 
 export function getPropertyOwnerName(property?: Property | null) {
@@ -153,5 +152,5 @@ export function getPropertyOwnerName(property?: Property | null) {
     return 'Sin propietario asignado'
   }
 
-  return getAuthMockUserById(property.ownerId)?.name ?? 'Sin propietario asignado'
+  return property.ownerId ? 'Propietario asignado' : 'Sin propietario asignado'
 }

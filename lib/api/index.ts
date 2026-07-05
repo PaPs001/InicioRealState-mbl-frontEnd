@@ -21,10 +21,8 @@ import * as auth from './endpoints/auth'
 import * as activity from './endpoints/activity'
 import * as catalog from './endpoints/catalog'
 import * as dates from './endpoints/dates'
-import * as documents from './endpoints/documents'
-import * as investor from './endpoints/investor'
 import * as leads from './endpoints/leads'
-import * as messaging from './endpoints/messaging'
+import * as mail from './endpoints/mail'
 import * as pdfReports from './endpoints/pdfReports'
 import * as portfolio from './endpoints/portfolio'
 import * as properties from './endpoints/properties'
@@ -34,10 +32,8 @@ export const api = {
   auth,
   catalog,
   dates,
-  documents,
-  investor,
   leads,
-  messaging,
+  mail,
   pdfReports,
   portfolio,
   properties,
@@ -53,7 +49,6 @@ export {
 
 export {
   getCurrentUser,
-  getAuthMockUserById,
   registerUser,
   loginUser,
   checkEmailExists,
@@ -68,11 +63,6 @@ export {
   mapApiPropertyToProperty,
   type PropertyCatalogItemResponse,
 } from './endpoints/catalog'
-
-export {
-  getDocumentContractRecords,
-  type DocumentContractRecord,
-} from './endpoints/documents'
 
 export {
   createGoogleCalendarDate,
@@ -98,13 +88,6 @@ export {
 } from './endpoints/dates'
 
 export {
-  getInvestorCampaignPropertyRecord,
-  getInvestorCampaignRecords,
-  getInvestorPropertyEarningsRecords,
-  getInvestorPropertyRecords,
-} from './endpoints/investor'
-
-export {
   createLeadRecord,
   createBackendLeadFollowUp,
   getBackendLeadRecords,
@@ -120,6 +103,15 @@ export {
 } from './endpoints/leads'
 
 export {
+  sendRegistrationVerificationEmail,
+  verifyRegistrationEmailCode,
+  type SendRegistrationVerificationEmailInput,
+  type SendRegistrationVerificationEmailResponse,
+  type VerifyRegistrationEmailCodeInput,
+  type VerifyRegistrationEmailCodeResponse,
+} from './endpoints/mail'
+
+export {
   createAndOpenTemporaryPropertyListPdf,
   createTemporaryPropertyListPdfUrl,
   type GeneratePropertyListPdfPayload,
@@ -129,12 +121,6 @@ export {
   type PdfReportDesign,
   type PdfReportList,
 } from './endpoints/pdfReports'
-
-export {
-  getConversationPropertyRecord,
-  getConversationRecords,
-  getConversationUserRecord,
-} from './endpoints/messaging'
 
 export {
   getPortfolioAgentRecord,

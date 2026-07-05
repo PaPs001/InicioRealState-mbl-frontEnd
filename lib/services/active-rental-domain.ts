@@ -1,4 +1,3 @@
-import { mockActiveRental, mockProperties, mockUsers } from '@/lib/mock-data'
 import type { ActiveRental, Property, User } from '@/lib/types'
 
 export type ActiveRentalSnapshot = {
@@ -23,44 +22,16 @@ export function getDaysUntilRentalPayment(paymentDay: number) {
 }
 
 export function getActiveRentalSnapshotByTenantId(tenantId?: string | null): ActiveRentalSnapshot {
-  if (!tenantId || mockActiveRental.tenantId !== tenantId) {
-    return {
-      rental: null,
-      property: null,
-      landlord: null,
-      agent: null,
-      tenant: null,
-      daysUntilPayment: 0,
-    }
-  }
-
-  const rental = mockActiveRental
-  const property = mockProperties.find((item) => item.id === rental.propertyId) || null
-  const landlord = mockUsers.find((item) => item.id === rental.landlordId) || null
-  const agent = mockUsers.find((item) => item.id === rental.agentId) || null
-  const tenant = mockUsers.find((item) => item.id === rental.tenantId) || null
-
   return {
-    rental,
-    property,
-    landlord,
-    agent,
-    tenant,
-    daysUntilPayment: getDaysUntilRentalPayment(rental.paymentDay),
+    rental: null,
+    property: null,
+    landlord: null,
+    agent: null,
+    tenant: null,
+    daysUntilPayment: 0,
   }
 }
 
 export function getActiveRentalSnapshotByPropertyId(propertyId?: string | null): ActiveRentalSnapshot {
-  if (!propertyId || mockActiveRental.propertyId !== propertyId) {
-    return {
-      rental: null,
-      property: null,
-      landlord: null,
-      agent: null,
-      tenant: null,
-      daysUntilPayment: 0,
-    }
-  }
-
-  return getActiveRentalSnapshotByTenantId(mockActiveRental.tenantId)
+  return getActiveRentalSnapshotByTenantId(propertyId)
 }

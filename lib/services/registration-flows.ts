@@ -1,75 +1,99 @@
 import { completeRegistrationAndLogin } from '@/lib/auth/complete-registration'
 import type { BackendCurrentUser } from '@/lib/api/endpoints/auth'
-import type { User } from '@/lib/types'
+import type { BackendUserRole, User } from '@/lib/types'
+import type { RegisterClientType } from './register-entry'
 
 type SetAuthSession = (user: User | BackendCurrentUser | null, token: string | null) => Promise<void>
 
-type BaseRegistrationInput = {
+export type RegisterByClientTypeInput = {
+  clientType: RegisterClientType
   email: string
+  fullName: string
   password: string
   phone: string
+  emailVerificationToken?: string
+  propertyProfile?: string
+  primaryInterest?: string
+  priority?: string
+  preferredChannel?: string
+  platformNotification?: string
+  registrationNotes?: string
 }
 
-type BuyerRegistrationInput = BaseRegistrationInput & {
-  name: string
-  searchType?: 'buy' | 'rent' | ''
+type RegistrationBackendProfile = {
+  roles: BackendUserRole[]
+  investment: boolean
+  tenant: boolean
 }
 
-type OwnerRegistrationInput = BaseRegistrationInput & {
-  fullName: string
+const registrationHomeRoutes: Record<RegisterClientType, string> = {
+  advisor: '/userAdviser',
+  owner: '/userHomeOwner',
+  renter: '/userOccupant',
+  tenant: '/userSearcher',
 }
 
-type RenterRegistrationInput = BaseRegistrationInput & {
-  fullName: string
+const registrationBackendProfiles: Record<RegisterClientType, RegistrationBackendProfile> = {
+  advisor: {
+    roles: ['AGENT'],
+    investment: false,
+    tenant: false,
+  },
+  owner: {
+    roles: ['CLIENT'],
+    investment: true,
+    tenant: false,
+  },
+  renter: {
+    roles: ['CLIENT'],
+    investment: false,
+    tenant: true,
+  },
+  tenant: {
+    roles: ['CLIENT'],
+    investment: false,
+    tenant: false,
+  },
 }
 
-type AdvisorRegistrationInput = BaseRegistrationInput & {
-  firstName: string
-  lastName: string
+export function getRegistrationHomeRoute(clientType: RegisterClientType) {
+  return registrationHomeRoutes[clientType] as never
 }
 
-export async function registerBuyer(
-  input: BuyerRegistrationInput,
-  setAuthSession: SetAuthSession,
-) {
-  return completeRegistrationAndLogin(
-    {
-      name: input.name,
-      email: input.email,
-      phone: input.phone,
-      country: null,
-      password: input.password,
-      roles: ['CLIENT'],
-      investment: false,
-      tenant: false,
-    },
-    setAuthSession,
+export function getRegistrationBackendProfile(clientType: RegisterClientType) {
+  return registrationBackendProfiles[clientType]
+}
+
+function buildRegistrationAboutUser(input: RegisterByClientTypeInput) {
+  const aboutUser = {
+    clientType: input.clientType,
+    propertyProfile: input.propertyProfile?.trim(),
+    primaryInterest: input.primaryInterest?.trim(),
+    priority: input.priority?.trim(),
+    preferredChannel: input.preferredChannel?.trim(),
+    platformNotification: input.platformNotification?.trim(),
+    registrationNotes: input.registrationNotes?.trim(),
+  }
+
+  return Object.fromEntries(
+    Object.entries(aboutUser).filter(([, value]) => value !== undefined && value !== ''),
   )
 }
 
-export async function registerOwner(
-  input: OwnerRegistrationInput,
+export async function registerUserByClientType(
+  input: RegisterByClientTypeInput,
   setAuthSession: SetAuthSession,
 ) {
-  return completeRegistrationAndLogin(
-    {
-      name: input.fullName.trim(),
-      email: input.email,
-      phone: input.phone,
-      country: null,
-      password: input.password,
-      roles: ['CLIENT'],
-      investment: true,
-      tenant: false,
-    },
-    setAuthSession,
-  )
-}
+  const profile = getRegistrationBackendProfile(input.clientType)
+  const emailVerificationToken = input.emailVerificationToken?.trim()
 
-export async function registerRenter(
-  input: RenterRegistrationInput,
-  setAuthSession: SetAuthSession,
-) {
+  if (!emailVerificationToken) {
+    return {
+      success: false,
+      error: 'Primero debes verificar el codigo enviado a tu correo.',
+    } as const
+  }
+
   return completeRegistrationAndLogin(
     {
       name: input.fullName.trim(),
@@ -77,28 +101,11 @@ export async function registerRenter(
       phone: input.phone.trim(),
       country: null,
       password: input.password,
-      roles: ['CLIENT'],
-      investment: false,
-      tenant: true,
-    },
-    setAuthSession,
-  )
-}
-
-export async function registerAdvisor(
-  input: AdvisorRegistrationInput,
-  setAuthSession: SetAuthSession,
-) {
-  return completeRegistrationAndLogin(
-    {
-      name: `${input.firstName.trim()} ${input.lastName.trim()}`.trim(),
-      email: input.email.trim(),
-      phone: input.phone.trim(),
-      country: null,
-      password: input.password,
-      roles: ['AGENT'],
-      investment: false,
-      tenant: false,
+      emailVerificationToken,
+      roles: profile.roles,
+      investment: profile.investment,
+      tenant: profile.tenant,
+      aboutUser: buildRegistrationAboutUser(input),
     },
     setAuthSession,
   )

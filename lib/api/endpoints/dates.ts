@@ -13,6 +13,9 @@ export interface GoogleCalendarDate {
   location?: string | null
   helpedBy?: string | null
   appointmentType?: string | null
+  leadId?: string | null
+  propertyId?: string | null
+  advisorId?: string | null
   startDateTime?: string | null
   endDateTime?: string | null
   timeZone?: string | null

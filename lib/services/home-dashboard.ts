@@ -1,15 +1,6 @@
-import type { ActiveRental, Appointment, Property, PropertyLead, User } from '@/lib/types'
+import type { Appointment, Property, PropertyLead } from '@/lib/types'
 import type { AppTheme, ClientRole } from '@/lib/theme'
 import { getAppThemeByRole } from '@/lib/theme'
-import { getActiveRentalSnapshotByTenantId } from '@/lib/services/active-rental-domain'
-
-export type TenantDashboardSnapshot = {
-  rental: ActiveRental | null
-  property: Property | null
-  landlord: User | null
-  agent: User | null
-  daysUntilPayment: number
-}
 
 export function getHomeClientRole(params: {
   isInvestor: boolean
@@ -85,26 +76,4 @@ export function getAppointmentSummary(userAppointments: Appointment[]) {
 
 export function getVisibleAvailableProperties(availableProperties: Property[], hasLoadedCatalog: boolean) {
   return hasLoadedCatalog ? availableProperties : []
-}
-
-export function getTenantDashboardSnapshot(currentUser: User | null): TenantDashboardSnapshot {
-  if (!currentUser || !currentUser.tenant) {
-    return {
-      rental: null,
-      property: null,
-      landlord: null,
-      agent: null,
-      daysUntilPayment: 0,
-    }
-  }
-
-  const snapshot = getActiveRentalSnapshotByTenantId(currentUser.id)
-
-  return {
-    rental: snapshot.rental,
-    property: snapshot.property,
-    landlord: snapshot.landlord,
-    agent: snapshot.agent,
-    daysUntilPayment: snapshot.daysUntilPayment,
-  }
 }

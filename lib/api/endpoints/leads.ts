@@ -1,4 +1,3 @@
-import { mockLeads, mockUsers } from '@/lib/mock-data'
 import type { LeadFollowUp, PropertyLead, User } from '@/lib/types'
 import { coreApi } from '../client'
 
@@ -10,13 +9,18 @@ type BackendLead = {
   id?: string | null
   sourceId?: string | null
   clientName?: string | null
+  fullName?: string | null
+  client?: string | null
   name?: string | null
   status?: string | null
   phone?: string | null
   dateFirstContact?: string | Date | null
   campaign?: string | null
+  adsCampain?: string | null
   typeOfOperation?: 'FOR RENT' | 'FOR SALE' | string | null
+  operation?: string | null
   leadOrigin?: string | null
+  origin?: string | null
   propertyOfInterestId?: string | null
   acquiredPropertyId?: string | null
   email?: string | null
@@ -26,6 +30,10 @@ type BackendLead = {
   agentId?: string | null
   agentName?: string | null
   source?: string | null
+  maximumBudget?: string | number | null
+  maximunBudget?: string | number | null
+  maxinumBudget?: string | number | null
+  minimumBudget?: string | number | null
   followUps?: BackendFollowUp[] | null
   createdAt?: string | Date | null
   updatedAt?: string | Date | null
@@ -78,21 +86,77 @@ export type CreateBackendLeadFollowUpPayload = {
 
 const backendStatusToLeadStatus: Record<string, PropertyLead['status']> = {
   new: 'nuevo',
+  nuevo: 'nuevo',
   contacted: 'contactado',
+  contactado: 'contactado',
   qualified: 'contactado',
   visitScheduled: 'cita_agendada',
+  citascheduled: 'cita_agendada',
+  citaagendada: 'cita_agendada',
+  'cita agendada': 'cita_agendada',
   negotiation: 'negociando',
+  negociando: 'negociando',
   reserved: 'negociando',
   won: 'cerrado',
+  cerrado: 'cerrado',
   lost: 'descartado',
+  descartado: 'descartado',
   duplicate: 'descartado',
   disqualified: 'descartado',
   spam: 'descartado',
 }
 
+const EMPTY_LEAD_NAME = 'Lead sin nombre'
+
 function normalizeDate(value?: string | Date | null) {
   if (!value) return new Date().toISOString()
   return value instanceof Date ? value.toISOString() : value
+}
+
+function normalizeTextValue(value?: string | number | null) {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+function isMeaningfulLeadName(value?: string | number | null) {
+  const normalizedValue = normalizeTextValue(value)
+  return Boolean(normalizedValue && normalizedValue.toLowerCase() !== EMPTY_LEAD_NAME.toLowerCase())
+}
+
+function getFirstMeaningfulValue(...values: Array<string | number | null | undefined>) {
+  return values.map(normalizeTextValue).find(value => value.length > 0) || ''
+}
+
+function getBackendLeadName(lead: BackendLead) {
+  const explicitName = [lead.fullName, lead.clientName, lead.name, lead.client]
+    .find(isMeaningfulLeadName)
+
+  if (explicitName) return normalizeTextValue(explicitName)
+
+  const email = normalizeTextValue(lead.email)
+  if (email) return email.split('@')[0] || email
+
+  const phone = normalizeTextValue(lead.phone)
+  if (phone) return `Lead ${phone}`
+
+  return EMPTY_LEAD_NAME
+}
+
+function getBackendLeadStatus(value?: string | null): PropertyLead['status'] {
+  const normalizedStatus = normalizeTextValue(value)
+  const statusKey = normalizedStatus
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[_-]+/g, ' ')
+
+  return backendStatusToLeadStatus[statusKey] ?? backendStatusToLeadStatus[normalizedStatus] ?? 'nuevo'
+}
+
+function getBackendLeadSearchIntent(lead: BackendLead): PropertyLead['searchIntent'] {
+  const operation = getFirstMeaningfulValue(lead.typeOfOperation, lead.operation).toLowerCase()
+  if (operation.includes('rent') || operation.includes('renta')) return 'rent'
+  return 'sale'
 }
 
 function mapBackendContactType(value?: string | null): LeadFollowUp['type'] {
@@ -112,14 +176,19 @@ function getBackendAdvisorName(lead: BackendLead) {
     return lead.advisor.name || lead.advisor.fullName || undefined
   }
 
-  return lead.assignedAgentName || lead.agentName || undefined
+  return lead.assignedAgentName || lead.agentName || (typeof lead.advisor === 'string' ? lead.advisor : undefined) || undefined
 }
 
 export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
   const propertyId = lead.propertyOfInterestId || lead.acquiredPropertyId || ''
   const firstContactDate = normalizeDate(lead.dateFirstContact || lead.createdAt)
-  const typeOfOperation = lead.typeOfOperation?.toUpperCase()
   const advisorId = getBackendAdvisorId(lead)
+  const campaign = getFirstMeaningfulValue(lead.campaign, lead.adsCampain)
+  const budget = getFirstMeaningfulValue(lead.maximumBudget, lead.maximunBudget, lead.maxinumBudget, lead.minimumBudget)
+  const notes = [
+    campaign ? `Campana: ${campaign}` : null,
+    budget ? `Presupuesto: ${budget}` : null,
+  ].filter(Boolean).join('\n') || undefined
 
   return {
     id: lead.id || lead.sourceId || lead._id || `lead-${Date.now()}`,
@@ -127,14 +196,14 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
     agentId: advisorId,
     advisorId,
     assignedAgentName: getBackendAdvisorName(lead),
-    name: lead.clientName || lead.name || 'Lead sin nombre',
+    name: getBackendLeadName(lead),
     phone: lead.phone || '',
     email: lead.email || undefined,
-    status: backendStatusToLeadStatus[lead.status || ''] ?? 'nuevo',
-    source: lead.leadOrigin || lead.source || lead.campaign || 'Backend',
+    status: getBackendLeadStatus(lead.status),
+    source: getFirstMeaningfulValue(lead.origin, lead.leadOrigin, lead.source, campaign) || 'Backend',
     contactType: 'whatsapp',
-    searchIntent: typeOfOperation === 'FOR RENT' ? 'rent' : 'sale',
-    notes: lead.campaign ? `Campana: ${lead.campaign}` : undefined,
+    searchIntent: getBackendLeadSearchIntent(lead),
+    notes,
     createdDate: normalizeDate(lead.createdAt || firstContactDate),
     firstContactDate,
     lastContactDate: lead.updatedAt ? normalizeDate(lead.updatedAt) : undefined,
@@ -203,7 +272,7 @@ function applyLeadOverlays(lead: PropertyLead): PropertyLead {
   }
 }
 
-export function getLeadRecords(baseLeads: PropertyLead[] = mockLeads): PropertyLead[] {
+export function getLeadRecords(baseLeads: PropertyLead[] = []): PropertyLead[] {
   const createdLeads = Array.from(createdLeadsStore.values())
   const createdIds = new Set(createdLeads.map((lead) => lead.id))
 
@@ -214,7 +283,7 @@ export function getLeadRecords(baseLeads: PropertyLead[] = mockLeads): PropertyL
 }
 
 export function getLeadAgents(): User[] {
-  return mockUsers.filter((user) => user.systemRole === 'AGENT')
+  return []
 }
 
 export function getLeadAgentById(agentId?: string | null): User | null {
@@ -222,7 +291,7 @@ export function getLeadAgentById(agentId?: string | null): User | null {
     return null
   }
 
-  return mockUsers.find((user) => user.id === agentId) ?? null
+  return null
 }
 
 export function createLeadRecord(lead: PropertyLead) {
@@ -230,7 +299,7 @@ export function createLeadRecord(lead: PropertyLead) {
   return lead
 }
 
-export function getLeadRecordById(id: string, baseLeads: PropertyLead[] = mockLeads) {
+export function getLeadRecordById(id: string, baseLeads: PropertyLead[] = []) {
   return getLeadRecords(baseLeads).find((lead) => lead.id === id)
 }
 
