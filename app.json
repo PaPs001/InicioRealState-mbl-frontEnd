@@ -4,11 +4,11 @@
     "slug": "inicio-real-estate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./app/assets/iconoIRSprincipaltransparencia.png",
+    "icon": "./assets/iconoIRSprincipaltransparencia.png",
     "userInterfaceStyle": "automatic",
     "scheme": "inicio-real-estate",
     "splash": {
-      "image": "./app/assets/iconoIRSprincipaltransparencia.png",
+      "image": "./assets/iconoIRSprincipaltransparencia.png",
       "resizeMode": "contain",
       "backgroundColor": "#1e2d32"
     },
@@ -24,7 +24,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/iconoIRSprincipaltransparencia.png",
+        "foregroundImage": "./assets/iconoIRSprincipaltransparencia.png",
         "backgroundColor": "#1e2d32"
       },
       "package": "com.iniciorealestate.app"
@@ -32,7 +32,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./app/assets/iconoIRSprincipaltransparencia.png"
+      "favicon": "./assets/iconoIRSprincipaltransparencia.png"
     },
     "plugins": [
       "expo-router",

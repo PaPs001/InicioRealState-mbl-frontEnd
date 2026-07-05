@@ -15,7 +15,7 @@ function RootNavigator() {
   const router = useRouter()
   
   const isAdvisor = isAgent || isAdmin || isCoordinator
-  const isCoordinatorRoute = pathname.startsWith('/coordinator')
+  const isCoordinatorRoute = pathname.startsWith('/userCoordinator')
   
   // Usuarios con fondo oscuro: inversionista y asesor
   // Usuarios con fondo claro: searching, tenant, y sin usuario (login/registro)
@@ -82,22 +82,19 @@ function RootNavigator() {
 
   useEffect(() => {
     const isAuthRoute =
-      pathname === '/login' ||
-      pathname === '/login-new' ||
-      pathname === '/create-account' ||
+      pathname === '/login/login' ||
       pathname === '/register-new' ||
-      pathname === '/register-owner' ||
-      pathname === '/register-owner-access' ||
-      pathname === '/register-owner-verify' ||
-      pathname === '/register-owner-welcome' ||
-      pathname === '/register-owner-profile' ||
-      pathname === '/register-owner-final' ||
       pathname === '/register' ||
       pathname === '/register-transition' ||
-      pathname === '/logout-transition'
+      pathname.startsWith('/regAdvisor') ||
+      pathname.startsWith('/regCoordinator-new') ||
+      pathname.startsWith('/regOwnerHouse') ||
+      pathname.startsWith('/regInquilino') ||
+      pathname.startsWith('/regSearcher') ||
+      pathname === '/regCoordinator'
 
     if (!isLoading && !authToken && !isAuthRoute) {
-      router.replace('/login-new')
+      router.replace('/login/login')
     }
   }, [authToken, isLoading, pathname, router])
 
@@ -114,28 +111,8 @@ function RootNavigator() {
           }}
         >
           <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />
-          <Stack.Screen name="login" options={{ contentStyle: { backgroundColor: colors.background } }} />
-          <Stack.Screen name="login-new" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="create-account" options={{ contentStyle: { backgroundColor: colors.background } }} />
-          <Stack.Screen name="register-new" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner-access" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner-verify" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner-welcome" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner-profile" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register-owner-final" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
-          <Stack.Screen name="register" options={{ contentStyle: { backgroundColor: colors.background } }} />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="logout-transition" options={{ contentStyle: { backgroundColor: clientThemes.investor.background } }} />
-          <Stack.Screen 
-            name="property/[id]" 
-            options={{ 
-              headerShown: true,
-              headerTitle: 'Detalle de Propiedad',
-              presentation: 'modal',
-              contentStyle: { backgroundColor },
-            }} 
-          />
+          <Stack.Screen name="(auth)" options={{ contentStyle: { backgroundColor: '#fefbf6' } }} />
+          <Stack.Screen name="(users)" options={{ contentStyle: { backgroundColor: '#ffffff' } }} />
         </Stack>
       </View>
     </ThemeProvider>
@@ -149,3 +126,4 @@ export default function RootLayout(){
     </AuthProvider>
   )
 }
+

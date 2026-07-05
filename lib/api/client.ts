@@ -1,6 +1,15 @@
+const DEFAULT_CORE_API_URL = 'https://bullion-vagrantly-divorcee.ngrok-free.dev'
+
 export const API_URLS = {
-  CORE: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? 'https://core-api-smoky-ten.vercel.app',
+  CORE: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || DEFAULT_CORE_API_URL,
   NOTIFICATIONS: 'https://inicio-notifications-service.vercel.app',
+} as const
+
+export const API_BUILD_CONFIG = {
+  expoPublicApiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? null,
+  resolvedCoreUrl: API_URLS.CORE,
+  fallbackCoreUrl: DEFAULT_CORE_API_URL,
+  notificationsUrl: API_URLS.NOTIFICATIONS,
 } as const
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
@@ -10,6 +19,7 @@ interface ApiClientOptions {
   body?: unknown
   headers?: Record<string, string>
   token?: string
+  debugLog?: (entry: ApiDebugLogEntry) => void
 }
 
 interface ApiError {
@@ -18,6 +28,12 @@ interface ApiError {
   error?: string
   path?: string
   details?: unknown
+}
+
+export type ApiDebugLogEntry = {
+  level: 'info' | 'success' | 'warning' | 'error'
+  message: string
+  details?: Record<string, unknown>
 }
 
 const shouldLogApiDebug = (path: string) =>
@@ -49,7 +65,7 @@ export async function apiClient<T>(
   path: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
-  const { method = 'GET', body, headers = {}, token } = options
+  const { method = 'GET', body, headers = {}, token, debugLog } = options
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -65,10 +81,24 @@ export async function apiClient<T>(
   }
 
   if (shouldLogAuthDebug(path)) {
+    debugLog?.({
+      level: 'info',
+      message: 'La app va a llamar al backend de autenticacion.',
+      details: {
+        method,
+        path,
+        baseUrl,
+        finalUrl: `${baseUrl}${path}`,
+        hasToken: !!token,
+        hasNgrokBypass: requestHeaders['ngrok-skip-browser-warning'] === 'true',
+        bodyKeys: body && typeof body === 'object' ? Object.keys(body as Record<string, unknown>) : [],
+      },
+    })
     console.info('[API][auth] request', {
       method,
       path,
       baseUrl,
+      finalUrl: `${baseUrl}${path}`,
       hasToken: !!token,
       tokenPreview: previewToken(token),
       hasNgrokBypass: requestHeaders['ngrok-skip-browser-warning'] === 'true',
@@ -76,17 +106,51 @@ export async function apiClient<T>(
     })
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      method,
+      headers: requestHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  } catch (error) {
+    if (shouldLogAuthDebug(path)) {
+      debugLog?.({
+        level: 'error',
+        message: 'El telefono no pudo conectarse al backend. Revisa internet, la URL de API y si el servidor acepta conexiones desde iPhone.',
+        details: {
+          method,
+          path,
+          baseUrl,
+          finalUrl: `${baseUrl}${path}`,
+          reason: error instanceof Error ? error.message : String(error),
+        },
+      })
+    }
+    throw error
+  }
 
   if (shouldLogAuthDebug(path)) {
+    debugLog?.({
+      level: response.ok ? 'success' : 'warning',
+      message: response.ok
+        ? 'El backend respondio a la solicitud de login.'
+        : 'El backend respondio, pero rechazo la solicitud de login.',
+      details: {
+        method,
+        path,
+        baseUrl,
+        finalUrl: `${baseUrl}${path}`,
+        status: response.status,
+        ok: response.ok,
+        contentType: response.headers.get('content-type'),
+      },
+    })
     console.info('[API][auth] response', {
       method,
       path,
       baseUrl,
+      finalUrl: `${baseUrl}${path}`,
       status: response.status,
       ok: response.ok,
       contentType: response.headers.get('content-type'),
@@ -128,6 +192,19 @@ export async function apiClient<T>(
       })
     }
     if (shouldLogAuthDebug(path)) {
+      debugLog?.({
+        level: 'error',
+        message: 'La API devolvio un error HTTP; el mensaje viene del backend.',
+        details: {
+          method,
+          path,
+          baseUrl,
+          finalUrl: `${baseUrl}${path}`,
+          status: response.status,
+          message: errorMessage,
+          details,
+        },
+      })
       console.warn('[API][auth] error response', {
         method,
         path,

@@ -1,4 +1,4 @@
-export type RegisterClientType = 'advisor' | 'owner' | 'renter' | 'tenant'
+export type RegisterClientType = 'advisor' /*| 'coordinator'*/ | 'owner' | 'renter' | 'tenant'
 
 export type RegisterEntryOption = {
   id: RegisterClientType
@@ -9,9 +9,14 @@ export type RegisterEntryOption = {
 export const registerEntryOptions: RegisterEntryOption[] = [
   {
     id: 'advisor',
-    title: 'Equipo INICIO',
-    description: 'Asesores, coordinacion y ventas',
+    title: 'Asesor',
+    description: 'Acompana clientes y gestiona oportunidades',
   },
+  /*{
+    id: 'coordinator',
+    title: 'Coordinador',
+    description: 'Coordina asesores, citas y seguimientos',
+  },*/
   {
     id: 'owner',
     title: 'Propietario',
@@ -30,13 +35,17 @@ export const registerEntryOptions: RegisterEntryOption[] = [
 ]
 
 export function getRegisterRoute(clientType: RegisterClientType) {
-  return `/register?clientType=${clientType}` as const
+  const routes: Record<RegisterClientType, string> = {
+    advisor: '/regAdvisor',
+    //coordinator: '/regCoordinator-new',
+    owner: '/regOwnerHouse',
+    renter: '/regInquilino',
+    tenant: '/regSearcher',
+  }
+
+  return routes[clientType] as never
 }
 
 export function getRegisterEntryRoute(clientType: RegisterClientType) {
-  if (clientType === 'owner') {
-    return '/register-owner' as const
-  }
-
   return getRegisterRoute(clientType)
 }
