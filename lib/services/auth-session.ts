@@ -224,9 +224,3 @@ export async function clearPersistedAuthSession(): Promise<void> {
   await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
   await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
 }
-
-export async function persistMockLoginUserId(userId: string): Promise<void> {
-  await AsyncStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, userId)
-  await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
-  await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
-}

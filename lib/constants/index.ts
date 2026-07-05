@@ -3,7 +3,8 @@
  */
 
 // API
-export const API_BASE_URL = 'https://core-api-smoky-ten.vercel.app'
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || 'https://bullion-vagrantly-divorcee.ngrok-free.dev'
 export const API_NOTIFICATIONS_URL = 'https://inicio-notifications-service.vercel.app'
 export const API_TIMEOUT = 30000
 
@@ -70,24 +71,11 @@ export const STORAGE_KEYS = {
 // Rutas de navegacion
 export const ROUTES = {
   // Auth
-  LOGIN: '/login-new',
-  REGISTER: '/register',
-  CREATE_ACCOUNT: '/create-account',
-  LOGOUT_TRANSITION: '/logout-transition',
+  LOGIN: '/login/login',
+  REGISTER_COORDINATOR: '/regCoordinator',
   
-  // Tabs
-  HOME: '/(tabs)',
-  PROFILE: '/(tabs)/profile',
-  
-  // Screens
-  CATALOG: '/catalog-screen',
-  FAVORITES: '/favorites-screen',
-  APPOINTMENTS: '/appointments-screen',
-  MESSAGES: '/messages-screen',
-  NOTIFICATIONS: '/notifications-screen',
-  MY_PROPERTIES: '/my-properties-screen',
-  ADD_PROPERTY: '/add-property-screen',
-  PROPERTY_DETAIL: '/property-detail-screen',
-  EARNINGS: '/earnings-screen',
-  CAMPAIGNS: '/campaigns-screen',
+  // Coordinator
+  HOME: '/userCoordinator',
+  PROPERTIES: '/userCoordinator/properties',
+  LEADS: '/userCoordinator/leads',
 }

@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { getAuthMockUserById, getCurrentUser } from '@/lib/api'
+import { getCurrentUser } from '@/lib/api'
 import {
   buildSessionUser,
   clearPersistedAuthSession,
   normalizeAuthUser,
   persistAuthSession,
-  persistMockLoginUserId,
   restoreAuthSession,
   type BackendUser,
 } from '@/lib/services/auth-session'
@@ -160,12 +159,8 @@ export function useAuthSessionState(): AuthSessionState {
 
   const login = useCallback(
     async (userId: string) => {
-      const user = getAuthMockUserById(userId)
-      if (!user) return
-
-      setCurrentUser(user)
+      setCurrentUser(null)
       setAuthToken(null)
-      await persistMockLoginUserId(userId)
       const storedFavorites = await AsyncStorage.getItem(`favorites_${userId}`)
       setHydratedFavorites(storedFavorites ? JSON.parse(storedFavorites) : [])
     },

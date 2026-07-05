@@ -1,5 +1,4 @@
-import { loginUser } from '@/lib/api/endpoints/auth'
-import { registerUser } from '@/lib/registerUser'
+import { loginUser, registerUser } from '@/lib/api/endpoints/auth'
 import type { RegisterRequest, User } from '@/lib/types'
 
 type SetAuthSession = (user: User | null, token: string | null) => Promise<void>

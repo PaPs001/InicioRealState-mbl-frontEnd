@@ -1,4 +1,3 @@
-import { mockPropertyEarnings, mockUsers } from '@/lib/mock-data'
 import { getUserProperties, getUserPropertyById } from '@/lib/services/user-properties'
 
 export function getPortfolioOwnerProperties(ownerId?: string | null) {
@@ -14,7 +13,7 @@ export function getPortfolioPropertyEarningsRecord(propertyId?: string | null) {
     return null
   }
 
-  return mockPropertyEarnings.find((item) => item.propertyId === propertyId) ?? null
+  return null
 }
 
 export function getPortfolioAgentRecord(agentId?: string | null) {
@@ -22,5 +21,5 @@ export function getPortfolioAgentRecord(agentId?: string | null) {
     return null
   }
 
-  return mockUsers.find((user) => user.id === agentId) ?? null
+  return null
 }

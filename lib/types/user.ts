@@ -25,9 +25,11 @@ export interface RegisterRequest {
   phone: string
   country?: string | null
   password: string
+  emailVerificationToken?: string
   roles: BackendUserRole[]
   investment: boolean
   tenant: boolean
+  aboutUser?: Record<string, unknown>
   referralCode?: string
 }
 

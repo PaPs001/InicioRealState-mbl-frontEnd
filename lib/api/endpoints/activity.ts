@@ -1,4 +1,3 @@
-import { mockAppointments, mockLeads, mockNotifications } from '@/lib/mock-data'
 import type { Appointment, Notification, PropertyLead } from '@/lib/types'
 
 type ActivityParams = {
@@ -9,15 +8,15 @@ type ActivityParams = {
 }
 
 export function getLeadActivityRecords(): PropertyLead[] {
-  return mockLeads
+  return []
 }
 
 export function getAppointmentActivityRecords(): Appointment[] {
-  return mockAppointments
+  return []
 }
 
 export function getNotificationActivityRecords(): Notification[] {
-  return mockNotifications
+  return []
 }
 
 export function getFilteredLeadActivityRecords(params: ActivityParams): PropertyLead[] {

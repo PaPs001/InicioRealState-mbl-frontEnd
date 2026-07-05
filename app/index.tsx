@@ -3,11 +3,20 @@ import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { clientThemes } from '@/lib/theme'
-import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import LogoGris from '@/assets/LogoInicioSVGris.svg'
 import { Animated } from 'react-native'
 
 export default function Index() {
-  const { isLoading, isLoggedIn, currentUser } = useSessionDomain()
+  const {
+    isLoading,
+    isLoggedIn,
+    isAgent,
+    isCoordinator,
+    isAdmin,
+    isInvestor,
+    isTenant,
+    isSearching,
+  } = useSessionDomain()
   const router = useRouter()
   const pulseAnim = new Animated.Value(1)
 
@@ -33,12 +42,24 @@ export default function Index() {
   useEffect(() => {
     if (!isLoading) {
       if (isLoggedIn) {
-        router.replace('/(tabs)')
+        if (isCoordinator || isAdmin) {
+          router.replace('/userCoordinator' as never)
+        } else if (isAgent) {
+          router.replace('/userAdviser' as never)
+        } else if (isInvestor) {
+          router.replace('/userHomeOwner' as never)
+        } else if (isTenant) {
+          router.replace('/userOccupant' as never)
+        } else if (isSearching) {
+          router.replace('/userSearcher' as never)
+        } else {
+          router.replace('/userSearcher' as never)
+        }
       } else {
-        router.replace('/login-new')
+        router.replace('/login/login' as never)
       }
     }
-  }, [isLoading, isLoggedIn])
+  }, [isAdmin, isAgent, isCoordinator, isInvestor, isLoading, isLoggedIn, isSearching, isTenant, router])
 
   const theme = clientThemes.investor
 
