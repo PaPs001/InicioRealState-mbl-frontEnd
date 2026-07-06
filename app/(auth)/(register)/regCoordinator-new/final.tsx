@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowRight } from 'lucide-react-native'
 
 import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getRegistrationHomeRoute, registerUserByClientType } from '@/lib/services/registration-flows'
 import {
@@ -81,6 +82,7 @@ export default function RegisterOwnerFinalScreen() {
 
   return (
     <SafeAreaView style={registerOwnerFinalStyles.safeArea} edges={['left', 'right', 'bottom']}>
+      <RegistrationBackButton />
       <ScrollView contentContainerStyle={registerOwnerFinalStyles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={registerOwnerFinalStyles.main}>
           <View style={registerOwnerFinalStyles.top}>

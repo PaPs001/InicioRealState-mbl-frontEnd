@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 
 import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { getRegisterEntryRoute, registerEntryOptions, type RegisterClientType } from '@/lib/services/register-entry'
 import { registerNewStyles } from './register-new.styles'
 
@@ -35,6 +36,7 @@ export default function RegisterNewScreen() {
 
   return (
     <SafeAreaView style={registerNewStyles.safeArea} edges={['left', 'right', 'bottom']}>
+      <RegistrationBackButton />
       <ScrollView contentContainerStyle={registerNewStyles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={registerNewStyles.logo}>
           <LogoIRSPrincipal width={146} height={48} />
