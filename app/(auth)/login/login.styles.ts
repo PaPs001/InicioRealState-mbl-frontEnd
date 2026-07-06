@@ -95,6 +95,10 @@ export const loginNewStyles = StyleSheet.create({
     backgroundColor: '#fcfaf8',
     paddingHorizontal: 12,
   },
+  inputShellError: {
+    borderColor: '#b42318',
+    backgroundColor: '#fff7f6',
+  },
   inputIcon: {
     width: 24,
     alignItems: 'center',
@@ -180,6 +184,14 @@ export const loginNewStyles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     textAlign: 'center',
+  },
+  fieldErrorText: {
+    marginTop: -4,
+    color: '#b42318',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    textAlign: 'left',
   },
   debugPanel: {
     width: '100%',

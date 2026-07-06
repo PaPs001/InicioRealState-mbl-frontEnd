@@ -28,9 +28,9 @@ type RegistrationBackendProfile = {
 
 const registrationHomeRoutes: Record<RegisterClientType, string> = {
   advisor: '/userAdviser',
-  owner: '/userHomeOwner',
-  renter: '/userOccupant',
-  tenant: '/userSearcher',
+  owner: '/registration-complete',
+  renter: '/registration-complete',
+  tenant: '/registration-complete',
 }
 
 const registrationBackendProfiles: Record<RegisterClientType, RegistrationBackendProfile> = {

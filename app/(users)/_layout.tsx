@@ -5,6 +5,7 @@ export default function UsersLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="userCoordinator" />
       <Stack.Screen name="userAdviser" />
+      <Stack.Screen name="registration-complete" />
     </Stack>
   )
 }

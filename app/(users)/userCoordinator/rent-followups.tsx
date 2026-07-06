@@ -13,12 +13,6 @@ import {
   Search,
   UserRound,
 } from 'lucide-react-native'
-import {
-  coordinatorRentAssistantActions,
-  coordinatorRentFollowupChannels,
-  type CoordinatorRentFollowupAlert,
-  type CoordinatorRentFollowupChannel,
-} from '@/lib/mock/coordinator-rent-followups'
 import { getBackendLeadRecords } from '@/lib/api'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
@@ -34,6 +28,28 @@ type RentFollowupMetric = {
   value: number
   color: string
 }
+
+type CoordinatorRentFollowupAlert = {
+  id: string
+  icon: 'warning' | 'user' | 'clock'
+  message: string
+}
+
+const coordinatorRentFollowupChannels = [
+  'Todos',
+  'Manychat',
+  'Meta',
+  'Google Ads',
+  'Whatsapp',
+] as const
+
+type CoordinatorRentFollowupChannel = typeof coordinatorRentFollowupChannels[number]
+
+const coordinatorRentAssistantActions = [
+  { id: 'dictate-followup', label: 'Dictar seguimiento', icon: 'mic' },
+  { id: 'voice-appointment', label: 'Agendar cita por voz', icon: 'wave' },
+  { id: 'add-lead', label: 'Agregar lead', icon: 'plus' },
+] as const
 
 type AgentLeadGroup = {
   id: string

@@ -13,9 +13,6 @@ export default function Index() {
     isAgent,
     isCoordinator,
     isAdmin,
-    isInvestor,
-    isTenant,
-    isSearching,
   } = useSessionDomain()
   const router = useRouter()
   const pulseAnim = new Animated.Value(1)
@@ -46,20 +43,14 @@ export default function Index() {
           router.replace('/userCoordinator' as never)
         } else if (isAgent) {
           router.replace('/userAdviser' as never)
-        } else if (isInvestor) {
-          router.replace('/userHomeOwner' as never)
-        } else if (isTenant) {
-          router.replace('/userOccupant' as never)
-        } else if (isSearching) {
-          router.replace('/userSearcher' as never)
         } else {
-          router.replace('/userSearcher' as never)
+          router.replace('/registration-complete' as never)
         }
       } else {
         router.replace('/login/login' as never)
       }
     }
-  }, [isAdmin, isAgent, isCoordinator, isInvestor, isLoading, isLoggedIn, isSearching, isTenant, router])
+  }, [isAdmin, isAgent, isCoordinator, isLoading, isLoggedIn, router])
 
   const theme = clientThemes.investor
 

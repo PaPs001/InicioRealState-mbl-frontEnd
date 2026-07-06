@@ -1,0 +1,114 @@
+import type { GoogleCalendarDate } from '@/lib/api'
+import type { LeadFollowUp, Property } from '@/lib/types'
+
+import type { AppointmentPreviewItem } from './types'
+
+export function mapGoogleDateToAppointment(date: GoogleCalendarDate): AppointmentPreviewItem {
+  const startValue = date.startDateTime ?? undefined
+  const descriptionLines = (date.description ?? '')
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+
+  return {
+    id: date._id,
+    property: date.title || 'Cita programada',
+    client: date.location || descriptionLines[0] || 'Pendiente',
+    adviser: date.helpedBy || date.advisorId || 'Pendiente',
+    day: formatCalendarDay(startValue),
+    time: formatCalendarTime(startValue),
+    status: getCalendarStatusLabel(date.status ?? undefined),
+    sortTime: getCalendarSortTime(startValue),
+  }
+}
+
+export function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return parts.slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || 'AS'
+}
+
+export function formatCurrentDashboardDate() {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date())
+}
+
+export function getDefaultAppointmentType(summary?: string) {
+  const value = summary?.toLowerCase() ?? ''
+  if (value.includes('renta')) return 'renta'
+  if (value.includes('venta')) return 'venta'
+  if (value.includes('junta')) return 'sala_juntas'
+  return 'general'
+}
+
+export function getDefaultAppointmentStartDateTime() {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  date.setHours(10, 0, 0, 0)
+  return date.toISOString()
+}
+
+export function getDefaultAppointmentEndDateTime() {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  date.setHours(10, 30, 0, 0)
+  return date.toISOString()
+}
+
+export function getPropertyDisplayName(property?: Property | null) {
+  if (!property) return ''
+  return property.title || property.address || property.city || property.id || property._id || 'Propiedad'
+}
+
+export function hasUpcomingFollowUpDate(followUp: LeadFollowUp) {
+  const date = new Date(getFollowUpDate(followUp))
+  return !Number.isNaN(date.getTime()) && date >= new Date()
+}
+
+export function isOverdueFollowUp(followUp: LeadFollowUp) {
+  if (!followUp.nextActionDate) return false
+  const date = new Date(followUp.nextActionDate)
+  return !Number.isNaN(date.getTime()) && date < new Date()
+}
+
+function getFollowUpDate(followUp: LeadFollowUp) {
+  return followUp.nextActionDate || followUp.date
+}
+
+function formatCalendarDay(value?: string) {
+  if (!value) return 'Fecha pendiente'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Fecha pendiente'
+  const formatted = date.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+}
+
+function formatCalendarTime(value?: string) {
+  if (!value) return 'Hora pendiente'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Hora pendiente'
+  return date.toLocaleTimeString('es-MX', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+function getCalendarStatusLabel(status?: string) {
+  if (status === 'confirmed') return 'Confirmada'
+  if (status === 'cancelled') return 'Cancelada'
+  if (status === 'tentative') return 'Tentativa'
+  return 'Pendiente'
+}
+
+function getCalendarSortTime(value?: string) {
+  if (!value) return Number.MAX_SAFE_INTEGER
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? Number.MAX_SAFE_INTEGER : date.getTime()
+}

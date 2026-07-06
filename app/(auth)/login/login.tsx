@@ -18,7 +18,6 @@ import { PasswordTextInput } from '@/app/(auth)/shared/PasswordTextInput'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { API_BUILD_CONFIG, API_URLS, type ApiDebugLogEntry } from '@/lib/api/client'
 import { signInWithCredentials } from '@/lib/services/login-session'
-import type { User } from '@/lib/types'
 import { loginNewStyles } from './login.styles'
 
 const heroImage = require('@/assets/login-new-hero.png')
@@ -58,6 +57,7 @@ export default function LoginNewScreen() {
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false)
   const [loginLogs, setLoginLogs] = useState<VisibleLoginLog[]>([
     createVisibleLoginLog({
       level: 'info',
@@ -136,29 +136,13 @@ export default function LoginNewScreen() {
           errorType: error instanceof Error ? error.name : typeof error,
         },
       })
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesion')
+      setErrorMessage('El correo o la contraseña estan mal.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handlePreviewAdviserDashboard = async () => {
-    const mockUser: User = {
-      id: 'mock-adviser-preview',
-      name: 'Victor Perea',
-      email: 'preview-adviser@inicio.test',
-      phone: '',
-      country: null,
-      systemRole: 'AGENT',
-      roles: ['AGENT'],
-      investment: false,
-      tenant: false,
-      createdAt: new Date().toISOString(),
-    }
-
-    await setAuthSession(mockUser, 'mock-adviser-preview-token')
-    router.replace('/userAdviser' as never)
-  }
+  const hasCredentialError = !!errorMessage
 
   return (
     <SafeAreaView style={loginNewStyles.safeArea} edges={['left', 'right', 'bottom']}>
@@ -173,9 +157,15 @@ export default function LoginNewScreen() {
         >
           <View style={loginNewStyles.hero}>
             <ImageBackground source={heroImage} style={loginNewStyles.heroImage} imageStyle={loginNewStyles.heroImageContent}>
-              <View style={loginNewStyles.brandArc}>
+              <TouchableOpacity
+                style={loginNewStyles.brandArc}
+                onPress={() => setIsDebugPanelVisible((isVisible) => !isVisible)}
+                activeOpacity={0.92}
+                accessibilityRole="button"
+                accessibilityLabel="Mostrar diagnostico de inicio de sesion"
+              >
                 <LogoIRSPrincipal width={146} height={48} />
-              </View>
+              </TouchableOpacity>
             </ImageBackground>
           </View>
 
@@ -188,7 +178,7 @@ export default function LoginNewScreen() {
             <Text style={loginNewStyles.subtitle}>Accede a tu cuenta y mejora junto a tus propiedades</Text>
 
             <View style={loginNewStyles.form}>
-              <View style={loginNewStyles.inputShell}>
+              <View style={[loginNewStyles.inputShell, hasCredentialError && loginNewStyles.inputShellError]}>
                 <View style={loginNewStyles.inputIcon}>
                   <Mail size={17} color="#33363f" strokeWidth={1.8} />
                 </View>
@@ -197,7 +187,10 @@ export default function LoginNewScreen() {
                   placeholder="Correo electronico"
                   placeholderTextColor="#737373"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(value) => {
+                    setEmail(value)
+                    if (errorMessage) setErrorMessage('')
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -205,7 +198,7 @@ export default function LoginNewScreen() {
                 />
               </View>
 
-              <View style={loginNewStyles.inputShell}>
+              <View style={[loginNewStyles.inputShell, hasCredentialError && loginNewStyles.inputShellError]}>
                 <View style={loginNewStyles.inputIcon}>
                   <Lock size={17} color="#33363f" strokeWidth={1.8} />
                 </View>
@@ -214,12 +207,16 @@ export default function LoginNewScreen() {
                   placeholder="Contraseña"
                   placeholderTextColor="#737373"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(value) => {
+                    setPassword(value)
+                    if (errorMessage) setErrorMessage('')
+                  }}
                   iconColor="#33363f"
                   toggleStyle={loginNewStyles.passwordToggle}
                   textContentType="password"
                 />
               </View>
+              {hasCredentialError ? <Text style={loginNewStyles.fieldErrorText}>{errorMessage}</Text> : null}
 
               <TouchableOpacity
                 style={[loginNewStyles.primaryButton, isSubmitting && loginNewStyles.primaryButtonDisabled]}
@@ -243,35 +240,27 @@ export default function LoginNewScreen() {
               <Text style={loginNewStyles.secondaryButtonText}>Registrarse </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={loginNewStyles.previewButton}
-              onPress={handlePreviewAdviserDashboard}
-              activeOpacity={0.82}
-            >
-              <Text style={loginNewStyles.previewButtonText}>Ver dashboard asesor temporal</Text>
-            </TouchableOpacity>
+            {isDebugPanelVisible ? (
+              <View style={loginNewStyles.debugPanel}>
+                <Text style={loginNewStyles.debugTitle}>Diagnostico de inicio de sesion</Text>
+                {loginLogs.map((log) => {
+                  const details = formatLogDetails(log.details)
 
-            {errorMessage ? <Text style={loginNewStyles.errorText}>{errorMessage}</Text> : null}
-
-            <View style={loginNewStyles.debugPanel}>
-              <Text style={loginNewStyles.debugTitle}>Diagnostico de inicio de sesion</Text>
-              {loginLogs.map((log) => {
-                const details = formatLogDetails(log.details)
-
-                return (
-                  <View key={log.id} style={loginNewStyles.debugLogItem}>
-                    <View style={loginNewStyles.debugLogHeader}>
-                      <Text style={[loginNewStyles.debugLogLevel, getLogLevelStyle(log.level)]}>
-                        {log.level.toUpperCase()}
-                      </Text>
-                      <Text style={loginNewStyles.debugLogTime}>{log.time}</Text>
+                  return (
+                    <View key={log.id} style={loginNewStyles.debugLogItem}>
+                      <View style={loginNewStyles.debugLogHeader}>
+                        <Text style={[loginNewStyles.debugLogLevel, getLogLevelStyle(log.level)]}>
+                          {log.level.toUpperCase()}
+                        </Text>
+                        <Text style={loginNewStyles.debugLogTime}>{log.time}</Text>
+                      </View>
+                      <Text style={loginNewStyles.debugLogMessage}>{log.message}</Text>
+                      {details ? <Text style={loginNewStyles.debugLogDetails}>{details}</Text> : null}
                     </View>
-                    <Text style={loginNewStyles.debugLogMessage}>{log.message}</Text>
-                    {details ? <Text style={loginNewStyles.debugLogDetails}>{details}</Text> : null}
-                  </View>
-                )
-              })}
-            </View>
+                  )
+                })}
+              </View>
+            ) : null}
 
             <Text style={loginNewStyles.legal}>
               Uso exclusivo para clientes, propietarios, inquilinos y equipo INICIO
@@ -296,11 +285,5 @@ function getUserHomeRoute(user: {
   if (user.systemRole === 'AGENT' || roles.includes('AGENT')) {
     return '/userAdviser' as never
   }
-  if (user.investment) {
-    return '/userHomeOwner' as never
-  }
-  if (user.tenant) {
-    return '/userOccupant' as never
-  }
-  return '/userSearcher' as never
+  return '/registration-complete' as never
 }
