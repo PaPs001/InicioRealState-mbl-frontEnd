@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { ArrowRight } from 'lucide-react-native'
 
 import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { registerOwnerStyles } from './styles'
 
 const plantImage = require('../../../assets/register-owner-plant.png')
@@ -14,6 +15,7 @@ export default function RegisterOwnerScreen() {
 
   return (
     <SafeAreaView style={registerOwnerStyles.safeArea} edges={['left', 'right', 'bottom']}>
+      <RegistrationBackButton />
       <View style={registerOwnerStyles.leftArchBack} />
       <View style={registerOwnerStyles.leftArchFront} />
       <View style={registerOwnerStyles.topRing} />
