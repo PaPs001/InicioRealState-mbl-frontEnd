@@ -1,1 +1,2 @@
-export { default } from '../userCoordinator/leads'
+﻿export { default } from './leads-v2'
+

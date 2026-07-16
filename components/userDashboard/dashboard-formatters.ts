@@ -51,10 +51,14 @@ export function getDefaultAppointmentStartDateTime() {
 }
 
 export function getDefaultAppointmentEndDateTime() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  date.setHours(10, 30, 0, 0)
-  return date.toISOString()
+  return getAppointmentEndDateTime(getDefaultAppointmentStartDateTime())
+}
+
+export function getAppointmentEndDateTime(startDateTime: string) {
+  const date = new Date(startDateTime)
+  const startDate = Number.isNaN(date.getTime()) ? new Date() : date
+  startDate.setHours(startDate.getHours() + 4)
+  return startDate.toISOString()
 }
 
 export function getPropertyDisplayName(property?: Property | null) {

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ActivityIndicator, Alert, BackHandler, FlatList, Image, InteractionManager, Modal, ScrollView, Text, TextInput, TouchableOpacity, useWindowDimensions, View, type ListRenderItem } from 'react-native'
+import { ActivityIndicator, Alert, BackHandler, FlatList, Image, InteractionManager, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, useWindowDimensions, View, type ListRenderItem } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
 import {
@@ -65,15 +65,26 @@ const PDF_AGENTS: PdfReportAgentName[] = [
   'DanielaVillanueva',
 ]
 
-const PDF_DESIGNS: PdfReportDesign[] = ['modern', 'original', 'whiteBoard', 'sale', 'rent', 'BahiaProjects', 'contract']
+const PDF_AGENT_LABELS: Record<PdfReportAgentName, string> = {
+  AlexaDiaz: 'Alexa Diaz',
+  JoseAntonio: 'Jose Antonio',
+  CitlalliTapia: 'Citlalli Tapia',
+  JorgeSanchez: 'Jorge Sanchez',
+  VictorPerea: 'Victor Perea',
+  HectorEspinoza: 'Hector Espinoza',
+  CarlosTrujeque: 'Carlos Trujeque',
+  MatteoAguilar: 'Matteo Aguilar',
+  EdgarZavala: 'Edgar Zavala',
+  DiegoLedezma: 'Diego Ledezma',
+  DanielaVillanueva: 'Daniela Villanueva',
+}
+
+const PDF_REPORT_LOCATION = 'TODAS'
+const PDF_DESIGNS: PdfReportDesign[] = ['modern', 'original', 'whiteBoard']
 const pdfDesignLabels: Record<string, string> = {
   modern: 'Modern',
   original: 'Original',
   whiteBoard: 'White Board',
-  sale: 'Sale',
-  rent: 'Rent',
-  BahiaProjects: 'Bahia',
-  contract: 'Contract',
 }
 
 function mapPropertyToListing(property: Property): ListingProperty {
@@ -176,7 +187,6 @@ export default function CoordinatorPropertiesListScreen() {
   const [isPdfOptionsVisible, setIsPdfOptionsVisible] = useState(false)
   const [pdfAgentName, setPdfAgentName] = useState<PdfReportAgentName>('AlexaDiaz')
   const [pdfDesign, setPdfDesign] = useState<PdfReportDesign>('modern')
-  const [pdfLocation, setPdfLocation] = useState('TODAS')
   const [listingFilter, setListingFilter] = useState<ListingFilter>(initialListingFilter)
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
   const [isSortVisible, setIsSortVisible] = useState(false)
@@ -399,13 +409,12 @@ export default function CoordinatorPropertiesListScreen() {
 
     try {
       await waitForHeavyUiToUnmount()
-      const normalizedLocation = pdfLocation.trim().toUpperCase() || 'TODAS'
       const pdfPayload = {
         agentName: pdfAgentName,
         sales: isPdfSaleList,
         items: selectedPropertyIds,
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
-        location: normalizedLocation,
+        location: PDF_REPORT_LOCATION,
         list: pdfListingType,
         design: pdfDesign,
       } as const
@@ -498,7 +507,7 @@ export default function CoordinatorPropertiesListScreen() {
                 {PDF_AGENTS.map(agent => (
                   <PdfChip
                     key={agent}
-                    label={agent}
+                    label={PDF_AGENT_LABELS[agent]}
                     active={pdfAgentName === agent}
                     onPress={() => setPdfAgentName(agent)}
                   />
@@ -515,16 +524,6 @@ export default function CoordinatorPropertiesListScreen() {
                   />
                 ))}
               </PdfOptionGroup>
-
-              <Text style={styles.pdfFieldLabel}>Ubicacion</Text>
-              <TextInput
-                value={pdfLocation}
-                onChangeText={setPdfLocation}
-                placeholder="TODAS"
-                placeholderTextColor="#717171"
-                autoCapitalize="characters"
-                style={styles.pdfLocationInput}
-              />
 
               <View style={styles.pdfActionsRow}>
                 <TouchableOpacity
@@ -554,8 +553,8 @@ export default function CoordinatorPropertiesListScreen() {
         animationType="fade"
         onRequestClose={() => setIsFiltersVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.filterOptionsPanel}>
+        <Pressable style={styles.modalOverlay} onPress={() => setIsFiltersVisible(false)}>
+          <Pressable style={styles.filterOptionsPanel} onPress={event => event.stopPropagation()}>
             <View style={styles.filterModalHeader}>
               <View>
                 <Text style={styles.pdfOptionsTitle}>Filtros</Text>
@@ -563,9 +562,14 @@ export default function CoordinatorPropertiesListScreen() {
                   {activeAdvancedFilterCount ? `${activeAdvancedFilterCount} filtros activos` : 'Sin filtros avanzados'}
                 </Text>
               </View>
-              <TouchableOpacity style={styles.clearFiltersButton} activeOpacity={0.85} onPress={resetAdvancedFilters}>
-                <Text style={styles.clearFiltersButtonText}>Limpiar</Text>
-              </TouchableOpacity>
+              <View style={styles.filterHeaderActions}>
+                <TouchableOpacity style={styles.clearFiltersButton} activeOpacity={0.85} onPress={resetAdvancedFilters}>
+                  <Text style={styles.clearFiltersButtonText}>Limpiar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.closeFiltersButton} activeOpacity={0.85} onPress={() => setIsFiltersVisible(false)}>
+                  <Text style={styles.closeFiltersButtonText}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pdfOptionsScroll}>
@@ -634,8 +638,8 @@ export default function CoordinatorPropertiesListScreen() {
                 <Text style={styles.applyFiltersButtonText}>Aplicar filtros</Text>
               </TouchableOpacity>
             </ScrollView>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       <Modal

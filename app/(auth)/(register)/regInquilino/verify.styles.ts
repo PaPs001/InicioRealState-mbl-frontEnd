@@ -24,13 +24,13 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingHorizontal: 39,
+    paddingHorizontal: 35,
     paddingTop: 70,
     paddingBottom: 40,
   },
   main: {
     width: '100%',
-    maxWidth: 351,
+    maxWidth: 370,
     alignItems: 'center',
     gap: 16,
   },

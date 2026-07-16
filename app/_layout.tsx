@@ -91,7 +91,10 @@ function RootNavigator() {
       pathname.startsWith('/regOwnerHouse') ||
       pathname.startsWith('/regInquilino') ||
       pathname.startsWith('/regSearcher') ||
-      pathname === '/regCoordinator'
+      pathname === '/regCoordinator' ||
+      pathname === '/password/mail' ||
+      pathname === '/password/verify' ||
+      pathname === '/password/password'
 
     if (!isLoading && !authToken && !isAuthRoute) {
       router.replace('/login/login')
@@ -126,4 +129,3 @@ export default function RootLayout(){
     </AuthProvider>
   )
 }
-

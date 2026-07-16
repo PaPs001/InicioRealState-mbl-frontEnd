@@ -12,11 +12,11 @@ export type RegisterByClientTypeInput = {
   password: string
   phone: string
   emailVerificationToken?: string
-  propertyProfile?: string
-  primaryInterest?: string
-  priority?: string
-  preferredChannel?: string
-  platformNotification?: string
+  propertyProfile?: string | string[]
+  primaryInterest?: string | string[]
+  priority?: string | string[]
+  preferredChannel?: string | string[]
+  platformNotification?: string | string[]
   registrationNotes?: string
 }
 
@@ -67,17 +67,31 @@ export function getRegistrationBackendProfile(clientType: RegisterClientType) {
 function buildRegistrationAboutUser(input: RegisterByClientTypeInput) {
   const aboutUser = {
     clientType: input.clientType,
-    propertyProfile: input.propertyProfile?.trim(),
-    primaryInterest: input.primaryInterest?.trim(),
-    priority: input.priority?.trim(),
-    preferredChannel: input.preferredChannel?.trim(),
-    platformNotification: input.platformNotification?.trim(),
+    propertyProfile: normalizeAboutUserValue(input.propertyProfile),
+    primaryInterest: normalizeAboutUserValue(input.primaryInterest),
+    priority: normalizeAboutUserValue(input.priority),
+    preferredChannel: normalizeAboutUserValue(input.preferredChannel),
+    platformNotification: normalizeAboutUserValue(input.platformNotification),
     registrationNotes: input.registrationNotes?.trim(),
   }
 
   return Object.fromEntries(
-    Object.entries(aboutUser).filter(([, value]) => value !== undefined && value !== ''),
+    Object.entries(aboutUser).filter(([, value]) => {
+      if (Array.isArray(value)) {
+        return value.length > 0
+      }
+
+      return value !== undefined && value !== ''
+    }),
   )
+}
+
+function normalizeAboutUserValue(value?: string | string[]) {
+  if (Array.isArray(value)) {
+    return value.map((item) => item.trim()).filter(Boolean)
+  }
+
+  return value?.trim()
 }
 
 export async function registerUserByClientType(

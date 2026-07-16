@@ -9,13 +9,15 @@ import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getRegistrationHomeRoute, registerUserByClientType } from '@/lib/services/registration-flows'
 import {
+  getRegisterFinalClientType,
   getRegisterFinalParams,
+  getRegisterPlatformNotificationOptions,
   getRegisterFinalValidationErrors,
   isRegisterFinalSelectionComplete,
   normalizeRegisterFinalNotes,
   REGISTER_FINAL_NOTES_LIMIT,
-  registerPlatformNotificationOptions,
   registerPreferredChannelOptions,
+  toggleRegisterFinalSelection,
   type RegisterFinalSelection,
 } from '@/lib/services/register-user-final'
 import { registerOwnerFinalStyles } from './final.styles'
@@ -30,19 +32,26 @@ export default function RegisterOwnerFinalScreen() {
     phone?: string
     password?: string
     emailVerificationToken?: string
-    propertyProfile?: string
-    primaryInterest?: string
-    priority?: string
+    propertyProfile?: string | string[]
+    primaryInterest?: string | string[]
+    priority?: string | string[]
   }>()
+  const registrationClientType = getRegisterFinalClientType(params)
+  const platformNotificationOptions = getRegisterPlatformNotificationOptions(registrationClientType)
   const [selection, setSelection] = useState<RegisterFinalSelection>({ notes: '' })
   const [showError, setShowError] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const updateSelection = (field: keyof RegisterFinalSelection, value: string) => {
+  const toggleSelection = (field: 'preferredChannel' | 'platformNotification', value: string) => {
+    setShowError(false)
+    setSelection((current) => toggleRegisterFinalSelection(current, field, value))
+  }
+
+  const updateNotes = (value: string) => {
     setShowError(false)
     setSelection((current) => ({
       ...current,
-      [field]: value,
+      notes: value,
     }))
   }
 
@@ -120,9 +129,9 @@ export default function RegisterOwnerFinalScreen() {
                     key={option.id}
                     style={[
                       registerOwnerFinalStyles.chip,
-                      selection.preferredChannel === option.id && registerOwnerFinalStyles.chipSelected,
+                      selection.preferredChannel?.includes(option.id) && registerOwnerFinalStyles.chipSelected,
                     ]}
-                    onPress={() => updateSelection('preferredChannel', option.id)}
+                    onPress={() => toggleSelection('preferredChannel', option.id)}
                     activeOpacity={0.84}
                   >
                     <Text style={registerOwnerFinalStyles.chipText}>{option.label}</Text>
@@ -134,14 +143,14 @@ export default function RegisterOwnerFinalScreen() {
             <View style={registerOwnerFinalStyles.optionSection}>
               <Text style={registerOwnerFinalStyles.sectionTitle}>Notificaciones en la plataforma</Text>
               <View style={registerOwnerFinalStyles.chipsRow}>
-                {registerPlatformNotificationOptions.map((option) => (
+                {platformNotificationOptions.map((option) => (
                   <TouchableOpacity
                     key={option.id}
                     style={[
                       registerOwnerFinalStyles.chip,
-                      selection.platformNotification === option.id && registerOwnerFinalStyles.chipSelected,
+                      selection.platformNotification?.includes(option.id) && registerOwnerFinalStyles.chipSelected,
                     ]}
-                    onPress={() => updateSelection('platformNotification', option.id)}
+                    onPress={() => toggleSelection('platformNotification', option.id)}
                     activeOpacity={0.84}
                   >
                     <Text style={registerOwnerFinalStyles.chipText}>{option.label}</Text>
@@ -162,7 +171,7 @@ export default function RegisterOwnerFinalScreen() {
               <TextInput
                 style={registerOwnerFinalStyles.notesBox}
                 value={selection.notes}
-                onChangeText={(value) => updateSelection('notes', normalizeRegisterFinalNotes(value))}
+                onChangeText={(value) => updateNotes(normalizeRegisterFinalNotes(value))}
                 multiline
                 maxLength={REGISTER_FINAL_NOTES_LIMIT}
               />
@@ -181,7 +190,7 @@ export default function RegisterOwnerFinalScreen() {
 
           {showError ? (
             <Text style={registerOwnerFinalStyles.errorText}>
-              Selecciona un canal y una preferencia de notificaciones para finalizar.
+              Selecciona al menos un canal y una preferencia de notificaciones para finalizar.
             </Text>
           ) : null}
 

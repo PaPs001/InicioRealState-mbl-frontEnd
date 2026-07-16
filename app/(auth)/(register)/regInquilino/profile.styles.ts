@@ -66,7 +66,7 @@ export const registerOwnerProfileStyles = StyleSheet.create({
     width: '100%',
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     lineHeight: 40,
     textAlign: 'center',

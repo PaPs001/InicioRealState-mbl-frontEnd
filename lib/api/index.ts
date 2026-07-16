@@ -51,9 +51,18 @@ export {
   getCurrentUser,
   registerUser,
   loginUser,
+  requestPasswordResetCode,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
   checkEmailExists,
   updateUserProfile,
   validateRegistrationData,
+  type PasswordResetRequestInput,
+  type PasswordResetRequestResponse,
+  type PasswordResetVerifyInput,
+  type PasswordResetVerifyResponse,
+  type PasswordResetConfirmInput,
+  type PasswordResetConfirmResponse,
 } from './endpoints/auth'
 
 export {
@@ -90,7 +99,14 @@ export {
 export {
   createLeadRecord,
   createBackendLeadFollowUp,
+  createBackendLeadV2Following,
+  createBackendLeadV2Record,
+  createBackendLeadV2Status,
+  deleteBackendLeadV2Status,
   getBackendLeadRecords,
+  getBackendLeadV2Records,
+  getBackendLeadV2Statuses,
+  getBackendLeadV2Followings,
   getBackendLeadFollowUps,
   getLeadAgents,
   getLeadAgentById,
@@ -99,7 +115,17 @@ export {
   mapBackendLeadToPropertyLead,
   mapBackendFollowUpToLeadFollowUp,
   saveLeadFollowUps,
+  setBackendLeadV2NextAction,
+  setBackendLeadV2Status,
+  updateBackendLeadV2Record,
   type CreateBackendLeadFollowUpPayload,
+  type CreateBackendLeadV2FollowingPayload,
+  type CreateBackendLeadV2Payload,
+  type SetBackendLeadV2NextActionPayload,
+  type SetBackendLeadV2StatusPayload,
+  type SetBackendLeadV2StatusResponse,
+  type UpdateBackendLeadV2Payload,
+  type BackendLeadV2FollowingRecord,
 } from './endpoints/leads'
 
 export {

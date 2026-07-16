@@ -1,4 +1,4 @@
-const DEFAULT_CORE_API_URL = 'https://bullion-vagrantly-divorcee.ngrok-free.dev'
+const DEFAULT_CORE_API_URL = 'https://core-api-smoky-ten.vercel.app'
 
 export const API_URLS = {
   CORE: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || DEFAULT_CORE_API_URL,

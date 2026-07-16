@@ -4,7 +4,7 @@
 
 // API
 export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || 'https://bullion-vagrantly-divorcee.ngrok-free.dev'
+  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || 'https://core-api-smoky-ten.vercel.app'
 export const API_NOTIFICATIONS_URL = 'https://inicio-notifications-service.vercel.app'
 export const API_TIMEOUT = 30000
 

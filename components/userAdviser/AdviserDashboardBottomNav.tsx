@@ -1,24 +1,17 @@
-import { CalendarDays, Flag, Home, MessageCircle, Users } from 'lucide-react-native'
+import { Flag, Home, Users } from 'lucide-react-native'
 
 import { BottomNav, type BottomNavItem } from '@/components/navigation/BottomNav'
 
 const adviserDashboardBottomNavItems: BottomNavItem[] = [
   {
     key: 'properties',
-    href: '/userAdviser/properties',
+    href: '/userAdviser/properties-list',
     icon: (color, size) => <Users size={size} color={color} />,
     isActive: (pathname) =>
       pathname.startsWith('/userAdviser/properties') ||
       pathname.startsWith('/userAdviser/developments-soon'),
     label: 'Propiedades',
     size: 24,
-  },
-  {
-    key: 'appointments',
-    href: '/userAdviser/appointments',
-    icon: (color, size) => <CalendarDays size={size} color={color} />,
-    label: 'Citas',
-    size: 25,
   },
   {
     key: 'home',
@@ -30,23 +23,15 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
   },
   {
     key: 'leads',
-    href: '/userAdviser/rent-followups',
+    href: '/userAdviser/leads',
     icon: (color, size) => <Flag size={size} color={color} />,
     isActive: (pathname) =>
-      pathname.startsWith('/userAdviser/rent-followups') ||
       pathname.startsWith('/userAdviser/leads'),
     label: 'Seguimiento',
-    size: 24,
-  },
-  {
-    key: 'messages',
-    href: '/userAdviser/messages',
-    icon: (color, size) => <MessageCircle size={size} color={color} />,
-    label: 'Mensajes',
     size: 24,
   },
 ]
 
 export function AdviserDashboardBottomNav() {
-  return <BottomNav defaultActiveIndex={2} items={adviserDashboardBottomNavItems} />
+  return <BottomNav defaultActiveIndex={1} items={adviserDashboardBottomNavItems} />
 }

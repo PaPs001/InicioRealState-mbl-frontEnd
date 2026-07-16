@@ -8,13 +8,15 @@ import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getRegistrationHomeRoute, registerUserByClientType } from '@/lib/services/registration-flows'
 import {
+  getRegisterFinalClientType,
   getRegisterFinalParams,
+  getRegisterPlatformNotificationOptions,
   getRegisterFinalValidationErrors,
   isRegisterFinalSelectionComplete,
   normalizeRegisterFinalNotes,
   REGISTER_FINAL_NOTES_LIMIT,
-  registerPlatformNotificationOptions,
   registerPreferredChannelOptions,
+  toggleRegisterFinalSelection,
   type RegisterFinalSelection,
 } from '@/lib/services/register-user-final'
 import { registerOwnerFinalStyles } from './final.styles'
@@ -30,19 +32,26 @@ export default function RegisterOwnerFinalScreen() {
     phone?: string
     password?: string
     emailVerificationToken?: string
-    propertyProfile?: string
-    primaryInterest?: string
-    priority?: string
+    propertyProfile?: string | string[]
+    primaryInterest?: string | string[]
+    priority?: string | string[]
   }>()
+  const registrationClientType = getRegisterFinalClientType(params)
+  const platformNotificationOptions = getRegisterPlatformNotificationOptions(registrationClientType)
   const [selection, setSelection] = useState<RegisterFinalSelection>({ notes: '' })
   const [showError, setShowError] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const updateSelection = (field: keyof RegisterFinalSelection, value: string) => {
+  const toggleSelection = (field: 'preferredChannel' | 'platformNotification', value: string) => {
+    setShowError(false)
+    setSelection((current) => toggleRegisterFinalSelection(current, field, value))
+  }
+
+  const updateNotes = (value: string) => {
     setShowError(false)
     setSelection((current) => ({
       ...current,
-      [field]: value,
+      notes: value,
     }))
   }
 
@@ -114,23 +123,23 @@ export default function RegisterOwnerFinalScreen() {
             <View style={registerOwnerFinalStyles.headerCopy}>
               <Text style={registerOwnerFinalStyles.title}>Tu perfil tambien importa</Text>
               <Text style={registerOwnerFinalStyles.subtitle}>
-                Queremos acompañarte con una experiencia clara, confiable y util para tu propiedad y patrimonio.
+                Queremos acompañarte con una experiencia clara, confiable y útil para tu propiead y patrimonio.
               </Text>
             </View>
           </View>
 
           <View style={registerOwnerFinalStyles.formArea}>
             <View style={registerOwnerFinalStyles.optionSection}>
-              <Text style={registerOwnerFinalStyles.sectionTitle}>Canales preferidos</Text>
+              <Text style={registerOwnerFinalStyles.sectionTitle}>¿Cómo prefiere atender a tus prospectos?</Text>
               <View style={registerOwnerFinalStyles.chipsRow}>
                 {registerPreferredChannelOptions.map((option) => (
                   <TouchableOpacity
                     key={option.id}
                     style={[
                       registerOwnerFinalStyles.chip,
-                      selection.preferredChannel === option.id && registerOwnerFinalStyles.chipSelected,
+                      selection.preferredChannel?.includes(option.id) && registerOwnerFinalStyles.chipSelected,
                     ]}
-                    onPress={() => updateSelection('preferredChannel', option.id)}
+                    onPress={() => toggleSelection('preferredChannel', option.id)}
                     activeOpacity={0.84}
                   >
                     <Text style={registerOwnerFinalStyles.chipText}>{option.label}</Text>
@@ -140,16 +149,16 @@ export default function RegisterOwnerFinalScreen() {
             </View>
 
             <View style={registerOwnerFinalStyles.optionSection}>
-              <Text style={registerOwnerFinalStyles.sectionTitle}>Notificaciones en la plataforma</Text>
+              <Text style={registerOwnerFinalStyles.sectionTitle}>¿En qué zonas puedes atender?</Text>
               <View style={registerOwnerFinalStyles.chipsRow}>
-                {registerPlatformNotificationOptions.map((option) => (
+                {platformNotificationOptions.map((option) => (
                   <TouchableOpacity
                     key={option.id}
                     style={[
                       registerOwnerFinalStyles.chip,
-                      selection.platformNotification === option.id && registerOwnerFinalStyles.chipSelected,
+                      selection.platformNotification?.includes(option.id) && registerOwnerFinalStyles.chipSelected,
                     ]}
-                    onPress={() => updateSelection('platformNotification', option.id)}
+                    onPress={() => toggleSelection('platformNotification', option.id)}
                     activeOpacity={0.84}
                   >
                     <Text style={registerOwnerFinalStyles.chipText}>{option.label}</Text>
@@ -161,16 +170,16 @@ export default function RegisterOwnerFinalScreen() {
 
           <View style={registerOwnerFinalStyles.notesSection}>
             <View style={registerOwnerFinalStyles.notesIntro}>
-              <Text style={registerOwnerFinalStyles.notesTitle}>Cuentanos un poco mas (opcional)</Text>
+              <Text style={registerOwnerFinalStyles.notesTitle}>Cuentanos un poco mas de tu experiencia (opcional)</Text>
               <Text style={registerOwnerFinalStyles.notesSubtitle}>
-                ¿Que te gustaria consultar o que objetivos tienes con tu propiedad?
+                Ejemplo: Experiencias de ventas, proyecctos que has trabajado, disponibilidad, etc.
               </Text>
             </View>
             <View style={registerOwnerFinalStyles.notesBoxWrap}>
               <TextInput
                 style={registerOwnerFinalStyles.notesBox}
                 value={selection.notes}
-                onChangeText={(value) => updateSelection('notes', normalizeRegisterFinalNotes(value))}
+                onChangeText={(value) => updateNotes(normalizeRegisterFinalNotes(value))}
                 multiline
                 maxLength={REGISTER_FINAL_NOTES_LIMIT}
               />
@@ -182,14 +191,14 @@ export default function RegisterOwnerFinalScreen() {
             <View style={registerOwnerFinalStyles.trustCard}>
               <View style={registerOwnerFinalStyles.trustDot} />
               <Text style={registerOwnerFinalStyles.trustText}>
-                Tu confianza tambien es parte de lo que construimos en INICIO
+                Tu perfil nos ayuda a organizar mejor los leads, citas y oportunidades de INICIO
               </Text>
             </View>
           </View>
 
           {showError ? (
             <Text style={registerOwnerFinalStyles.errorText}>
-              Selecciona un canal y una preferencia de notificaciones para finalizar.
+              Selecciona al menos un canal y una preferencia de notificaciones para finalizar.
             </Text>
           ) : null}
 
@@ -202,7 +211,7 @@ export default function RegisterOwnerFinalScreen() {
             activeOpacity={0.84}
           >
             <Text style={registerOwnerFinalStyles.finishButtonText}>{isSubmitting ? 'Registrando...' : 'Finalizar registro'}</Text>
-            <ArrowRight size={23} color="#cfa84f" strokeWidth={1.7} />
+            <ArrowRight size={23} color="#FDFCF8" strokeWidth={1.7} />
           </TouchableOpacity>
         </View>
       </ScrollView>
