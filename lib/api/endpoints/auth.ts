@@ -474,6 +474,70 @@ export async function loginUser(
   }
 }
 
+export type PasswordResetRequestInput = {
+  email: string
+}
+
+export type PasswordResetRequestResponse = {
+  ok: boolean
+  email: string
+  expiresAt?: string
+  delivery?: {
+    provider: string
+    delivered: boolean
+    data?: unknown
+  }
+}
+
+export type PasswordResetVerifyInput = {
+  email: string
+  code: string
+}
+
+export type PasswordResetVerifyResponse = {
+  ok: boolean
+  email: string
+  resetToken: string
+}
+
+export type PasswordResetConfirmInput = {
+  resetToken: string
+  password: string
+}
+
+export type PasswordResetConfirmResponse = {
+  ok: boolean
+}
+
+export async function requestPasswordResetCode(input: PasswordResetRequestInput) {
+  return coreApi<PasswordResetRequestResponse>('/auth/password-reset/request', {
+    method: 'POST',
+    body: {
+      email: input.email.trim().toLowerCase(),
+    },
+  })
+}
+
+export async function verifyPasswordResetCode(input: PasswordResetVerifyInput) {
+  return coreApi<PasswordResetVerifyResponse>('/auth/password-reset/verify', {
+    method: 'POST',
+    body: {
+      email: input.email.trim().toLowerCase(),
+      code: input.code,
+    },
+  })
+}
+
+export async function confirmPasswordReset(input: PasswordResetConfirmInput) {
+  return coreApi<PasswordResetConfirmResponse>('/auth/password-reset/confirm', {
+    method: 'POST',
+    body: {
+      resetToken: input.resetToken,
+      password: input.password,
+    },
+  })
+}
+
 export async function checkEmailExists(email: string): Promise<boolean> {
   try {
     const result = await coreApi<{ exists: boolean }>('/auth/check-email', {

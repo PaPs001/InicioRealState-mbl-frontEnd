@@ -27,13 +27,10 @@ export default function RegisterOwnerScreen() {
         </View>
 
         <View style={registerOwnerStyles.titleBlock}>
-          <Text style={registerOwnerStyles.title}>Acceso{'\n'}Propietario</Text>
+          <Text style={registerOwnerStyles.title}>Acceso{'\n'}Soy Asesor INICIO</Text>
           <View style={registerOwnerStyles.copyGroup}>
             <Text style={registerOwnerStyles.description}>
-              Consulta tu portafolio, propiedades, arrendamientos activos y avances desde un solo lugar
-            </Text>
-            <Text style={registerOwnerStyles.description}>
-              Diseñado para propietarios que tambien construyen patrimonio e inversion
+              Gestiona tus prospectos, propiedades, citas y seguimiento comercial dede un solo lugar
             </Text>
           </View>
         </View>
@@ -46,7 +43,7 @@ export default function RegisterOwnerScreen() {
             <View style={registerOwnerStyles.exclusiveCopy}>
               <Text style={registerOwnerStyles.exclusiveTitle}>Acceso exclusivo</Text>
               <Text style={registerOwnerStyles.exclusiveText}>
-                Solo para propietarios y propietarios con perfil inversionista
+                Solo para asesores {'\n'} INICIO REAL ESTATE
               </Text>
             </View>
           </View>

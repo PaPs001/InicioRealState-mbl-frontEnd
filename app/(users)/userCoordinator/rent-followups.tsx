@@ -17,7 +17,7 @@ import { getBackendLeadRecords } from '@/lib/api'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import type { LeadFollowUp, PropertyLead } from '@/lib/types'
-import { LeadDetailView, LeadFollowUpHistoryView } from './leads'
+import { LeadDetailView, LeadFollowUpHistoryView } from './leads-legacy'
 import { styles } from './rent-followups.styles'
 
 const LEADS_PAGE_SIZE = 20
@@ -46,8 +46,8 @@ const coordinatorRentFollowupChannels = [
 type CoordinatorRentFollowupChannel = typeof coordinatorRentFollowupChannels[number]
 
 const coordinatorRentAssistantActions = [
-  { id: 'dictate-followup', label: 'Dictar seguimiento', icon: 'mic' },
-  { id: 'voice-appointment', label: 'Agendar cita por voz', icon: 'wave' },
+  /*{ id: 'dictate-followup', label: 'Dictar seguimiento', icon: 'mic' },
+  { id: 'voice-appointment', label: 'Agendar cita por voz', icon: 'wave' },*/
   { id: 'add-lead', label: 'Agregar lead', icon: 'plus' },
 ] as const
 

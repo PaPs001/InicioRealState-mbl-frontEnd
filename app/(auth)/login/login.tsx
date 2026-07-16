@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -20,7 +21,7 @@ import { API_BUILD_CONFIG, API_URLS, type ApiDebugLogEntry } from '@/lib/api/cli
 import { signInWithCredentials } from '@/lib/services/login-session'
 import { loginNewStyles } from './login.styles'
 
-const heroImage = require('@/assets/login-new-hero.png')
+const heroImage = require('@/assets/auth/heroImage.jpg')
 
 type VisibleLoginLog = ApiDebugLogEntry & {
   id: string
@@ -180,12 +181,12 @@ export default function LoginNewScreen() {
             <View style={loginNewStyles.form}>
               <View style={[loginNewStyles.inputShell, hasCredentialError && loginNewStyles.inputShellError]}>
                 <View style={loginNewStyles.inputIcon}>
-                  <Mail size={17} color="#33363f" strokeWidth={1.8} />
+                  <Mail size={17} color="#BF8638" strokeWidth={1.8} />
                 </View>
                 <TextInput
                   style={loginNewStyles.input}
                   placeholder="Correo electronico"
-                  placeholderTextColor="#737373"
+                  placeholderTextColor="#b1aeae"
                   value={email}
                   onChangeText={(value) => {
                     setEmail(value)
@@ -200,12 +201,12 @@ export default function LoginNewScreen() {
 
               <View style={[loginNewStyles.inputShell, hasCredentialError && loginNewStyles.inputShellError]}>
                 <View style={loginNewStyles.inputIcon}>
-                  <Lock size={17} color="#33363f" strokeWidth={1.8} />
+                  <Lock size={17} color="#BF8638" strokeWidth={1.8} />
                 </View>
                 <PasswordTextInput
                   style={[loginNewStyles.input, loginNewStyles.passwordInput]}
                   placeholder="Contraseña"
-                  placeholderTextColor="#737373"
+                  placeholderTextColor="#b1aeae"
                   value={password}
                   onChangeText={(value) => {
                     setPassword(value)
@@ -229,7 +230,6 @@ export default function LoginNewScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
             <Text style={loginNewStyles.registerPrompt}>No tienes cuenta?, !Registrate! </Text>
 
             <TouchableOpacity
@@ -239,6 +239,17 @@ export default function LoginNewScreen() {
             >
               <Text style={loginNewStyles.secondaryButtonText}>Registrarse </Text>
             </TouchableOpacity>
+            <View style={loginNewStyles.forgetPasswordContainer}>
+              <Text style={loginNewStyles.forgetPassword}>¿Has olvidado tu contraseña? </Text>
+              <Pressable
+                onPress={() => router.push('/(auth)/password/mail')}
+              >
+                {({ pressed }) => (
+                  <Text style={[loginNewStyles.recoveryText, pressed && loginNewStyles.recoveryTextPressed,]}>Recuperala </Text>
+                )}
+              </Pressable>
+            </View>
+
 
             {isDebugPanelVisible ? (
               <View style={loginNewStyles.debugPanel}>

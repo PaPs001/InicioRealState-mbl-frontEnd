@@ -76,9 +76,9 @@ export default function RegisterOwnerWelcomeScreen() {
             </View>
 
             <View style={registerOwnerWelcomeStyles.heroCopy}>
-              <Text style={registerOwnerWelcomeStyles.title}>Bienvenido a{'\n'}INICIO!</Text>
+              <Text style={registerOwnerWelcomeStyles.title}>¡Bienvenido a{'\n'}INICIO!</Text>
               <Text style={registerOwnerWelcomeStyles.subtitle}>
-                Gracias por confiar en nosotros para acompañar la gestion de tu propiedad y tu patrimonio
+                Gracias por confiar en nosotros.{'\n'} Queremos acompañarte con una expreciencia clara, cercana y ordenada durante tu renta.
               </Text>
             </View>
           </View>
@@ -104,7 +104,7 @@ export default function RegisterOwnerWelcomeScreen() {
             <View style={registerOwnerWelcomeStyles.messageCard}>
               <Image source={homeIcon} style={registerOwnerWelcomeStyles.messageIcon} resizeMode="contain" />
               <Text style={registerOwnerWelcomeStyles.messageText}>
-                En INICIO, tu propiedad recibe atencion cercana y vision a largo plazo
+                En INICIO, tu tranquilidad tambien forman parte de lo que cuidamos cada dia.
               </Text>
             </View>
           </View>

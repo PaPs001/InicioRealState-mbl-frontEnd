@@ -7,6 +7,7 @@ export default function AuthLayout() {
       <Stack.Screen name="register-new" />
       <Stack.Screen name="register" />
       <Stack.Screen name="register-transition" />
+      <Stack.Screen name="password" />
       <Stack.Screen name="(register)/regAdvisor" />
       <Stack.Screen name="(register)/regCoordinator" />
       <Stack.Screen name="(register)/regCoordinator-new" />

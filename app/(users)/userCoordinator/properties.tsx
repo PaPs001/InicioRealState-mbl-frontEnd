@@ -1,10 +1,17 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { usePathname, useRouter } from 'expo-router'
-import { Building2, ChevronLeft } from 'lucide-react-native'
+import { Redirect, usePathname, useRouter } from 'expo-router'
+import { Building2 } from 'lucide-react-native'
 import { styles } from './properties.styles'
 
 export default function CoordinatorPropertiesScreen() {
+  const pathname = usePathname()
+  const routeBase = pathname.startsWith('/userAdviser') ? '/userAdviser' : '/userCoordinator'
+
+  return <Redirect href={`${routeBase}/properties-list` as never} />
+}
+
+function PropertiesDecisionScreen() {
   const router = useRouter()
   const pathname = usePathname()
   const routeBase = pathname.startsWith('/userAdviser') ? '/userAdviser' : '/userCoordinator'

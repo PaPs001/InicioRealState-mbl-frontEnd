@@ -11,6 +11,7 @@ import {
   getRegisterProfileSections,
   getRegisterProfileValidationErrors,
   isRegisterProfileSelectionComplete,
+  toggleRegisterProfileSelection,
   type RegisterProfileField,
   type RegisterProfileOption,
   type RegisterProfileSelection,
@@ -35,11 +36,11 @@ const iconSources: Record<string, ImageSourcePropType> = {
 type OptionGridProps = {
   title: string
   options: RegisterProfileOption[]
-  selectedId?: string
+  selectedIds?: string[]
   onSelect: (id: string) => void
 }
 
-function OptionGrid({ title, options, selectedId, onSelect }: OptionGridProps) {
+function OptionGrid({ title, options, selectedIds = [], onSelect }: OptionGridProps) {
   return (
     <View style={registerOwnerProfileStyles.section}>
       <View style={registerOwnerProfileStyles.sectionTitleWrap}>
@@ -47,7 +48,7 @@ function OptionGrid({ title, options, selectedId, onSelect }: OptionGridProps) {
       </View>
       <View style={registerOwnerProfileStyles.grid}>
         {options.map((option) => {
-          const selected = selectedId === option.id
+          const selected = selectedIds.includes(option.id)
           const isWide = option.label.length > 14
           const isResidential = option.id === 'residential'
 
@@ -102,10 +103,7 @@ export default function RegisterOwnerProfileScreen() {
 
   const updateSelection = (field: RegisterProfileField, value: string) => {
     setShowError(false)
-    setSelection((current) => ({
-      ...current,
-      [field]: value,
-    }))
+    setSelection((current) => toggleRegisterProfileSelection(current, field, value))
   }
 
   const handleContinue = () => {
@@ -153,7 +151,7 @@ export default function RegisterOwnerProfileScreen() {
                 key={section.field}
                 title={section.title}
                 options={section.options}
-                selectedId={selection[section.field]}
+                selectedIds={selection[section.field]}
                 onSelect={(id) => updateSelection(section.field, id)}
               />
             ))}
@@ -161,7 +159,7 @@ export default function RegisterOwnerProfileScreen() {
 
           {showError ? (
             <Text style={registerOwnerProfileStyles.errorText}>
-              Selecciona una opcion de cada seccion para continuar.
+              Selecciona al menos una opcion de cada seccion para continuar.
             </Text>
           ) : null}
 

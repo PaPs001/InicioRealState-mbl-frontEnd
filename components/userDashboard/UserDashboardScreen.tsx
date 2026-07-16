@@ -13,7 +13,7 @@ import { createGoogleCalendarDate, disconnectGoogleCalendar, getBackendLeadRecor
 import type { LeadFollowUp, Property, PropertyLead } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { AppointmentCard, FunnelMetric, LeadAlertRow, LeadMetricCard, PriorityCard } from './DashboardCards'
-import { formatCurrentDashboardDate, getDefaultAppointmentEndDateTime, getDefaultAppointmentStartDateTime, getDefaultAppointmentType, getInitials, getPropertyDisplayName, hasUpcomingFollowUpDate, isOverdueFollowUp, mapGoogleDateToAppointment } from './dashboard-formatters'
+import { formatCurrentDashboardDate, getAppointmentEndDateTime, getDefaultAppointmentEndDateTime, getDefaultAppointmentStartDateTime, getDefaultAppointmentType, getInitials, getPropertyDisplayName, hasUpcomingFollowUpDate, isOverdueFollowUp, mapGoogleDateToAppointment } from './dashboard-formatters'
 import { AppointmentCreateModal } from './AppointmentCreateModal'
 import { styles } from './UserDashboardScreen.styles'
 import type { AppointmentPreviewItem, DashboardLeadAlert, DashboardMetric, DashboardPriority } from './types'
@@ -24,6 +24,13 @@ export type UserDashboardArea = 'adviser' | 'coordinator'
 
 type UserDashboardScreenProps = {
   area: UserDashboardArea
+}
+
+function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
+  const today = new Date()
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+
+  return appointment.sortTime !== Number.MAX_SAFE_INTEGER && appointment.sortTime >= startOfToday
 }
 
 const dashboardAreaConfig = {
@@ -103,7 +110,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setIsCalendarLoading(true)
     try {
       const dates = await getGoogleCalendarDates(authToken, { sync: options.sync })
-      const appointments = dates.map(mapGoogleDateToAppointment).sort((a, b) => a.sortTime - b.sortTime)
+      const appointments = dates
+        .map(mapGoogleDateToAppointment)
+        .filter(isAppointmentFromTodayOn)
+        .sort((a, b) => a.sortTime - b.sortTime)
       setCalendarAppointments(appointments)
       setIsGoogleConnected(true)
       setCalendarMessage(appointments.length ? '' : 'No hay citas de Google para esta semana.')
@@ -334,8 +344,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const handleCreateAppointment = async () => {
     if (!authToken || isCreatingAppointment) return
 
-    if (!testAppointmentForm.title.trim() || !testAppointmentForm.startDateTime.trim() || !testAppointmentForm.endDateTime.trim()) {
-      Alert.alert('Faltan datos', 'Titulo, inicio y fin son obligatorios.')
+    if (!testAppointmentForm.title.trim() || !testAppointmentForm.startDateTime.trim()) {
+      Alert.alert('Faltan datos', 'Titulo e inicio son obligatorios.')
       return
     }
 
@@ -358,6 +368,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     try {
       await createGoogleCalendarDate(authToken, {
         ...testAppointmentForm,
+        endDateTime: getAppointmentEndDateTime(testAppointmentForm.startDateTime),
         advisorId: testAppointmentForm.advisorId || currentUser?.id || null,
         helpedBy: testAppointmentForm.helpedBy || advisorName,
       })
@@ -523,16 +534,18 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Text style={styles.availableValue}>{rentSummary.propertyCount}</Text>
             <Text style={styles.spacedLabel}>DISPONIBLES</Text>
           </TouchableOpacity>
-          <View style={styles.earningsCard}>
-            <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>
-            <View style={styles.earningsValueRow}>
-              <Text style={styles.earningsValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{formatCurrency(rentSummary.opportunityAmount)}</Text>
-              <Text style={styles.currency}>MXN</Text>
+          {area === 'coordinator' ? (
+            <View style={styles.earningsCard}>
+              <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>
+              <View style={styles.earningsValueRow}>
+                <Text style={styles.earningsValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{formatCurrency(rentSummary.opportunityAmount)}</Text>
+                <Text style={styles.currency}>MXN</Text>
+              </View>
+              <Text style={styles.earningsCaption}>Comision aprox.</Text>
             </View>
-            <Text style={styles.earningsCaption}>Comision aprox.</Text>
-          </View>
+          ) : null}
         </View>
-        <View style={styles.listedButton}>
+        {/*<View style={styles.listedButton}>
           <View style={styles.listedIcon}>
             <Home size={26} color="#d4b66f" />
           </View>
@@ -541,11 +554,11 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Text style={styles.listedMeta}>Muy pronto</Text>
           </View>
           <ChevronRight size={18} color="#2a2d31" />
-        </View>
-        <Text style={styles.sectionTitle}>Prioridades de hoy</Text>
+        </View>*/}
+        {/*<Text style={styles.sectionTitle}>Prioridades de hoy</Text>
         <View style={styles.prioritiesRow}>{priorities.map((priority, index) => 
           <PriorityCard key={priority.id} priority={priority} highlight={index === priorities.length - 1} />)}
-        </View>
+        </View>*/}
         <View style={[styles.panel, styles.appointmentsPanel]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderTitle}>Citas de esta semana</Text>
@@ -553,10 +566,18 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               <Text style={styles.sectionAction}>Configurar</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.appointmentList}>{calendarAppointments.length === 0 ? 
-            <Text style={styles.panelSubtitle}>{isCalendarLoading ? 'Cargando citas reales...' : calendarMessage}</Text> : calendarAppointments.slice(0, 5).map(appointment => 
-            <AppointmentCard key={`${appointment.id ?? appointment.property}-${appointment.time}`} appointment={appointment} />)}
-          </View>
+          <ScrollView
+            style={styles.appointmentsScroll}
+            contentContainerStyle={styles.appointmentList}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={calendarAppointments.length > 5}
+          >
+            {calendarAppointments.length === 0 ? (
+              <Text style={styles.panelSubtitle}>{isCalendarLoading ? 'Cargando citas reales...' : calendarMessage}</Text>
+            ) : calendarAppointments.slice(0, 15).map(appointment => (
+              <AppointmentCard key={`${appointment.id ?? appointment.property}-${appointment.time}`} appointment={appointment} />
+            ))}
+          </ScrollView>
           <View style={styles.appointmentActionsRow}>
             <TouchableOpacity style={styles.centerButton} activeOpacity={0.85} onPress={() => loadCalendarDates({ sync: true })} disabled={isCalendarLoading}>
               <CalendarDays size={17} color="#3d3b3b" />
@@ -574,7 +595,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               <Text style={styles.sectionHeaderTitle}>Seguimientos</Text>
               <Text style={styles.panelSubtitle}>Panorama general de actividad de leads</Text>
             </View>
-            <TouchableOpacity activeOpacity={0.85} onPress={() => router.push(`${areaConfig.basePath}/rent-followups` as never)}>
+            <TouchableOpacity activeOpacity={0.85} onPress={() => router.push(`${areaConfig.basePath}/leads` as never)}>
               <Text style={styles.sectionAction}>Ver mas</Text>
             </TouchableOpacity>
           </View>
@@ -588,7 +609,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <FunnelMetric key={metric.id} metric={metric} />)}
           </View>{leadSummary.leadAlerts.map(alert => 
           <LeadAlertRow key={alert.id} alert={alert} />)}
-          <TouchableOpacity style={styles.outlineButton} activeOpacity={0.85} onPress={() => router.push(`${areaConfig.basePath}/rent-followups` as never)}>
+          <TouchableOpacity style={styles.outlineButton} activeOpacity={0.85} onPress={() => router.push(`${areaConfig.basePath}/leads` as never)}>
             <Eye size={16} color="#006b43" />
             <Text style={styles.outlineButtonText}>Ver detalle</Text>
           </TouchableOpacity></>}

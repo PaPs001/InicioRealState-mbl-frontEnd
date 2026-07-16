@@ -79,7 +79,7 @@ export const registerNewStyles = StyleSheet.create({
     paddingRight: 6,
   },
   optionTitle: {
-    color: '#204c31',
+    color: '#B88E4C',
     fontFamily: 'Cormorant',
     fontSize: 25,
     fontWeight: '400',
