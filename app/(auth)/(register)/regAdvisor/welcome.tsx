@@ -76,9 +76,9 @@ export default function RegisterOwnerWelcomeScreen() {
             </View>
 
             <View style={registerOwnerWelcomeStyles.heroCopy}>
-              <Text style={registerOwnerWelcomeStyles.title}>Bienvenido a{'\n'}INICIO!</Text>
+              <Text style={registerOwnerWelcomeStyles.title}>¡Bienvenido al{'\n'}equipo INICIO!</Text>
               <Text style={registerOwnerWelcomeStyles.subtitle}>
-                Gracias por confiar en nosotros para acompañar la gestion de tu propiedad y tu patrimonio
+                Gracias por formar parte de INICIO Real Estate, queremos ayudarte a trabajar con mayor orden y claridad en cada oportunidad comercial
               </Text>
             </View>
           </View>
@@ -104,7 +104,7 @@ export default function RegisterOwnerWelcomeScreen() {
             <View style={registerOwnerWelcomeStyles.messageCard}>
               <Image source={homeIcon} style={registerOwnerWelcomeStyles.messageIcon} resizeMode="contain" />
               <Text style={registerOwnerWelcomeStyles.messageText}>
-                En INICIO, tu propiedad recibe atencion cercana y vision a largo plazo
+                En INICIO, cada asesor representa confianza, atencion y profesionalismo.
               </Text>
             </View>
           </View>

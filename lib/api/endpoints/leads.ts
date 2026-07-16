@@ -1,5 +1,5 @@
-import type { LeadFollowUp, PropertyLead, User } from '@/lib/types'
-import { coreApi } from '../client'
+import type { LeadFollowUp, LeadV2StatusSource, LeadV2SystemStatus, PropertyLead, User } from '@/lib/types'
+import { API_URLS, coreApi } from '../client'
 
 const createdLeadsStore = new Map<string, PropertyLead>()
 const followUpsStore = new Map<string, LeadFollowUp[]>()
@@ -8,11 +8,19 @@ type BackendLead = {
   _id?: string
   id?: string | null
   sourceId?: string | null
+  leadNotionId?: string | null
   clientName?: string | null
   fullName?: string | null
   client?: string | null
   name?: string | null
   status?: string | null
+  systemStatus?: string | null
+  statusSource?: LeadV2StatusSource | null
+  statusReason?: string | null
+  statusUntil?: string | Date | null
+  nextAction?: string | null
+  nextActionAt?: string | Date | null
+  nextFollowUpAt?: string | Date | null
   phone?: string | null
   dateFirstContact?: string | Date | null
   campaign?: string | null
@@ -27,6 +35,7 @@ type BackendLead = {
   advisor?: string | { _id?: string | null; id?: string | null; name?: string | null; fullName?: string | null } | null
   advisorId?: string | null
   assignedAgentName?: string | null
+  agent?: string | null
   agentId?: string | null
   agentName?: string | null
   source?: string | null
@@ -59,6 +68,29 @@ type BackendFollowUp = {
   nextAction?: string | null
 }
 
+type BackendLeadV2FollowingAttachment = {
+  _id?: string
+  filename?: string | null
+  mime?: string | null
+  size?: number | null
+  storageKey?: string | null
+  url?: string | null
+}
+
+type BackendLeadV2Following = {
+  _id?: string
+  id?: string | null
+  leadId?: string | null
+  authorType?: 'agent' | 'coordinator' | 'unknown' | string | null
+  authorId?: string | null
+  text?: string | null
+  contactSummary?: string | null
+  nextAction?: string | null
+  attachments?: BackendLeadV2FollowingAttachment[] | null
+  createdAt?: string | Date | null
+  updatedAt?: string | Date | null
+}
+
 type GetBackendLeadRecordsOptions = {
   includeFollowUps?: boolean
 }
@@ -84,6 +116,74 @@ export type CreateBackendLeadFollowUpPayload = {
   nextAction: string
 }
 
+export type CreateBackendLeadV2Payload = {
+  fullName?: string
+  phone?: string
+  email?: string
+  propertyOfInterestId?: string
+  origin?: string
+  operation?: string
+  statusSource?: 'advisor' | 'coordinator' | 'system' | 'notion' | 'manychat'
+}
+
+export type UpdateBackendLeadV2Payload = Partial<{
+  fullName: string
+  phone: string
+  email: string
+  propertyOfInterestId: string
+  origin: string
+  operation: string
+  status: string
+  statusReason: string
+  statusUntil: string
+  nextAction: string
+  nextActionAt: string
+  nextFollowUpAt: string
+}>
+
+export type BackendLeadV2StatusesResponse = {
+  statuses: string[]
+}
+
+export type SetBackendLeadV2StatusPayload = {
+  status: string
+}
+
+export type SetBackendLeadV2StatusResponse = {
+  lead: PropertyLead
+  statuses: string[]
+}
+
+export type SetBackendLeadV2NextActionPayload = {
+  nextAction: string
+  nextActionAt: string
+}
+export type BackendLeadV2FollowingRecord = {
+  id: string
+  leadId: string
+  authorType: string
+  authorId?: string
+  text: string
+  contactSummary?: string
+  nextAction?: string
+  attachments: BackendLeadV2FollowingAttachment[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type CreateBackendLeadV2FollowingPayload = {
+  text?: string
+  contactDate?: string
+  contactType?: 'call' | 'whatsapp' | 'app' | 'page' | 'email' | 'visit' | 'meeting'
+  contactSummary?: string
+  nextAction?: string
+  image?: {
+    uri: string
+    name: string
+    type: string
+  } | null
+}
+
 const backendStatusToLeadStatus: Record<string, PropertyLead['status']> = {
   new: 'nuevo',
   nuevo: 'nuevo',
@@ -105,6 +205,20 @@ const backendStatusToLeadStatus: Record<string, PropertyLead['status']> = {
   disqualified: 'descartado',
   spam: 'descartado',
 }
+
+const validSystemStatuses = new Set<LeadV2SystemStatus>([
+  'nuevo',
+  'seguimiento',
+  'frio',
+  'congelado',
+  'en_espera',
+  'con_cita',
+  'lead_muerto',
+  'lead_ganador',
+  'lead_perdido',
+  'spam',
+  'duplicado',
+])
 
 const EMPTY_LEAD_NAME = 'Lead sin nombre'
 
@@ -153,6 +267,23 @@ function getBackendLeadStatus(value?: string | null): PropertyLead['status'] {
   return backendStatusToLeadStatus[statusKey] ?? backendStatusToLeadStatus[normalizedStatus] ?? 'nuevo'
 }
 
+function getBackendLeadSystemStatus(value?: string | null): LeadV2SystemStatus | undefined {
+  const normalizedStatus = normalizeTextValue(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[ -]+/g, '_')
+
+  return validSystemStatuses.has(normalizedStatus as LeadV2SystemStatus)
+    ? normalizedStatus as LeadV2SystemStatus
+    : undefined
+}
+
+function normalizeOptionalDate(value?: string | Date | null) {
+  if (!value) return undefined
+  return value instanceof Date ? value.toISOString() : value
+}
+
 function getBackendLeadSearchIntent(lead: BackendLead): PropertyLead['searchIntent'] {
   const operation = getFirstMeaningfulValue(lead.typeOfOperation, lead.operation).toLowerCase()
   if (operation.includes('rent') || operation.includes('renta')) return 'rent'
@@ -176,7 +307,7 @@ function getBackendAdvisorName(lead: BackendLead) {
     return lead.advisor.name || lead.advisor.fullName || undefined
   }
 
-  return lead.assignedAgentName || lead.agentName || (typeof lead.advisor === 'string' ? lead.advisor : undefined) || undefined
+  return lead.assignedAgentName || lead.agentName || lead.agent || (typeof lead.advisor === 'string' ? lead.advisor : undefined) || undefined
 }
 
 export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
@@ -191,7 +322,7 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
   ].filter(Boolean).join('\n') || undefined
 
   return {
-    id: lead.id || lead.sourceId || lead._id || `lead-${Date.now()}`,
+    id: lead.id || lead.sourceId || lead.leadNotionId || lead._id || `lead-${Date.now()}`,
     propertyId,
     agentId: advisorId,
     advisorId,
@@ -200,6 +331,14 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
     phone: lead.phone || '',
     email: lead.email || undefined,
     status: getBackendLeadStatus(lead.status),
+    advisorStatus: normalizeTextValue(lead.status) || undefined,
+    systemStatus: getBackendLeadSystemStatus(lead.systemStatus),
+    statusSource: lead.statusSource || undefined,
+    statusReason: lead.statusReason || undefined,
+    statusUntil: normalizeOptionalDate(lead.statusUntil),
+    nextAction: normalizeTextValue(lead.nextAction) || undefined,
+    nextActionAt: normalizeOptionalDate(lead.nextActionAt),
+    nextFollowUpAt: normalizeOptionalDate(lead.nextFollowUpAt),
     source: getFirstMeaningfulValue(lead.origin, lead.leadOrigin, lead.source, campaign) || 'Backend',
     contactType: 'whatsapp',
     searchIntent: getBackendLeadSearchIntent(lead),
@@ -240,6 +379,178 @@ export async function getBackendLeadRecords(
   return leads.map(mapBackendLeadToPropertyLead)
 }
 
+export async function getBackendLeadV2Records(
+  token?: string | null,
+): Promise<PropertyLead[]> {
+  const leads = await coreApi<BackendLead[]>('/leads-v2', {
+    token: token ?? undefined,
+  })
+
+  return leads.map(mapBackendLeadToPropertyLead)
+}
+
+export async function createBackendLeadV2Record(
+  payload: CreateBackendLeadV2Payload,
+  token?: string | null,
+): Promise<PropertyLead> {
+  const propertyOfInterestId = payload.propertyOfInterestId?.trim() || 'manual-lead'
+  const lead = await coreApi<BackendLead>('/leads-v2', {
+    method: 'POST',
+    token: token ?? undefined,
+    body: {
+      ...payload,
+      propertyOfInterestId,
+      fullName: payload.fullName?.trim() || undefined,
+      phone: payload.phone?.trim() || undefined,
+      email: payload.email?.trim() || undefined,
+      origin: payload.origin?.trim() || 'app',
+      statusSource: payload.statusSource || 'advisor',
+    },
+  })
+
+  return mapBackendLeadToPropertyLead(lead)
+}
+
+export async function updateBackendLeadV2Record(
+  leadId: string,
+  payload: UpdateBackendLeadV2Payload,
+  token?: string | null,
+): Promise<PropertyLead> {
+  const lead = await coreApi<BackendLead>(`/leads-v2/${leadId}`, {
+    method: 'PATCH',
+    token: token ?? undefined,
+    body: payload,
+  })
+
+  return mapBackendLeadToPropertyLead(lead)
+}
+
+export async function getBackendLeadV2Statuses(
+  token?: string | null,
+): Promise<string[]> {
+  const response = await coreApi<BackendLeadV2StatusesResponse>('/leads-v2/statuses', {
+    token: token ?? undefined,
+  })
+
+  return response.statuses
+}
+
+export async function createBackendLeadV2Status(
+  status: string,
+  token?: string | null,
+): Promise<string[]> {
+  const response = await coreApi<BackendLeadV2StatusesResponse>('/leads-v2/statuses', {
+    method: 'POST',
+    token: token ?? undefined,
+    body: { status },
+  })
+
+  return response.statuses
+}
+
+export async function deleteBackendLeadV2Status(
+  status: string,
+  token?: string | null,
+): Promise<string[]> {
+  const response = await coreApi<BackendLeadV2StatusesResponse>('/leads-v2/statuses', {
+    method: 'DELETE',
+    token: token ?? undefined,
+    body: { status },
+  })
+
+  return response.statuses
+}
+
+export async function setBackendLeadV2Status(
+  leadId: string,
+  payload: SetBackendLeadV2StatusPayload,
+  token?: string | null,
+): Promise<SetBackendLeadV2StatusResponse> {
+  const response = await coreApi<{ lead: BackendLead; statuses: string[] }>(`/leads-v2/${leadId}/status`, {
+    method: 'POST',
+    token: token ?? undefined,
+    body: payload,
+  })
+
+  return {
+    lead: mapBackendLeadToPropertyLead(response.lead),
+    statuses: response.statuses,
+  }
+}
+
+export async function setBackendLeadV2NextAction(
+  leadId: string,
+  payload: SetBackendLeadV2NextActionPayload,
+  token?: string | null,
+): Promise<PropertyLead> {
+  const lead = await coreApi<BackendLead>(`/leads-v2/${leadId}/next-action`, {
+    method: 'POST',
+    token: token ?? undefined,
+    body: payload,
+  })
+
+  return mapBackendLeadToPropertyLead(lead)
+}
+export async function getBackendLeadV2Followings(
+  leadId: string,
+  token?: string | null,
+): Promise<BackendLeadV2FollowingRecord[]> {
+  const followings = await coreApi<BackendLeadV2Following[]>(`/leads-v2/${leadId}/followings`, {
+    token: token ?? undefined,
+  })
+
+  return followings.map(mapBackendLeadV2Following)
+}
+
+export async function createBackendLeadV2Following(
+  leadId: string,
+  payload: CreateBackendLeadV2FollowingPayload,
+  token?: string | null,
+): Promise<BackendLeadV2FollowingRecord> {
+  const formData = new FormData()
+
+  formData.append('text', payload.text?.trim() || '')
+  formData.append('contactDate', payload.contactDate || new Date().toISOString())
+  formData.append('contactType', payload.contactType || 'app')
+  formData.append('contactSummary', payload.contactSummary?.trim() || '')
+  formData.append('nextAction', payload.nextAction?.trim() || '')
+
+  if (payload.image) {
+    formData.append('files', {
+      uri: payload.image.uri,
+      name: payload.image.name,
+      type: payload.image.type,
+    } as unknown as Blob)
+  }
+
+  const headers: Record<string, string> = {}
+  if (API_URLS.CORE.includes('ngrok-free')) {
+    headers['ngrok-skip-browser-warning'] = 'true'
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_URLS.CORE}/leads-v2/${leadId}/followings`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  })
+
+  if (!response.ok) {
+    let message = `Error ${response.status}`
+    try {
+      const data = await response.json() as { error?: string; message?: string; details?: string }
+      message = data.message || data.error || data.details || message
+    } catch {
+      message = `${message}: ${response.statusText}`
+    }
+    throw new Error(message)
+  }
+
+  return mapBackendLeadV2Following(await response.json() as BackendLeadV2Following)
+}
+
 export async function getBackendLeadFollowUps(
   leadId: string,
   token?: string | null,
@@ -249,6 +560,21 @@ export async function getBackendLeadFollowUps(
   })
 
   return followUps.map(mapBackendFollowUpToLeadFollowUp)
+}
+
+function mapBackendLeadV2Following(following: BackendLeadV2Following): BackendLeadV2FollowingRecord {
+  return {
+    id: following.id || following._id || `following-${Date.now()}`,
+    leadId: following.leadId || '',
+    authorType: following.authorType || 'unknown',
+    authorId: following.authorId || undefined,
+    text: following.text || '',
+    contactSummary: following.contactSummary || undefined,
+    nextAction: following.nextAction || undefined,
+    attachments: following.attachments ?? [],
+    createdAt: following.createdAt ? normalizeDate(following.createdAt) : undefined,
+    updatedAt: following.updatedAt ? normalizeDate(following.updatedAt) : undefined,
+  }
 }
 
 export async function createBackendLeadFollowUp(

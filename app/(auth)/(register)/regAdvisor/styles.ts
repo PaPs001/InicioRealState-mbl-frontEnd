@@ -84,7 +84,7 @@ export const registerOwnerStyles = StyleSheet.create({
   title: {
     color: '#1b382c',
     fontFamily: serifFont,
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: '400',
     lineHeight: 36,
     textAlign: 'center',
@@ -106,7 +106,7 @@ export const registerOwnerStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 318,
     minHeight: 134,
-    marginTop: 52,
+    marginTop: 150,
     borderWidth: 2,
     borderColor: '#ffe7ca',
     borderRadius: 12,

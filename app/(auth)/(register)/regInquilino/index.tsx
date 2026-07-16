@@ -30,10 +30,10 @@ export default function RegisterOwnerScreen() {
           <Text style={registerOwnerStyles.title}>Acceso{'\n'}Inquilino</Text>
           <View style={registerOwnerStyles.copyGroup}>
             <Text style={registerOwnerStyles.description}>
-              Consulta tu portafolio, propiedades, arrendamientos activos y avances desde un solo lugar
+              Conulta tu renta, pagos, incidencias y seguimiento desde un solo lugar.
             </Text>
             <Text style={registerOwnerStyles.description}>
-              Diseñado para inquilinos que tambien construyen patrimonio e inversion
+              Diseñado para inquilinos que buscando claridad, atencion y acompañamiento durante su estancia.
             </Text>
           </View>
         </View>
@@ -46,7 +46,7 @@ export default function RegisterOwnerScreen() {
             <View style={registerOwnerStyles.exclusiveCopy}>
               <Text style={registerOwnerStyles.exclusiveTitle}>Acceso exclusivo</Text>
               <Text style={registerOwnerStyles.exclusiveText}>
-                Solo para inquilinos y inquilinos con perfil inversionista
+                Solo para inquilinos de INICIO REAL ESTATE.
               </Text>
             </View>
           </View>

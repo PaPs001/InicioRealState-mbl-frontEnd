@@ -97,7 +97,7 @@ export const registerOwnerStyles = StyleSheet.create({
   },
   description: {
     color: '#5c5e5d',
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 16,
     letterSpacing: 0.98,
     textAlign: 'center',

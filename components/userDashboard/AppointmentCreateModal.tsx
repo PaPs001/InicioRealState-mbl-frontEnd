@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native'
 
 import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
 import type { Property, PropertyLead } from '@/lib/types'
 
-import { getPropertyDisplayName } from './dashboard-formatters'
+import { getAppointmentEndDateTime, getPropertyDisplayName } from './dashboard-formatters'
 import { styles } from './UserDashboardScreen.styles'
 
 type AppointmentCreateModalProps = {
@@ -238,32 +239,13 @@ export function AppointmentCreateModal({
                 placeholder="Ubicacion"
                 placeholderTextColor="#8d8d8d"
               />
-              <Text style={styles.calendarTestLabel}>Descripcion de la cita</Text>
-              <TextInput
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.description ?? ''}
-                onChangeText={value => onUpdateForm('description', value)}
-                placeholder="Descripcion"
-                placeholderTextColor="#8d8d8d"
-              />
               <Text style={styles.calendarTestLabel}>Fecha de la cita</Text>
               <CalendarPick
                 value={testAppointmentForm.startDateTime}
-                onChange={value => onUpdateForm('startDateTime', value)}
-              />
-              <Text style={styles.calendarTestLabel}>Fecha de terminacion</Text>
-              <CalendarPick
-                value={testAppointmentForm.endDateTime}
-                onChange={value => onUpdateForm('endDateTime', value)}
-              />
-              <Text style={styles.calendarTestLabel}>Tipo de calendario</Text>
-              <TextInput
-                style={styles.calendarTestInput}
-                value={testAppointmentForm.appointmentType ?? ''}
-                onChangeText={value => onUpdateForm('appointmentType', value)}
-                placeholder="Tipo"
-                placeholderTextColor="#8d8d8d"
-                autoCapitalize="none"
+                onChange={value => {
+                  onUpdateForm('startDateTime', value)
+                  onUpdateForm('endDateTime', getAppointmentEndDateTime(value))
+                }}
               />
               <TouchableOpacity
                 style={styles.calendarTestCreateButton}
@@ -283,37 +265,48 @@ export function AppointmentCreateModal({
   )
 }
 
+type CalendarPickerMode = 'date' | 'time'
+
 function CalendarPick({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const date = getPickerDate(value)
-  const [dateText, setDateText] = useState(formatDateInput(date))
-  const [timeText, setTimeText] = useState(formatTimeInput(date))
+  const [pickerMode, setPickerMode] = useState<CalendarPickerMode | null>(null)
 
-  useEffect(() => {
-    setDateText(formatDateInput(date))
-    setTimeText(formatTimeInput(date))
-  }, [value])
+  const handlePickerChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (!selectedDate || !pickerMode) {
+      setPickerMode(null)
+      return
+    }
+
+    const nextDate = getPickerDate(value)
+    if (pickerMode === 'date') {
+      nextDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+    } else {
+      nextDate.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0)
+    }
+
+    setPickerMode(null)
+    onChange(nextDate.toISOString())
+  }
 
   return (
     <View style={styles.calendarPicker}>
       <Text style={styles.calendarPickerValue}>{date.toLocaleString()}</Text>
       <View style={styles.calendarPickerActions}>
-        <TextInput
-          style={styles.calendarPickerInput}
-          value={dateText}
-          onChangeText={setDateText}
-          onBlur={() => onChange(updateDatePart(value, dateText))}
-          placeholder="YYYY-MM-DD"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.calendarPickerInput}
-          value={timeText}
-          onChangeText={setTimeText}
-          onBlur={() => onChange(updateTimePart(value, timeText))}
-          placeholder="HH:mm"
-          autoCapitalize="none"
-        />
+        <TouchableOpacity style={styles.calendarPickerButton} onPress={() => setPickerMode('date')} activeOpacity={0.85}>
+          <Text style={styles.calendarPickerButtonText}>Escoger fecha</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.calendarPickerButton} onPress={() => setPickerMode('time')} activeOpacity={0.85}>
+          <Text style={styles.calendarPickerButtonText}>Escoger hora</Text>
+        </TouchableOpacity>
       </View>
+      {pickerMode ? (
+        <DateTimePicker
+          value={date}
+          mode={pickerMode}
+          display="default"
+          onChange={handlePickerChange}
+        />
+      ) : null}
     </View>
   )
 }
@@ -321,41 +314,4 @@ function CalendarPick({ value, onChange }: { value: string; onChange: (value: st
 function getPickerDate(value: string) {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? new Date() : date
-}
-
-function formatDateInput(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function formatTimeInput(date: Date) {
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
-}
-
-function updateDatePart(value: string, nextDatePart: string) {
-  const date = getPickerDate(value)
-  const [year, month, day] = nextDatePart.split('-').map(Number)
-
-  if (!year || !month || !day) {
-    return value
-  }
-
-  date.setFullYear(year, month - 1, day)
-  return date.toISOString()
-}
-
-function updateTimePart(value: string, nextTimePart: string) {
-  const date = getPickerDate(value)
-  const [hours, minutes] = nextTimePart.split(':').map(Number)
-
-  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-    return value
-  }
-
-  date.setHours(hours, minutes, 0, 0)
-  return date.toISOString()
 }

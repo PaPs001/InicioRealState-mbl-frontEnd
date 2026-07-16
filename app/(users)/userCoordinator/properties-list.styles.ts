@@ -298,6 +298,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  filterHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   clearFiltersButton: {
     minWidth: 70,
     height: 32,
@@ -312,6 +317,20 @@ export const styles = StyleSheet.create({
     color: '#505050',
     fontSize: 11,
     fontWeight: '600',
+  },
+  closeFiltersButton: {
+    minWidth: 70,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#0c6740',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  closeFiltersButtonText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
   },
   pdfOptionsTitle: {
     color: '#0c6740',

@@ -1,9 +1,9 @@
 import type { RegisterClientType } from './register-entry'
 
 export type RegisterProfileSelection = {
-  propertyProfile?: string
-  primaryInterest?: string
-  priority?: string
+  propertyProfile?: string[]
+  primaryInterest?: string[]
+  priority?: string[]
 }
 
 export type RegisterProfileField = keyof RegisterProfileSelection
@@ -118,8 +118,26 @@ export function getRegisterProfileSections(clientType: RegisterClientType) {
   return registerProfileSectionsByClientType[clientType] ?? ownerProfileSections
 }
 
+export function toggleRegisterProfileSelection(
+  selection: RegisterProfileSelection,
+  field: RegisterProfileField,
+  value: string,
+): RegisterProfileSelection {
+  const currentValues = selection[field] ?? []
+  const nextValues = currentValues.includes(value)
+    ? currentValues.filter((currentValue) => currentValue !== value)
+    : [...currentValues, value]
+
+  return {
+    ...selection,
+    [field]: nextValues,
+  }
+}
+
 export function isRegisterProfileSelectionComplete(selection: RegisterProfileSelection) {
-  return Boolean(selection.propertyProfile && selection.primaryInterest && selection.priority)
+  return Boolean(
+    selection.propertyProfile?.length && selection.primaryInterest?.length && selection.priority?.length,
+  )
 }
 
 export function getRegisterProfileValidationErrors(
@@ -127,8 +145,8 @@ export function getRegisterProfileValidationErrors(
   sections: RegisterProfileSection[],
 ) {
   return sections
-    .filter((section) => !selection[section.field])
-    .map((section) => `${section.title}: selecciona una opcion.`)
+    .filter((section) => !selection[section.field]?.length)
+    .map((section) => `${section.title}: selecciona al menos una opcion.`)
 }
 
 export function getRegisterProfileParams(
@@ -136,16 +154,16 @@ export function getRegisterProfileParams(
   selection: RegisterProfileSelection,
 ) {
   return {
-    clientType: getParamValue(params.clientType) as RegisterClientType || 'owner',
+    clientType: getRegisterProfileClientType(params.clientType),
     registrationAccess: '1',
     fullName: getParamValue(params.fullName),
     email: getParamValue(params.email),
     phone: getParamValue(params.phone),
     password: getParamValue(params.password),
     emailVerificationToken: getParamValue(params.emailVerificationToken),
-    propertyProfile: selection.propertyProfile ?? '',
-    primaryInterest: selection.primaryInterest ?? '',
-    priority: selection.priority ?? '',
+    propertyProfile: selection.propertyProfile ?? [],
+    primaryInterest: selection.primaryInterest ?? [],
+    priority: selection.priority ?? [],
   } as const
 }
 

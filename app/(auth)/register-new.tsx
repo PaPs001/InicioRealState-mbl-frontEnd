@@ -9,9 +9,9 @@ import { getRegisterEntryRoute, registerEntryOptions, type RegisterClientType } 
 import { registerNewStyles } from './register-new.styles'
 
 const optionImages: Record<RegisterClientType, ImageSourcePropType> = {
-  tenant: require('../../assets/login-new-hero.png'),
-  owner: require('../../assets/login-new-hero.png'),
-  renter: require('../../assets/login-new-hero.png'),
+  tenant: require('../../assets/auth/BotonInquilino.jpg'),
+  owner: require('../../assets/auth/BotonPropietario.jpg'),
+  renter: require('../../assets/auth/BotonSearcher.jpg'),
   advisor: require('../../assets/register-owner-welcome-team.png'),
 }
 

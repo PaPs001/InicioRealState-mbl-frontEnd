@@ -21,7 +21,7 @@ export const loginNewStyles = StyleSheet.create({
   },
   hero: {
     width: '100%',
-    height: 370,
+    height: 450,
     overflow: 'hidden',
     backgroundColor: '#faf7f2',
   },
@@ -30,20 +30,20 @@ export const loginNewStyles = StyleSheet.create({
     height: '100%',
   },
   heroImageContent: {
-    resizeMode: 'cover',
+    transform: [{ translateY: 80}],
   },
   brandArc: {
     position: 'absolute',
-    top: -88,
-    left: -34,
-    right: -34,
-    height: 238,
+    top: -190,
+    left: -135,
+    right: -135,
+    height: 350,
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 34,
     backgroundColor: '#fefbf6',
-    borderBottomLeftRadius: 260,
-    borderBottomRightRadius: 260,
+    borderBottomLeftRadius: 360,
+    borderBottomRightRadius: 360,
   },
   homeBadge: {
     width: 38,
@@ -63,8 +63,8 @@ export const loginNewStyles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   title: {
-    marginTop: 22,
-    color: '#214c31',
+    marginTop: 15,
+    color: '#9D6C26',
     fontFamily: serifFont,
     fontSize: 40,
     fontWeight: '400',
@@ -90,7 +90,7 @@ export const loginNewStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#b5b5b5',
+    borderColor: '#E7DED3',
     borderRadius: 12,
     backgroundColor: '#fcfaf8',
     paddingHorizontal: 12,
@@ -130,7 +130,7 @@ export const loginNewStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 9,
-    backgroundColor: '#1f3f2a',
+    backgroundColor: '#B1833A',
   },
   primaryButtonDisabled: {
     opacity: 0.68,
@@ -140,8 +140,22 @@ export const loginNewStyles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
   },
+  forgetPasswordContainer:{
+    alignItems:'center',
+    flexDirection:'row',
+    margin:15
+  },
+  recoveryText:{
+    color:'#B1833A'
+  },
+  recoveryTextPressed:{
+    color: '#3a2b13'
+  },
+  forgetPassword:{
+    //no hay y no habra nada por ahora
+  },
   registerPrompt: {
-    marginTop: 14,
+    marginTop: 10,
     color: '#000000',
     fontSize: 16,
     lineHeight: 23,
@@ -258,7 +272,6 @@ export const loginNewStyles = StyleSheet.create({
     lineHeight: 15,
   },
   legal: {
-    marginTop: 12,
     color: '#737373',
     fontSize: 16,
     lineHeight: 23,

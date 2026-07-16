@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 
 let hiddenRequestCount = 0
 const listeners = new Set<(isHidden: boolean) => void>()
@@ -6,6 +7,16 @@ const listeners = new Set<(isHidden: boolean) => void>()
 function emitVisibility() {
   const isHidden = hiddenRequestCount > 0
   listeners.forEach((listener) => listener(isHidden))
+}
+
+function requestHideBottomNav() {
+  hiddenRequestCount += 1
+  emitVisibility()
+}
+
+function releaseHideBottomNav() {
+  hiddenRequestCount = Math.max(0, hiddenRequestCount - 1)
+  emitVisibility()
 }
 
 export function useBottomNavHidden() {
@@ -22,13 +33,13 @@ export function useBottomNavHidden() {
 }
 
 export function useHideBottomNav() {
-  useEffect(() => {
-    hiddenRequestCount += 1
-    emitVisibility()
+  useFocusEffect(
+    useCallback(() => {
+      requestHideBottomNav()
 
-    return () => {
-      hiddenRequestCount = Math.max(0, hiddenRequestCount - 1)
-      emitVisibility()
-    }
-  }, [])
+      return () => {
+        releaseHideBottomNav()
+      }
+    }, []),
+  )
 }

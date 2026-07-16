@@ -128,7 +128,7 @@ export default function RegisterOwnerAccessScreen() {
               <View style={registerOwnerAccessStyles.header}>
                 <Text style={registerOwnerAccessStyles.title}>Crea tu acceso</Text>
                 <Text style={registerOwnerAccessStyles.subtitle}>
-                  Ingresa tu informacion para activar tu perfil de propietario
+                  Ingresa tu informacion para activar tu perfil de asesor INICIO REAL ESTATE
                 </Text>
               </View>
 

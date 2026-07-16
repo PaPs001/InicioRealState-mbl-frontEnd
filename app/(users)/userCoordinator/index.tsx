@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { styles } from './index.styles'
 import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
@@ -73,10 +74,14 @@ function getDefaultTestStartDateTime() {
 }
 
 function getDefaultTestEndDateTime() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  date.setHours(10, 30, 0, 0)
-  return date.toISOString()
+  return getAppointmentEndDateTime(getDefaultTestStartDateTime())
+}
+
+function getAppointmentEndDateTime(startDateTime: string) {
+  const date = new Date(startDateTime)
+  const startDate = Number.isNaN(date.getTime()) ? new Date() : date
+  startDate.setHours(startDate.getHours() + 4)
+  return startDate.toISOString()
 }
 
 export default function CoordinatorRentUserScreen() {
@@ -189,7 +194,9 @@ export default function CoordinatorRentUserScreen() {
       const appointments = [
         ...dates.map(mapGoogleDateToAppointment),
         ...mapGoogleTasksToAppointments(taskLists),
-      ].sort((current, next) => current.sortTime - next.sortTime)
+      ]
+        .filter(isAppointmentFromTodayOn)
+        .sort((current, next) => current.sortTime - next.sortTime)
 
       if (datesResult.status === 'rejected') {
         console.warn('No se pudieron cargar los eventos de Google Calendar:', datesResult.reason)
@@ -602,8 +609,8 @@ export default function CoordinatorRentUserScreen() {
   const handleTestCreateAppointment = async () => {
     if (!authToken || isTestingCalendarAction) return
 
-    if (!testAppointmentForm.title.trim() || !testAppointmentForm.startDateTime.trim() || !testAppointmentForm.endDateTime.trim()) {
-      Alert.alert('Faltan datos', 'Titulo, inicio y fin son obligatorios.')
+    if (!testAppointmentForm.title.trim() || !testAppointmentForm.startDateTime.trim()) {
+      Alert.alert('Faltan datos', 'Titulo e inicio son obligatorios.')
       return
     }
 
@@ -626,6 +633,7 @@ export default function CoordinatorRentUserScreen() {
     try {
       const payload: CreateGoogleCalendarDatePayload = {
         ...testAppointmentForm,
+        endDateTime: getAppointmentEndDateTime(testAppointmentForm.startDateTime),
         advisorId: testAppointmentForm.advisorId || currentUser?.id || null,
         helpedBy: testAppointmentForm.helpedBy || coordinatorName,
       }
@@ -1031,7 +1039,7 @@ export default function CoordinatorRentUserScreen() {
               <View style={styles.detailButtons}>
                 <TouchableOpacity
                   style={styles.miniButton}
-                  onPress={() => router.push('/userCoordinator/rent-followups' as never)}
+                  onPress={() => router.push('/userCoordinator/leads' as never)}
                   activeOpacity={0.85}
                 >
                   <ChevronRight size={17} color="#0c6740" />
@@ -1254,32 +1262,13 @@ export default function CoordinatorRentUserScreen() {
                   placeholder="Ubicacion"
                   placeholderTextColor="#8d8d8d"
                 />
-                <Text style={styles.calendarTestLabel}>Descripcion de la cita</Text>
-                <TextInput
-                  style={styles.calendarTestInput}
-                  value={testAppointmentForm.description ?? ''}
-                  onChangeText={value => updateTestAppointmentForm('description', value)}
-                  placeholder="Descripcion"
-                  placeholderTextColor="#8d8d8d"
-                />
                 <Text style={styles.calendarTestLabel}>Fecha de la cita</Text>
                 <CalendarPick
                   value={testAppointmentForm.startDateTime}
-                  onChange={value => updateTestAppointmentForm('startDateTime', value)}
-                />
-                <Text style={styles.calendarTestLabel}>Fecha de terminacion</Text>
-                <CalendarPick
-                  value={testAppointmentForm.endDateTime}
-                  onChange={value => updateTestAppointmentForm('endDateTime', value)}
-                />
-                <Text style={styles.calendarTestLabel}>Tipo de calendario</Text>
-                <TextInput
-                  style={styles.calendarTestInput}
-                  value={testAppointmentForm.appointmentType ?? ''}
-                  onChangeText={value => updateTestAppointmentForm('appointmentType', value)}
-                  placeholder="Tipo"
-                  placeholderTextColor="#8d8d8d"
-                  autoCapitalize="none"
+                  onChange={value => {
+                    updateTestAppointmentForm('startDateTime', value)
+                    updateTestAppointmentForm('endDateTime', getAppointmentEndDateTime(value))
+                  }}
                 />
                 <TouchableOpacity
                   style={styles.calendarTestCreateButton}
@@ -1319,6 +1308,13 @@ function mapGoogleDateToAppointment(date: GoogleCalendarDate): AppointmentPrevie
     sortTime: getCalendarSortTime(startValue),
     canDelete: Boolean(date._id),
   }
+}
+
+function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
+  const today = new Date()
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+
+  return appointment.sortTime !== Number.MAX_SAFE_INTEGER && appointment.sortTime >= startOfToday
 }
 
 function getPropertyDisplayName(property?: Property | null) {
@@ -1505,74 +1501,48 @@ function getPickerDate(value: string) {
   return Number.isNaN(date.getTime()) ? new Date() : date
 }
 
-function formatDateInput(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function formatTimeInput(date: Date) {
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
-}
-
-function updateDatePart(value: string, nextDatePart: string) {
-  const date = getPickerDate(value)
-  const [year, month, day] = nextDatePart.split('-').map(Number)
-
-  if (!year || !month || !day) {
-    return value
-  }
-
-  date.setFullYear(year, month - 1, day)
-  return date.toISOString()
-}
-
-function updateTimePart(value: string, nextTimePart: string) {
-  const date = getPickerDate(value)
-  const [hours, minutes] = nextTimePart.split(':').map(Number)
-
-  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-    return value
-  }
-
-  date.setHours(hours, minutes, 0, 0)
-  return date.toISOString()
-}
+type CalendarPickerMode = 'date' | 'time'
 
 function CalendarPick({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const date = getPickerDate(value)
-  const [dateText, setDateText] = useState(formatDateInput(date))
-  const [timeText, setTimeText] = useState(formatTimeInput(date))
+  const [pickerMode, setPickerMode] = useState<CalendarPickerMode | null>(null)
 
-  useEffect(() => {
-    setDateText(formatDateInput(date))
-    setTimeText(formatTimeInput(date))
-  }, [value])
+  const handlePickerChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (!selectedDate || !pickerMode) {
+      setPickerMode(null)
+      return
+    }
+
+    const nextDate = getPickerDate(value)
+    if (pickerMode === 'date') {
+      nextDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+    } else {
+      nextDate.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0)
+    }
+
+    setPickerMode(null)
+    onChange(nextDate.toISOString())
+  }
 
   return (
     <View style={styles.calendarPicker}>
       <Text style={styles.calendarPickerValue}>{date.toLocaleString()}</Text>
       <View style={styles.calendarPickerActions}>
-        <TextInput
-          style={styles.calendarPickerInput}
-          value={dateText}
-          onChangeText={setDateText}
-          onBlur={() => onChange(updateDatePart(value, dateText))}
-          placeholder="YYYY-MM-DD"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.calendarPickerInput}
-          value={timeText}
-          onChangeText={setTimeText}
-          onBlur={() => onChange(updateTimePart(value, timeText))}
-          placeholder="HH:mm"
-          autoCapitalize="none"
-        />
+        <TouchableOpacity style={styles.calendarPickerButton} onPress={() => setPickerMode('date')} activeOpacity={0.85}>
+          <Text style={styles.calendarPickerButtonText}>Escoger fecha</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.calendarPickerButton} onPress={() => setPickerMode('time')} activeOpacity={0.85}>
+          <Text style={styles.calendarPickerButtonText}>Escoger hora</Text>
+        </TouchableOpacity>
       </View>
+      {pickerMode ? (
+        <DateTimePicker
+          value={date}
+          mode={pickerMode}
+          display="default"
+          onChange={handlePickerChange}
+        />
+      ) : null}
     </View>
   )
 }

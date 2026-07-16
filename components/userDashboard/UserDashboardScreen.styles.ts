@@ -147,7 +147,7 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   availableCard: {
-    width: 148,
+    width: '100%',
     height: 104,
     borderRadius: 9,
     backgroundColor: '#3d5f42',
@@ -369,6 +369,9 @@ export const styles = StyleSheet.create({
   appointmentsPanel: {
     paddingBottom: 12,
     marginTop: 12,
+  },
+  appointmentsScroll: {
+    maxHeight: 296,
   },
   appointmentList: {
     gap: 4,
@@ -655,6 +658,19 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     marginTop: 6,
+  },
+  calendarPickerButton: {
+    flex: 1,
+    height: 28,
+    borderRadius: 5,
+    backgroundColor: '#f1ebda',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarPickerButtonText: {
+    color: '#3d5a40',
+    fontSize: 10,
+    fontWeight: '700',
   },
   calendarPickerInput: {
     flex: 1,
