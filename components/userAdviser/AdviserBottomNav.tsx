@@ -5,7 +5,7 @@ type AdviserBottomNavProps = {
   activeBadge: number
 }
 
-export function AdviserBottomNav({ activeBadge }: AdviserBottomNavProps) {
+/*export function AdviserBottomNav({ activeBadge }: AdviserBottomNavProps) {
   return (
     <View style={styles.bottomNav}>
       <View style={styles.navItem}>
@@ -98,3 +98,4 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 })
+*/

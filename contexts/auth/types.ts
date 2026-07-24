@@ -5,6 +5,7 @@ import type { Appointment, Notification, Property, PropertyLead, User } from '@/
 export interface AuthContextType {
   currentUser: User | null
   authToken: string | null
+  refreshToken: string | null
   isLoading: boolean
   isLoggedIn: boolean
   isInvestor: boolean
@@ -16,8 +17,9 @@ export interface AuthContextType {
   isClient: boolean
   login: (userId: string) => Promise<void>
   logout: () => Promise<void>
+  refreshAuthSession: () => Promise<string | null>
   setCurrentUser: (user: BackendUser | User | null) => void
-  setAuthSession: (user: BackendUser | User | null, token: string | null) => Promise<void>
+  setAuthSession: (user: BackendUser | User | null, token: string | null, refreshToken?: string | null) => Promise<void>
   userProperties: Property[]
   availableProperties: Property[]
   catalogProperties: Property[]
@@ -49,6 +51,7 @@ export type SessionDomain = Pick<
   AuthContextType,
   | 'currentUser'
   | 'authToken'
+  | 'refreshToken'
   | 'isLoading'
   | 'isLoggedIn'
   | 'isInvestor'
@@ -60,6 +63,7 @@ export type SessionDomain = Pick<
   | 'isClient'
   | 'login'
   | 'logout'
+  | 'refreshAuthSession'
   | 'setCurrentUser'
   | 'setAuthSession'
 >

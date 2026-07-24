@@ -147,14 +147,21 @@ export function usePropertyState(params: PropertyStateParams) {
   }, [])
 
   const newLoadCatalogProperties = useCallback(async () => {
+    if (!authToken) {
+      setHasLoadedCatalog(false)
+      setCatalogProperties([])
+      return
+    }
+
     setIsCatalogLoading(true)
-    setHasLoadedCatalog(true)
     try {
-      const properties = await loadCatalogPropertiesFromCore(authToken ?? undefined)
+      const properties = await loadCatalogPropertiesFromCore(authToken)
       setCatalogProperties(properties)
+      setHasLoadedCatalog(true)
     } catch (error) {
       console.error('Error loading catalog properties:', error)
       setCatalogProperties([])
+      setHasLoadedCatalog(false)
     } finally {
       setIsCatalogLoading(false)
     }

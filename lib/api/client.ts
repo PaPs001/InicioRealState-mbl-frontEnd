@@ -30,6 +30,13 @@ interface ApiError {
   details?: unknown
 }
 
+type AuthenticatedFetchOptions = {
+  method?: HttpMethod
+  body?: RequestInit['body']
+  headers?: Record<string, string>
+  token?: string | null
+}
+
 export type ApiDebugLogEntry = {
   level: 'info' | 'success' | 'warning' | 'error'
   message: string
@@ -45,6 +52,47 @@ const shouldLogAuthDebug = (path: string) =>
 const previewToken = (token?: string) =>
   token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
 
+type AuthTokenRefreshHandler = () => Promise<string | null>
+
+let authTokenRefreshHandler: AuthTokenRefreshHandler | null = null
+let authTokenRefreshPromise: Promise<string | null> | null = null
+let lastRefreshInputToken: string | null = null
+let lastRefreshOutputToken: string | null = null
+
+export function setAuthTokenRefreshHandler(handler: AuthTokenRefreshHandler | null) {
+  authTokenRefreshHandler = handler
+  if (!handler) {
+    lastRefreshInputToken = null
+    lastRefreshOutputToken = null
+  }
+}
+
+async function refreshAuthTokenOnce(expiredToken?: string | null): Promise<string | null> {
+  if (expiredToken && expiredToken === lastRefreshInputToken && lastRefreshOutputToken) {
+    return lastRefreshOutputToken
+  }
+
+  if (!authTokenRefreshHandler) return null
+
+  if (!authTokenRefreshPromise) {
+    const refreshInputToken = expiredToken ?? null
+    authTokenRefreshPromise = authTokenRefreshHandler()
+      .then((refreshedToken) => {
+        if (refreshedToken) {
+          lastRefreshInputToken = refreshInputToken
+          lastRefreshOutputToken = refreshedToken
+        }
+
+        return refreshedToken
+      })
+      .finally(() => {
+        authTokenRefreshPromise = null
+      })
+  }
+
+  return authTokenRefreshPromise
+}
+
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
     const data = await response.json() as { message?: string; error?: string }
@@ -52,6 +100,68 @@ async function extractErrorMessage(response: Response): Promise<string> {
   } catch {
     return `Error ${response.status}: ${response.statusText}`
   }
+}
+
+export async function fetchWithAuthRetry(
+  baseUrl: string,
+  path: string,
+  options: AuthenticatedFetchOptions = {},
+): Promise<Response> {
+  const { method = 'GET', body, headers = {}, token } = options
+
+  const buildHeaders = (requestToken?: string | null): Record<string, string> => {
+    const requestHeaders: Record<string, string> = { ...headers }
+
+    if (baseUrl.includes('ngrok-free')) {
+      requestHeaders['ngrok-skip-browser-warning'] = 'true'
+    }
+
+    if (requestToken) {
+      requestHeaders.Authorization = `Bearer ${requestToken}`
+    }
+
+    return requestHeaders
+  }
+
+  let response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: buildHeaders(token),
+    body,
+  })
+
+  const canRefreshAuth =
+    response.status === 401 &&
+    !!token &&
+    baseUrl === API_URLS.CORE &&
+    path !== '/auth/refresh'
+
+  if (!canRefreshAuth) return response
+
+  console.info('[API][auth-refresh] 401 received in raw fetch, trying shared refresh', {
+    method,
+    path,
+    baseUrl,
+    tokenPreview: previewToken(token ?? undefined),
+  })
+
+  const refreshedToken = await refreshAuthTokenOnce(token)
+  if (!refreshedToken) return response
+
+  response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: buildHeaders(refreshedToken),
+    body,
+  })
+
+  console.info('[API][auth-refresh] raw fetch retry response', {
+    method,
+    path,
+    baseUrl,
+    status: response.status,
+    ok: response.ok,
+  })
+
+  return response
 }
 
 /**
@@ -67,18 +177,24 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { method = 'GET', body, headers = {}, token, debugLog } = options
 
-  const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...headers,
+  const buildRequestHeaders = (requestToken?: string | null): Record<string, string> => {
+    const requestHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...headers,
+    }
+
+    if (baseUrl.includes('ngrok-free')) {
+      requestHeaders['ngrok-skip-browser-warning'] = 'true'
+    }
+
+    if (requestToken) {
+      requestHeaders['Authorization'] = `Bearer ${requestToken}`
+    }
+
+    return requestHeaders
   }
 
-  if (baseUrl.includes('ngrok-free')) {
-    requestHeaders['ngrok-skip-browser-warning'] = 'true'
-  }
-
-  if (token) {
-    requestHeaders['Authorization'] = `Bearer ${token}`
-  }
+  const requestHeaders = buildRequestHeaders(token)
 
   if (shouldLogAuthDebug(path)) {
     debugLog?.({
@@ -168,6 +284,45 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
+    const canRefreshAuth =
+      response.status === 401 &&
+      !!token &&
+      baseUrl === API_URLS.CORE &&
+      path !== '/auth/refresh'
+
+    if (canRefreshAuth) {
+      console.info('[API][auth-refresh] 401 received, trying a single shared refresh', {
+        method,
+        path,
+        baseUrl,
+        tokenPreview: previewToken(token),
+      })
+
+      const refreshedToken = await refreshAuthTokenOnce(token)
+
+      if (refreshedToken) {
+        const retryResponse = await fetch(`${baseUrl}${path}`, {
+          method,
+          headers: buildRequestHeaders(refreshedToken),
+          body: body !== undefined ? JSON.stringify(body) : undefined,
+        })
+
+        console.info('[API][auth-refresh] retry response', {
+          method,
+          path,
+          baseUrl,
+          status: retryResponse.status,
+          ok: retryResponse.ok,
+        })
+
+        if (retryResponse.ok) {
+          return retryResponse.json() as Promise<T>
+        }
+
+        response = retryResponse
+      }
+    }
+
     let details: unknown
     try {
       details = await response.clone().json()

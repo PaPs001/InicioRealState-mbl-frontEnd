@@ -5,6 +5,7 @@ import type { ApiDebugLogEntry } from '@/lib/api/client'
 export type CredentialLoginResult = {
   user: BackendUser
   token: string
+  refreshToken: string | null
 }
 
 export async function signInWithCredentials(
@@ -18,6 +19,7 @@ export async function signInWithCredentials(
   }, debugLog)
 
   const token = loginResponse.accessToken ?? null
+  const refreshToken = loginResponse.refreshToken ?? null
   const user = loginResponse.user ?? null
 
   if (!token || !user) {
@@ -29,6 +31,7 @@ export async function signInWithCredentials(
         message: loginResponse.message,
         error: loginResponse.error ?? null,
         hasToken: !!token,
+        hasRefreshToken: !!refreshToken,
         hasUser: !!user,
       },
     })
@@ -45,6 +48,7 @@ export async function signInWithCredentials(
       investment: user.investment,
       tenant: user.tenant,
       tokenPreview: token.slice(0, 12),
+      hasRefreshToken: !!refreshToken,
     },
   })
 
@@ -52,10 +56,12 @@ export async function signInWithCredentials(
     emailAttempt: email.trim().toLowerCase(),
     user,
     tokenPreview: token.slice(0, 16),
+    hasRefreshToken: !!refreshToken,
   })
 
   return {
     user: user as BackendUser,
     token,
+    refreshToken,
   }
 }

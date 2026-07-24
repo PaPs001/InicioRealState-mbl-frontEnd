@@ -97,7 +97,7 @@ export default function LoginNewScreen() {
         }),
       ])
 
-      const { user, token } = await signInWithCredentials(email, password, addLoginLog)
+      const { user, token, refreshToken } = await signInWithCredentials(email, password, addLoginLog)
       addLoginLog({
         level: 'info',
         message: 'La API aprobo el login; guardando usuario y token en el estado local.',
@@ -107,9 +107,10 @@ export default function LoginNewScreen() {
           systemRole: user.systemRole,
           investment: user.investment,
           tenant: user.tenant,
+          hasRefreshToken: !!refreshToken,
         },
       })
-      await setAuthSession(user, token)
+      await setAuthSession(user, token, refreshToken)
       const destination = getUserHomeRoute(user)
       addLoginLog({
         level: 'success',
@@ -253,6 +254,13 @@ export default function LoginNewScreen() {
 
             {isDebugPanelVisible ? (
               <View style={loginNewStyles.debugPanel}>
+                <Pressable
+                  onPress={() => router.push('/userAdviser/properties.v2' as never)}  
+                >
+                  <Text>
+                    Propiedades v2
+                  </Text>
+                </Pressable>
                 <Text style={loginNewStyles.debugTitle}>Diagnostico de inicio de sesion</Text>
                 {loginLogs.map((log) => {
                   const details = formatLogDetails(log.details)

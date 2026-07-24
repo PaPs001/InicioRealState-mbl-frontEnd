@@ -1,3 +1,5 @@
+import { green } from "react-native-reanimated/lib/typescript/Colors"
+
 export const generalColors = {
   white: '#ffffff',
   black: '#000000',
@@ -12,6 +14,13 @@ export const generalColors = {
   border: '#ded6ca',
   borderSoft: '#e4e4e4',
   error: '#b42318',
+  greenTitle: '#3D5A40',
+}
+
+export const textColor ={
+  softText: "#929594",
+  titleGreen: '#0C6740',
+  accentGolden: '#C59B55',
 }
 
 export const authColor = {
@@ -39,6 +48,7 @@ export const buttonColor = {
   BorderButtonSecondary: '#a68654',
   textButtonPrimary: '#ffffff',
   textButtonSecondary: '#a68654',
+  buttonGreen: '#0C6740'
 }
 
 export const userColors = {
@@ -84,4 +94,9 @@ export const statusColors = {
   dangerSoft: '#ba544a',
   info: '#0b57d0',
   disabled: '#969696',
+}
+
+export const borderColor = {
+  borderSoft: '#969696',
+  
 }
