@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Keyboard, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import {
   ArrowLeft,
@@ -110,8 +110,11 @@ export function LeadDetailView({
   }
 
   return (
-    <View style={styles.subScreenContainer}>
-      <View style={styles.detailScreen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.subScreenContainer}
+    >
+      <Pressable style={styles.detailScreen} onPress={Keyboard.dismiss}>
         <ScreenHeader
           title="Detalle del lead"
           subtitle={`Seguimiento de ${lead.name}`}
@@ -122,6 +125,7 @@ export function LeadDetailView({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.leadDetailContent}
           style={styles.leadDetailScroll}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.profileCard}>
             <View style={styles.profileTopRow}>
@@ -321,8 +325,8 @@ export function LeadDetailView({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </View>
+      </Pressable>
+    </KeyboardAvoidingView>
   )
 }
 

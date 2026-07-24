@@ -135,14 +135,12 @@ function extractRegisteredUser(payload: RegisterApiPayload): User | undefined {
   return mapBackendAuthUser(payload.data?.user as BackendCurrentUser | undefined)
 }
 
-function extractLoginTokens(payload: LoginApiPayload): {
-  accessToken?: string
-  refreshToken?: string
-} {
-  return {
-    accessToken: payload.accessToken ?? payload.data?.accessToken,
-    refreshToken: payload.refreshToken ?? payload.data?.refreshToken,
-  }
+function extractLoginAccessToken(payload: LoginApiPayload): string | undefined {
+  return payload.accessToken ?? payload.data?.accessToken
+}
+
+function extractLoginRefreshToken(payload: LoginApiPayload): string | undefined {
+  return payload.refreshToken ?? payload.data?.refreshToken
 }
 
 function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefined {
@@ -201,7 +199,8 @@ function sanitizeLoginPayload(payload: LoginApiPayload) {
 }
 
 function compareLoginContract(payload: LoginApiPayload) {
-  const { accessToken, refreshToken } = extractLoginTokens(payload)
+  const accessToken = extractLoginAccessToken(payload)
+  const refreshToken = extractLoginRefreshToken(payload)
   const rawUser = extractLoginUser(payload)
 
   return {
@@ -402,7 +401,9 @@ export async function loginUser(
         rootKeys: Object.keys(result),
         dataKeys: result.data ? Object.keys(result.data) : [],
         hasRootAccessToken: !!result.accessToken,
+        hasRootRefreshToken: !!result.refreshToken,
         hasDataAccessToken: !!result.data?.accessToken,
+        hasDataRefreshToken: !!result.data?.refreshToken,
         hasRootUser: !!result.user,
         hasDataUser: !!result.data?.user,
       },
@@ -411,12 +412,15 @@ export async function loginUser(
       rootKeys: Object.keys(result),
       dataKeys: result.data ? Object.keys(result.data) : [],
       hasRootAccessToken: !!result.accessToken,
+      hasRootRefreshToken: !!result.refreshToken,
       hasDataAccessToken: !!result.data?.accessToken,
+      hasDataRefreshToken: !!result.data?.refreshToken,
       hasRootUser: !!result.user,
       hasDataUser: !!result.data?.user,
     })
 
-    const { accessToken, refreshToken } = extractLoginTokens(result)
+    const accessToken = extractLoginAccessToken(result)
+    const refreshToken = extractLoginRefreshToken(result)
     const rawUser = extractLoginUser(result)
     const user = mapBackendAuthUser(rawUser)
 
@@ -441,6 +445,7 @@ export async function loginUser(
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
       accessTokenPreview: previewToken(accessToken),
+      refreshTokenPreview: previewToken(refreshToken),
       userId: user?.id ?? null,
       rawUserKeys: rawUser ? Object.keys(rawUser) : [],
       systemRole: user?.systemRole ?? null,
@@ -470,6 +475,45 @@ export async function loginUser(
       success: false,
       message: 'Error al iniciar sesion',
       error: getApiErrorMessage(error, 'Credenciales invalidas')
+    }
+  }
+}
+
+export async function refreshAuthTokens(refreshToken: string): Promise<LoginResponse> {
+  try {
+    const result = await coreApi<LoginApiPayload>('/auth/refresh', {
+      method: 'POST',
+      body: {
+        refreshToken,
+      },
+    })
+
+    const accessToken = extractLoginAccessToken(result)
+    const nextRefreshToken = extractLoginRefreshToken(result)
+    const rawUser = extractLoginUser(result)
+    const user = mapBackendAuthUser(rawUser)
+
+    console.info('[auth][refresh] response', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!nextRefreshToken,
+      userId: user?.id ?? null,
+      systemRole: user?.systemRole ?? null,
+    })
+
+    return {
+      success: !!accessToken,
+      message: 'Sesion renovada exitosamente',
+      accessToken,
+      refreshToken: nextRefreshToken,
+      user,
+      error: accessToken ? undefined : 'La API no devolvio un token renovado',
+    }
+  } catch (error) {
+    console.error('Error en refreshAuthTokens:', error)
+    return {
+      success: false,
+      message: 'Error al renovar sesion',
+      error: getApiErrorMessage(error, 'No se pudo renovar la sesion'),
     }
   }
 }

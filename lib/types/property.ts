@@ -12,12 +12,19 @@ export interface Property {
   address: string
   city: string
   price: number
+  priceLabel?: string
   currentValue?: number
   type: PropertyType
   status: PropertyStatus
+  listingType?: 'rent' | 'sale'
   amenities: string[]
   bedrooms?: number
   bathrooms?: number
+  parking?: number
+  view?: string
+  isFurnished?: boolean
+  furnishedLabel?: string
+  solarPanelLabel?: string
   sqMeters: number
   size: number 
   description?: string

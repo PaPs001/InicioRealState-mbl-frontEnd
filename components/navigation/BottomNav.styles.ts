@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     height: 68,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#ffffffea',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -23,15 +23,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 54,
-    zIndex: 2,
-  },
-  navItemActive: {
-    flex: 1,
-    minWidth: 0,
-    height: 68,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -8,
     zIndex: 2,
   },
   navLabel: {
@@ -51,10 +42,6 @@ export const styles = StyleSheet.create({
     borderBottomRightRadius: 34,
     backgroundColor: '#c2a661bb',
     zIndex: 1,
-  },
-  navActiveButton: {
-    paddingTop: 6,
-    zIndex: 2,
   },
   badge: {
     position: 'absolute',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { styles } from './followups.styles'
-import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, Pressable, Keyboard } from 'react-native'
+import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, usePathname } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
@@ -272,10 +272,14 @@ export default function LeadV2FollowUpsScreen() {
           </View>
 
           <Modal animationType="slide" transparent visible={isActivityModalOpen} onRequestClose={closeActivityModal}>
-            <Pressable 
-              style={styles.modalBackdrop} 
-              onPress={Keyboard.dismiss}
+            <Pressable
+              style={styles.modalBackdrop}
+              onPress={closeActivityModal}
             >
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.modalKeyboardAvoidingView}
+              >
               <Pressable 
                 style={styles.activityModal} 
                 onPress={(event) => event.stopPropagation()}
@@ -331,6 +335,7 @@ export default function LeadV2FollowUpsScreen() {
                   <Text style={styles.saveActivityText}>{isSavingActivity ? 'Guardando...' : 'Guardar actividad'}</Text>
                 </TouchableOpacity>
               </Pressable>
+              </KeyboardAvoidingView>
             </Pressable>
           </Modal>
 

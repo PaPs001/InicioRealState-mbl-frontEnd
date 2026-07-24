@@ -552,6 +552,10 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 18, 16, 0.46)',
     justifyContent: 'flex-end',
   },
+  modalKeyboardAvoidingView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   createLeadModal: {
     maxHeight: '86%',
     borderTopLeftRadius: 22,

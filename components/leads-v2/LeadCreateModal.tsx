@@ -1,4 +1,4 @@
-import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ChevronRight, Clock3, Search } from 'lucide-react-native'
 
 import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
@@ -55,8 +55,12 @@ export function LeadCreateModal({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.modalBackdrop}>
-        <View style={styles.createLeadModal}>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalKeyboardAvoidingView}
+        >
+        <Pressable style={styles.createLeadModal} onPress={(event) => event.stopPropagation()}>
           {isSelectingProperty ? (
             <PropertyPickerView
               isLoading={isLoadingProperties}
@@ -136,8 +140,9 @@ export function LeadCreateModal({
               </ScrollView>
             </>
           )}
-        </View>
-      </View>
+        </Pressable>
+        </KeyboardAvoidingView>
+      </Pressable>
     </Modal>
   )
 }

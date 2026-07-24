@@ -5,6 +5,7 @@ export function useSessionDomain(): SessionDomain {
   const {
     currentUser,
     authToken,
+    refreshToken,
     isLoading,
     isLoggedIn,
     isInvestor,
@@ -16,6 +17,7 @@ export function useSessionDomain(): SessionDomain {
     isClient,
     login,
     logout,
+    refreshAuthSession,
     setCurrentUser,
     setAuthSession,
   } = useAuth()
@@ -23,6 +25,7 @@ export function useSessionDomain(): SessionDomain {
   return {
     currentUser,
     authToken,
+    refreshToken,
     isLoading,
     isLoggedIn,
     isInvestor,
@@ -34,6 +37,7 @@ export function useSessionDomain(): SessionDomain {
     isClient,
     login,
     logout,
+    refreshAuthSession,
     setCurrentUser,
     setAuthSession,
   }

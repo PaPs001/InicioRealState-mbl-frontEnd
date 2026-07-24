@@ -1,5 +1,5 @@
 import { TextInput } from "react-native";
-import { generalColors, radius, fontSize, fontFamily, lineHeight } from "@/app/theme";
+import { generalColors, radius, fontSize, fontFamily, lineHeight } from "@/theme";
 type InputProps ={
   children: string,
   textColor: string,
@@ -9,7 +9,5 @@ type InputProps ={
 }
 
 export const authInputs = () => {
-  return(
-
-  )
+  return null
 }
