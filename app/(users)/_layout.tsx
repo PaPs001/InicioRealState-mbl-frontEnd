@@ -1,0 +1,11 @@
+import { Stack } from 'expo-router'
+
+export default function UsersLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="userCoordinator" />
+      <Stack.Screen name="userAdviser" />
+      <Stack.Screen name="registration-complete" />
+    </Stack>
+  )
+}
