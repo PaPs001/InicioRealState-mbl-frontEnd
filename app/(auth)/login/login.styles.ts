@@ -1,0 +1,281 @@
+import { Platform, StyleSheet } from 'react-native'
+
+const serifFont = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  default: 'serif',
+})
+
+export const loginNewStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fefbf6',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingBottom: 34,
+  },
+  hero: {
+    width: '100%',
+    height: 450,
+    overflow: 'hidden',
+    backgroundColor: '#faf7f2',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroImageContent: {
+    transform: [{ translateY: 80}],
+  },
+  brandArc: {
+    position: 'absolute',
+    top: -190,
+    left: -135,
+    right: -135,
+    height: 350,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 34,
+    backgroundColor: '#fefbf6',
+    borderBottomLeftRadius: 360,
+    borderBottomRightRadius: 360,
+  },
+  homeBadge: {
+    width: 38,
+    height: 38,
+    marginTop: -18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: '#bf8638',
+    backgroundColor: '#fefbf6',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 430,
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  title: {
+    marginTop: 15,
+    color: '#9D6C26',
+    fontFamily: serifFont,
+    fontSize: 40,
+    fontWeight: '400',
+    lineHeight: 42,
+    textAlign: 'center',
+  },
+  subtitle: {
+    marginTop: 10,
+    maxWidth: 340,
+    color: '#737373',
+    fontSize: 16,
+    lineHeight: 23,
+    letterSpacing: 1.12,
+    textAlign: 'center',
+  },
+  form: {
+    width: '100%',
+    marginTop: 32,
+    gap: 12,
+  },
+  inputShell: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E7DED3',
+    borderRadius: 12,
+    backgroundColor: '#fcfaf8',
+    paddingHorizontal: 12,
+  },
+  inputShellError: {
+    borderColor: '#b42318',
+    backgroundColor: '#fff7f6',
+  },
+  inputIcon: {
+    width: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    minHeight: 44,
+    paddingVertical: 0,
+    color: '#1f2933',
+    fontSize: 16,
+    letterSpacing: 1.12,
+  },
+  passwordInput: {
+    paddingRight: 42,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  primaryButton: {
+    width: '100%',
+    height: 52,
+    marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9,
+    backgroundColor: '#B1833A',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.68,
+  },
+  primaryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    lineHeight: 23,
+  },
+  forgetPasswordContainer:{
+    alignItems:'center',
+    flexDirection:'row',
+    margin:15
+  },
+  recoveryText:{
+    color:'#B1833A'
+  },
+  recoveryTextPressed:{
+    color: '#3a2b13'
+  },
+  forgetPassword:{
+    //no hay y no habra nada por ahora
+  },
+  registerPrompt: {
+    marginTop: 10,
+    color: '#000000',
+    fontSize: 16,
+    lineHeight: 23,
+    textAlign: 'center',
+  },
+  secondaryButton: {
+    width: '100%',
+    height: 52,
+    marginTop: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#a68654',
+    borderRadius: 9,
+    backgroundColor: '#faf6f3',
+  },
+  secondaryButtonText: {
+    color: '#a68654',
+    fontSize: 16,
+    lineHeight: 23,
+  },
+  previewButton: {
+    width: '100%',
+    height: 44,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9,
+    backgroundColor: '#d7b56d',
+  },
+  previewButtonText: {
+    color: '#1f3f2a',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  errorText: {
+    marginTop: 10,
+    color: '#b42318',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  fieldErrorText: {
+    marginTop: -4,
+    color: '#b42318',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    textAlign: 'left',
+  },
+  debugPanel: {
+    width: '100%',
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#d8c7ad',
+    borderRadius: 8,
+    backgroundColor: '#fffdf9',
+    padding: 12,
+    gap: 10,
+  },
+  debugTitle: {
+    color: '#1f2933',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  debugLogItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#c9aa78',
+    backgroundColor: '#f8f4ee',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 5,
+  },
+  debugLogHeader: {
+    minHeight: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  debugLogLevel: {
+    fontSize: 11,
+    fontWeight: '800',
+    lineHeight: 14,
+  },
+  debugLogLevelInfo: {
+    color: '#315b7a',
+  },
+  debugLogLevelSuccess: {
+    color: '#1f6b3a',
+  },
+  debugLogLevelWarning: {
+    color: '#9a5b00',
+  },
+  debugLogLevelError: {
+    color: '#b42318',
+  },
+  debugLogTime: {
+    flexShrink: 0,
+    color: '#6f6a61',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  debugLogMessage: {
+    color: '#242424',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  debugLogDetails: {
+    color: '#51483d',
+    fontSize: 11,
+    lineHeight: 15,
+  },
+  legal: {
+    color: '#737373',
+    fontSize: 16,
+    lineHeight: 23,
+    letterSpacing: 1.12,
+    textAlign: 'center',
+  },
+})

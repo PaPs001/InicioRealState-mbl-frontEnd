@@ -92,16 +92,6 @@ La app soporta 5 tipos de usuarios:
 - Aprobacion/rechazo
 - Panel de comisiones
 
-## Compilar para Produccion
-
-```bash
-# Compilar para Android
-npx expo build:android
-
-# Compilar para iOS
-npx expo build:ios
-```
-
 ## Tecnologias
 
 - React Native 0.73
