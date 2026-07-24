@@ -1,0 +1,188 @@
+import { Platform, StyleSheet } from 'react-native'
+
+const serifFont = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  default: 'serif',
+})
+
+export const registerOwnerVerifyStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fefbf6',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 43,
+    top: 43,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    paddingTop: 70,
+    paddingBottom: 40,
+  },
+  main: {
+    width: '100%',
+    maxWidth: 390,
+    alignItems: 'center',
+    gap: 16,
+  },
+  headerArea: {
+    width: 341,
+    gap: 14,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 11,
+  },
+  progressRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressLabel: {
+    color: '#e4ac73',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: '#ddd5c6',
+  },
+  progressActive: {
+    width: '50%',
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: '#c2824b',
+  },
+  titleBlock: {
+    width: 341,
+    marginTop: 22,
+  },
+  title: {
+    color: '#155721',
+    fontFamily: serifFont,
+    fontSize: 40,
+    fontWeight: '700',
+    lineHeight: 50,
+  },
+  subtitle: {
+    marginTop: 4,
+    color: '#000000',
+    fontSize: 13,
+    lineHeight: 20,
+    letterSpacing: 0.65,
+  },
+  codeArea: {
+    width: 341,
+    height: 79,
+    marginTop: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  codeBoxes: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  codeGap: {
+    marginLeft: 22,
+  },
+  codeBox: {
+    width: 35,
+    height: 53,
+    borderWidth: 1,
+    borderColor: '#e5dfd2',
+    borderRadius: 8,
+    backgroundColor: '#fffef9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  codeBoxActive: {
+    borderColor: '#c2824b',
+  },
+  codeBoxText: {
+    color: '#697b74',
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 23,
+  },
+  cards: {
+    width: '100%',
+    gap: 78,
+    padding: 10,
+  },
+  infoCard: {
+    width: '100%',
+    minHeight: 90,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5c989',
+    borderRadius: 12,
+    backgroundColor: '#faf5ef',
+    paddingHorizontal: 17,
+    gap: 18,
+  },
+  resendCard: {
+    width: '100%',
+    minHeight: 90,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5c989',
+    borderRadius: 12,
+    backgroundColor: '#faf5ef',
+    paddingHorizontal: 17,
+    gap: 14,
+  },
+  cardText: {
+    flex: 1,
+    color: '#3f3f3d',
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 23,
+  },
+  countdownText: {
+    color: '#cfa367',
+  },
+  verifyButton: {
+    width: '100%',
+    height: 52,
+    marginTop: 0,
+    borderRadius: 9,
+    backgroundColor: '#1f3f2a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verifyButtonDisabled: {
+    opacity: 0.62,
+  },
+  verifyButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    lineHeight: 23,
+    textAlign: 'center',
+  },
+  errorText: {
+    width: 341,
+    marginTop: -6,
+    color: '#b42318',
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
+  },
+})
+
