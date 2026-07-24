@@ -13,7 +13,8 @@ export interface PropertyCatalogItemResponse {
   editedPhotos: string | null
   googleDriveImages: string | null
   id: string
-  isALand: boolean
+  isALand: boolean | string | number | null
+  isLand?: boolean | string | number | null
   list: 'sale' | 'rent' | string
   locationUrl: string | null
   maxPrice: number | null
@@ -31,17 +32,41 @@ export interface PropertyCatalogItemResponse {
   propertyDimensions: string | null
   propertyInformation: string | null
   propertyPayment: string | null
+  propertyType?: string | null
   propertyView: string | null
+  pool?: boolean | null
+  residentialDevelopment?: string | null
+  security24_7?: boolean | null
+  solarPanel?: string | null
   status: string | null
   urlImage: string | null
+  virtualRoute?: string | null
   wc: string | null
   zonaText: string | null
 }
 
-function extractNumber(value: string | null | undefined): number {
-  if (!value) return 0
-  const match = value.match(/(\d+(\.\d+)?)/)
+function normalizeValueToText(value: unknown): string | undefined {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number') return String(value)
+  return undefined
+}
+
+function extractNumber(value: unknown): number {
+  const textValue = normalizeValueToText(value)
+  if (!textValue) return 0
+  const match = textValue.match(/(\d+(\.\d+)?)/)
   return match ? Number(match[1]) : 0
+}
+
+function normalizeOptionalText(value: unknown): string | undefined {
+  const normalizedValue = normalizeValueToText(value)?.trim()
+  if (!normalizedValue) return undefined
+  if (/^(sin dato|sin datos|n\/a|na|null|undefined)$/i.test(normalizedValue)) return undefined
+  return normalizedValue
+}
+
+function isStringValue(value: string | undefined): value is string {
+  return Boolean(value)
 }
 
 function mapStatusToPropertyStatus(
@@ -55,15 +80,117 @@ function mapStatusToPropertyStatus(
   return list === 'rent' ? 'for_rent' : 'for_sale'
 }
 
+function isAvailableProperty(item: PropertyCatalogItemResponse): boolean {
+  return normalizeOptionalText(item.status)?.toLowerCase().includes('disponible') ?? false
+}
+
+function normalizeListingType(list: PropertyCatalogItemResponse['list']): Property['listingType'] {
+  if (list === 'rent') return 'rent'
+  if (list === 'sale') return 'sale'
+  return undefined
+}
+
+function normalizeBooleanFlag(value: unknown): boolean {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value === 1
+
+  const normalizedValue = normalizeOptionalText(value)?.toLowerCase()
+  return normalizedValue === 'true' || normalizedValue === '1' || normalizedValue === 'si' || normalizedValue === 'sí' || normalizedValue === 'yes'
+}
+
+function isLandProperty(item: PropertyCatalogItemResponse): boolean {
+  if (normalizeBooleanFlag(item.isALand) || normalizeBooleanFlag(item.isLand)) return true
+
+  const normalizedType = [
+    normalizeOptionalText(item.propertyType),
+    normalizeOptionalText(item.propertyInformation),
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  return normalizedType.includes('terreno') || normalizedType.includes('land')
+}
+
+function getPropertyType(item: PropertyCatalogItemResponse): Property['type'] {
+  const normalizedType = [
+    normalizeOptionalText(item.propertyType),
+    normalizeOptionalText(item.propertyInformation),
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  if (isLandProperty(item)) {
+    return 'land'
+  }
+
+  if (normalizedType.includes('casa') || normalizedType.includes('house')) {
+    return 'house'
+  }
+
+  return 'apartment'
+}
+
+function isFurnishedProperty(item: PropertyCatalogItemResponse): boolean {
+  const searchableText = [
+    item.propertyAmenities,
+    item.propertyInformation,
+    item.propertyDescription,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  if (/sin muebles|no amuebl/i.test(searchableText)) {
+    return false
+  }
+
+  return /amuebl|mueble|equipad/i.test(searchableText)
+}
+
+function getFurnishedLabel(item: PropertyCatalogItemResponse): string | undefined {
+  const values = [
+    item.propertyAmenities,
+    item.propertyInformation,
+    item.propertyDescription,
+  ]
+    .map(normalizeOptionalText)
+    .filter(Boolean) as string[]
+
+  return values.find(value => /amuebl|mueble|equipad/i.test(value))
+}
+
+function buildAmenities(item: PropertyCatalogItemResponse): string[] {
+  const amenities = (normalizeOptionalText(item.propertyAmenities) || '')
+    .split(/,|\n/)
+    .map(normalizeOptionalText)
+    .filter(isStringValue)
+
+  if (item.pool) {
+    amenities.push('Alberca')
+  }
+
+  if (item.security24_7) {
+    amenities.push('Seguridad 24/7')
+  }
+
+  const solarPanel = normalizeOptionalText(item.solarPanel)
+  if (solarPanel && solarPanel.toLowerCase() !== 'no') {
+    amenities.push('Panel solar')
+  }
+
+  const residentialDevelopment = normalizeOptionalText(item.residentialDevelopment)
+  if (residentialDevelopment) {
+    amenities.push(residentialDevelopment)
+  }
+
+  return Array.from(new Set(amenities))
+}
+
 export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Property {
   const parsedPrice = item.minPrice ?? item.maxPrice ?? item.priceSpecial ?? 0
   const area = extractNumber(item.propertyArea) || extractNumber(item.propertyDimensions)
   const bedrooms = extractNumber(item.bed)
   const bathrooms = extractNumber(item.wc)
-  const amenities = (item.propertyAmenities || '')
-    .split(/,|\n/)
-    .map((value) => value.trim())
-    .filter(Boolean)
+  const parking = extractNumber(item.parking)
+  const amenities = buildAmenities(item)
+  const listingType = normalizeListingType(item.list)
+  const isLand = isLandProperty(item)
 
   return {
     _id: item._id,
@@ -72,17 +199,26 @@ export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Pro
     address: item.address || 'Sin direccion',
     city: item.zonaText || 'Sin ubicacion',
     price: parsedPrice,
+    priceLabel: normalizeOptionalText(item.priceData),
     monthlyRent: item.list === 'rent' ? parsedPrice : undefined,
-    type: item.isALand ? 'land' : 'apartment',
-    bedrooms: item.isALand ? 0 : bedrooms,
-    bathrooms: item.isALand ? 0 : bathrooms,
+    type: getPropertyType(item),
+    listingType,
+    bedrooms: isLand ? 0 : bedrooms,
+    bathrooms: isLand ? 0 : bathrooms,
+    parking: isLand ? 0 : parking,
+    view: normalizeOptionalText(item.propertyView),
+    isFurnished: isFurnishedProperty(item),
+    furnishedLabel: getFurnishedLabel(item),
+    solarPanelLabel: normalizeOptionalText(item.solarPanel)?.toLowerCase() === 'no'
+      ? undefined
+      : normalizeOptionalText(item.solarPanel),
     sqMeters: area,
     size: area,
     images: item.urlImage ? [item.urlImage] : [],
-    googleDriveImages: item.googleDriveImages || undefined,
-    locationUrl: item.locationUrl || undefined,
+    googleDriveImages: normalizeOptionalText(item.googleDriveImages),
+    locationUrl: normalizeOptionalText(item.locationUrl),
     status: mapStatusToPropertyStatus(item.list, item.status),
-    description: item.propertyDescription || item.name || 'Sin descripcion',
+    description: normalizeOptionalText(item.propertyDescription) || normalizeOptionalText(item.name),
     amenities,
     features: amenities,
     createdAt: new Date().toISOString(),
@@ -112,6 +248,7 @@ export async function getCatalogPropertiesCoreAPI(token?: string): Promise<Prope
       token,
     })
     return data
+      .filter(isAvailableProperty)
       .map(mapApiPropertyToProperty)
   } catch (error) {
     console.error('Error al obtener catalogo:', error)
@@ -256,5 +393,3 @@ export async function deleteFavoriteProperties(propertyId: string, token?: strin
     throw error
   }
 }
-
-

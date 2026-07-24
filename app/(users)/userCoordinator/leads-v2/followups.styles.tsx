@@ -236,6 +236,10 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.24)',
     justifyContent: 'flex-end',
   },
+  modalKeyboardAvoidingView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   imagePreviewBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.88)',

@@ -1,3 +1,4 @@
+import { generalColors } from '@/theme'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -522,7 +523,7 @@ export const styles = StyleSheet.create({
   },
   propertyCard: {
     width: 405,
-    height: 185,
+    minHeight: 150,
     borderRadius: 10,
     backgroundColor: '#ffffff',
     borderWidth: 0.5,
@@ -541,7 +542,7 @@ export const styles = StyleSheet.create({
   },
   imageWrap: {
     width: 198,
-    height: 177,
+    minHeight: 140,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ead4bc',
@@ -550,7 +551,7 @@ export const styles = StyleSheet.create({
   },
   propertyImage: {
     width: 198,
-    height: 177,
+    height: 220,
   },
   imagePlaceholder: {
     flex: 1,
@@ -566,6 +567,19 @@ export const styles = StyleSheet.create({
     maxWidth: 84,
     borderRadius: 7,
     backgroundColor: '#f6efe3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 5,
+  },
+  SolarPanelPill: {
+    position: 'absolute',
+    left: 5,
+    top: 30,
+    height: 17,
+    maxWidth: 84,
+    borderRadius: 7,
+    backgroundColor: '#f5f106',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -654,6 +668,19 @@ export const styles = StyleSheet.create({
     fontSize: 9.5,
     marginBottom: 1,
   },
+  rawDataBlock: {
+    marginTop: 3,
+    gap: 1,
+  },
+  rawInfoText: {
+    color: '#5f6462',
+    fontSize: 7,
+    lineHeight: 9,
+  },
+  rawInfoLabel: {
+    color: '#0c6740',
+    fontWeight: '700',
+  },
   featuresRow: {
     height: 42,
     flexDirection: 'row',
@@ -689,7 +716,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#d8d0c5',
   },
   amenitiesRow: {
-    height: 32,
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -704,7 +731,7 @@ export const styles = StyleSheet.create({
   },
   amenityText: {
     color: '#929594',
-    fontSize: 6.5,
+    fontSize: 6,
     lineHeight: 8,
     textAlign: 'center',
   },
@@ -740,13 +767,47 @@ export const styles = StyleSheet.create({
   detailTagTextWarm: {
     color: '#bd7600',
   },
+  amenitiesSpace:{
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap:5,
+    marginTop: 5
+  },
+  viewBlock:{
+    backgroundColor: '#6bdfff85',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flex: 1
+  },
+  furnishedBlock:{
+    backgroundColor: '#c59c55a6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flex: 1
+  },
+  viewText:{
+    fontSize: 5,
+    flexShrink: 1,
+    color: generalColors.greenTitle
+  },
   cardFooter: {
-    flex: 1,
-    minHeight: 29,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingBottom: 1,
+    marginTop: 10
   },
   detailLink: {
     color: '#0c6740',
@@ -754,11 +815,18 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   favoriteButton: {
-    width: 27,
-    height: 27,
-    borderRadius: 14,
-    backgroundColor: '#f6efe3',
+    width: 33,
+    height: 33,
+    borderRadius: 19,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#49404031'
   },
+
+
+  landPropertyCar:{
+    marginTop: 100
+  }
 })

@@ -1,7 +1,7 @@
 import { loginUser, registerUser } from '@/lib/api/endpoints/auth'
 import type { RegisterRequest, User } from '@/lib/types'
 
-type SetAuthSession = (user: User | null, token: string | null) => Promise<void>
+type SetAuthSession = (user: User | null, token: string | null, refreshToken?: string | null) => Promise<void>
 
 export type CompleteRegistrationResult =
   | {
@@ -71,7 +71,7 @@ export async function completeRegistrationAndLogin(
     console.log('[auth][complete-registration] setAuthSession start', {
       email: sessionUser?.email ?? response.user?.email ?? data.email.trim().toLowerCase(),
     })
-    await setAuthSession(sessionUser, loginResponse.accessToken)
+    await setAuthSession(sessionUser, loginResponse.accessToken, loginResponse.refreshToken ?? null)
     console.log('[auth][complete-registration] setAuthSession done')
 
     return {

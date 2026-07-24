@@ -28,6 +28,7 @@ import type { PdfReportAgentName, PdfReportDesign } from '@/lib/api'
 import type { Property } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { styles } from './properties-list.styles'
+import { icons } from '@/assets'
 
 type ListingProperty = {
   id: string
@@ -35,6 +36,14 @@ type ListingProperty = {
   code: string
   city: string
   price: number
+  priceLabel?: string
+  listingType?: Property['listingType']
+  view?: string
+  description?: string
+  solarPanelLabel?: string
+  propertyType: Property['type']
+  googleDriveImages?: string
+  locationUrl?: string
   bedrooms: string
   bedroomsCount: number
   bathrooms: string
@@ -42,6 +51,8 @@ type ListingProperty = {
   parking: string
   parkingCount: number
   isFurnished: boolean
+  furnishedLabel?: string
+  isLand: boolean
   image?: string
   tags: string[]
   status: Property['status']
@@ -89,7 +100,7 @@ const pdfDesignLabels: Record<string, string> = {
 
 function mapPropertyToListing(property: Property): ListingProperty {
   const amenities = property.amenities?.length ? property.amenities : property.features ?? []
-  const parkingCount = getParkingValue(amenities)
+  const parkingCount = property.parking ?? getParkingValue(amenities)
 
   return {
     id: property.id || property._id || property.title,
@@ -97,13 +108,23 @@ function mapPropertyToListing(property: Property): ListingProperty {
     code: property.address || property.city || 'Inventario de renta',
     city: property.city || 'Zona sin asignar',
     price: property.monthlyRent ?? property.price ?? 0,
+    priceLabel: property.priceLabel,
+    listingType: property.listingType,
+    view: property.view,
+    description: property.description,
+    solarPanelLabel: property.solarPanelLabel,
+    propertyType: property.type,
+    googleDriveImages: property.googleDriveImages,
+    locationUrl: property.locationUrl,
     bedrooms: String(property.bedrooms ?? 0),
     bedroomsCount: property.bedrooms ?? 0,
     bathrooms: String(property.bathrooms ?? 0),
     bathroomsCount: property.bathrooms ?? 0,
     parking: String(parkingCount),
     parkingCount,
-    isFurnished: amenities.some(amenity => /amuebl/i.test(amenity)),
+    isFurnished: property.isFurnished ?? amenities.some(amenity => /amuebl/i.test(amenity)),
+    furnishedLabel: property.furnishedLabel,
+    isLand: property.type === 'land',
     image: property.images?.[0],
     tags: normalizeTags(amenities),
     status: property.status,
@@ -118,11 +139,14 @@ function getParkingValue(amenities: string[]) {
 }
 
 function normalizeTags(amenities: string[]) {
-  const preferredTags = amenities.filter(Boolean).slice(0, 6)
+  return amenities.filter(isDisplayValue).slice(0, 6)
+}
 
-  return preferredTags.length > 0
-    ? preferredTags
-    : ['Seguridad 24/7', 'Areas verdes', 'Alberca', 'Pet friendly', 'Vista Alberca', 'Amueblada']
+function isDisplayValue(value?: string | null) {
+  const normalizedValue = value?.trim()
+  if (!normalizedValue) return false
+
+  return !/^(sin dato|sin datos|sin tipo|sin vista|sin link|sin carpeta|sin descripcion|n\/a|na|null|undefined)$/i.test(normalizedValue)
 }
 
 function waitForHeavyUiToUnmount() {
@@ -158,7 +182,7 @@ function getSortLabel(sortOption: SortOption) {
     case 'rent_over_20':
       return 'Rentas mayores de 20'
     default:
-      return 'Mayor a menor'
+      return 'Ordernar'
   }
 }
 
@@ -166,7 +190,7 @@ export default function CoordinatorPropertiesListScreen() {
   const router = useRouter()
   const pathname = usePathname()
   const params = useLocalSearchParams<{ type?: string }>()
-  const { authToken } = useAuth()
+  const { authToken, isLoading: isAuthLoading } = useAuth()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
   const initialListingFilter: ListingFilter = params.type === 'sale' ? 'sale' : params.type === 'rent' ? 'rent' : 'all'
@@ -176,7 +200,7 @@ export default function CoordinatorPropertiesListScreen() {
     catalogProperties,
     hasLoadedCatalog,
     isCatalogLoading,
-    loadCatalogProperties,
+    newLoadCatalogProperties,
   } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [isMapMode, setIsMapMode] = useState(false)
@@ -200,10 +224,12 @@ export default function CoordinatorPropertiesListScreen() {
   const [sortOption, setSortOption] = useState<SortOption>('price_desc')
 
   useEffect(() => {
+    if (isAuthLoading || !authToken) return
+
     if (!hasLoadedCatalog && !isCatalogLoading) {
-      loadCatalogProperties()
+      newLoadCatalogProperties()
     }
-  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
+  }, [authToken, hasLoadedCatalog, isAuthLoading, isCatalogLoading, newLoadCatalogProperties])
 
   const listings = useMemo(() => {
     const source = (catalogProperties.length > 0 ? catalogProperties : availableProperties)
@@ -330,7 +356,7 @@ export default function CoordinatorPropertiesListScreen() {
   const ListHeader = useMemo(() => (
     <View style={[styles.listCanvas, { width: canvasWidth }]}>
       <View style={styles.headerCanvas}>
-        <TouchableOpacity
+        {/*<TouchableOpacity
           style={styles.backButton}
           onPress={() => {
             if (isMapMode) {
@@ -342,8 +368,8 @@ export default function CoordinatorPropertiesListScreen() {
           }}
           activeOpacity={0.85}
         >
-          <ChevronLeft size={25} color="#19191f" />
-        </TouchableOpacity>
+          <BackButton/>
+        </TouchableOpacity>*/}
 
         <Text style={styles.title}>Propiedades Disponibles</Text>
         <Text style={styles.subtitle}>Inventario de renta y venta</Text>
@@ -614,7 +640,7 @@ export default function CoordinatorPropertiesListScreen() {
                 ))}
               </FilterOptionGroup>
 
-              <FilterOptionGroup title="Banos">
+              <FilterOptionGroup title="Baños">
                 <FilterValueChip label="Todos" active={bathroomsFilter === null} onPress={() => setBathroomsFilter(null)} />
                 {[1, 2, 3, 4].map(value => (
                   <FilterValueChip key={value} label={`${value}+`} active={bathroomsFilter === value} onPress={() => setBathroomsFilter(value)} />
@@ -700,6 +726,7 @@ const PropertyCard = memo(function PropertyCard({
 }) {
   const primaryTags = property.tags.slice(0, 4)
   const detailTags = property.tags.slice(4, 6)
+  const shouldShowPropertyDetails = !property.isLand
 
   return (
     <TouchableOpacity
@@ -716,12 +743,17 @@ const PropertyCard = memo(function PropertyCard({
           </View>
         )}
         <View style={styles.locationPill}>
-          <MapPin size={10} color="#0c6740" />
+          <icons.Place />
           <Text style={styles.locationPillText} numberOfLines={1}>{property.city}</Text>
         </View>
         <View style={styles.availablePill}>
           <Text style={styles.availablePillText}>Disponible</Text>
         </View>
+        {property.solarPanelLabel ? (
+          <View style={styles.SolarPanelPill}>
+            <Text style={styles.locationPillText}>Paneles Solares</Text>
+          </View>
+        ): <View></View>}
         {isSelecting ? (
           <View style={[styles.selectionPill, isSelected && styles.selectionPillActive]}>
             <Text style={[styles.selectionPillText, isSelected && styles.selectionPillTextActive]}>
@@ -736,18 +768,19 @@ const PropertyCard = memo(function PropertyCard({
         <Text style={styles.propertyCode} numberOfLines={1}>{property.code}</Text>
 
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{formatCurrency(property.price)}</Text>
+          <Text style={styles.price}>{property.priceLabel || formatCurrency(property.price)}</Text>
           {property.status === 'for_rent' || property.status === 'pending_rent' ? (
             <Text style={styles.priceMeta}>MXN / mes </Text>
           ) : null}
         </View>
-
+        {shouldShowPropertyDetails ? (
+          <>
         <View style={styles.featuresRow}>
-          <Feature icon={<BedDouble size={13} color="#0c6740" />} value={property.bedrooms} label="Recamaras" />
+          <Feature icon={<icons.Bed />} value={property.bedrooms} label="Recamaras" />
           <View style={styles.featureDivider} />
-          <Feature icon={<Bath size={13} color="#0c6740" />} value={property.bathrooms} label="Baños" />
+          <Feature icon={<icons.Bathroom />} value={property.bathrooms} label="Baños" />
           <View style={styles.featureDivider} />
-          <Feature icon={<Car size={14} color="#0c6740" />} value={property.parking} label="Estac." />
+          <Feature icon={<icons.Car/>} value={property.parking} label="Estac." />
         </View>
 
         <View style={styles.amenitiesRow}>
@@ -761,11 +794,35 @@ const PropertyCard = memo(function PropertyCard({
             <DetailTag key={tag} label={tag} />
           ))}
         </View>
-
+          </>
+        ) : null}
+        <View style={[styles.amenitiesSpace, property.isLand && styles.landPropertyCar]}>
+          <View style={styles.viewBlock}>
+            <icons.Fluid/>
+            {property.view ? (
+              <Text style={styles.viewText}>
+                {property.view}
+              </Text>
+            ) : null}
+          </View>
+          {property.furnishedLabel ?(
+            <View style={styles.furnishedBlock}>
+              <icons.Fluid/>
+              {property.furnishedLabel ? (
+                <Text 
+                  style={styles.viewText}
+                  numberOfLines={1}
+                >
+                  {property.furnishedLabel}
+                </Text>
+            ) : null}
+            </View>
+          ): null}
+        </View>
         <View style={styles.cardFooter}>
           <Text style={styles.detailLink}>Ver detalles </Text>
           <TouchableOpacity style={styles.favoriteButton} activeOpacity={0.85}>
-            <Star size={13} color="#0c6740" fill="#0c6740" />
+            <icons.Heart/>
           </TouchableOpacity>
         </View>
       </View>
@@ -775,6 +832,17 @@ const PropertyCard = memo(function PropertyCard({
 
 function ListSeparator() {
   return <View style={styles.listSeparator} />
+}
+
+function RawInfo({ label, value }: { label: string; value?: string }) {
+  if (!isDisplayValue(value)) return null
+
+  return (
+    <Text style={styles.rawInfoText} numberOfLines={1}>
+      <Text style={styles.rawInfoLabel}>{label}: </Text>
+      {value}
+    </Text>
+  )
 }
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {

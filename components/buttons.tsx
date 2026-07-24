@@ -1,5 +1,5 @@
 import {Pressable, Text, StyleSheet} from 'react-native';
-import {buttonColor, generalColors, radius, spacing, fontFamily, fontSize, lineHeight} from '@/app/theme'
+import {buttonColor, generalColors, radius, spacing, fontFamily, fontSize, lineHeight} from '@/theme'
 import { styles } from './navigation/BottomNav.styles';
 import { borderRadius } from '@/lib/theme';
 type PrimaryButtonProps = {

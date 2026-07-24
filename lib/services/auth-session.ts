@@ -4,6 +4,7 @@ import type { BackendUserRole, User } from '@/lib/types'
 
 const AUTH_USER_STORAGE_KEY = 'authUser'
 const AUTH_TOKEN_STORAGE_KEY = 'authToken'
+const AUTH_REFRESH_TOKEN_STORAGE_KEY = 'authRefreshToken'
 const CURRENT_USER_ID_STORAGE_KEY = 'currentUserId'
 
 const previewToken = (token: string | null) =>
@@ -17,12 +18,6 @@ export type BackendUser = Partial<User> & {
   permissions?: string[]
   investment?: boolean
   tenant?: boolean
-}
-
-type RestoredAuthSession = {
-  storedToken: string | null
-  storedUser: User | null
-  storedUserId: string | null
 }
 
 function decodeBase64(value: string): string | null {
@@ -161,12 +156,24 @@ export function buildSessionUser(user: BackendUser | User | null, token: string 
   return sessionUser
 }
 
-export async function persistAuthSession(user: User | null, token: string | null): Promise<void> {
+export type PersistedAuthSession = {
+  user: User | null
+  token: string | null
+  refreshToken: string | null
+}
+
+export async function persistAuthSession(
+  user: User | null,
+  token: string | null,
+  refreshToken: string | null = null,
+): Promise<void> {
   console.info('[auth][storage-write] start', {
     userId: user?.id ?? null,
     email: user?.email ?? null,
     hasToken: !!token,
+    hasRefreshToken: !!refreshToken,
     tokenPreview: previewToken(token),
+    refreshTokenPreview: previewToken(refreshToken),
     willStoreUser: !!user?.id,
   })
 
@@ -184,43 +191,66 @@ export async function persistAuthSession(user: User | null, token: string | null
     await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
   }
 
-  const [storedUserId, storedAuthUser, storedToken] = await Promise.all([
+  if (refreshToken) {
+    await AsyncStorage.setItem(AUTH_REFRESH_TOKEN_STORAGE_KEY, refreshToken)
+  } else {
+    await AsyncStorage.removeItem(AUTH_REFRESH_TOKEN_STORAGE_KEY)
+  }
+
+  const [storedUserId, storedAuthUser, storedAuthToken, storedRefreshToken] = await Promise.all([
     AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY),
     AsyncStorage.getItem(AUTH_USER_STORAGE_KEY),
     AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY),
+    AsyncStorage.getItem(AUTH_REFRESH_TOKEN_STORAGE_KEY),
   ])
 
   console.info('[auth][storage-write] done', {
     storedUserId,
     hasStoredUser: !!storedAuthUser,
+    hasStoredToken: !!storedAuthToken,
+    hasStoredRefreshToken: !!storedRefreshToken,
     storedUserLength: storedAuthUser?.length ?? 0,
-    hasStoredToken: !!storedToken,
-    storedTokenPreview: previewToken(storedToken),
   })
 }
 
-export async function restoreAuthSession(): Promise<RestoredAuthSession> {
-  const storedToken = await AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
-  const storedAuthUser = await AsyncStorage.getItem(AUTH_USER_STORAGE_KEY)
-  const storedUserId = await AsyncStorage.getItem(CURRENT_USER_ID_STORAGE_KEY)
+export async function loadPersistedAuthSession(): Promise<PersistedAuthSession> {
+  const [storedUser, token, refreshToken] = await Promise.all([
+    AsyncStorage.getItem(AUTH_USER_STORAGE_KEY),
+    AsyncStorage.getItem(AUTH_TOKEN_STORAGE_KEY),
+    AsyncStorage.getItem(AUTH_REFRESH_TOKEN_STORAGE_KEY),
+  ])
 
-  console.info('[auth][storage-read]', {
-    storedUserId,
-    hasStoredUser: !!storedAuthUser,
-    storedUserLength: storedAuthUser?.length ?? 0,
-    hasStoredToken: !!storedToken,
-    storedTokenPreview: previewToken(storedToken),
+  let user: User | null = null
+  if (storedUser) {
+    try {
+      user = JSON.parse(storedUser) as User
+    } catch {
+      user = null
+    }
+  }
+
+  console.info('[auth][storage-read] done', {
+    hasStoredUser: !!user,
+    hasStoredToken: !!token,
+    hasStoredRefreshToken: !!refreshToken,
+    tokenPreview: previewToken(token),
+    refreshTokenPreview: previewToken(refreshToken),
   })
 
   return {
-    storedToken,
-    storedUser: storedAuthUser ? normalizeAuthUser(JSON.parse(storedAuthUser) as User) : null,
-    storedUserId,
+    user,
+    token,
+    refreshToken,
   }
+}
+
+export async function clearPersistedAuthToken(): Promise<void> {
+  await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
 }
 
 export async function clearPersistedAuthSession(): Promise<void> {
   await AsyncStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY)
   await AsyncStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+  await AsyncStorage.removeItem(AUTH_REFRESH_TOKEN_STORAGE_KEY)
   await AsyncStorage.removeItem(AUTH_USER_STORAGE_KEY)
 }

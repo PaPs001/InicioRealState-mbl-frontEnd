@@ -2,7 +2,7 @@ import { Linking, Platform } from 'react-native'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as IntentLauncher from 'expo-intent-launcher'
 
-import { API_URLS } from '../client'
+import { API_URLS, fetchWithAuthRetry } from '../client'
 
 const ANDROID_ACTION_VIEW = 'android.intent.action.VIEW'
 const ANDROID_FLAG_GRANT_READ_URI_PERMISSION = 1
@@ -146,9 +146,10 @@ export async function createTemporaryPropertyListPdfUrl(
     payload,
   })
 
-  const response = await fetch(finalUrl, {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, endpoint, {
     method: 'POST',
     headers: getCoreApiHeaders(token),
+    token,
     body: JSON.stringify(payload),
   })
 

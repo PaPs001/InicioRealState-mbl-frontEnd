@@ -1,4 +1,4 @@
-import { Flag, Home, Users } from 'lucide-react-native'
+import {Home, Propertie, Lead} from '@/assets/'
 
 import { BottomNav, type BottomNavItem } from '@/components/navigation/BottomNav'
 
@@ -6,7 +6,7 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
   {
     key: 'properties',
     href: '/userAdviser/properties-list',
-    icon: (color, size) => <Users size={size} color={color} />,
+    icon: (color, size) => <Propertie/>,
     isActive: (pathname) =>
       pathname.startsWith('/userAdviser/properties') ||
       pathname.startsWith('/userAdviser/developments-soon'),
@@ -16,15 +16,15 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
   {
     key: 'home',
     href: '/userAdviser',
-    icon: (color, size) => <Home size={size} color={color} />,
+    icon: (color, size) => <Home/>,
     isActive: (pathname) => pathname === '/userAdviser' || pathname === '/userAdviser/',
-    label: 'Inicio',
+    label: '',
     size: 27,
   },
   {
     key: 'leads',
     href: '/userAdviser/leads',
-    icon: (color, size) => <Flag size={size} color={color} />,
+    icon: (color, size) => <Lead/>,
     isActive: (pathname) =>
       pathname.startsWith('/userAdviser/leads'),
     label: 'Seguimiento',

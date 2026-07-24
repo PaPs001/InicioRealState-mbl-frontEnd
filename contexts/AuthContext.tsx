@@ -3,13 +3,14 @@ import type { AuthContextType } from './auth/types'
 import { useActivityState } from './auth/use-activity-state'
 import { useAuthSessionState } from './auth/use-auth-session-state'
 import { usePropertyState } from './auth/use-property-state'
+import { setAuthTokenRefreshHandler } from '@/lib/api/client'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const sessionState = useAuthSessionState()
 
-  const { currentUser, authToken, hydratedFavorites, isLoading, login, logout, setAuthSession, setCurrentUser } = sessionState
+  const { currentUser, authToken, refreshToken, hydratedFavorites, isLoading, login, logout, refreshAuthSession, setAuthSession, setCurrentUser } = sessionState
   const isClient = currentUser?.systemRole === 'CLIENT'
   const isAgent = currentUser?.systemRole === 'AGENT'
   const isInvestor = !!currentUser?.investment
@@ -77,10 +78,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [currentUser, resetPropertyState])
 
+  useEffect(() => {
+    setAuthTokenRefreshHandler(refreshToken ? refreshAuthSession : null)
+
+    return () => {
+      setAuthTokenRefreshHandler(null)
+    }
+  }, [refreshAuthSession, refreshToken])
+
   return (
     <AuthContext.Provider value={{
       currentUser,
       authToken,
+      refreshToken,
       isLoading,
       isLoggedIn: !!currentUser,
       isInvestor,
@@ -92,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isClient,
       login,
       logout,
+      refreshAuthSession,
       setCurrentUser,
       setAuthSession,
       userProperties,

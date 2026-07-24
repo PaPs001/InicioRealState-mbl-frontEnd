@@ -1,5 +1,5 @@
 import type { LeadFollowUp, LeadV2StatusSource, LeadV2SystemStatus, PropertyLead, User } from '@/lib/types'
-import { API_URLS, coreApi } from '../client'
+import { API_URLS, coreApi, fetchWithAuthRetry } from '../client'
 
 const createdLeadsStore = new Map<string, PropertyLead>()
 const followUpsStore = new Map<string, LeadFollowUp[]>()
@@ -531,9 +531,10 @@ export async function createBackendLeadV2Following(
     headers.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_URLS.CORE}/leads-v2/${leadId}/followings`, {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, `/leads-v2/${leadId}/followings`, {
     method: 'POST',
     headers,
+    token,
     body: formData,
   })
 
