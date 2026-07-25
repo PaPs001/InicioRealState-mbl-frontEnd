@@ -68,6 +68,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   avatarText: {
     color: '#24442f',
@@ -265,7 +270,10 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    alignContent: 'center',
+    justifyContent: 'space-between'
+  },
+  header:{
   },
   sectionHeaderTitle: {
     color: '#006b43',
