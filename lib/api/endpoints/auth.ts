@@ -2,7 +2,7 @@
  * Endpoints de autenticacion y usuarios
  */
 
-import { API_BUILD_CONFIG, coreApi, type ApiDebugLogEntry } from '../client'
+import { API_BUILD_CONFIG, API_URLS, coreApi, fetchWithAuthRetry, type ApiDebugLogEntry } from '../client'
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -30,6 +30,20 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+export type BackendProfileImagePayload = {
+  image: {
+    uri: string
+    name: string
+    type: string
+  }
+}
+
+export type UploadProfileImageResponse = {
+  url: string
+  filename?: string
+  storageKey?: string
+}
+
 export type BackendCurrentUser = {
   _id?: string
   id?: string
@@ -42,6 +56,7 @@ export type BackendCurrentUser = {
   permissions?: string[]
   investment?: boolean
   tenant?: boolean
+  avatar?: string
 }
 
 function mapBackendRolesToSystemRole(roles?: BackendUserRole[], role?: BackendUserRole): BackendUserRole {
@@ -90,6 +105,7 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     investment: user.investment ?? false,
     tenant: user.tenant ?? false,
     permissions: user.permissions,
+    avatar: user.avatar,
     createdAt: new Date().toISOString(),
   }
 }
@@ -619,4 +635,75 @@ export async function updateUserProfile(
       error: error instanceof Error ? error.message : 'Error desconocido'
     }
   }
+}
+
+export async function uploadProfileImage(
+  payload: BackendProfileImagePayload,
+  token: string,
+): Promise<UploadProfileImageResponse> {
+  if (!payload.image.uri || !payload.image.name || !payload.image.type) {
+    throw new Error('La imagen seleccionada no tiene datos validos para subirla.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', {
+    uri: payload.image.uri,
+    name: payload.image.name,
+    type: payload.image.type,
+  } as unknown as Blob)
+
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'POST',
+    token,
+    body: formData,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo subir la imagen (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+
+  const result = await response.json() as unknown
+  const uploadedFile = getUploadedProfileFile(result)
+  if (!uploadedFile?.url) {
+    throw new Error('El servicio de archivos no devolvio la URL de la imagen.')
+  }
+
+  return uploadedFile
+}
+
+function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const root = payload as Record<string, unknown>
+  const candidates = [
+    root,
+    root.data,
+    root.file,
+    root.upload,
+    Array.isArray(root.files) ? root.files[0] : root.files,
+    Array.isArray(root.data) ? root.data[0] : undefined,
+  ]
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) continue
+    const file = candidate as Record<string, unknown>
+    const url = [file.url, file.secureUrl, file.fileUrl, file.location]
+      .find(value => typeof value === 'string' && value.length > 0)
+    if (typeof url === 'string') {
+      return {
+        url,
+        filename: typeof file.filename === 'string' ? file.filename : undefined,
+        storageKey: typeof file.storageKey === 'string' ? file.storageKey : undefined,
+      }
+    }
+  }
+
+  return null
 }
