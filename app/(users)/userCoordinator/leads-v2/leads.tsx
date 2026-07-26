@@ -1,3 +1,6 @@
+import { useMemo, useState, type ReactNode } from 'react'
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { useMemo, useState, type ReactNode } from "react";
 import {
   Keyboard,
@@ -154,6 +157,7 @@ export function LeadDetailView({
       style={styles.subScreenContainer}
     >
       <View style={styles.detailScreen}>
+      <View style={styles.detailScreen}>
         <ScreenHeader
           title="Detalle del lead"
           subtitle={`Seguimiento de ${lead.name}`}
@@ -165,6 +169,7 @@ export function LeadDetailView({
           contentContainerStyle={styles.leadDetailContent}
           style={styles.leadDetailScroll}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <View style={styles.profileCard}>
             <View style={styles.profileTopRow}>
@@ -466,6 +471,7 @@ export function LeadDetailView({
             </TouchableOpacity>
           </View>
         </View>
+      </View>
       </View>
     </KeyboardAvoidingView>
   );
