@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   Bell,
   CalendarDays,
@@ -34,7 +35,9 @@ import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
+  API_URLS,
   createGoogleCalendarDate,
+  deleteUploadedProfileImage,
   disconnectGoogleCalendar,
   getBackendLeadRecords,
   getGoogleCalendarAuthUrl,
@@ -42,11 +45,12 @@ import {
   getGoogleCalendarDates,
   getGoogleCalendars,
   getSelectedGoogleCalendars,
+  getUploadedProfileImage,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
-  updateUserProfile,
   uploadProfileImage,
   type CreateGoogleCalendarDatePayload,
+  type GoogleCalendarConnectionStatus,
   type GoogleCalendarOption,
   type SelectedGoogleCalendar,
 } from "@/lib/api";
@@ -92,6 +96,85 @@ type SelectedImage = {
   uri: string
   name: string
   type: string
+}
+
+const profilePhotoCacheDirectory = `${FileSystem.cacheDirectory || FileSystem.documentDirectory || ""}profile-photos/`;
+
+function getProfilePhotoImageUrl(storageKey: string) {
+  return `${API_URLS.CORE}/uploads/file?key=${encodeURIComponent(storageKey)}`;
+}
+
+function getProfilePhotoRequestHeaders(token?: string | null) {
+  const headers: Record<string, string> = {
+    Accept: "image/*",
+  };
+
+  if (API_URLS.CORE.includes("ngrok-free")) {
+    headers["ngrok-skip-browser-warning"] = "true";
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+function getProfilePhotoCacheFilename(storageKey: string, contentType?: string) {
+  const safeName = storageKey.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const normalizedContentType = contentType?.toLowerCase() || "";
+  const extension =
+    safeName.match(/\.[a-zA-Z0-9]+$/)?.[0] ||
+    (normalizedContentType.includes("png")
+      ? ".png"
+      : normalizedContentType.includes("webp")
+        ? ".webp"
+        : ".jpg");
+
+  return safeName.toLowerCase().endsWith(extension) ? safeName : `${safeName}${extension}`;
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+}
+
+async function cacheProfilePhotoImage(
+  storageKey: string,
+  token?: string | null,
+  contentType?: string,
+) {
+  if (!profilePhotoCacheDirectory) {
+    throw new Error("No hay directorio local disponible para cachear la foto de perfil.");
+  }
+
+  await FileSystem.makeDirectoryAsync(profilePhotoCacheDirectory, { intermediates: true }).catch(() => undefined);
+
+  const fileUri = `${profilePhotoCacheDirectory}${getProfilePhotoCacheFilename(storageKey, contentType)}`;
+  const cachedFile = await FileSystem.getInfoAsync(fileUri);
+  if (cachedFile.exists) return fileUri;
+
+  const response = await fetch(getProfilePhotoImageUrl(storageKey), {
+    headers: getProfilePhotoRequestHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error(`No se pudo descargar la foto de perfil (${response.status})`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  await FileSystem.writeAsStringAsync(fileUri, arrayBufferToBase64(arrayBuffer), {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+
+  return fileUri;
 }
 
 
@@ -159,12 +242,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   );
   const [isCalendarLoading, setIsCalendarLoading] = useState(false);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [googleConnectionStatus, setGoogleConnectionStatus] =
+    useState<GoogleCalendarConnectionStatus | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const [imageError, setimageError] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
+  const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null)
 
   const [isAddPhotoOpen, setAddPhotoOpen] = useState(false);
 
@@ -229,6 +315,60 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }
   }, [authToken]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    setProfileAvatarUri(null);
+
+    if (!currentUser || !authToken) {
+      setProfileAvatarUri(currentUser?.avatar ?? null);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadProfilePhoto = async () => {
+      const profilePhoto = currentUser.profilePhotoKey
+        ? {
+            key: currentUser.profilePhotoKey,
+            storageKey: currentUser.profilePhotoKey,
+            url: currentUser.avatar ?? '',
+          }
+        : await getUploadedProfileImage(authToken);
+
+      const profilePhotoKey = profilePhoto?.key || profilePhoto?.storageKey;
+      if (!profilePhotoKey) {
+        if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null);
+        return;
+      }
+
+      if (!currentUser.profilePhotoKey) {
+        await setAuthSession(
+          {
+            ...currentUser,
+            avatar: profilePhoto.url || currentUser.avatar,
+            profilePhotoKey,
+          },
+          authToken,
+          refreshToken,
+        );
+      }
+
+      const localUri = await cacheProfilePhotoImage(profilePhotoKey, authToken, profilePhoto.contentType);
+      if (isMounted) setProfileAvatarUri(localUri);
+    };
+
+    loadProfilePhoto()
+      .catch((error) => {
+        console.warn("No se pudo cargar la foto de perfil:", error);
+        if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null);
+      })
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authToken, currentUser, refreshToken, setAuthSession]);
+
   const pickProfileImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -254,31 +394,34 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   };
 
   const saveProfileImage = async () => {
-    if (!selectedImage || !authToken || !currentUser?.id || isUploadingProfileImage) {
+    if (!selectedImage || !authToken || !currentUser || isUploadingProfileImage) {
       if (!selectedImage) setimageError("Selecciona una imagen antes de guardarla.");
+      if (!currentUser || !authToken) setimageError("Inicia sesion antes de guardar la foto.");
       return;
     }
 
     setIsUploadingProfileImage(true);
     setimageError(null);
     try {
+      await deleteUploadedProfileImage(authToken);
       const uploadedImage = await uploadProfileImage({ image: selectedImage }, authToken);
-      const profileResult = await updateUserProfile(
-        currentUser.id,
-        { avatar: uploadedImage.url },
-        authToken,
-      );
-
-      if (!profileResult.success) {
-        throw new Error(profileResult.error || profileResult.message);
-      }
 
       const updatedUser = {
         ...currentUser,
-        ...(profileResult.user ?? {}),
-        avatar: profileResult.user?.avatar || uploadedImage.url,
+        avatar: uploadedImage.url,
+        profilePhotoKey: uploadedImage.key || uploadedImage.storageKey || currentUser.profilePhotoKey,
       };
       await setAuthSession(updatedUser, authToken, refreshToken);
+      if (updatedUser.profilePhotoKey) {
+        cacheProfilePhotoImage(updatedUser.profilePhotoKey, authToken, uploadedImage.contentType)
+          .then(setProfileAvatarUri)
+          .catch((error) => {
+            console.warn("No se pudo cachear la foto de perfil recien subida:", error);
+            setProfileAvatarUri(uploadedImage.url);
+          });
+      } else {
+        setProfileAvatarUri(uploadedImage.url);
+      }
       setSelectedImage(null);
       setAddPhotoOpen(false);
       Alert.alert("Foto actualizada", "La foto de perfil se guardo correctamente.");
@@ -319,10 +462,21 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           error,
         );
         setCalendarAppointments([]);
-        setIsGoogleConnected(false);
-        setCalendarMessage(
-          "Conecta Google Calendar para cargar tus citas reales.",
-        );
+        try {
+          const status = await getGoogleCalendarConnectionStatus(authToken);
+          setGoogleConnectionStatus(status);
+          setIsGoogleConnected(status.status === "connected" && status.connected);
+          setCalendarMessage(
+            status.status === "requires_reconnect"
+              ? "Reconecta Google Calendar para recuperar tus citas."
+              : "Conecta Google Calendar para cargar tus citas reales.",
+          );
+        } catch {
+          setIsGoogleConnected(false);
+          setCalendarMessage(
+            "Conecta Google Calendar para cargar tus citas reales.",
+          );
+        }
       } finally {
         setIsCalendarLoading(false);
       }
@@ -337,14 +491,29 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }
     setIsCalendarSettingsLoading(true);
     try {
-      const [calendars, selectedCalendars, status] = await Promise.all([
+      const status = await getGoogleCalendarConnectionStatus(authToken);
+      setGoogleConnectionStatus(status);
+      setIsGoogleConnected(status.status === "connected" && status.connected);
+
+      if (status.status === "requires_reconnect") {
+        setGoogleCalendars([]);
+        setSelectedGoogleCalendars([]);
+        setCalendarMessage("Reconecta Google Calendar para recuperar tus citas.");
+        return;
+      }
+
+      if (!status.connected) {
+        setGoogleCalendars([]);
+        setSelectedGoogleCalendars([]);
+        return;
+      }
+
+      const [calendars, selectedCalendars] = await Promise.all([
         getGoogleCalendars(authToken),
         getSelectedGoogleCalendars(authToken),
-        getGoogleCalendarConnectionStatus(authToken),
       ]);
       setGoogleCalendars(calendars);
       setSelectedGoogleCalendars(selectedCalendars);
-      setIsGoogleConnected(status.connected);
     } catch (error) {
       console.warn("No se pudieron cargar los calendarios del asesor:", error);
     } finally {
@@ -565,6 +734,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const enabledSelectedCalendars = selectedGoogleCalendars.filter(
     (calendar) => calendar.enabled !== false,
   );
+  const needsGoogleReconnect =
+    googleConnectionStatus?.status === "requires_reconnect";
 
   const handleLogout = () =>
     Alert.alert("Cerrar sesion", "Estas seguro que deseas cerrar sesion?", [
@@ -619,6 +790,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               setGoogleCalendars([]);
               setSelectedGoogleCalendars([]);
               setCalendarAppointments([]);
+              setGoogleConnectionStatus(null);
               setIsGoogleConnected(false);
               setCalendarMessage("Google Calendar fue desconectado.");
             } catch (error) {
@@ -880,24 +1052,26 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             </Text>
             <TouchableOpacity
               style={
-                isGoogleConnected ? styles.outlineButton : styles.centerButton
+                isGoogleConnected && !needsGoogleReconnect
+                  ? styles.outlineButton
+                  : styles.centerButton
               }
               activeOpacity={0.85}
               disabled={isConnectingCalendar || isDisconnectingCalendar}
               onPress={
-                isGoogleConnected
+                isGoogleConnected && !needsGoogleReconnect
                   ? handleDisconnectGoogleCalendar
                   : handleConnectGoogleCalendar
               }
             >
-              {isGoogleConnected ? (
+              {isGoogleConnected && !needsGoogleReconnect ? (
                 <LogOut size={16} color="#006b43" />
               ) : (
                 <CalendarDays size={17} color="#3d3b3b" />
               )}
               <Text
                 style={
-                  isGoogleConnected
+                  isGoogleConnected && !needsGoogleReconnect
                     ? styles.outlineButtonText
                     : styles.centerButtonText
                 }
@@ -906,7 +1080,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   ? "Abriendo Google..."
                   : isDisconnectingCalendar
                     ? "Desconectando..."
-                    : isGoogleConnected
+                    : needsGoogleReconnect
+                      ? "Reconectar Google Calendar"
+                      : isGoogleConnected
                       ? "Desconectar Google"
                       : "Conectar Google Calendar"}
               </Text>
@@ -928,7 +1104,11 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 </Text>
               </TouchableOpacity>
             </View>
-            {googleCalendars.length === 0 ? (
+            {needsGoogleReconnect ? (
+              <Text style={styles.calendarSettingsEmpty}>
+                Google Calendar requiere reconexion para volver a sincronizar.
+              </Text>
+            ) : googleCalendars.length === 0 ? (
               <Text style={styles.calendarSettingsEmpty}>
                 {isCalendarSettingsLoading
                   ? "Buscando calendarios..."
@@ -1042,8 +1222,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               activeOpacity={0.85}
               onPress={() => setIsProfileMenuOpen((current) => !current)}
             >
-              {currentUser?.avatar ? (
-                <Image source={{ uri: currentUser.avatar }} style={styles.avatarImage} resizeMode="cover" />
+              {profileAvatarUri ? (
+                <Image source={{ uri: profileAvatarUri }} style={styles.avatarImage} resizeMode="cover" />
               ) : (
                 <Text style={styles.avatarText}>{advisorInitials}</Text>
               )}
@@ -1249,7 +1429,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         enabledSelectedCalendars={enabledSelectedCalendars}
         isCatalogLoading={isCatalogLoading}
         isCreatingAppointment={isCreatingAppointment}
-        isGoogleConnected={isGoogleConnected}
+        isGoogleConnected={isGoogleConnected && !needsGoogleReconnect}
+        needsGoogleReconnect={needsGoogleReconnect}
         isLeadsLoading={isLeadsLoading}
         onClose={handleCloseAppointmentModal}
         onCreateAppointment={handleCreateAppointment}

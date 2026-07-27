@@ -16,6 +16,7 @@ export interface User {
   permissions?: string[]
   referralCode?: string
   avatar?: string
+  profilePhotoKey?: string
   createdAt: string
 }
 

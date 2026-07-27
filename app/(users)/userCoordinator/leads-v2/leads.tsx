@@ -1,7 +1,4 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
-import { useMemo, useState, type ReactNode } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
