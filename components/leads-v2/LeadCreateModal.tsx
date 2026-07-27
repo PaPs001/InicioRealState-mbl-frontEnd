@@ -5,7 +5,7 @@ import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
 import type { LeadPropertyOption, LeadV2CreateForm } from './types'
 import { formatPropertyPrice } from './lead-v2-utils'
 
-const leadOriginOptions = ['WhatsApp', 'Meta', 'Google Ads', 'Propio'] as const
+const leadOriginOptions = ['ManyChat', 'Meta', 'Google Ads', 'Referido'] as const
 const leadOperationOptions = [
   { label: 'Renta', value: 'renta' },
   { label: 'Venta', value: 'venta' },

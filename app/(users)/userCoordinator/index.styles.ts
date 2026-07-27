@@ -366,8 +366,9 @@ export const styles = StyleSheet.create({
     minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
     marginBottom: 12,
+    backgroundColor: 'blue'
   },
   settingsBackButton: {
     width: 38,
@@ -382,6 +383,7 @@ export const styles = StyleSheet.create({
   settingsHeaderCopy: {
     flex: 1,
     minWidth: 0,
+    backgroundColor: 'red'
   },
   settingsTitle: {
     color: '#0c6740',
