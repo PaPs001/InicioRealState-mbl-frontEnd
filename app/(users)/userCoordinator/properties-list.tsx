@@ -24,7 +24,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { createAndOpenTemporaryPropertyListPdf } from '@/lib/api'
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
-import type { PdfReportAgentName, PdfReportDesign } from '@/lib/api'
+import type { PdfReportAgentName } from '@/lib/api'
 import type { Property } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { styles } from './properties-list.styles'
@@ -91,12 +91,6 @@ const PDF_AGENT_LABELS: Record<PdfReportAgentName, string> = {
 }
 
 const PDF_REPORT_LOCATION = 'TODAS'
-const PDF_DESIGNS: PdfReportDesign[] = ['modern', 'original', 'whiteBoard']
-const pdfDesignLabels: Record<string, string> = {
-  modern: 'Modern',
-  original: 'Original',
-  whiteBoard: 'White Board',
-}
 
 function mapPropertyToListing(property: Property): ListingProperty {
   const amenities = property.amenities?.length ? property.amenities : property.features ?? []
@@ -210,7 +204,6 @@ export default function CoordinatorPropertiesListScreen() {
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([])
   const [isPdfOptionsVisible, setIsPdfOptionsVisible] = useState(false)
   const [pdfAgentName, setPdfAgentName] = useState<PdfReportAgentName>('AlexaDiaz')
-  const [pdfDesign, setPdfDesign] = useState<PdfReportDesign>('modern')
   const [listingFilter, setListingFilter] = useState<ListingFilter>(initialListingFilter)
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
   const [isSortVisible, setIsSortVisible] = useState(false)
@@ -442,7 +435,7 @@ export default function CoordinatorPropertiesListScreen() {
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
         location: PDF_REPORT_LOCATION,
         list: pdfListingType,
-        design: pdfDesign,
+        design: 'modern',
       } as const
 
       console.log('Payload PDF coordinador:', pdfPayload)
@@ -536,17 +529,6 @@ export default function CoordinatorPropertiesListScreen() {
                     label={PDF_AGENT_LABELS[agent]}
                     active={pdfAgentName === agent}
                     onPress={() => setPdfAgentName(agent)}
-                  />
-                ))}
-              </PdfOptionGroup>
-
-              <PdfOptionGroup title="Diseño">
-                {PDF_DESIGNS.map(design => (
-                  <PdfChip
-                    key={design}
-                    label={pdfDesignLabels[design] ?? design}
-                    active={pdfDesign === design}
-                    onPress={() => setPdfDesign(design)}
                   />
                 ))}
               </PdfOptionGroup>
