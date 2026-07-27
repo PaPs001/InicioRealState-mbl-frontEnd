@@ -2,7 +2,7 @@
  * Endpoints de autenticacion y usuarios
  */
 
-import { API_BUILD_CONFIG, coreApi, type ApiDebugLogEntry } from '../client'
+import { API_BUILD_CONFIG, API_URLS, coreApi, fetchWithAuthRetry, type ApiDebugLogEntry } from '../client'
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -30,6 +30,31 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+export type BackendProfileImagePayload = {
+  image: {
+    uri: string
+    name: string
+    type: string
+  }
+}
+
+export type UploadProfileImageResponse = {
+  url: string
+  key?: string
+  filename?: string
+  storageKey?: string
+  contentType?: string
+  size?: number
+  originalName?: string
+  documentType?: string
+  status?: string
+}
+
+export type UploadedFilesResponse = {
+  userId?: string
+  files?: Record<string, unknown>
+}
+
 export type BackendCurrentUser = {
   _id?: string
   id?: string
@@ -42,6 +67,26 @@ export type BackendCurrentUser = {
   permissions?: string[]
   investment?: boolean
   tenant?: boolean
+  avatar?: string
+  profilePhotoKey?: string
+  files?: Record<string, unknown>
+}
+
+function getBackendProfilePhotoKey(user?: BackendCurrentUser): string | undefined {
+  if (typeof user?.profilePhotoKey === 'string' && user.profilePhotoKey.length > 0) {
+    return user.profilePhotoKey
+  }
+
+  const profilePhoto = user?.files?.profilephoto
+  if (!profilePhoto || typeof profilePhoto !== 'object' || Array.isArray(profilePhoto)) {
+    return undefined
+  }
+
+  const file = profilePhoto as Record<string, unknown>
+  const key = [file.key, file.storageKey]
+    .find(value => typeof value === 'string' && value.length > 0)
+
+  return typeof key === 'string' ? key : undefined
 }
 
 function mapBackendRolesToSystemRole(roles?: BackendUserRole[], role?: BackendUserRole): BackendUserRole {
@@ -90,6 +135,8 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     investment: user.investment ?? false,
     tenant: user.tenant ?? false,
     permissions: user.permissions,
+    avatar: user.avatar,
+    profilePhotoKey: getBackendProfilePhotoKey(user),
     createdAt: new Date().toISOString(),
   }
 }
@@ -619,4 +666,136 @@ export async function updateUserProfile(
       error: error instanceof Error ? error.message : 'Error desconocido'
     }
   }
+}
+
+export async function uploadProfileImage(
+  payload: BackendProfileImagePayload,
+  token: string,
+): Promise<UploadProfileImageResponse> {
+  if (!payload.image.uri || !payload.image.name || !payload.image.type) {
+    throw new Error('La imagen seleccionada no tiene datos validos para subirla.')
+  }
+
+  const formData = new FormData()
+  formData.append('documentType', 'profilephoto')
+  formData.append('file', {
+    uri: payload.image.uri,
+    name: payload.image.name,
+    type: payload.image.type,
+  } as unknown as Blob)
+
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'POST',
+    token,
+    body: formData,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo subir la imagen (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+
+  const result = await response.json() as unknown
+  const uploadedFile = getUploadedProfileFile(result)
+  if (!uploadedFile?.url) {
+    throw new Error('El servicio de archivos no devolvio la URL de la imagen.')
+  }
+
+  return uploadedFile
+}
+
+export async function getUploadedProfileImage(token: string): Promise<UploadProfileImageResponse | null> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'GET',
+    token,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo obtener la foto de perfil (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+
+  return getUploadedProfileFile(await response.json() as UploadedFilesResponse)
+}
+
+export async function deleteUploadedProfileImage(token: string): Promise<void> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/?documentType=profilephoto', {
+    method: 'DELETE',
+    token,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo borrar la foto de perfil anterior (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+}
+
+function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const root = payload as Record<string, unknown>
+  const rootFiles = root.files && typeof root.files === 'object' && !Array.isArray(root.files)
+    ? root.files as Record<string, unknown>
+    : undefined
+  const user = root.user && typeof root.user === 'object' && !Array.isArray(root.user)
+    ? root.user as Record<string, unknown>
+    : undefined
+  const userFiles = user?.files && typeof user.files === 'object' && !Array.isArray(user.files)
+    ? user.files as Record<string, unknown>
+    : undefined
+  const candidates = [
+    root,
+    root.data,
+    root.file,
+    root.upload,
+    rootFiles?.profilephoto,
+    userFiles?.profilephoto,
+    Array.isArray(root.files) ? root.files[0] : root.files,
+    Array.isArray(root.data) ? root.data[0] : undefined,
+  ]
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) continue
+    const file = candidate as Record<string, unknown>
+    const url = [file.url, file.secureUrl, file.fileUrl, file.location]
+      .find(value => typeof value === 'string' && value.length > 0)
+    if (typeof url === 'string') {
+      const key = [file.key, file.storageKey]
+        .find(value => typeof value === 'string' && value.length > 0)
+      const filename = [file.filename, file.originalName]
+        .find(value => typeof value === 'string' && value.length > 0)
+
+      return {
+        url,
+        key: typeof key === 'string' ? key : undefined,
+        filename: typeof filename === 'string' ? filename : undefined,
+        storageKey: typeof key === 'string' ? key : undefined,
+        contentType: typeof file.contentType === 'string' ? file.contentType : undefined,
+        size: typeof file.size === 'number' ? file.size : undefined,
+        originalName: typeof file.originalName === 'string' ? file.originalName : undefined,
+        documentType: typeof file.documentType === 'string' ? file.documentType : undefined,
+        status: typeof file.status === 'string' ? file.status : undefined,
+      }
+    }
+  }
+
+  return null
 }
