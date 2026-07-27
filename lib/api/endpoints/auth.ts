@@ -40,8 +40,19 @@ export type BackendProfileImagePayload = {
 
 export type UploadProfileImageResponse = {
   url: string
+  key?: string
   filename?: string
   storageKey?: string
+  contentType?: string
+  size?: number
+  originalName?: string
+  documentType?: string
+  status?: string
+}
+
+export type UploadedFilesResponse = {
+  userId?: string
+  files?: Record<string, unknown>
 }
 
 export type BackendCurrentUser = {
@@ -57,6 +68,25 @@ export type BackendCurrentUser = {
   investment?: boolean
   tenant?: boolean
   avatar?: string
+  profilePhotoKey?: string
+  files?: Record<string, unknown>
+}
+
+function getBackendProfilePhotoKey(user?: BackendCurrentUser): string | undefined {
+  if (typeof user?.profilePhotoKey === 'string' && user.profilePhotoKey.length > 0) {
+    return user.profilePhotoKey
+  }
+
+  const profilePhoto = user?.files?.profilephoto
+  if (!profilePhoto || typeof profilePhoto !== 'object' || Array.isArray(profilePhoto)) {
+    return undefined
+  }
+
+  const file = profilePhoto as Record<string, unknown>
+  const key = [file.key, file.storageKey]
+    .find(value => typeof value === 'string' && value.length > 0)
+
+  return typeof key === 'string' ? key : undefined
 }
 
 function mapBackendRolesToSystemRole(roles?: BackendUserRole[], role?: BackendUserRole): BackendUserRole {
@@ -106,6 +136,7 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     tenant: user.tenant ?? false,
     permissions: user.permissions,
     avatar: user.avatar,
+    profilePhotoKey: getBackendProfilePhotoKey(user),
     createdAt: new Date().toISOString(),
   }
 }
@@ -646,7 +677,8 @@ export async function uploadProfileImage(
   }
 
   const formData = new FormData()
-  formData.append('files', {
+  formData.append('documentType', 'profilephoto')
+  formData.append('file', {
     uri: payload.image.uri,
     name: payload.image.name,
     type: payload.image.type,
@@ -678,15 +710,64 @@ export async function uploadProfileImage(
   return uploadedFile
 }
 
+export async function getUploadedProfileImage(token: string): Promise<UploadProfileImageResponse | null> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'GET',
+    token,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo obtener la foto de perfil (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+
+  return getUploadedProfileFile(await response.json() as UploadedFilesResponse)
+}
+
+export async function deleteUploadedProfileImage(token: string): Promise<void> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/?documentType=profilephoto', {
+    method: 'DELETE',
+    token,
+  })
+
+  if (!response.ok) {
+    let message = `No se pudo borrar la foto de perfil anterior (${response.status})`
+    try {
+      const errorPayload = await response.json() as { message?: string; error?: string }
+      message = errorPayload.message || errorPayload.error || message
+    } catch {
+      // La respuesta no contenia JSON util.
+    }
+    throw new Error(message)
+  }
+}
+
 function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | null {
   if (!payload || typeof payload !== 'object') return null
 
   const root = payload as Record<string, unknown>
+  const rootFiles = root.files && typeof root.files === 'object' && !Array.isArray(root.files)
+    ? root.files as Record<string, unknown>
+    : undefined
+  const user = root.user && typeof root.user === 'object' && !Array.isArray(root.user)
+    ? root.user as Record<string, unknown>
+    : undefined
+  const userFiles = user?.files && typeof user.files === 'object' && !Array.isArray(user.files)
+    ? user.files as Record<string, unknown>
+    : undefined
   const candidates = [
     root,
     root.data,
     root.file,
     root.upload,
+    rootFiles?.profilephoto,
+    userFiles?.profilephoto,
     Array.isArray(root.files) ? root.files[0] : root.files,
     Array.isArray(root.data) ? root.data[0] : undefined,
   ]
@@ -697,10 +778,21 @@ function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | 
     const url = [file.url, file.secureUrl, file.fileUrl, file.location]
       .find(value => typeof value === 'string' && value.length > 0)
     if (typeof url === 'string') {
+      const key = [file.key, file.storageKey]
+        .find(value => typeof value === 'string' && value.length > 0)
+      const filename = [file.filename, file.originalName]
+        .find(value => typeof value === 'string' && value.length > 0)
+
       return {
         url,
-        filename: typeof file.filename === 'string' ? file.filename : undefined,
-        storageKey: typeof file.storageKey === 'string' ? file.storageKey : undefined,
+        key: typeof key === 'string' ? key : undefined,
+        filename: typeof filename === 'string' ? filename : undefined,
+        storageKey: typeof key === 'string' ? key : undefined,
+        contentType: typeof file.contentType === 'string' ? file.contentType : undefined,
+        size: typeof file.size === 'number' ? file.size : undefined,
+        originalName: typeof file.originalName === 'string' ? file.originalName : undefined,
+        documentType: typeof file.documentType === 'string' ? file.documentType : undefined,
+        status: typeof file.status === 'string' ? file.status : undefined,
       }
     }
   }

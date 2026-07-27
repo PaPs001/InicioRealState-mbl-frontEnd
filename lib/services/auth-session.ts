@@ -131,6 +131,7 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     tenant: deriveTenantFlag(backendUser.permissions, backendUser.tenant),
     permissions: backendUser.permissions ?? user.permissions,
     avatar: user.avatar,
+    profilePhotoKey: user.profilePhotoKey,
     createdAt: user.createdAt ?? new Date().toISOString(),
   }
 }
