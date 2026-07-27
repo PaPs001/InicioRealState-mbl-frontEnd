@@ -205,14 +205,38 @@ export default function CoordinatorRentUserScreen() {
         console.warn('No se pudieron cargar las tareas de Google:', tasksResult.reason)
       }
 
-      setIsGoogleConnected(datesResult.status === 'fulfilled' || tasksResult.status === 'fulfilled')
+      if (datesResult.status === 'rejected' && tasksResult.status === 'rejected') {
+        const connectionStatus = await getGoogleCalendarConnectionStatus(authToken)
+        setGoogleConnectionStatus(connectionStatus)
+        setIsGoogleConnected(connectionStatus.status === 'connected' && connectionStatus.connected)
+        setCalendarAppointments([])
+        setCalendarMessage(
+          connectionStatus.status === 'requires_reconnect'
+            ? 'Reconecta Google Calendar para recuperar tus citas.'
+            : 'Conecta Google Calendar para cargar tus citas reales.',
+        )
+        return
+      }
+
+      setIsGoogleConnected(true)
       setCalendarAppointments(appointments)
       setCalendarMessage(appointments.length > 0 ? '' : 'No hay citas ni tareas de Google para esta semana.')
     } catch (error) {
       console.warn('No se pudieron cargar las citas de Google Calendar:', error)
       setCalendarAppointments([])
-      setIsGoogleConnected(false)
-      setCalendarMessage('Conecta Google Calendar para cargar tus citas reales.')
+      try {
+        const connectionStatus = await getGoogleCalendarConnectionStatus(authToken)
+        setGoogleConnectionStatus(connectionStatus)
+        setIsGoogleConnected(connectionStatus.status === 'connected' && connectionStatus.connected)
+        setCalendarMessage(
+          connectionStatus.status === 'requires_reconnect'
+            ? 'Reconecta Google Calendar para recuperar tus citas.'
+            : 'Conecta Google Calendar para cargar tus citas reales.',
+        )
+      } catch {
+        setIsGoogleConnected(false)
+        setCalendarMessage('Conecta Google Calendar para cargar tus citas reales.')
+      }
     } finally {
       setIsCalendarLoading(false)
     }
@@ -227,14 +251,29 @@ export default function CoordinatorRentUserScreen() {
 
     setIsCalendarSettingsLoading(true)
     try {
-      const [calendars, selectedCalendars, connectionStatus] = await Promise.all([
+      const connectionStatus = await getGoogleCalendarConnectionStatus(authToken)
+      setGoogleConnectionStatus(connectionStatus)
+      setIsGoogleConnected(connectionStatus.status === 'connected' && connectionStatus.connected)
+
+      if (connectionStatus.status === 'requires_reconnect') {
+        setGoogleCalendars([])
+        setSelectedGoogleCalendars([])
+        setCalendarMessage('Reconecta Google Calendar para recuperar tus citas.')
+        return
+      }
+
+      if (!connectionStatus.connected) {
+        setGoogleCalendars([])
+        setSelectedGoogleCalendars([])
+        return
+      }
+
+      const [calendars, selectedCalendars] = await Promise.all([
         getGoogleCalendars(authToken),
         getSelectedGoogleCalendars(authToken),
-        getGoogleCalendarConnectionStatus(authToken),
       ])
       setGoogleCalendars(calendars)
       setSelectedGoogleCalendars(selectedCalendars)
-      setGoogleConnectionStatus(connectionStatus)
     } catch (error) {
       console.warn('No se pudieron cargar los calendarios de Google:', error)
     } finally {
@@ -557,6 +596,7 @@ export default function CoordinatorRentUserScreen() {
   }
 
   const enabledSelectedCalendars = selectedGoogleCalendars.filter(calendar => calendar.enabled !== false)
+  const needsGoogleReconnect = googleConnectionStatus?.status === 'requires_reconnect'
   const visibleGoogleCalendars = isCalendarListExpanded ? googleCalendars : googleCalendars.slice(0, 5)
   const canToggleCalendarList = googleCalendars.length > 5
 
@@ -706,7 +746,7 @@ export default function CoordinatorRentUserScreen() {
 
           <View style={styles.panel}>
             <SectionHeader title="Google Calendar" compact />
-            {isGoogleConnected ? (
+            {isGoogleConnected && !needsGoogleReconnect ? (
               <TouchableOpacity
                 style={styles.disconnectGoogleButton}
                 onPress={handleDisconnectGoogleCalendar}
@@ -727,12 +767,16 @@ export default function CoordinatorRentUserScreen() {
               >
                 <CalendarDays size={18} color="#ffffff" />
                 <Text style={styles.googleCalendarButtonText}>
-                  {isConnectingCalendar ? 'Abriendo Google...' : 'Conectar Google Calendar'}
+                  {isConnectingCalendar
+                    ? 'Abriendo Google...'
+                    : needsGoogleReconnect
+                      ? 'Reconectar Google Calendar'
+                      : 'Conectar Google Calendar'}
                 </Text>
               </TouchableOpacity>
             )}
 
-            {isGoogleConnected ? (
+            {(isGoogleConnected || needsGoogleReconnect) ? (
               <View style={styles.googleCalendarSettings}>
                 <View style={styles.calendarSettingsHeader}>
                   <Text style={styles.calendarSettingsTitle}>Calendarios conectados</Text>
@@ -747,7 +791,11 @@ export default function CoordinatorRentUserScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-                {googleCalendars.length === 0 ? (
+                {needsGoogleReconnect ? (
+                  <Text style={styles.calendarSettingsEmpty}>
+                    Google Calendar requiere reconexion para volver a sincronizar.
+                  </Text>
+                ) : googleCalendars.length === 0 ? (
                   <Text style={styles.calendarSettingsEmpty}>
                     {isCalendarSettingsLoading ? 'Buscando calendarios...' : 'No hay calendarios disponibles.'}
                   </Text>
@@ -881,7 +929,7 @@ export default function CoordinatorRentUserScreen() {
 
         <View style={styles.panel}>
           <SectionHeader title="Citas de esta semana" action="Ver calendario " compact />
-          {isGoogleConnected ? (
+          {isGoogleConnected && !needsGoogleReconnect ? (
             <TouchableOpacity
               style={styles.refreshCalendarButton}
               onPress={handleRefreshCalendarDates}
@@ -912,7 +960,7 @@ export default function CoordinatorRentUserScreen() {
               </View>
             ) : null}
           </ScrollView>
-          {!isGoogleConnected ? (
+          {(!isGoogleConnected || needsGoogleReconnect) ? (
             <TouchableOpacity
               style={styles.googleCalendarButton}
               onPress={handleConnectGoogleCalendar}
@@ -921,7 +969,11 @@ export default function CoordinatorRentUserScreen() {
             >
               <CalendarDays size={18} color="#ffffff" />
               <Text style={styles.googleCalendarButtonText}>
-                {isConnectingCalendar ? 'Abriendo Google...' : 'Conectar Google Calendar'}
+                {isConnectingCalendar
+                  ? 'Abriendo Google...'
+                  : needsGoogleReconnect
+                    ? 'Reconectar Google Calendar'
+                    : 'Conectar Google Calendar'}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -1179,7 +1231,9 @@ export default function CoordinatorRentUserScreen() {
                 <Text style={styles.calendarTestLabel}>Calendario destino</Text>
                 {enabledSelectedCalendars.length === 0 ? (
                   <Text style={styles.calendarSettingsEmpty}>
-                    {isGoogleConnected
+                    {needsGoogleReconnect
+                      ? 'Reconecta Google Calendar desde configuracion antes de crear citas.'
+                      : isGoogleConnected
                       ? 'Activa y guarda al menos un calendario antes de crear citas.'
                       : 'Conecta Google Calendar desde configuracion antes de crear citas.'}
                   </Text>
