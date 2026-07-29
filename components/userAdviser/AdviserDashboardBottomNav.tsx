@@ -1,4 +1,4 @@
-import {Home, Propertie, Lead} from '@/assets/'
+import { Date, Home, Lead, Propertie } from '@/assets/'
 
 import { BottomNav, type BottomNavItem } from '@/components/navigation/BottomNav'
 
@@ -30,6 +30,15 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
     label: 'Seguimiento',
     size: 24,
   },
+  {
+    key: 'dates',
+    href: '/userAdviser/date',
+    icon: (color, size) => <Date width={size} height={size} />,
+    isActive: (pathname) =>
+      pathname.startsWith('/userAdviser/date'),
+    label: 'Calendario',
+    size: 24,
+  }
 ]
 
 export function AdviserDashboardBottomNav() {
