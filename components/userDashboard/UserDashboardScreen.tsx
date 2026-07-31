@@ -24,6 +24,7 @@ import {
   Plus,
   Settings,
   CameraIcon,
+  SunMedium,
 } from "lucide-react-native";
 
 import * as ImagePicker from 'expo-image-picker'
@@ -40,6 +41,7 @@ import {
   deleteUploadedProfileImage,
   disconnectGoogleCalendar,
   getBackendLeadRecords,
+  getCatalogRentProperties,
   getGoogleCalendarAuthUrl,
   getGoogleCalendarConnectionStatus,
   getGoogleCalendarDates,
@@ -83,7 +85,7 @@ import type {
   DashboardMetric,
   DashboardPriority,
 } from "./types";
-
+import { useOperationMode } from "@/modules/settings";
 WebBrowser.maybeCompleteAuthSession();
 
 export type UserDashboardArea = "adviser" | "coordinator";
@@ -210,6 +212,7 @@ const dashboardAreaConfig = {
 type LeadFollowUpEntry = { lead: PropertyLead; followUp: LeadFollowUp };
 
 export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
+  const {operationMode, capabilities } = useOperationMode()
   const router = useRouter();
   const pathname = usePathname();
   const {
@@ -547,6 +550,21 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       opportunityAmount: totalRent * 0.05,
     };
   }, [availableProperties, catalogProperties]);
+
+  const saleSummary = useMemo(() => {
+    const source = catalogProperties.length > 0 ? catalogProperties : availableProperties 
+
+    const saleProperties = source.filter(
+      (property) => property.status == 'for_sale' || property.status === 'pending_sale',
+    ); 
+    const totalSale = saleProperties.reduce(
+      (Sum, property) => Sum + (property.monthlyRent ?? property.price ?? 0),0
+    )
+    return {
+      propertyCount: saleProperties.length,
+      opportunityAmount: totalSale * 0.5
+    }
+  }, [availableProperties, catalogProperties])
 
   const leadSummary = useMemo(() => {
     const activeLeads = leads.filter(
@@ -1046,6 +1064,20 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             </View>
           </View>
           <View style={styles.panel}>
+            <Text style={styles.sectionHeaderTitle}>Preferencias de la aplicacion</Text>
+            <Text style={styles.panelSubtitle}>
+              Configura las funciones de renta o venta.
+            </Text>
+            <TouchableOpacity
+              style={styles.centerButton}
+              activeOpacity={0.85}
+              onPress={() => router.push(`${areaConfig.basePath}/settings` as never)}
+            >
+              <Settings size={18} color="#ffffff" />
+              <Text style={styles.centerButtonText}>Abrir preferencias</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.panel}>
             <Text style={styles.sectionHeaderTitle}>Google Calendar</Text>
             <Text style={styles.panelSubtitle}>
               Selecciona que calendarios usa el asesor.
@@ -1210,7 +1242,12 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           <LogoIRSPrincipal width={146} height={48} />
         </View>
         <View style={styles.topRow}>
-          <Text style={styles.roleLabel}>{areaConfig.roleLabel}</Text>
+          <Text style={styles.roleLabel}>
+            {operationMode === 'rent' ? 'Asesor de renta' 
+            : operationMode === 'sale' ? 'Asesor de venta' 
+            : operationMode === 'both' ? 'Asesor Mixto' : null}
+          </Text>
+          {/*<Text style={styles.roleLabel}>{areaConfig.roleLabel}</Text>*/}
           <View style={styles.datePill}>
             <Text style={styles.dateText}>{formatCurrentDashboardDate()}</Text>
           </View>
@@ -1274,19 +1311,49 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           </TouchableOpacity>
         </View>
         <View style={styles.heroCards}>
-          <TouchableOpacity
-            style={styles.availableCard}
-            activeOpacity={0.85}
-            onPress={() =>
-              router.push(`${areaConfig.basePath}/properties` as never)
+          {operationMode === 'both' ? (
+            <>
+              <TouchableOpacity
+                style={styles.availableCard}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push(`${areaConfig.basePath}/properties` as never)
+                }
+              >
+                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
+                <Text style={styles.availableValue}>
+                  {rentSummary.propertyCount}
+                </Text>
+                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.availableCard, styles.availableCardRent]}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push(`${areaConfig.basePath}/properties` as never)
+                }
+              >
+                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
+                <Text style={styles.availableValue}>
+                  {saleSummary.propertyCount}
+                </Text>
+                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
+              </TouchableOpacity>
+            </>
+          ): <TouchableOpacity
+                style={styles.availableCard}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push(`${areaConfig.basePath}/properties` as never)
+                }
+              >
+                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
+                <Text style={styles.availableValue}>
+                  {rentSummary.propertyCount}
+                </Text>
+                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
+              </TouchableOpacity> 
             }
-          >
-            <Text style={styles.spacedLabel}>PROPIEDADES</Text>
-            <Text style={styles.availableValue}>
-              {rentSummary.propertyCount}
-            </Text>
-            <Text style={styles.spacedLabel}>DISPONIBLES</Text>
-          </TouchableOpacity>
           {area === "coordinator" ? (
             <View style={styles.earningsCard}>
               <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>

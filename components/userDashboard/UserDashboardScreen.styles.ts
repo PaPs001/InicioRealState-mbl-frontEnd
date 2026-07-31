@@ -149,16 +149,19 @@ export const styles = StyleSheet.create({
   heroCards: {
     marginTop: 14,
     flexDirection: 'row',
-    gap: 12,
+    gap: 5,
   },
   availableCard: {
-    width: '100%',
+    flex: 1,
     height: 104,
     borderRadius: 9,
     backgroundColor: '#3d5f42',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
+  },
+  availableCardRent:{
+    backgroundColor: '#2d5f6b'
   },
   spacedLabel: {
     color: '#ffffff',

@@ -46,7 +46,8 @@ import {
 } from 'lucide-react-native'
 import type { LeadFollowUp, Property, PropertyLead } from '@/lib/types'
 WebBrowser.maybeCompleteAuthSession()
-
+import { useOperationMode } from '@/modules/settings'
+import { parseQueryParams } from 'expo-router/build/fork/getStateFromPath-forks'
 
 interface AppointmentPreviewItem {
   id?: string
@@ -95,6 +96,8 @@ export default function CoordinatorRentUserScreen() {
     isCatalogLoading,
     loadCatalogProperties,
   } = usePropertyDomain()
+  const {operationMode, capabilities } = useOperationMode()
+  
   const [calendarAppointments, setCalendarAppointments] = useState<AppointmentPreviewItem[]>([])
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false)
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false)
@@ -129,6 +132,7 @@ export default function CoordinatorRentUserScreen() {
   })
   const [calendarMessage, setCalendarMessage] = useState('Conecta Google Calendar para cargar tus citas reales.')
 
+  
   useEffect(() => {
     setTestAppointmentForm(current => {
       if (current.helpedBy && current.helpedBy !== 'Coordinador') {
@@ -742,6 +746,18 @@ export default function CoordinatorRentUserScreen() {
               <Text style={styles.settingsTitle}>Configuracion</Text>
               <Text style={styles.settingsSubtitle}>Calendarios y conexion de Google</Text>
             </View>
+          </View>
+
+          <View style={styles.panel}>
+            <SectionHeader title="Preferencias de la aplicacion" compact />
+            <TouchableOpacity
+              style={styles.googleCalendarButton}
+              onPress={() => router.push('/userCoordinator/settings' as never)}
+              activeOpacity={0.85}
+            >
+              <Settings size={18} color="#ffffff" />
+              <Text style={styles.googleCalendarButtonText}>Modo de operacion</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.panel}>
