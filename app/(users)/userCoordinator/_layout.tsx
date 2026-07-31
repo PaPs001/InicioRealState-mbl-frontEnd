@@ -62,6 +62,7 @@ export default function CoordinatorLayout() {
         <Tabs.Screen name="messages" options={{ title: 'Mensajes' }} />
         <Tabs.Screen name="properties-list" options={{ title: 'Listado', href: null }} />
         <Tabs.Screen name="developments-soon" options={{ title: 'Desarrollos', href: null }} />
+        <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
       </Tabs>
     </CoordinatorErrorBoundary>
   )

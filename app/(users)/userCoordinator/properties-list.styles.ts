@@ -37,7 +37,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   headerCanvas: {
-    height: 248,
+    paddingTop: 32,
+    paddingHorizontal: 17,
+    paddingBottom: 14,
   },
   backButton: {
     position: 'absolute',
@@ -49,18 +51,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    position: 'absolute',
-    left: 63,
-    top: 32,
+    marginLeft: 46,
     color: '#3D5A40',
     fontSize: 23,
     lineHeight: 25,
     fontWeight: '500',
   },
   subtitle: {
-    position: 'absolute',
-    left: 63,
-    top: 57,
+    marginLeft: 46,
     color: '#afafaf',
     fontSize: 16,
   },
@@ -158,10 +156,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   controlsBlock: {
-    position: 'absolute',
-    left: 17,
-    right: 17,
-    top: 95,
+    marginTop: 22,
     gap: 11,
   },
   segmentedControl: {
