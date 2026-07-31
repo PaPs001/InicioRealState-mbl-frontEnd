@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { createAndOpenTemporaryPropertyListPdf } from '@/lib/api'
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
+import { useOperationMode } from '@/modules/settings'
 import type { PdfReportAgentName } from '@/lib/api'
 import type { Property } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
@@ -185,9 +186,13 @@ export default function CoordinatorPropertiesListScreen() {
   const pathname = usePathname()
   const params = useLocalSearchParams<{ type?: string }>()
   const { authToken, isLoading: isAuthLoading } = useAuth()
+  const { operationMode, capabilities } = useOperationMode()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
-  const initialListingFilter: ListingFilter = params.type === 'sale' ? 'sale' : params.type === 'rent' ? 'rent' : 'all'
+  const initialListingFilter: ListingFilter =
+    params.type === 'sale' || params.type === 'rent'
+      ? params.type
+      : operationMode === 'both' ? 'all' : operationMode
   const routeBase = pathname.startsWith('/userAdviser') ? '/userAdviser' : '/userCoordinator'
   const {
     availableProperties,
@@ -215,6 +220,11 @@ export default function CoordinatorPropertiesListScreen() {
   const [parkingFilter, setParkingFilter] = useState<number | null>(null)
   const [furnishingFilter, setFurnishingFilter] = useState<FurnishingFilter>('all')
   const [sortOption, setSortOption] = useState<SortOption>('price_desc')
+
+  useEffect(() => {
+    if (params.type === 'sale' || params.type === 'rent') return
+    setListingFilter(operationMode === 'both' ? 'all' : operationMode)
+  }, [operationMode, params.type])
 
   useEffect(() => {
     if (isAuthLoading || !authToken) return
@@ -365,14 +375,36 @@ export default function CoordinatorPropertiesListScreen() {
         </TouchableOpacity>*/}
 
         <Text style={styles.title}>Propiedades Disponibles</Text>
-        <Text style={styles.subtitle}>Inventario de renta y venta</Text>
+        <Text style={styles.subtitle}>
+          {operationMode === 'rent'
+            ? 'Inventario de renta'
+            : operationMode === 'sale'
+              ? 'Inventario de venta'
+              : 'Inventario de renta y venta'}
+        </Text>
 
         <View style={styles.controlsBlock}>
-          <View style={styles.segmentedControl}>
-            <FilterChip label="Todo" active={listingFilter === 'all'} onPress={() => setListingFilter('all')} />
-            <FilterChip label="Renta" active={listingFilter === 'rent'} onPress={() => setListingFilter('rent')} />
-            <FilterChip label="Venta" active={listingFilter === 'sale'} onPress={() => setListingFilter('sale')} />
-          </View>
+          {operationMode === 'both' ? (
+            <View style={styles.segmentedControl}>
+              <FilterChip
+                label="Todo"
+                active={listingFilter === 'all'}
+                onPress={() => setListingFilter('all')}
+              />
+
+              <FilterChip
+                label="Renta"
+                active={listingFilter === 'rent'}
+                onPress={() => setListingFilter('rent')}
+              />
+
+              <FilterChip
+                label="Venta"
+                active={listingFilter === 'sale'}
+                onPress={() => setListingFilter('sale')}
+              />
+            </View>
+          ): null}
 
           <View style={styles.searchRow}>
             <Search size={13} color="#717171" />
@@ -403,7 +435,7 @@ export default function CoordinatorPropertiesListScreen() {
         </View>
       </View>
     </View>
-  ), [activeAdvancedFilterCount, canvasWidth, isMapMode, listingFilter, routeBase, router, searchQuery, sortOption])
+  ), [activeAdvancedFilterCount, canvasWidth, capabilities, isMapMode, listingFilter, operationMode, routeBase, router, searchQuery, sortOption])
 
   const openPdfOptions = () => {
     if (isGeneratingPdf) return

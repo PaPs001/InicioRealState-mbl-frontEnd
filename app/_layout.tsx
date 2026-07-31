@@ -1,6 +1,7 @@
 import { Stack, usePathname, useRouter } from 'expo-router'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { SettingsProvider } from '@/modules/settings'
 import * as NavigationBar from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
@@ -126,7 +127,9 @@ function RootNavigator() {
 export default function RootLayout(){
   return (
     <AuthProvider>
-      <RootNavigator />
+      <SettingsProvider>
+        <RootNavigator />
+      </SettingsProvider>
     </AuthProvider>
   )
 }
