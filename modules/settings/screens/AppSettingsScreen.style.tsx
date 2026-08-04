@@ -363,10 +363,10 @@ export const styles = StyleSheet.create({
   },  
   logOutButton:{
     paddingVertical: 7,
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: borderColor.borderSoft,
+    borderColor: '#d3d1d165',
     backgroundColor: generalColors.white,
     flexDirection: 'row',
     alignItems: 'center',

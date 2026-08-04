@@ -41,7 +41,7 @@ export type PdfReportAction = 'sale' | 'rent' | 'SelectProperties' | 'delete'
 export type PdfReportList = 'sale' | 'rent' | 'BahiaProjects'
 
 export type GeneratePropertyListPdfPayload = {
-  agentName?: PdfReportAgentName
+  agentName?: PdfReportAgentName | 'a'
   agentPresentation?: string
   sales: boolean
   items: string[]
