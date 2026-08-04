@@ -752,14 +752,24 @@ export async function getUploadedProfileImage(token: string): Promise<UploadProf
   return getUploadedProfileFile(await response.json() as UploadedFilesResponse)
 }
 
-export async function deleteUploadedProfileImage(token: string): Promise<void> {
-  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/?documentType=profilephoto', {
-    method: 'DELETE',
-    token,
-  })
+async function deleteUploadedImage(
+  token: string,
+  documentType: UploadImageDocumentType,
+): Promise<void> {
+  const response = await fetchWithAuthRetry(
+    API_URLS.CORE,
+    `/uploads/?documentType=${documentType}`,
+    {
+      method: 'DELETE',
+      token,
+    },
+  )
 
   if (!response.ok) {
-    let message = `No se pudo borrar la foto de perfil anterior (${response.status})`
+    const imageLabel = documentType === 'agentpresentation'
+      ? 'la imagen anterior del PDF'
+      : 'la foto de perfil anterior'
+    let message = `No se pudo borrar ${imageLabel} (${response.status})`
     try {
       const errorPayload = await response.json() as { message?: string; error?: string }
       message = errorPayload.message || errorPayload.error || message
@@ -768,6 +778,14 @@ export async function deleteUploadedProfileImage(token: string): Promise<void> {
     }
     throw new Error(message)
   }
+}
+
+export async function deleteUploadedProfileImage(token: string): Promise<void> {
+  return deleteUploadedImage(token, 'profilephoto')
+}
+
+export async function deleteUploadedAgentPresentationImage(token: string): Promise<void> {
+  return deleteUploadedImage(token, 'agentpresentation')
 }
 
 function getUploadedProfileFile(

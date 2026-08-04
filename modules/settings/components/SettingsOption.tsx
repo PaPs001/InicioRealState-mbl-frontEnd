@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useState } from 'react'
+import { ComponentType, useState } from 'react'
 import { OperationMode } from '../types'
+import { userColors } from '@/theme'
+import { SvgProps } from 'react-native-svg'
 
 type SettingsOptionProps<T extends string> = {
   label: string
@@ -8,7 +10,10 @@ type SettingsOptionProps<T extends string> = {
   value: T
   selectedValue: T
   onSelect: (value: T) => void
-  position: 'left' | 'center' | 'right'
+  position: 'left' | 'center' | 'right',
+  icon: ComponentType<SvgProps>
+  height: number
+  width: number
 }
 
 export function SettingsOption<T extends string>({
@@ -18,6 +23,9 @@ export function SettingsOption<T extends string>({
   selectedValue,
   onSelect,
   position,
+  icon: Icon,
+  height,
+  width
 }: SettingsOptionProps<T>) {
   const isSelected = value === selectedValue
 
@@ -35,9 +43,16 @@ export function SettingsOption<T extends string>({
         isSelected && styles.containerSelected,
       ]}
     >
-      <Text style={[styles.label, isSelected && styles.labelSelected]}>
-        {label}
-      </Text>
+      <View style={styles.containerIcons}>
+        <Icon
+        width={height}
+        height={width}
+          strokeWidth={.5}
+          stroke={isSelected ? '#ffff' : '#CBB375'}/>
+        <Text style={[styles.label, isSelected && styles.labelSelected]}>
+          {label}
+        </Text>
+      </View>
     </Pressable>
   )
 }
@@ -45,14 +60,19 @@ export function SettingsOption<T extends string>({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minHeight: 52,
+    minHeight: 45,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
     borderColor: '#ded6ca',
   },
-
+  containerIcons:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    gap: 5
+  },
   leftOption: {
     borderWidth: 1,
     borderTopLeftRadius: 12,
@@ -74,12 +94,12 @@ const styles = StyleSheet.create({
   },
 
   containerSelected: {
-    backgroundColor: '#0c6740',
+    backgroundColor: userColors.coordinator.primary,
   },
 
   label: {
     color: '#b88b3d',
-    fontSize: 14,
+    fontSize: 11,
     lineHeight: 20,
     fontWeight: '600',
     textTransform: 'uppercase',
