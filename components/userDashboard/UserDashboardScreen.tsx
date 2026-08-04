@@ -100,6 +100,63 @@ type SelectedImage = {
   type: string
 }
 
+const PDF_IMAGE_PHYSICAL_WIDTH_IN = 11.25;
+const PDF_IMAGE_PHYSICAL_HEIGHT_IN = 24.07;
+
+function parseExifNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === "string") {
+    const fraction = value.match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/);
+    if (fraction) {
+      const denominator = Number(fraction[2]);
+      return denominator > 0 ? Number(fraction[1]) / denominator : null;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+  if (value && typeof value === "object") {
+    const rational = value as { numerator?: unknown; denominator?: unknown };
+    const numerator = Number(rational.numerator);
+    const denominator = Number(rational.denominator);
+    if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0) {
+      return numerator / denominator;
+    }
+  }
+  return null;
+}
+
+function validatePdfPresentationImage(asset: ImagePicker.ImagePickerAsset): string | null {
+  const xResolution = parseExifNumber(asset.exif?.XResolution ?? asset.exif?.xResolution);
+  const yResolution = parseExifNumber(asset.exif?.YResolution ?? asset.exif?.yResolution);
+  const resolutionUnit = Number(asset.exif?.ResolutionUnit ?? asset.exif?.resolutionUnit);
+  const unitMultiplier = resolutionUnit === 3 ? 2.54 : 1;
+  const xDpi = xResolution ? xResolution * unitMultiplier : null;
+  const yDpi = yResolution ? yResolution * unitMultiplier : xDpi;
+
+  const isLegacySize = asset.width === 1080 && asset.height === 2300;
+  const isLegacyDensity = xDpi !== null && yDpi !== null
+    && Math.abs(xDpi - 96) <= 0.5
+    && Math.abs(yDpi - 96) <= 0.5;
+  if (isLegacySize && isLegacyDensity) return null;
+
+  const isDensityFreeSize = asset.width === 3375 && asset.height === 7221;
+  if (isDensityFreeSize && !xDpi && !yDpi) return null;
+
+  if (xDpi && yDpi) {
+    const widthInches = asset.width / xDpi;
+    const heightInches = asset.height / yDpi;
+    const physicalSizeMatches =
+      Math.abs(widthInches - PDF_IMAGE_PHYSICAL_WIDTH_IN) <= 0.02 &&
+      Math.abs(heightInches - PDF_IMAGE_PHYSICAL_HEIGHT_IN) <= 0.02;
+    if (physicalSizeMatches) return null;
+  }
+
+  const detectedDensity = xDpi && yDpi
+    ? ` y ${Math.round(xDpi)} x ${Math.round(yDpi)} DPI`
+    : " y sin densidad utilizable";
+  return `La imagen seleccionada mide ${asset.width} x ${asset.height} px${detectedDensity}. No se subio porque la foto para el PDF debe medir fisicamente 11.25 x 24.07 pulgadas, ser legacy 1080 x 2300 px a 96 DPI, o medir 3375 x 7221 px si no incluye densidad.`;
+}
+
 const profilePhotoCacheDirectory = `${FileSystem.cacheDirectory || FileSystem.documentDirectory || ""}profile-photos/`;
 
 function getProfilePhotoImageUrl(storageKey: string) {
@@ -256,6 +313,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null)
 
   const [isAddPhotoOpen, setAddPhotoOpen] = useState(false);
+  const [photoUploadTarget, setPhotoUploadTarget] = useState<"profile" | "agentpresentation">("profile");
 
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
     useState(false);
@@ -383,11 +441,21 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       allowsEditing: false,
       mediaTypes: ["images"],
       quality: 0.8,
+      exif: photoUploadTarget === "agentpresentation",
     });
 
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
+    if (photoUploadTarget === "agentpresentation") {
+      const validationError = validatePdfPresentationImage(asset);
+      if (validationError) {
+        setSelectedImage(null);
+        setimageError(validationError);
+        Alert.alert("La foto no cumple los requisitos", validationError);
+        return;
+      }
+    }
     setSelectedImage({
       uri: asset.uri,
       name: asset.fileName || `perfil-${Date.now()}.jpg`,
@@ -431,6 +499,43 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo guardar la foto de perfil.";
       console.warn("No se pudo guardar la foto de perfil:", error);
+      setimageError(message);
+    } finally {
+      setIsUploadingProfileImage(false);
+    }
+  };
+
+  const saveAgentPresentationImage = async () => {
+    if (!selectedImage || !authToken || !currentUser || isUploadingProfileImage) {
+      if (!selectedImage) setimageError("Selecciona una imagen antes de guardarla.");
+      if (!currentUser || !authToken) setimageError("Inicia sesion antes de guardar la foto.");
+      return;
+    }
+
+    setIsUploadingProfileImage(true);
+    setimageError(null);
+    try {
+      const uploadedImage = await uploadProfileImage(
+        { image: selectedImage },
+        authToken,
+        "agentpresentation",
+      );
+      const agentPresentationKey = uploadedImage.key || uploadedImage.storageKey;
+      if (!agentPresentationKey) {
+        throw new Error("El servicio no devolvio la key de la foto para el PDF.");
+      }
+
+      await setAuthSession(
+        { ...currentUser, agentPresentationKey },
+        authToken,
+        refreshToken,
+      );
+      setSelectedImage(null);
+      setAddPhotoOpen(false);
+      Alert.alert("Foto guardada", "La foto para el PDF se guardo correctamente.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo guardar la foto para el PDF.";
+      console.warn("No se pudo guardar agentpresentation:", error);
       setimageError(message);
     } finally {
       setIsUploadingProfileImage(false);
@@ -1037,7 +1142,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         error={imageError}
         imageUri={selectedImage?.uri}
         isSaving={isUploadingProfileImage}
-        onSave={saveProfileImage}
+        title={photoUploadTarget === "agentpresentation" ? "Foto para el PDF" : "Foto de perfil"}
+        onSave={photoUploadTarget === "agentpresentation" ? saveAgentPresentationImage : saveProfileImage}
       />
     );
   }
@@ -1276,6 +1382,19 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   activeOpacity={0.85}
                   onPress={() => {
                     setIsProfileMenuOpen(false);
+                    setPhotoUploadTarget("agentpresentation");
+                    setAddPhotoOpen(true);
+                  }}
+                >
+                  <CameraIcon size={15} color={"#315b41"} />
+                  <Text style={styles.profileMenuButtonText}>Agregar foto del pdf</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.profileMenuButton}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    setIsProfileMenuOpen(false);
+                    setPhotoUploadTarget("profile");
                     setAddPhotoOpen(true);
                   }}
                 >

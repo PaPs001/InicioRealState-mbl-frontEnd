@@ -132,6 +132,7 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     permissions: backendUser.permissions ?? user.permissions,
     avatar: user.avatar,
     profilePhotoKey: user.profilePhotoKey,
+    agentPresentationKey: user.agentPresentationKey,
     createdAt: user.createdAt ?? new Date().toISOString(),
   }
 }

@@ -8,6 +8,7 @@ type ModalAddPhotoProps = {
   imageUri?: string
   isSaving?: boolean
   onSave: () => void
+  title?: string
 }
 export const ModalAddPhoto = ({
   isOpen,
@@ -17,6 +18,7 @@ export const ModalAddPhoto = ({
   imageUri,
   isSaving = false,
   onSave,
+  title = "Foto de perfil",
 }: ModalAddPhotoProps) => {
   return(
     <Modal
@@ -33,7 +35,7 @@ export const ModalAddPhoto = ({
           onPress={(event) => event.stopPropagation()}
           style={{ width: '100%', maxWidth: 420, borderRadius: 18, backgroundColor: '#ffffff', padding: 20, gap: 14 }}
         >
-          <Text style={{ color: '#12382f', fontSize: 20, fontWeight: '700' }}>Foto de perfil</Text>
+          <Text style={{ color: '#12382f', fontSize: 20, fontWeight: '700' }}>{title}</Text>
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={{ width: 150, height: 150, borderRadius: 75, alignSelf: 'center' }} />
           ) : (
