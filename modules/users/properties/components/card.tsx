@@ -425,7 +425,7 @@ export default function CoordinatorPropertiesListScreen() {
       await waitForHeavyUiToUnmount()
       const pdfPayload = {
         ...(currentUser?.agentPresentationKey
-          ? { agentPresentation: currentUser.agentPresentationKey }
+          ? { agentName: 'a' as const, agentPresentation: currentUser.agentPresentationKey }
           : { agentName: pdfAgentName }),
         sales: isPdfSaleList,
         items: selectedPropertyIds,
