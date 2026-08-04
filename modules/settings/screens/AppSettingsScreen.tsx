@@ -23,6 +23,8 @@ import {
   getSelectedGoogleCalendars,
   getGoogleCalendarAuthUrl,
   disconnectGoogleCalendar,
+  saveSelectedGoogleCalendars,
+  syncGoogleCalendars,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarOption,
   type SelectedGoogleCalendar
@@ -109,6 +111,7 @@ export function AppSettingsScreen(
   const [isCalendarSettingsLoading, setIsCalendarSettingsLoading] = useState(false);
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
+  const [isSavingCalendarSelection, setIsSavingCalendarSelection] = useState(false);
   
   
   const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null)
@@ -119,6 +122,56 @@ export function AppSettingsScreen(
   areaConfig.fallbackName;
   const advisorInitials = getInitials(advisorName);
   const needsGoogleReconnect = googleConnectionStatus?.status === "requires_reconnect";
+
+  const handleSaveGoogleCalendarSelection = async () => {
+    if (!authToken || isSavingCalendarSelection) return;
+    setIsSavingCalendarSelection(true);
+    try {
+      setSelectedGoogleCalendars(
+        await saveSelectedGoogleCalendars(authToken, selectedGoogleCalendars),
+      );
+      await syncGoogleCalendars(authToken);
+      await Promise.all([
+        loadGoogleCalendarSettings(),
+        loadCalendarDates({ sync: true }),
+      ]);
+      Alert.alert(
+        "Calendarios guardados",
+        "La seleccion fue guardada y las citas fueron sincronizadas.",
+      );
+    } catch (error) {
+      console.warn("No se pudo guardar la seleccion de calendarios del asesor:", error,);
+    } finally {
+      setIsSavingCalendarSelection(false);
+    }
+  };
+
+  const markPrimaryGoogleCalendar = (calendar: GoogleCalendarOption) => {
+    const calendarId = calendar.calendarId;
+    if (!calendarId) return;
+    setSelectedGoogleCalendars((current) => {
+      const next = current.some((item) => item.calendarId === calendarId)
+        ? current
+        : [
+            ...current,
+            {
+              calendarId,
+              summary: calendar.summary ?? "",
+              enabled: true,
+              appointmentType: getDefaultAppointmentType(calendar.summary),
+            },
+          ];
+      return next.map((item) => ({
+        ...item,
+        enabled: item.calendarId === calendarId ? true : item.enabled,
+        primaryForCreate: item.calendarId === calendarId,
+      }));
+    });
+  };
+  const getCalendarSelection = (calendarId?: string) =>
+    selectedGoogleCalendars.find(
+      (calendar) => calendar.calendarId === calendarId,
+    );
   const toggleGoogleCalendar = (calendar: GoogleCalendarOption) => {
     const calendarId = calendar.calendarId;
     if (!calendarId) return;
@@ -538,7 +591,84 @@ export function AppSettingsScreen(
               <Text>
                 Calendarios Conectados
               </Text>
-              
+              <Pressable
+                style={styles.calendarSmallButton}
+                disabled={isCalendarSettingsLoading}
+                onPress={loadGoogleCalendarSettings}
+              >
+                <Text style={styles.calendarSmallButtonText}>
+                  {isCalendarSettingsLoading ? "Cargando" : "Actualizar"}
+                </Text>
+              </Pressable>
+              {needsGoogleReconnect ? (
+                <Text style={styles.calendarSettingsEmpty}>
+                  Google Calendar requiere reconexion para volver a sincronizar.
+                </Text>
+              ) : googleCalendars.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>
+                  {isCalendarSettingsLoading
+                    ? "Buscando calendarios..."
+                    : "No hay calendarios disponibles."}
+                </Text>
+              ) : (
+                <View style={styles.calendarList}>
+                  {googleCalendars.map((calendar) => {
+                    const selection = getCalendarSelection(calendar.calendarId);
+                    const isEnabled = selection?.enabled === true;
+                    const isPrimary = selection?.primaryForCreate === true;
+                      return (
+                        <View
+                          key={calendar.calendarId ?? calendar.summary}
+                          style={styles.calendarOptionRow}
+                        >
+                          <Pressable
+                            style={[
+                              styles.calendarToggle,
+                              isEnabled && styles.calendarToggleActive,
+                            ]}
+                            onPress={() => toggleGoogleCalendar(calendar)}
+                          >
+                            <Text
+                              style={[
+                                styles.calendarToggleText,
+                                isEnabled && styles.calendarToggleTextActive,
+                              ]}
+                            >
+                              {isEnabled ? "En uso" : "Usar"}
+                            </Text>
+                          </Pressable>
+                          <View style={styles.calendarOptionCopy}>
+                            <Text
+                              style={styles.calendarOptionTitle}
+                              numberOfLines={1}
+                            >
+                              {calendar.summary || "Calendario sin nombre"}
+                            </Text>
+                            <Text
+                              style={styles.calendarOptionMeta}
+                              numberOfLines={1}
+                            >
+                              {selection?.appointmentType || getDefaultAppointmentType(calendar.summary)}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                </View>
+              )}
+              <View style={styles.calendarActionsRow}>
+                <Pressable
+                  style={styles.calendarActionButton}
+                  disabled={isSavingCalendarSelection}
+                  onPress={handleSaveGoogleCalendarSelection}
+                >
+                  <Text style={styles.calendarActionButtonText}>
+                    {isSavingCalendarSelection
+                      ? "Guardando..."
+                      : "Guardar calendarios"}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </View>
