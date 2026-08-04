@@ -1,1 +1,5 @@
-export { default } from '@/modules/settings/screens/AppSettingsScreen'
+import { AppSettingsScreen } from '@/modules/settings/screens/AppSettingsScreen'
+
+export default function AdviserSettingsRoute() {
+  return <AppSettingsScreen area="adviser" />
+}
