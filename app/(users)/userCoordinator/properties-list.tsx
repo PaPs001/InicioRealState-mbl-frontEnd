@@ -185,7 +185,7 @@ export default function CoordinatorPropertiesListScreen() {
   const router = useRouter()
   const pathname = usePathname()
   const params = useLocalSearchParams<{ type?: string }>()
-  const { authToken, isLoading: isAuthLoading } = useAuth()
+  const { authToken, currentUser, isLoading: isAuthLoading } = useAuth()
   const { operationMode, capabilities } = useOperationMode()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
@@ -462,6 +462,9 @@ export default function CoordinatorPropertiesListScreen() {
       await waitForHeavyUiToUnmount()
       const pdfPayload = {
         agentName: pdfAgentName,
+        ...(currentUser?.agentPresentationKey
+          ? { agentPresentation: currentUser.agentPresentationKey }
+          : {}),
         sales: isPdfSaleList,
         items: selectedPropertyIds,
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
