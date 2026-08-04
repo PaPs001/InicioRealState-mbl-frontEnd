@@ -429,13 +429,15 @@ export function AppSettingsScreen(
                 </Text>
               )}
             </View>
-            <View style={styles.userTextContainer}>
-              <Text style={styles.userName}>
-                {advisorName}
-              </Text>
-              <Text>
-                Asesor de INICIO REAL ESTATE
-              </Text>
+            <View style={styles.userinformationContainer}>
+              <View style={styles.userTextContainer}>
+                <Text style={styles.userName}>
+                  {advisorName}
+                </Text>
+                <Text style={styles.adviserText}> 
+                  Asesor de INICIO REAL ESTATE
+                </Text>
+              </View>
               <Pressable style={styles.activeStatusContainer}>
                 <View style={styles.activeStatus}>
                   <BackButton/>
@@ -486,8 +488,8 @@ export function AppSettingsScreen(
             })}
           </View>
         </View>
-        <View>
-          <View>
+        <View style={styles.calendarSection}>
+          <View style={styles.calendarHeader}>
             <BackButton/>
             <Text>
               Calendario

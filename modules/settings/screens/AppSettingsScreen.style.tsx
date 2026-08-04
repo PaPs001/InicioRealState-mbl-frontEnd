@@ -12,6 +12,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 48,
+    gap: 12
   },
   headerRow:{
     width: '100%',
@@ -44,6 +45,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    width: '100%'
   },
   profileAvatarContainer:{
     width: 120,
@@ -64,22 +66,40 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
   },
+  userinformationContainer:{
+    gap: 10,
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+  },
   userTextContainer:{
     //paddingVertical: 10,
-    gap: 3
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
   },
   userName:{
     fontSize: 25,
     fontWeight: '700',
     color: '#1e2d32',
+    flexShrink: 1
+  },
+  adviserText:{
+    flexShrink: 1,
+    flexWrap: 'wrap'
   },
   activeStatusContainer:{
-    alignSelf: 'center',
+    //useful
   },
   activeStatus:{
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'red',
+    paddingVertical: 5,
+    paddingHorizontal: 8
   },
   editProfileRow:{
     flexDirection: 'row',
@@ -98,7 +118,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionsSection:{
-    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#626c6d',
+    paddingVertical: 17,
+    paddingHorizontal: 10
   },
   optionsHeader:{
     flexDirection: 'row',
@@ -142,10 +166,22 @@ export const styles = StyleSheet.create({
   },
 
   //Calendario
-
+  calendarSection:{
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#626c6d',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    gap: 10
+  },
+  calendarHeader:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    gap: 10,
+  },
   outlineButton:{
     alignSelf: 'center',
-    marginTop: 14,
     height: 32,
     minWidth: 127,
     borderRadius: 5,
@@ -160,7 +196,6 @@ export const styles = StyleSheet.create({
   },
   centerButton:{
     alignSelf: 'center',
-    marginTop: 10,
     height: 33,
     flex: 1,
     minWidth: 0,
