@@ -461,10 +461,9 @@ export default function CoordinatorPropertiesListScreen() {
     try {
       await waitForHeavyUiToUnmount()
       const pdfPayload = {
-        agentName: pdfAgentName,
         ...(currentUser?.agentPresentationKey
           ? { agentPresentation: currentUser.agentPresentationKey }
-          : {}),
+          : { agentName: pdfAgentName }),
         sales: isPdfSaleList,
         items: selectedPropertyIds,
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
@@ -526,7 +525,7 @@ export default function CoordinatorPropertiesListScreen() {
         <TouchableOpacity
           style={styles.exportButtonSecondary}
           activeOpacity={0.85}
-          onPress={openPdfOptions}
+          onPress={currentUser?.agentPresentationKey ? handleGeneratePdf : openPdfOptions}
           disabled={isGeneratingPdf}
         >
           <Text style={styles.exportButtonSecondaryText}>
