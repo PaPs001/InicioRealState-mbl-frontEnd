@@ -6,13 +6,18 @@ import {
   Pressable, 
   Alert 
 } from 'react-native'
+import { router } from 'expo-router'
 import { usePathname } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SettingsOption } from '../components/SettingsOption'
 import { useAppSettings } from '../hooks'
 import type { OperationMode } from '../types'
-import { BackButton, LogoIRSPrincipal } from '@/assets'
-import { useCallback, useEffect, useState } from 'react'
+import { SvgProps } from 'react-native-svg'
+import { 
+  icons,
+  logos
+} from '@/assets'
+import { ComponentType, FC, SVGProps, useCallback, useEffect, useState } from 'react'
 import {useSessionDomain} from "@/contexts/auth/use-session-domain"
 import {
   API_URLS,
@@ -38,19 +43,24 @@ import {
   getDefaultAppointmentType
 } from "@/components/userDashboard/dashboard-formatters"
 import {styles} from './AppSettingsScreen.style'
+import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
 
 import {
   AppointmentPreviewItem,
 } from '@/components/userDashboard/types'
+import { blue } from 'react-native-reanimated/lib/typescript/Colors'
 
 const operationOptions: Array<{
   value: OperationMode
   label: string
   description: string
+  icon: ComponentType<SvgProps>
+  height: number
+  width: number
 }> = [
-  { value: 'rent', label: 'Rentas', description: 'Prioriza rentas y sus seguimientos.' },
-  { value: 'sale', label: 'Ventas', description: 'Prioriza ventas y oportunidades.' },
-  { value: 'both', label: 'Mixto', description: 'Muestra todas las funciones e inventario.' },
+  { value: 'rent', label: 'Rentas', description: 'Prioriza rentas y sus seguimientos.', icon: icons.House, height: 20, width: 20 },
+  { value: 'sale', label: 'Ventas', description: 'Prioriza ventas y oportunidades.', icon: icons.BuildingApartment, height: 20, width: 20 },
+  { value: 'both', label: 'Mixto', description: 'Muestra todas las funciones e inventario.', icon: icons.Blend, height: 30, width: 30 },
 ]
 
 export type UserDashboardArea = "adviser" | "coordinator";
@@ -92,6 +102,8 @@ function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
 export function AppSettingsScreen(
   { area }: UserDashboardScreenProps
 ) {
+  useHideBottomNav();
+
   const {
     authToken,
     currentUser,
@@ -460,15 +472,22 @@ export function AppSettingsScreen(
     setOperationMode,
   } = useAppSettings()
 
+
+  //Esto es temporal para prueba rapida
+
+  const [isActive, setIsActive] = useState(false)
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <View style={styles.backButton}>
-            <BackButton />
-          </View>
+          <Pressable 
+            style={styles.backButton}
+            onPress={router.back}
+          >
+            <icons.BackButton/>
+          </Pressable>
           <View style={styles.headerLogo}>
-            <LogoIRSPrincipal />
+            <logos.irsPrincipal />
           </View>
         </View>
         <View style={styles.profileInformationContainer}>
@@ -488,27 +507,34 @@ export function AppSettingsScreen(
                   {advisorName}
                 </Text>
                 <Text style={styles.adviserText}> 
-                  Asesor de INICIO REAL ESTATE
+                  Asesor de INICIO Real Estate
                 </Text>
               </View>
               <Pressable style={styles.activeStatusContainer}>
                 <View style={styles.activeStatus}>
-                  <BackButton/>
-                  <Text>
+                  <View style={styles.point}/>
+                  <Text style={styles.statusText}>
                     Activo
                   </Text>
                 </View>
+                {/*<View style={styles.activeStatus}>
+                  <Text style={styles.statusText}>
+                    Ocupado
+                  </Text>
+                </View>*/}
               </Pressable>
             </View>
           </View>
           <View style={styles.editProfileRow}>
             <Pressable style={styles.editButton}>
-              <Text>
+              <icons.Pencil/>
+              <Text style={styles.editText}>
                 Editar perfil
               </Text>
             </Pressable>
             <Pressable style={styles.editButton}>
-              <Text>
+              <icons.Camera/>
+              <Text style={styles.editText}>
                 Cambiar Foto
               </Text>
             </Pressable>
@@ -516,8 +542,8 @@ export function AppSettingsScreen(
         </View>
         <View style={styles.optionsSection}>
           <View style={styles.optionsHeader}>
-            <BackButton/>
-            <Text>
+            <icons.BriefcaseBussines />
+            <Text style={styles.sectionTitle}>
               Perfil Comercial
             </Text>
           </View>
@@ -543,50 +569,13 @@ export function AppSettingsScreen(
         </View>
         <View style={styles.calendarSection}>
           <View style={styles.calendarHeader}>
-            <BackButton/>
-            <Text>
+            <icons.calendarDatesMobile width={20} height={20} fill='#d4b66f'/>
+            <Text style={styles.sectionTitle}>
               Calendario
             </Text>
           </View>
           <View>
-            <Pressable
-              style={
-                  isGoogleConnected && !needsGoogleReconnect
-                    ? styles.outlineButton
-                    : styles.centerButton
-                }
-                disabled={isConnectingCalendar || isDisconnectingCalendar}
-                onPress={
-                  isGoogleConnected && !needsGoogleReconnect
-                    ? handleDisconnectGoogleCalendar
-                    : handleConnectGoogleCalendar
-                }
-              >
-                {isGoogleConnected && !needsGoogleReconnect ? (
-                  <BackButton/>
-                ) : (
-                  <BackButton/>
-                )}
-                <Text
-                  style={
-                    isGoogleConnected && !needsGoogleReconnect
-                      ? styles.outlineButtonText
-                      : styles.centerButtonText
-                  }
-                >
-                  {isConnectingCalendar
-                    ? "Abriendo Google..."
-                    : isDisconnectingCalendar
-                    ? "Desconectando..."
-                      : needsGoogleReconnect
-                        ? "Reconectar Google Calendar"
-                        : isGoogleConnected
-                        ? "Desconectar Google"
-                        : "Conectar Google Calendar"}
-                </Text>
-            </Pressable>
-          </View>
-          <View>
+
             <View>
               <Text>
                 Calendarios Conectados
@@ -611,7 +600,7 @@ export function AppSettingsScreen(
                     : "No hay calendarios disponibles."}
                 </Text>
               ) : (
-                <View style={styles.calendarList}>
+                <View style={styles.calendarList}> 
                   {googleCalendars.map((calendar) => {
                     const selection = getCalendarSelection(calendar.calendarId);
                     const isEnabled = selection?.enabled === true;
@@ -671,6 +660,52 @@ export function AppSettingsScreen(
               </View>
             </View>
           </View>
+          <View>
+            <Pressable
+              style={
+                  isGoogleConnected && !needsGoogleReconnect
+                    ? styles.outlineButton
+                    : styles.centerButton
+                }
+                disabled={isConnectingCalendar || isDisconnectingCalendar}
+                onPress={
+                  isGoogleConnected && !needsGoogleReconnect
+                    ? handleDisconnectGoogleCalendar
+                    : handleConnectGoogleCalendar
+                }
+              >
+                {isGoogleConnected && !needsGoogleReconnect ? (
+                  <icons.BackButton/>
+                ) : (
+                  <icons.BackButton/>
+                )}
+                <Text
+                  style={
+                    isGoogleConnected && !needsGoogleReconnect
+                      ? styles.outlineButtonText
+                      : styles.centerButtonText
+                  }
+                >
+                  {isConnectingCalendar
+                    ? "Abriendo Google..."
+                    : isDisconnectingCalendar
+                    ? "Desconectando..."
+                      : needsGoogleReconnect
+                        ? "Reconectar Google Calendar"
+                        : isGoogleConnected
+                        ? "Desconectar Google"
+                        : "Conectar Google Calendar"}
+                </Text>
+            </Pressable>
+          </View>
+        </View>
+        <View style={styles.finalSection}>
+          <Pressable style={styles.logOutButton}>
+            <icons.Power/>
+            <Text style={styles.logOutText}>
+              Cerrar Sesion
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>

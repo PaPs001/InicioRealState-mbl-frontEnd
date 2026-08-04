@@ -57,6 +57,7 @@ export {
   checkEmailExists,
   updateUserProfile,
   deleteUploadedProfileImage,
+  deleteUploadedAgentPresentationImage,
   getUploadedProfileImage,
   uploadProfileImage,
   validateRegistrationData,

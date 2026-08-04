@@ -39,6 +39,7 @@ import {
   API_URLS,
   createGoogleCalendarDate,
   deleteUploadedProfileImage,
+  deleteUploadedAgentPresentationImage,
   disconnectGoogleCalendar,
   getBackendLeadRecords,
   getCatalogRentProperties,
@@ -515,6 +516,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setIsUploadingProfileImage(true);
     setimageError(null);
     try {
+      await deleteUploadedAgentPresentationImage(authToken);
       const uploadedImage = await uploadProfileImage(
         { image: selectedImage },
         authToken,
@@ -1406,7 +1408,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   activeOpacity={0.85}
                   onPress={() => {
                     setIsProfileMenuOpen(false);
-                    setIsSettingsOpen(true);
+                    router.push(`${areaConfig.basePath}/settings` as never);
                   }}
                 >
                   <Settings size={15} color="#315b41" />
@@ -1510,7 +1512,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Text style={styles.sectionHeaderTitle}>Citas de esta semana</Text>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => setIsSettingsOpen(true)}
+              onPress={() => router.push(`${areaConfig.basePath}/settings` as never)}
             >
               <Text style={styles.sectionAction}>Configurar</Text>
             </TouchableOpacity>

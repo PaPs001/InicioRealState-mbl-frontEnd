@@ -1,9 +1,17 @@
 import {StyleSheet} from 'react-native';
-
+import { generalColors, textColor, userColors, borderColor, statusColors } from '@/theme';
 export const styles = StyleSheet.create({
+  //Extras
+  point:{
+    borderRadius: 999,
+    width: 8,
+    height: 8,
+    backgroundColor: userColors.coordinator.primary
+  },
+  ////////
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f1ec',
+    backgroundColor: generalColors.background,
   },
   content: {
     width: '100%',
@@ -37,9 +45,9 @@ export const styles = StyleSheet.create({
   profileInformationContainer:{
     borderWidth: 1,
     borderRadius: 12,
-    borderColor: '#626c6d',
+    borderColor: generalColors.border,
     padding: 15,
-    backgroundColor: '#f5f1ec'
+    gap: 15
   },
   userInfoRow:{
     flexDirection: 'row',
@@ -48,8 +56,8 @@ export const styles = StyleSheet.create({
     width: '100%'
   },
   profileAvatarContainer:{
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     borderRadius: 999,
     backgroundColor: '#e5e7eb',
     alignItems: 'center',
@@ -67,16 +75,18 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   userinformationContainer:{
-    gap: 10,
+    gap: 12,
     alignItems: 'center',
     flex: 1,
     minWidth: 0,
   },
   userTextContainer:{
     //paddingVertical: 10,
-    flex: 1,
+    width: '100%',
     minWidth: 0,
-    gap: 3,
+    gap: 1,
+    alignContent: 'center',
+
   },
   userName:{
     fontSize: 25,
@@ -85,42 +95,57 @@ export const styles = StyleSheet.create({
     flexShrink: 1
   },
   adviserText:{
+    fontSize: 12,
     flexShrink: 1,
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    color: textColor.accentGolden
   },
   activeStatusContainer:{
     //useful
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center'
+  },
+  statusText:{
+    color: userColors.coordinator.primaryDark
   },
   activeStatus:{
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'red',
+    borderColor: borderColor.borderSoft,
     paddingVertical: 5,
-    paddingHorizontal: 8
+    paddingHorizontal: 12,
+    backgroundColor: '#a6ebad7a'
   },
   editProfileRow:{
     flexDirection: 'row',
-    marginTop: 12,
     flex: 1,
     gap: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+    alignItems: 'center'
   },
   editButton:{
     borderRadius: 8,
-    borderColor: '#b3ada5',
+    borderColor: generalColors.border,
     borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
     flex: 1,
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5
+  },
+  editText:{
+    color: textColor.accentGolden,
+    fontSize: 12
   },
   optionsSection:{
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#626c6d',
+    borderColor: generalColors.border,
     paddingVertical: 17,
     paddingHorizontal: 10
   },
@@ -146,10 +171,10 @@ export const styles = StyleSheet.create({
     marginTop: 32,
   },
   sectionTitle: {
-    color: '#1e2d32',
-    fontSize: 18,
+    color: userColors.coordinator.primary,
+    fontSize: 15,
     lineHeight: 24,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   sectionDescription: {
     color: '#6b7280',
@@ -169,7 +194,7 @@ export const styles = StyleSheet.create({
   calendarSection:{
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#626c6d',
+    borderColor: generalColors.border,
     paddingVertical: 15,
     paddingHorizontal: 10,
     gap: 10
@@ -329,5 +354,25 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
+  },
+
+
+  finalSection:{
+    alignItems: 'center',
+  
+  },  
+  logOutButton:{
+    paddingVertical: 7,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: borderColor.borderSoft,
+    backgroundColor: generalColors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  logOutText:{
+    color: statusColors.danger
   },
 })
