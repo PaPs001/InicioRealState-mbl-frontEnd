@@ -61,6 +61,7 @@ export {
   uploadProfileImage,
   validateRegistrationData,
   type BackendProfileImagePayload,
+  type UploadImageDocumentType,
   type UploadProfileImageResponse,
   type UploadedFilesResponse,
   type PasswordResetRequestInput,
