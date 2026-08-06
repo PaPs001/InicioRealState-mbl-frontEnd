@@ -23,7 +23,11 @@ import {
 } from '@/assets'
 import { useState } from 'react'
 import {useSessionDomain} from "@/contexts/auth/use-session-domain"
-import { useProfileAvatar } from '@/modules/profile'
+import {
+  ProfileImageModal,
+  useProfileAvatar,
+  useProfileImageUpload,
+} from '@/modules/profile'
 import {
   getInitials,
 } from "@/components/userDashboard/dashboard-formatters"
@@ -42,11 +46,8 @@ export function AppSettingsScreen(
   } = useSessionDomain();
   const pathname = usePathname();
   const googleCalendar = useGoogleCalendarSettings({ authToken, returnPath: pathname })
-  const [photoUploadTarget, setPhotoUploadTarget] = useState<"profile" | "agentpresentation">("profile");
-  const [isAddPhotoOpen, setAddPhotoOpen] = useState(false);
-  
-  
-  const { profileAvatarUri } = useProfileAvatar()
+  const { profileAvatarUri, setProfileAvatarUri } = useProfileAvatar()
+  const profileImageUpload = useProfileImageUpload({ setProfileAvatarUri })
   const areaConfig = dashboardAreaConfig[area];
   const advisorName = 
   currentUser?.name.trim() || 
@@ -93,14 +94,8 @@ export function AppSettingsScreen(
           operationOptions={operationOptions}
           operationMode={operationMode}
           onSelectOperationMode={setOperationMode}
-          onAddAgentPresentation={() => {
-            setPhotoUploadTarget('agentpresentation')
-            setAddPhotoOpen(true)
-          }}
-          onChangeProfilePhoto={() => {
-            setPhotoUploadTarget('profile')
-            setAddPhotoOpen(true)
-          }}
+          onAddAgentPresentation={() => profileImageUpload.open('agentpresentation')}
+          onChangeProfilePhoto={() => profileImageUpload.open('profile')}
         />
         <CalendarSection
           googleCalendars={googleCalendar.calendars}
@@ -129,6 +124,16 @@ export function AppSettingsScreen(
           </Pressable>
         </View>
       </ScrollView>
+      <ProfileImageModal
+        visible={profileImageUpload.isOpen}
+        title={profileImageUpload.title}
+        imageUri={profileImageUpload.selectedImage?.uri}
+        error={profileImageUpload.error}
+        isSaving={profileImageUpload.isSaving}
+        onSelectImage={profileImageUpload.pickImage}
+        onSave={profileImageUpload.save}
+        onClose={profileImageUpload.close}
+      />
     </SafeAreaView>
   )
 }
