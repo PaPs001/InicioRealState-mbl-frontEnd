@@ -26,10 +26,7 @@ import {
   SunMedium,
 } from "lucide-react-native";
 
-import * as ImagePicker from 'expo-image-picker'
-
 import { BackButton } from "@/assets";
-import { ModalAddPhoto } from "@/components/modal";
 
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
@@ -37,8 +34,6 @@ import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
   API_URLS,
   createGoogleCalendarDate,
-  deleteUploadedProfileImage,
-  deleteUploadedAgentPresentationImage,
   disconnectGoogleCalendar,
   getBackendLeadRecords,
   getCatalogRentProperties,
@@ -50,7 +45,6 @@ import {
   getUploadedAgentPresentation,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
-  uploadProfileImage,
   type CreateGoogleCalendarDatePayload,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarOption,
@@ -86,7 +80,11 @@ import type {
   DashboardPriority,
 } from "./types";
 import { useOperationMode } from "@/modules/settings";
-import { useProfileAvatar } from "@/modules/profile";
+import {
+  ProfileImageModal,
+  useProfileAvatar,
+  useProfileImageUpload,
+} from "@/modules/profile";
 import { cacheUploadedFile } from "@/lib/services/uploaded-file-cache";
 WebBrowser.maybeCompleteAuthSession();
 
@@ -95,70 +93,6 @@ export type UserDashboardArea = "adviser" | "coordinator";
 type UserDashboardScreenProps = {
   area: UserDashboardArea;
 };
-
-type SelectedImage = {
-  uri: string
-  name: string
-  type: string
-}
-
-const PDF_IMAGE_PHYSICAL_WIDTH_IN = 11.25;
-const PDF_IMAGE_PHYSICAL_HEIGHT_IN = 24.07;
-
-function parseExifNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
-  if (typeof value === "string") {
-    const fraction = value.match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/);
-    if (fraction) {
-      const denominator = Number(fraction[2]);
-      return denominator > 0 ? Number(fraction[1]) / denominator : null;
-    }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-  if (value && typeof value === "object") {
-    const rational = value as { numerator?: unknown; denominator?: unknown };
-    const numerator = Number(rational.numerator);
-    const denominator = Number(rational.denominator);
-    if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0) {
-      return numerator / denominator;
-    }
-  }
-  return null;
-}
-
-function validatePdfPresentationImage(asset: ImagePicker.ImagePickerAsset): string | null {
-  const xResolution = parseExifNumber(asset.exif?.XResolution ?? asset.exif?.xResolution);
-  const yResolution = parseExifNumber(asset.exif?.YResolution ?? asset.exif?.yResolution);
-  const resolutionUnit = Number(asset.exif?.ResolutionUnit ?? asset.exif?.resolutionUnit);
-  const unitMultiplier = resolutionUnit === 3 ? 2.54 : 1;
-  const xDpi = xResolution ? xResolution * unitMultiplier : null;
-  const yDpi = yResolution ? yResolution * unitMultiplier : xDpi;
-
-  const isLegacySize = asset.width === 1080 && asset.height === 2300;
-  const isLegacyDensity = xDpi !== null && yDpi !== null
-    && Math.abs(xDpi - 96) <= 0.5
-    && Math.abs(yDpi - 96) <= 0.5;
-  if (isLegacySize && isLegacyDensity) return null;
-
-  const isDensityFreeSize = asset.width === 3375 && asset.height === 7221;
-  if (isDensityFreeSize && !xDpi && !yDpi) return null;
-
-  if (xDpi && yDpi) {
-    const widthInches = asset.width / xDpi;
-    const heightInches = asset.height / yDpi;
-    const physicalSizeMatches =
-      Math.abs(widthInches - PDF_IMAGE_PHYSICAL_WIDTH_IN) <= 0.02 &&
-      Math.abs(heightInches - PDF_IMAGE_PHYSICAL_HEIGHT_IN) <= 0.02;
-    if (physicalSizeMatches) return null;
-  }
-
-  const detectedDensity = xDpi && yDpi
-    ? ` y ${Math.round(xDpi)} x ${Math.round(yDpi)} DPI`
-    : " y sin densidad utilizable";
-  return `La imagen seleccionada mide ${asset.width} x ${asset.height} px${detectedDensity}. No se subio porque la foto para el PDF debe medir fisicamente 11.25 x 24.07 pulgadas, ser legacy 1080 x 2300 px a 96 DPI, o medir 3375 x 7221 px si no incluye densidad.`;
-}
-
 
 function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
   const today = new Date();
@@ -230,13 +164,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-  const [imageError, setimageError] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
-  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
   const { profileAvatarUri, setProfileAvatarUri } = useProfileAvatar()
-
-  const [isAddPhotoOpen, setAddPhotoOpen] = useState(false);
-  const [photoUploadTarget, setPhotoUploadTarget] = useState<"profile" | "agentpresentation">("profile");
+  const profileImageUpload = useProfileImageUpload({ setProfileAvatarUri })
 
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
     useState(false);
@@ -298,132 +227,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       setIsLeadsLoading(false);
     }
   }, [authToken]);
-
-  const pickProfileImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      setimageError("Necesitamos permiso para escoger una imagen.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: false,
-      mediaTypes: ["images"],
-      quality: 0.8,
-      exif: photoUploadTarget === "agentpresentation",
-    });
-
-    if (result.canceled || !result.assets[0]) return;
-
-    const asset = result.assets[0];
-    if (photoUploadTarget === "agentpresentation") {
-      const validationError = validatePdfPresentationImage(asset);
-      if (validationError) {
-        setSelectedImage(null);
-        setimageError(validationError);
-        Alert.alert("La foto no cumple los requisitos", validationError);
-        return;
-      }
-    }
-    setSelectedImage({
-      uri: asset.uri,
-      name: asset.fileName || `perfil-${Date.now()}.jpg`,
-      type: asset.mimeType || "image/jpeg",
-    });
-    setimageError(null);
-  };
-
-  const saveProfileImage = async () => {
-    if (!selectedImage || !authToken || !currentUser || isUploadingProfileImage) {
-      if (!selectedImage) setimageError("Selecciona una imagen antes de guardarla.");
-      if (!currentUser || !authToken) setimageError("Inicia sesion antes de guardar la foto.");
-      return;
-    }
-
-    setIsUploadingProfileImage(true);
-    setimageError(null);
-    try {
-      await deleteUploadedProfileImage(authToken);
-      const uploadedImage = await uploadProfileImage({ image: selectedImage }, authToken);
-
-      const updatedUser = {
-        ...currentUser,
-        avatar: uploadedImage.url,
-        profilePhotoKey: uploadedImage.key || uploadedImage.storageKey || currentUser.profilePhotoKey,
-      };
-      await setAuthSession(updatedUser, authToken, refreshToken);
-      if (updatedUser.profilePhotoKey) {
-        cacheUploadedFile({
-          storageKey: updatedUser.profilePhotoKey,
-          token: authToken,
-          namespace: "profile-photos",
-          contentType: uploadedImage.contentType,
-        })
-          .then(setProfileAvatarUri)
-          .catch((error) => {
-            console.warn("No se pudo cachear la foto de perfil recien subida:", error);
-            setProfileAvatarUri(uploadedImage.url);
-          });
-      } else {
-        setProfileAvatarUri(uploadedImage.url);
-      }
-      setSelectedImage(null);
-      setAddPhotoOpen(false);
-      Alert.alert("Foto actualizada", "La foto de perfil se guardo correctamente.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo guardar la foto de perfil.";
-      console.warn("No se pudo guardar la foto de perfil:", error);
-      setimageError(message);
-    } finally {
-      setIsUploadingProfileImage(false);
-    }
-  };
-
-  const saveAgentPresentationImage = async () => {
-    if (!selectedImage || !authToken || !currentUser || isUploadingProfileImage) {
-      if (!selectedImage) setimageError("Selecciona una imagen antes de guardarla.");
-      if (!currentUser || !authToken) setimageError("Inicia sesion antes de guardar la foto.");
-      return;
-    }
-
-    setIsUploadingProfileImage(true);
-    setimageError(null);
-    try {
-      await deleteUploadedAgentPresentationImage(authToken);
-      const uploadedImage = await uploadProfileImage(
-        { image: selectedImage },
-        authToken,
-        "agentpresentation",
-      );
-      const agentPresentationKey = uploadedImage.key || uploadedImage.storageKey;
-      if (!agentPresentationKey) {
-        throw new Error("El servicio no devolvio la key de la foto para el PDF.");
-      }
-
-      await setAuthSession(
-        { ...currentUser, agentPresentationKey },
-        authToken,
-        refreshToken,
-      );
-      await cacheUploadedFile({
-        storageKey: agentPresentationKey,
-        token: authToken,
-        namespace: "agent-presentations",
-        contentType: uploadedImage.contentType,
-      }).catch((error) => {
-        console.warn("La foto para el PDF se subio, pero no se pudo cachear localmente:", error);
-      });
-      setSelectedImage(null);
-      setAddPhotoOpen(false);
-      Alert.alert("Foto guardada", "La foto para el PDF se guardo correctamente.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo guardar la foto para el PDF.";
-      console.warn("No se pudo guardar agentpresentation:", error);
-      setimageError(message);
-    } finally {
-      setIsUploadingProfileImage(false);
-    }
-  };
 
   useEffect(() => {
     if (!currentUser || !authToken) return;
@@ -1042,22 +845,17 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       setIsCreatingAppointment(false);
     }
   };
-  if (isAddPhotoOpen) {
+  if (profileImageUpload.isOpen) {
     return (
-      <ModalAddPhoto
-        isOpen={isAddPhotoOpen}
-        onClose={() => {
-          if (isUploadingProfileImage) return;
-          setAddPhotoOpen(false);
-          setSelectedImage(null);
-          setimageError(null);
-        }}
-        addImage={pickProfileImage}
-        error={imageError}
-        imageUri={selectedImage?.uri}
-        isSaving={isUploadingProfileImage}
-        title={photoUploadTarget === "agentpresentation" ? "Foto para el PDF" : "Foto de perfil"}
-        onSave={photoUploadTarget === "agentpresentation" ? saveAgentPresentationImage : saveProfileImage}
+      <ProfileImageModal
+        visible={profileImageUpload.isOpen}
+        title={profileImageUpload.title}
+        imageUri={profileImageUpload.selectedImage?.uri}
+        error={profileImageUpload.error}
+        isSaving={profileImageUpload.isSaving}
+        onSelectImage={profileImageUpload.pickImage}
+        onSave={profileImageUpload.save}
+        onClose={profileImageUpload.close}
       />
     );
   }
@@ -1300,8 +1098,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   activeOpacity={0.85}
                   onPress={() => {
                     setIsProfileMenuOpen(false);
-                    setPhotoUploadTarget("agentpresentation");
-                    setAddPhotoOpen(true);
+                    profileImageUpload.open("agentpresentation");
                   }}
                 >
                   <CameraIcon size={15} color={"#315b41"} />
@@ -1312,8 +1109,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   activeOpacity={0.85}
                   onPress={() => {
                     setIsProfileMenuOpen(false);
-                    setPhotoUploadTarget("profile");
-                    setAddPhotoOpen(true);
+                    profileImageUpload.open("profile");
                   }}
                 >
                   <CameraIcon size={15} color={"#315b41"} />
