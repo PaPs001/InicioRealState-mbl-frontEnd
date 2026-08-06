@@ -752,6 +752,19 @@ export async function getUploadedProfileImage(token: string): Promise<UploadProf
   return getUploadedProfileFile(await response.json() as UploadedFilesResponse)
 }
 
+export async function getUploadedAgentPresentation(token: string): Promise<UploadProfileImageResponse | null> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'GET',
+    token,
+  })
+
+  if (!response.ok) {
+    throw new Error(`No se pudo obtener la foto para el PDF (${response.status})`)
+  }
+
+  return getUploadedProfileFile(await response.json() as UploadedFilesResponse, 'agentpresentation')
+}
+
 async function deleteUploadedImage(
   token: string,
   documentType: UploadImageDocumentType,

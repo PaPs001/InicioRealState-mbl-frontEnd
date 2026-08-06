@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
-import * as FileSystem from "expo-file-system/legacy";
 import {
   Bell,
   CalendarDays,
@@ -48,7 +47,7 @@ import {
   getGoogleCalendarDates,
   getGoogleCalendars,
   getSelectedGoogleCalendars,
-  getUploadedProfileImage,
+  getUploadedAgentPresentation,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
   uploadProfileImage,
@@ -87,6 +86,8 @@ import type {
   DashboardPriority,
 } from "./types";
 import { useOperationMode } from "@/modules/settings";
+import { useProfileAvatar } from "@/modules/profile";
+import { cacheUploadedFile } from "@/lib/services/uploaded-file-cache";
 WebBrowser.maybeCompleteAuthSession();
 
 export type UserDashboardArea = "adviser" | "coordinator";
@@ -156,85 +157,6 @@ function validatePdfPresentationImage(asset: ImagePicker.ImagePickerAsset): stri
     ? ` y ${Math.round(xDpi)} x ${Math.round(yDpi)} DPI`
     : " y sin densidad utilizable";
   return `La imagen seleccionada mide ${asset.width} x ${asset.height} px${detectedDensity}. No se subio porque la foto para el PDF debe medir fisicamente 11.25 x 24.07 pulgadas, ser legacy 1080 x 2300 px a 96 DPI, o medir 3375 x 7221 px si no incluye densidad.`;
-}
-
-const profilePhotoCacheDirectory = `${FileSystem.cacheDirectory || FileSystem.documentDirectory || ""}profile-photos/`;
-
-function getProfilePhotoImageUrl(storageKey: string) {
-  return `${API_URLS.CORE}/uploads/file?key=${encodeURIComponent(storageKey)}`;
-}
-
-function getProfilePhotoRequestHeaders(token?: string | null) {
-  const headers: Record<string, string> = {
-    Accept: "image/*",
-  };
-
-  if (API_URLS.CORE.includes("ngrok-free")) {
-    headers["ngrok-skip-browser-warning"] = "true";
-  }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  return headers;
-}
-
-function getProfilePhotoCacheFilename(storageKey: string, contentType?: string) {
-  const safeName = storageKey.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const normalizedContentType = contentType?.toLowerCase() || "";
-  const extension =
-    safeName.match(/\.[a-zA-Z0-9]+$/)?.[0] ||
-    (normalizedContentType.includes("png")
-      ? ".png"
-      : normalizedContentType.includes("webp")
-        ? ".webp"
-        : ".jpg");
-
-  return safeName.toLowerCase().endsWith(extension) ? safeName : `${safeName}${extension}`;
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer) {
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  let binary = "";
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return btoa(binary);
-}
-
-async function cacheProfilePhotoImage(
-  storageKey: string,
-  token?: string | null,
-  contentType?: string,
-) {
-  if (!profilePhotoCacheDirectory) {
-    throw new Error("No hay directorio local disponible para cachear la foto de perfil.");
-  }
-
-  await FileSystem.makeDirectoryAsync(profilePhotoCacheDirectory, { intermediates: true }).catch(() => undefined);
-
-  const fileUri = `${profilePhotoCacheDirectory}${getProfilePhotoCacheFilename(storageKey, contentType)}`;
-  const cachedFile = await FileSystem.getInfoAsync(fileUri);
-  if (cachedFile.exists) return fileUri;
-
-  const response = await fetch(getProfilePhotoImageUrl(storageKey), {
-    headers: getProfilePhotoRequestHeaders(token),
-  });
-  if (!response.ok) {
-    throw new Error(`No se pudo descargar la foto de perfil (${response.status})`);
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-  await FileSystem.writeAsStringAsync(fileUri, arrayBufferToBase64(arrayBuffer), {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
-  return fileUri;
 }
 
 
@@ -311,7 +233,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const [imageError, setimageError] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
-  const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null)
+  const { profileAvatarUri, setProfileAvatarUri } = useProfileAvatar()
 
   const [isAddPhotoOpen, setAddPhotoOpen] = useState(false);
   const [photoUploadTarget, setPhotoUploadTarget] = useState<"profile" | "agentpresentation">("profile");
@@ -377,60 +299,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }
   }, [authToken]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    setProfileAvatarUri(null);
-
-    if (!currentUser || !authToken) {
-      setProfileAvatarUri(currentUser?.avatar ?? null);
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const loadProfilePhoto = async () => {
-      const profilePhoto = currentUser.profilePhotoKey
-        ? {
-            key: currentUser.profilePhotoKey,
-            storageKey: currentUser.profilePhotoKey,
-            url: currentUser.avatar ?? '',
-          }
-        : await getUploadedProfileImage(authToken);
-
-      const profilePhotoKey = profilePhoto?.key || profilePhoto?.storageKey;
-      if (!profilePhotoKey) {
-        if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null);
-        return;
-      }
-
-      if (!currentUser.profilePhotoKey) {
-        await setAuthSession(
-          {
-            ...currentUser,
-            avatar: profilePhoto.url || currentUser.avatar,
-            profilePhotoKey,
-          },
-          authToken,
-          refreshToken,
-        );
-      }
-
-      const localUri = await cacheProfilePhotoImage(profilePhotoKey, authToken, profilePhoto.contentType);
-      if (isMounted) setProfileAvatarUri(localUri);
-    };
-
-    loadProfilePhoto()
-      .catch((error) => {
-        console.warn("No se pudo cargar la foto de perfil:", error);
-        if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null);
-      })
-
-    return () => {
-      isMounted = false;
-    };
-  }, [authToken, currentUser, refreshToken, setAuthSession]);
-
   const pickProfileImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -485,7 +353,12 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       };
       await setAuthSession(updatedUser, authToken, refreshToken);
       if (updatedUser.profilePhotoKey) {
-        cacheProfilePhotoImage(updatedUser.profilePhotoKey, authToken, uploadedImage.contentType)
+        cacheUploadedFile({
+          storageKey: updatedUser.profilePhotoKey,
+          token: authToken,
+          namespace: "profile-photos",
+          contentType: uploadedImage.contentType,
+        })
           .then(setProfileAvatarUri)
           .catch((error) => {
             console.warn("No se pudo cachear la foto de perfil recien subida:", error);
@@ -532,6 +405,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         authToken,
         refreshToken,
       );
+      await cacheUploadedFile({
+        storageKey: agentPresentationKey,
+        token: authToken,
+        namespace: "agent-presentations",
+        contentType: uploadedImage.contentType,
+      }).catch((error) => {
+        console.warn("La foto para el PDF se subio, pero no se pudo cachear localmente:", error);
+      });
       setSelectedImage(null);
       setAddPhotoOpen(false);
       Alert.alert("Foto guardada", "La foto para el PDF se guardo correctamente.");
@@ -543,6 +424,37 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       setIsUploadingProfileImage(false);
     }
   };
+
+  useEffect(() => {
+    if (!currentUser || !authToken) return;
+
+    const cacheAgentPresentation = async () => {
+      const presentation = currentUser.agentPresentationKey
+        ? { key: currentUser.agentPresentationKey, contentType: undefined }
+        : await getUploadedAgentPresentation(authToken);
+      const storageKey = presentation?.key;
+      if (!storageKey) return;
+
+      if (!currentUser.agentPresentationKey) {
+        await setAuthSession(
+          { ...currentUser, agentPresentationKey: storageKey },
+          authToken,
+          refreshToken,
+        );
+      }
+
+      await cacheUploadedFile({
+        storageKey,
+        token: authToken,
+        namespace: "agent-presentations",
+        contentType: presentation.contentType,
+      });
+    };
+
+    cacheAgentPresentation().catch((error) => {
+      console.warn("No se pudo cachear agentpresentation:", error);
+    });
+  }, [authToken, currentUser, refreshToken, setAuthSession]);
 
   const loadCalendarDates = useCallback(
     async (options: { sync?: boolean } = {}) => {
@@ -1179,7 +1091,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <TouchableOpacity
               style={styles.centerButton}
               activeOpacity={0.85}
-              onPress={() => router.push(`${areaConfig.basePath}/settings` as never)}
+              onPress={() => {
+                router.push(`${areaConfig.basePath}/settings` as never);
+              }}
             >
               <Settings size={18} color="#ffffff" />
               <Text style={styles.centerButtonText}>Abrir preferencias</Text>
@@ -1365,7 +1279,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <TouchableOpacity
               style={styles.avatar}
               activeOpacity={0.85}
-              onPress={() => setIsProfileMenuOpen((current) => !current)}
+              onPress={() => {
+                router.push(`${areaConfig.basePath}/settings` as never)
+              }}
             >
               {profileAvatarUri ? (
                 <Image source={{ uri: profileAvatarUri }} style={styles.avatarImage} resizeMode="cover" />
@@ -1403,7 +1319,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   <CameraIcon size={15} color={"#315b41"} />
                   <Text style={styles.profileMenuButtonText}>Agregar foto</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
+                {/*<TouchableOpacity
                   style={styles.profileMenuButton}
                   activeOpacity={0.85}
                   onPress={() => {
@@ -1415,15 +1331,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   <Text style={styles.profileMenuButtonText}>
                     Configuraciones
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </TouchableOpacity>*/}
+                {/*<TouchableOpacity
                   style={styles.profileLogoutButton}
                   activeOpacity={0.85}
                   onPress={handleLogout}
                 >
                   <LogOut size={15} color="#ffffff" />
                   <Text style={styles.profileLogoutText}>Salir de sesion</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>*/}
               </View>
             ) : null}
           </View>

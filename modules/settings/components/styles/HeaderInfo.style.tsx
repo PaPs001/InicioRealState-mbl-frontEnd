@@ -1,47 +1,13 @@
-import {StyleSheet} from 'react-native';
-import { generalColors, textColor, userColors, borderColor, statusColors } from '@/theme';
+import { StyleSheet } from "react-native"
+import { generalColors, textColor, userColors, borderColor } from "@/theme"
 export const styles = StyleSheet.create({
-  //Extras
-  point:{
+///Usuario
+  point: {
     borderRadius: 999,
     width: 8,
     height: 8,
-    backgroundColor: userColors.coordinator.primary
+    backgroundColor: userColors.coordinator.primary,
   },
-  ////////
-  safeArea: {
-    flex: 1,
-    backgroundColor: generalColors.background,
-  },
-  content: {
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 48,
-    gap: 12
-  },
-  headerRow:{
-    width: '100%',
-    height: 60,
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  backButton:{
-    position: 'absolute',
-    zIndex: 2,
-    left: 0,  
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    paddingLeft: 2,
-  },
-  headerLogo:{
-    alignSelf: 'center', 
-  },
-
-  ///Usuario
   profileInformationContainer:{
     borderWidth: 1,
     borderRadius: 12,
@@ -159,6 +125,16 @@ export const styles = StyleSheet.create({
     gap: 10,
     alignContent: 'center',
   },
+  sectionTitle: {
+    color: userColors.coordinator.primary,
+    fontSize: 15,
+    lineHeight: 24,
+    fontWeight: '600',
+  },
+  options: {
+    marginTop: 14,
+    flexDirection: 'row',
+  },
   title: {
     color: '#1e2d32',
     fontSize: 28,
@@ -170,46 +146,5 @@ export const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     lineHeight: 20,
-  },
-  section: {
-    marginTop: 32,
-  },
-  sectionTitle: {
-    color: userColors.coordinator.primary,
-    fontSize: 15,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    color: '#6b7280',
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  rowOptions:{
-    flexDirection: 'row',
-  },
-  options: {
-    marginTop: 14,
-    flexDirection: 'row',
-  },
-
-  finalSection:{
-    alignItems: 'center',
-  
-  },  
-  logOutButton:{
-    paddingVertical: 7,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d3d1d165',
-    backgroundColor: generalColors.white,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  logOutText:{
-    color: statusColors.danger
   },
 })
