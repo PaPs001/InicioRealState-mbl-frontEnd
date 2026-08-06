@@ -46,6 +46,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     borderColor: generalColors.border,
+    backgroundColor: '#FFFDFC',
     padding: 15,
     gap: 15
   },
