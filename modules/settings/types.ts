@@ -17,3 +17,10 @@ export type SettingsContextValue = AppSettings & {
   setOperationMode: (mode: OperationMode) => Promise<void>
   resetSettings: () => Promise<void>
 }
+
+export type UserDashboardArea = "adviser" | "coordinator";
+
+export type UserDashboardScreenProps = {
+  area: UserDashboardArea;
+};
+

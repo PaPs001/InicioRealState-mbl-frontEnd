@@ -718,12 +718,12 @@ export default function CoordinatorPropertiesListScreen() {
         </View>
       </Modal>
 
-      {isMapMode ? null : (
+      {/*{isMapMode ? null : (
         <TouchableOpacity style={styles.mapFloatingButton} onPress={() => setIsMapMode(true)} activeOpacity={0.85}>
           <Text style={styles.mapFloatingButtonText}>Mapa</Text>
           <MapIcon size={16} color="#ffffff" fill="#ffffff" />
         </TouchableOpacity>
-      )}
+      )}*/}
 
     </SafeAreaView>
   )

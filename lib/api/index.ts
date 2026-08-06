@@ -59,6 +59,7 @@ export {
   deleteUploadedProfileImage,
   deleteUploadedAgentPresentationImage,
   getUploadedProfileImage,
+  getUploadedAgentPresentation,
   uploadProfileImage,
   validateRegistrationData,
   type BackendProfileImagePayload,
