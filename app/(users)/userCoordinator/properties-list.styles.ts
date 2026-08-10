@@ -4,14 +4,14 @@ import { StyleSheet } from 'react-native'
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: generalColors.background,
   },
   pdfWorkState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   pdfWorkTitle: {
     marginTop: 18,
@@ -31,10 +31,10 @@ export const styles = StyleSheet.create({
   listContent: {
     alignItems: 'center',
     paddingBottom: 90,
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   listCanvas: {
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   headerCanvas: {
     paddingTop: 32,
@@ -162,9 +162,9 @@ export const styles = StyleSheet.create({
   segmentedControl: {
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#f6efe3',
+    backgroundColor: '#ffffff',
     borderWidth: 0.5,
-    borderColor: '#d8d0c5',
+    borderColor: '#969696',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 4,

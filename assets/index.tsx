@@ -44,6 +44,9 @@ import Camera from './settings/Camera.svg'
 import House from './settings/HouseRent.svg'
 import BigEye from './settings/Eye.svg'
 import Power from './settings/power.svg'
+import CalendarCog from './settings/calendar-cog.svg'
+import ArrowLeft from './settings/arrowLeft.svg'
+import WhiteCalendar from './settings/calendarWhite.svg'
 
 export const logos = {
   inicioGris: LogoInicioSVGris,
@@ -85,6 +88,9 @@ export const icons = {
   House: House,
   BigEye: BigEye,
   Power: Power,
+  CalendarCog: CalendarCog,
+  ArrowLeft: ArrowLeft,
+  WhiteCalendar: WhiteCalendar
 
 } as const
 
@@ -171,5 +177,8 @@ export {
   Camera,
   BigEye,
   House,
-  Power
+  Power,
+  CalendarCog,
+  ArrowLeft,
+  WhiteCalendar
 }

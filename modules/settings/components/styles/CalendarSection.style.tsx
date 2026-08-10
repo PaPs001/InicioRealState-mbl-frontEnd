@@ -1,18 +1,19 @@
 import { StyleSheet } from "react-native";
-import { generalColors } from "@/theme";
+import { generalColors, textColor, userColors } from "@/theme";
 
 export const styles = StyleSheet.create({
   //Calendario
     sectionTitle: {
-      color: '#0c6740',
-      fontSize: 15,
+      color: userColors.coordinator.primary,
+      fontSize: 16,
       lineHeight: 24,
-      fontWeight: '600',
+      fontWeight: '700',
     },
     calendarSection:{
       borderRadius: 12,
       borderWidth: 1,
       borderColor: generalColors.border,
+      backgroundColor: generalColors.backgroundSections,
       paddingVertical: 15,
       paddingHorizontal: 10,
       gap: 10
@@ -60,8 +61,37 @@ export const styles = StyleSheet.create({
       fontSize: 13,
       fontWeight: '700',
     },
+    calendarOptions:{
+      gap: 15
+    },
+    optionsSections:{
+    },
+    optionButtonType1:{
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      paddingLeft: 20,
+      paddingRight: 10
+
+    },
+    textSectionOptionButtonType1:{
+      flex: 1
+    },
+    titleOption:{
+      fontSize: 13,
+      color: userColors.coordinator.primary,
+      fontWeight: '700',
+    },
+    subtitleOption:{
+      fontSize:10,
+      color: textColor.softText
+    },
+
+    calendarViewing:{
+      paddingLeft: 35
+    },
   
-  
+
     calendarSmallButton: {
       minWidth: 78,
       height: 25,
@@ -73,7 +103,7 @@ export const styles = StyleSheet.create({
     },
     calendarSmallButtonText: {
       color: '#0c6740',
-      fontSize: 10,
+      fontSize: 12,
       fontWeight: '600',
     },
     calendarSettingsEmpty: {
@@ -160,7 +190,7 @@ export const styles = StyleSheet.create({
     },
     calendarActionButton: {
       flex: 1,
-      minHeight: 31,
+      minHeight: 40,
       borderRadius: 6,
       backgroundColor: '#0c6740',
       alignItems: 'center',
@@ -169,7 +199,7 @@ export const styles = StyleSheet.create({
     },
     calendarActionButtonText: {
       color: '#ffffff',
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       textAlign: 'center',
     },

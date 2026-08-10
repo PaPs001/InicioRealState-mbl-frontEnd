@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native'
-
+import { generalColors } from '@/theme'
 const numberFont = Platform.select({
   ios: 'Georgia',
   android: 'serif',
@@ -9,7 +9,7 @@ const numberFont = Platform.select({
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: generalColors.background,
   },
   content: {
     paddingHorizontal: 11,
@@ -45,6 +45,22 @@ export const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 10,
     fontWeight: '600',
+  },
+  mainDashboardButton: {
+    alignSelf: 'flex-start',
+    minHeight: 32,
+    borderRadius: 6,
+    backgroundColor: '#315b41',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    marginTop: -28,
+    marginBottom: 10,
+  },
+  mainDashboardButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
   },
   profileRow: {
     marginTop: -14,
@@ -155,13 +171,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     height: 104,
     borderRadius: 9,
-    backgroundColor: '#3d5f42',
+    backgroundColor: generalColors.rentColor,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
   },
-  availableCardRent:{
-    backgroundColor: '#2d5f6b'
+  availableCardSale:{
+    backgroundColor: generalColors.saleColor
   },
   spacedLabel: {
     color: '#ffffff',
@@ -388,13 +404,22 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   appointmentCard: {
-    minHeight: 56,
-    borderRadius: 8,
-    backgroundColor: '#3d5f42',
+    minHeight: 65,
+    borderRadius: 12,
+    backgroundColor: '#405543',
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 10,
     paddingRight: 7,
+  },
+  appointmentCardRent: {
+    backgroundColor: generalColors.rentColor,
+  },
+  appointmentCardSale: {
+    backgroundColor: generalColors.saleColor,
+  },
+  appointmentCardGeneral: {
+    backgroundColor: '#fff8f8',
   },
   appointmentCopy: {
     flex: 1,
@@ -405,20 +430,27 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  appointmentType: {
+    color: '#d8c596',
+    fontSize: 8,
+    fontWeight: '700',
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
   appointmentMeta: {
     color: '#ffffff',
     fontSize: 9,
     marginTop: 2,
   },
-  appointmentDate: {
-    width: 98,
+  appointmentDate:{
+    width: 120,
     borderLeftWidth: 1,
     borderLeftColor: '#d8c596',
     paddingLeft: 8,
     marginLeft: 8,
   },
   dayPill: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     minHeight: 16,
     borderRadius: 4,
     backgroundColor: '#d4b66f',
@@ -481,6 +513,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f8f2ee',
     padding: 10,
   },
+
+  /// estilos para la seccion de citas
   calendarSettingsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -605,223 +639,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  calendarTestLabel: {
-    color: '#3d5a40',
-    fontSize: 10,
-    fontWeight: '700',
-    marginBottom: 5,
-  },
-  calendarDestinationList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  calendarDestinationChip: {
-    maxWidth: '48%',
-    minHeight: 26,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    backgroundColor: '#fffcfc',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  calendarDestinationChipActive: {
-    backgroundColor: '#3d5a40',
-    borderColor: '#3d5a40',
-  },
-  calendarDestinationChipText: {
-    color: '#3d5a40',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  calendarDestinationChipTextActive: {
-    color: '#ffffff',
-  },
-  calendarTestInput: {
-    minHeight: 34,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    color: '#232323',
-    fontSize: 11,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    marginBottom: 6,
-    backgroundColor: '#fffcfc',
-  },
-  calendarPicker: {
-    marginBottom: 6,
-  },
-  calendarPickerValue: {
-    minHeight: 34,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    color: '#232323',
-    fontSize: 11,
-    paddingHorizontal: 9,
-    paddingVertical: 8,
-    backgroundColor: '#fffcfc',
-  },
-  calendarPickerActions: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 6,
-  },
-  calendarPickerButton: {
-    flex: 1,
-    height: 28,
-    borderRadius: 5,
-    backgroundColor: '#f1ebda',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  calendarPickerButtonText: {
-    color: '#3d5a40',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  calendarPickerInput: {
-    flex: 1,
-    minHeight: 32,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    color: '#232323',
-    fontSize: 11,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    backgroundColor: '#fffcfc',
-  },
-  calendarTestCreateButton: {
-    minHeight: 32,
-    borderRadius: 6,
-    backgroundColor: '#3d5a40',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-    marginTop: 2,
-  },
-  calendarTestCreateButtonText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  appointmentModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(25, 25, 31, 0.42)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-  appointmentModalPanel: {
-    maxHeight: '88%',
-    borderRadius: 8,
-    backgroundColor: '#fffcfc',
-    padding: 12,
-  },
-  appointmentModalHeader: {
-    minHeight: 38,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: 6,
-  },
-  appointmentModalTitle: {
-    flex: 1,
-    color: '#0c6740',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  appointmentModalClose: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#f1ebda',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  appointmentModalBack: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#f1ebda',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  appointmentModalContent: {
-    paddingBottom: 6,
-  },
-  appointmentPickerButton: {
-    minHeight: 48,
-    borderRadius: 7,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    backgroundColor: '#fffcfc',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 6,
-  },
-  appointmentPickerCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  appointmentPickerTitle: {
-    color: '#3d5a40',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  appointmentPickerMeta: {
-    color: '#7e8b86',
-    fontSize: 10,
-    marginTop: 2,
-  },
-  appointmentSelectionList: {
-    gap: 8,
-  },
-  appointmentSelectionRow: {
-    minHeight: 58,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ded6ca',
-    backgroundColor: '#ffffff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-  appointmentSelectionRowActive: {
-    backgroundColor: '#3d5a40',
-    borderColor: '#3d5a40',
-  },
-  appointmentSelectionRowCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  appointmentSelectionRowTitle: {
-    color: '#232323',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  appointmentSelectionRowTitleActive: {
-    color: '#ffffff',
-  },
-  appointmentSelectionRowMeta: {
-    color: '#7e8b86',
-    fontSize: 10,
-    lineHeight: 14,
-    marginTop: 3,
-  },
-  appointmentSelectionRowMetaActive: {
-    color: '#ffffff',
-  },
+ 
   quickPanel: {
     marginTop: 8,
   },

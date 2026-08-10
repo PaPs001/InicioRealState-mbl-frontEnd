@@ -1,7 +1,6 @@
 import { Image, Pressable, Text } from 'react-native'
 import { AppModal } from '@/components/AppModal'
-import { styles } from './ProfileImageModal.styles'
-
+import {styles} from './styles/ProfileImageModal.styles'
 type ProfileImageModalProps = {
   visible: boolean
   title: string

@@ -30,6 +30,7 @@ import type { Property } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { styles } from './properties-list.styles'
 import { icons } from '@/assets'
+import { generalColors } from '@/theme'
 
 type ListingProperty = {
   id: string
@@ -92,6 +93,10 @@ const PDF_AGENT_LABELS: Record<PdfReportAgentName, string> = {
 }
 
 const PDF_REPORT_LOCATION = 'TODAS'
+
+function hasPropertyTitle(property: Property) {
+  return Boolean(property.title?.trim())
+}
 
 function mapPropertyToListing(property: Property): ListingProperty {
   const amenities = property.amenities?.length ? property.amenities : property.features ?? []
@@ -192,7 +197,7 @@ export default function CoordinatorPropertiesListScreen() {
   const initialListingFilter: ListingFilter =
     params.type === 'sale' || params.type === 'rent'
       ? params.type
-      : operationMode === 'both' ? 'all' : operationMode
+      : operationMode === 'both' ? 'rent' : operationMode
   const routeBase = pathname.startsWith('/userAdviser') ? '/userAdviser' : '/userCoordinator'
   const {
     availableProperties,
@@ -222,8 +227,12 @@ export default function CoordinatorPropertiesListScreen() {
   const [sortOption, setSortOption] = useState<SortOption>('price_desc')
 
   useEffect(() => {
-    if (params.type === 'sale' || params.type === 'rent') return
-    setListingFilter(operationMode === 'both' ? 'all' : operationMode)
+    if (params.type === 'sale' || params.type === 'rent') {
+      setListingFilter(params.type)
+      return
+    }
+
+    setListingFilter(operationMode === 'both' ? 'rent' : operationMode)
   }, [operationMode, params.type])
 
   useEffect(() => {
@@ -237,6 +246,8 @@ export default function CoordinatorPropertiesListScreen() {
   const listings = useMemo(() => {
     const source = (catalogProperties.length > 0 ? catalogProperties : availableProperties)
       .filter(property => {
+        if (!hasPropertyTitle(property)) return false
+
         const isSale = property.status === 'for_sale' || property.status === 'pending_sale'
         const isRent = property.status === 'for_rent' || property.status === 'pending_rent' || !!property.monthlyRent
 
@@ -386,21 +397,23 @@ export default function CoordinatorPropertiesListScreen() {
         <View style={styles.controlsBlock}>
           {operationMode === 'both' ? (
             <View style={styles.segmentedControl}>
-              <FilterChip
+              {/*<FilterChip
                 label="Todo"
                 active={listingFilter === 'all'}
                 onPress={() => setListingFilter('all')}
-              />
+              />*/}
 
               <FilterChip
                 label="Renta"
                 active={listingFilter === 'rent'}
+                activeColor={generalColors.rentColor}
                 onPress={() => setListingFilter('rent')}
               />
 
               <FilterChip
                 label="Venta"
                 active={listingFilter === 'sale'}
+                activeColor={generalColors.saleColor}
                 onPress={() => setListingFilter('sale')}
               />
             </View>
@@ -786,7 +799,7 @@ const PropertyCard = memo(function PropertyCard({
         <View style={styles.priceRow}>
           <Text style={styles.price}>{property.priceLabel || formatCurrency(property.price)}</Text>
           {property.status === 'for_rent' || property.status === 'pending_rent' ? (
-            <Text style={styles.priceMeta}>MXN / mes </Text>
+            <Text style={styles.priceMeta}></Text>
           ) : null}
         </View>
         {shouldShowPropertyDetails ? (
@@ -861,10 +874,24 @@ function RawInfo({ label, value }: { label: string; value?: string }) {
   )
 }
 
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function FilterChip({
+  label,
+  active,
+  activeColor,
+  onPress,
+}: {
+  label: string
+  active: boolean
+  activeColor?: string
+  onPress: () => void
+}) {
   return (
     <TouchableOpacity
-      style={[styles.filterChip, active && styles.filterChipActive]}
+      style={[
+        styles.filterChip,
+        active && styles.filterChipActive,
+        active && activeColor ? { backgroundColor: activeColor } : null,
+      ]}
       activeOpacity={0.85}
       onPress={onPress}
     >

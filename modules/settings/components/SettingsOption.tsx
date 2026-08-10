@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { ComponentType, useState } from 'react'
 import { OperationMode } from '../types'
-import { userColors } from '@/theme'
+import { generalColors, userColors } from '@/theme'
 import { SvgProps } from 'react-native-svg'
 
 type SettingsOptionProps<T extends string> = {
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: 45,
-    backgroundColor: '#ffffff',
+    backgroundColor: generalColors.white,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
