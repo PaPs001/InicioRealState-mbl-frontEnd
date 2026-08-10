@@ -13,7 +13,6 @@ type FieldValidation<T> = {
 }
 
 interface UseFormOptions<T> {
-  initialValues: T
   validations?: FieldValidation<T>
   onSubmit?: (values: T) => Promise<void> | void
 }

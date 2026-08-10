@@ -84,7 +84,7 @@ export function AppSettingsScreen(
             <icons.BackButton/>
           </Pressable>
           <View style={styles.headerLogo}>
-            <logos.irsPrincipal />
+            <logos.irsPrincipal width={146} height={48}/>
           </View>
         </View>
         <HeaderInfo

@@ -1,0 +1,447 @@
+import { Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ChevronLeft, ChevronRight } from 'lucide-react-native'
+import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
+import type { Property, PropertyLead } from '@/lib/types'
+
+import { FilterChip } from '@/components/FilterChip'
+import { getAppointmentEndDateTime, getPropertyDisplayName } from '@/components/userDashboard/dashboard-formatters'
+import { styles } from './styles/appointmentCreateModal.style'
+import { generalColors } from '@/theme'
+import { AppointmentDateTimePicker } from './AppointmentDateTimePicker'
+import { useState } from 'react'
+
+type AppointmentCreateModalProps = {
+  appointmentLeadMode: 'existing' | 'provisional'
+  appointmentLeadOptions: PropertyLead[]
+  appointmentPropertyOptions: Property[]
+  enabledSelectedCalendars: SelectedGoogleCalendar[]
+  isCatalogLoading: boolean
+  isCreatingAppointment: boolean
+  isGoogleConnected: boolean
+  needsGoogleReconnect?: boolean
+  isLeadsLoading: boolean
+  onClose: () => void
+  onCreateAppointment: () => void
+  onLeadModeChange: (mode: 'existing' | 'provisional') => void
+  onSelectCalendar: (calendar: SelectedGoogleCalendar) => void
+  onSelectLead: (lead: PropertyLead) => void
+  onSelectProperty: (property: Property) => void
+  onSelectionScreenChange: (screen: 'lead' | 'property' | null) => void
+  onUpdateProvisionalLead: (field: 'fullName' | 'phone' | 'email', value: string) => void
+  onUpdateForm: (field: keyof CreateGoogleCalendarDatePayload, value: string) => void
+  provisionalLead: {
+    fullName: string
+    phone: string
+    email: string
+  }
+  selectedAppointmentLead?: PropertyLead
+  selectedAppointmentProperty?: Property
+  selectionScreen: 'lead' | 'property' | null
+  testAppointmentForm: CreateGoogleCalendarDatePayload
+  visible: boolean
+}
+
+export function AppointmentCreateModal({
+  appointmentLeadMode,
+  appointmentLeadOptions,
+  appointmentPropertyOptions,
+  enabledSelectedCalendars,
+  isCatalogLoading,
+  isCreatingAppointment,
+  isGoogleConnected,
+  needsGoogleReconnect = false,
+  isLeadsLoading,
+  onClose,
+  onCreateAppointment,
+  onLeadModeChange,
+  onSelectCalendar,
+  onSelectLead,
+  onSelectProperty,
+  onSelectionScreenChange,
+  onUpdateProvisionalLead,
+  onUpdateForm,
+  provisionalLead,
+  selectedAppointmentLead,
+  selectedAppointmentProperty,
+  selectionScreen,
+  testAppointmentForm,
+  visible,
+}: AppointmentCreateModalProps) {
+  const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false)
+  const selectedAppointmentType = (testAppointmentForm.appointmentType || 'general').toLowerCase()
+  const isGeneralAppointment = selectedAppointmentType === 'general'
+
+  const selectedTypeCalendar = enabledSelectedCalendars.find(
+    calendar => (calendar.appointmentType || '').toLowerCase() === selectedAppointmentType,
+  )
+  const selectedCalendar = enabledSelectedCalendars.find(
+    calendar => calendar.calendarId === testAppointmentForm.calendarId,
+  )
+  const typeCalendar = selectedAppointmentType === 'general' ? selectedCalendar : selectedTypeCalendar
+  const shouldSelectCalendarManually = selectedAppointmentType === 'general'
+
+  const selectAppointmentType = (appointmentType: 'renta' | 'venta' | 'general') => {
+    if (appointmentType === selectedAppointmentType) {
+      return
+    }
+
+    onUpdateForm('appointmentType', appointmentType)
+    onUpdateForm('leadId', '')
+    onUpdateForm('propertyId', '')
+    onSelectionScreenChange(null)
+
+    if (appointmentType === 'general') {
+      onUpdateForm('calendarId', '')
+      return
+    }
+
+    const calendarForType = enabledSelectedCalendars.find(
+      calendar => (calendar.appointmentType || '').toLowerCase() === appointmentType,
+    )
+
+    if (calendarForType) {
+      onSelectCalendar(calendarForType)
+    } else {
+      onUpdateForm('calendarId', '')
+    }
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={styles.appointmentModalOverlay} onPress={onClose}>
+        <Pressable style={styles.appointmentModalPanel} onPress={event => event.stopPropagation()}>
+          <View style={styles.appointmentModalHeader}>
+            {selectionScreen ? (
+              <TouchableOpacity
+                style={styles.appointmentModalBack}
+                onPress={() => onSelectionScreenChange(null)}
+                activeOpacity={0.85}
+              >
+                <ChevronLeft size={18} color="#3d5a40" />
+              </TouchableOpacity>
+            ) : null}
+            <Text style={styles.appointmentModalTitle}>
+              {selectionScreen === 'lead'
+                ? 'Seleccionar lead'
+                : selectionScreen === 'property'
+                  ? 'Seleccionar propiedad'
+                  : 'Crear cita'}
+            </Text>
+          </View>
+
+          {selectionScreen === 'lead' ? (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+              {isLeadsLoading ? (
+                <Text style={styles.calendarSettingsEmpty}>Cargando leads...</Text>
+              ) : appointmentLeadOptions.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>No hay leads activos disponibles.</Text>
+              ) : (
+                <View style={styles.appointmentSelectionList}>
+                  {appointmentLeadOptions.map(lead => {
+                    const isSelected = testAppointmentForm.leadId === lead.id
+                    const propertyName = getPropertyDisplayName(
+                      appointmentPropertyOptions.find(property => (property.id || property._id) === lead.propertyId),
+                    )
+
+                    return (
+                      <TouchableOpacity
+                        key={lead.id}
+                        style={[styles.appointmentSelectionRow, isSelected && styles.appointmentSelectionRowActive]}
+                        onPress={() => onSelectLead(lead)}
+                        activeOpacity={0.85}
+                      >
+                        <View style={styles.appointmentSelectionRowCopy}>
+                          <Text style={[styles.appointmentSelectionRowTitle, isSelected && styles.appointmentSelectionRowTitleActive]} numberOfLines={1}>
+                            {lead.name}
+                          </Text>
+                          <Text style={[styles.appointmentSelectionRowMeta, isSelected && styles.appointmentSelectionRowMetaActive]} numberOfLines={2}>
+                            {propertyName || lead.phone || lead.status}
+                          </Text>
+                        </View>
+                        <ChevronRight size={17} color={isSelected ? '#ffffff' : '#3d5a40'} />
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              )}
+            </ScrollView>
+          ) : selectionScreen === 'property' ? (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+              {isCatalogLoading ? (
+                <Text style={styles.calendarSettingsEmpty}>Cargando propiedades...</Text>
+              ) : appointmentPropertyOptions.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>No hay propiedades disponibles.</Text>
+              ) : (
+                <View style={styles.appointmentSelectionList}>
+                  {appointmentPropertyOptions.map(property => {
+                    const propertyId = property.id || property._id
+                    const isSelected = testAppointmentForm.propertyId === propertyId
+
+                    return (
+                      <TouchableOpacity
+                        key={propertyId}
+                        style={[styles.appointmentSelectionRow, isSelected && styles.appointmentSelectionRowActive]}
+                        onPress={() => onSelectProperty(property)}
+                        activeOpacity={0.85}
+                      >
+                        <View style={styles.appointmentSelectionRowCopy}>
+                          <Text style={[styles.appointmentSelectionRowTitle, isSelected && styles.appointmentSelectionRowTitleActive]} numberOfLines={1}>
+                            {getPropertyDisplayName(property)}
+                          </Text>
+                          <Text style={[styles.appointmentSelectionRowMeta, isSelected && styles.appointmentSelectionRowMetaActive]} numberOfLines={2}>
+                            {property.city || property.address || property.status}
+                          </Text>
+                        </View>
+                        <ChevronRight size={17} color={isSelected ? '#ffffff' : '#3d5a40'} />
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              )}
+            </ScrollView>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+              <View>
+                <Text style={styles.calendarLabel}>Tipo de cita</Text>
+                <View style={styles.appointmentModeRow}>
+                  <FilterChip
+                    label="Cita Renta"
+                    active={selectedAppointmentType === 'renta'}
+                    activeColor={generalColors.rentColor}
+                    onPress={() => selectAppointmentType('renta')}
+                  />
+                  <FilterChip
+                    label="Cita Venta"
+                    active={selectedAppointmentType === 'venta'}
+                    activeColor={generalColors.saleColor}
+                    onPress={() => selectAppointmentType('venta')}
+                  />
+                  <FilterChip
+                    label="Cita General"
+                    active={selectedAppointmentType === 'general'}
+                    activeColor={generalColors.rentColor}
+                    onPress={() => selectAppointmentType('general')}
+                  />
+                </View>
+              </View>
+              <Text style={styles.calendarLabel}>Calendario de la cita</Text>
+              {enabledSelectedCalendars.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>
+                  {needsGoogleReconnect
+                    ? 'Reconecta Google Calendar desde configuracion antes de crear citas.'
+                    : isGoogleConnected
+                    ? 'Activa y guarda al menos un calendario antes de crear citas.'
+                    : 'Conecta Google Calendar desde configuracion antes de crear citas.'}
+                </Text>
+              ) : shouldSelectCalendarManually ? (
+                <View style={styles.calendarDestinationList}>
+                  {enabledSelectedCalendars.map(calendar => {
+                    const isSelected = testAppointmentForm.calendarId === calendar.calendarId
+
+                    return (
+                      <TouchableOpacity
+                        key={calendar.calendarId}
+                        style={[styles.calendarDestinationChip, isSelected && styles.calendarDestinationChipActive]}
+                        onPress={() => onSelectCalendar(calendar)}
+                        activeOpacity={0.85}
+                      >
+                        <Text
+                          style={[styles.calendarDestinationChipText, isSelected && styles.calendarDestinationChipTextActive]}
+                          numberOfLines={1}
+                        >
+                          {calendar.summary || calendar.appointmentType || 'Calendario'}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              ) : typeCalendar ? (
+                <View style={styles.calendarSelectedNotice}>
+                  <Text style={styles.calendarSelectedNoticeTitle} numberOfLines={1}>
+                    {typeCalendar.summary || 'Calendario seleccionado'}
+                  </Text>
+                  <Text style={styles.calendarSelectedNoticeMeta} numberOfLines={1}>
+                    Se usara para citas de {selectedAppointmentType}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.calendarSettingsEmpty}>
+                  Configura un calendario para citas de {selectedAppointmentType} antes de crear esta cita.
+                </Text>
+              )}
+              <View>
+                <Text style={styles.calendarLabel}>Titulo de la cita</Text>
+                <TextInput
+                  style={styles.calendarTestInput}
+                  value={testAppointmentForm.title}
+                  onChangeText={value => onUpdateForm('title', value)}
+                  placeholder="Titulo"
+                  placeholderTextColor="#8d8d8d"
+                />
+              </View>
+              {isGeneralAppointment ? (
+                <View>
+                  <Text style={styles.calendarLabel}>Descripcion de la cita</Text>
+                  <TextInput
+                    style={styles.calendarTestInput}
+                    value={testAppointmentForm.description ?? ''}
+                    onChangeText={value => onUpdateForm('description', value)}
+                    placeholder="Descripcion"
+                    placeholderTextColor="#8d8d8d"
+                    multiline
+                  />
+                </View>
+              ) : (
+                <>
+                  <View style={styles.relatedLeadSection}>
+                    <Text style={styles.calendarLabel}>Lead relacionado</Text>
+                    <View style={styles.appointmentModeRow}>
+                      <FilterChip
+                        label="Lead Existente"
+                        active={appointmentLeadMode === 'existing'}
+                        activeColor={generalColors.rentColor}
+                        onPress={() => onLeadModeChange('existing')}
+                      />
+                      <FilterChip
+                        label="Lead Provisional"
+                        active={appointmentLeadMode === 'provisional'}
+                        activeColor={generalColors.rentColor}
+                        onPress={() => onLeadModeChange('provisional')}
+                      />
+                    </View>
+
+                    {appointmentLeadMode === 'existing' ? (
+                      <TouchableOpacity
+                        style={styles.appointmentPickerButton}
+                        onPress={() => onSelectionScreenChange('lead')}
+                        activeOpacity={0.85}
+                      >
+                        <View style={styles.appointmentPickerCopy}>
+                          <Text style={styles.appointmentPickerTitle} numberOfLines={1}>
+                            {selectedAppointmentLead?.name || 'Escoger lead'}
+                          </Text>
+                          <Text style={styles.appointmentPickerMeta} numberOfLines={1}>
+                            {isLeadsLoading
+                              ? 'Cargando leads...'
+                              : selectedAppointmentLead
+                                ? selectedAppointmentLead.phone || selectedAppointmentLead.status
+                                : `${appointmentLeadOptions.length} leads disponibles`}
+                          </Text>
+                        </View>
+                        <ChevronRight size={17} color="#3d5a40" />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.appointmentProvisionalFields}>
+                        <View style={styles.informationSection}>
+                          <Text style={styles.informationText}>Nombre Completo</Text>
+                          <TextInput
+                            style={styles.calendarTestInput}
+                            value={provisionalLead.fullName}
+                            onChangeText={value => onUpdateProvisionalLead('fullName', value)}
+                            placeholderTextColor="#8d8d8d"
+                          />
+                        </View>
+                        <View style={styles.informationSection}>
+                          <Text style={styles.informationText}>Telefono (opcional)</Text>
+                          <TextInput
+                            style={styles.calendarTestInput}
+                            value={provisionalLead.phone}
+                            onChangeText={value => onUpdateProvisionalLead('phone', value)}
+                            placeholderTextColor="#8d8d8d"
+                            keyboardType="phone-pad"
+                          />
+                        </View>
+                        <View style={styles.informationSection}>
+                          <Text style={styles.informationText}>Correo electronico (opcional)</Text>
+                          <TextInput
+                            style={styles.calendarTestInput}
+                            value={provisionalLead.email}
+                            onChangeText={value => onUpdateProvisionalLead('email', value)}
+                            placeholderTextColor="#8d8d8d"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                  <View>
+                    <Text style={styles.calendarLabel}>Propiedad relacionada</Text>
+                    <TouchableOpacity
+                      style={styles.appointmentPickerButton}
+                      onPress={() => onSelectionScreenChange('property')}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.appointmentPickerCopy}>
+                        <Text style={styles.appointmentPickerTitle} numberOfLines={1}>
+                          {selectedAppointmentProperty ? getPropertyDisplayName(selectedAppointmentProperty) : 'Escoger propiedad'}
+                        </Text>
+                        <Text style={styles.appointmentPickerMeta} numberOfLines={1}>
+                          {isCatalogLoading
+                            ? 'Cargando propiedades...'
+                            : selectedAppointmentProperty
+                              ? selectedAppointmentProperty.city || selectedAppointmentProperty.address || selectedAppointmentProperty.status
+                              : `${appointmentPropertyOptions.length} propiedades disponibles`}
+                        </Text>
+                      </View>
+                      <ChevronRight size={17} color="#3d5a40" />
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+              
+              <View>
+                <Text style={styles.calendarLabel}>Ubicacion de la cita</Text>
+                <TextInput
+                  style={styles.calendarTestInput}
+                  value={testAppointmentForm.location ?? ''}
+                  onChangeText={value => onUpdateForm('location', value)}
+                  placeholder="Ubicacion"
+                  placeholderTextColor="#8d8d8d"
+                />
+              </View>
+              <View style={styles.calendarContainer}>
+                <Text style={styles.calendarLabel}>Fecha de la cita</Text>
+                <Pressable 
+                  style={styles.calendarButton}
+                  onPress={() => setIsDateTimePickerVisible(true)}
+                >
+                  <Text style={styles.calendarButtonText}>Escoger fecha</Text>
+                </Pressable>
+                {isDateTimePickerVisible ? (
+                  <AppointmentDateTimePicker
+                    visible={isDateTimePickerVisible}
+                    onClose={() => setIsDateTimePickerVisible(false)}
+                    value={testAppointmentForm.startDateTime}
+                    onChange={value => {
+                      onUpdateForm('startDateTime', value)
+                      onUpdateForm('endDateTime', getAppointmentEndDateTime(value))
+                    }}
+                  />
+                ): null}
+              </View>
+              <View style={styles.calendarButtonsSection}>
+                <TouchableOpacity
+                  style={styles.calendarCloseTab}
+                  onPress={onClose}
+                >
+                  <Text style={styles.calendarTestCreateButtonText}>Cancelar </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.calendarTestCreateButton}
+                  onPress={onCreateAppointment}
+                  activeOpacity={0.85}
+                  disabled={isCreatingAppointment}
+                >
+                  <Text style={styles.calendarTestCreateButtonText}>
+                    {isCreatingAppointment ? 'Procesando...' : 'Crear cita'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  )
+}

@@ -15,6 +15,9 @@ export const generalColors = {
   borderSoft: '#e4e4e4',
   error: '#b42318',
   greenTitle: '#3D5A40',
+  backgroundSections: '#FFFDFC',
+  saleColor: '#2d5f6b',
+  rentColor: '#3d5f42'
 }
 
 export const textColor ={

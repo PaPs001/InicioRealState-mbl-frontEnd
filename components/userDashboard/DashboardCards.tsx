@@ -21,11 +21,19 @@ export function PriorityCard({ priority, highlight }: { priority: DashboardPrior
 }
 
 export function AppointmentCard({ appointment }: { appointment: AppointmentPreviewItem }) {
+  const appointmentTone = getAppointmentTone(appointment.appointmentType)
   return (
-    <View style={styles.appointmentCard}>
+    <View
+      style={[
+        styles.appointmentCard,
+        appointmentTone === 'rent' && styles.appointmentCardRent,
+        appointmentTone === 'sale' && styles.appointmentCardSale,
+        appointmentTone === 'general' && styles.appointmentCardGeneral,
+      ]}
+    >
       <View style={styles.appointmentCopy}>
         <Text style={styles.appointmentTitle} numberOfLines={1}>{appointment.property}</Text>
-        <Text style={styles.appointmentMeta} numberOfLines={1}>Cliente: {appointment.client}</Text>
+        <Text style={styles.appointmentMeta} numberOfLines={1}>Ubicacion: {appointment.client}</Text>
         <Text style={styles.appointmentMeta} numberOfLines={1}>Asesor: {appointment.adviser}</Text>
       </View>
       <View style={styles.appointmentDate}>
@@ -34,13 +42,27 @@ export function AppointmentCard({ appointment }: { appointment: AppointmentPrevi
           <Text style={styles.appointmentDay} numberOfLines={1}>{appointment.day}</Text>
         </View>
         <Text style={styles.appointmentTime}>{appointment.time}</Text>
-        <View style={styles.statusPill}>
-          <Text style={styles.statusText}>{appointment.status}</Text>
-        </View>
       </View>
-      <ChevronRight size={17} color="#d4b66f" />
+      {/*<ChevronRight size={17} color="#d4b66f" />*/}
     </View>
   )
+}
+
+function getAppointmentTone(appointmentType?: string | null) {
+  const normalizedType = appointmentType?.trim().toLowerCase()
+  if (normalizedType === 'renta') return 'rent'
+  if (normalizedType === 'venta') return 'sale'
+  if (normalizedType === 'general') return 'general'
+  return null
+}
+
+function formatAppointmentType(appointmentType: string) {
+  const normalizedType = appointmentType.trim().toLowerCase()
+  if (normalizedType === 'renta') return 'Renta'
+  if (normalizedType === 'venta') return 'Venta'
+  if (normalizedType === 'sala_juntas') return 'general'
+  if (normalizedType === 'general') return 'General'
+  return appointmentType
 }
 
 export function LeadMetricCard({ metric }: { metric: DashboardMetric }) {
