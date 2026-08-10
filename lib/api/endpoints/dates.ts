@@ -52,6 +52,38 @@ export interface CreateGoogleCalendarDatePayload {
   advisorId?: string | null
   appointmentType?: string | null
   colorId?: string | null
+  lead?: {
+    fullName: string
+    phone?: string | null
+    email?: string | null
+  } | null
+}
+
+export interface GoogleCalendarDateLeadSummary {
+  _id?: string
+  id?: string | null
+  fullName?: string | null
+  client?: string | null
+  name?: string | null
+  phone?: string | null
+  email?: string | null
+  agentId?: string | null
+  propertyOfInterestId?: string | null
+  systemStatus?: string | null
+  status?: string | null
+  createdAt?: string | Date | null
+  updatedAt?: string | Date | null
+}
+
+export interface CreateGoogleCalendarDateResponse {
+  date: GoogleCalendarDate
+  lead: GoogleCalendarDateLeadSummary | null
+  leadResolution: {
+    mode: 'existing' | 'created' | 'none'
+    provisional: boolean
+    duplicateWarning: boolean
+    possibleDuplicates: GoogleCalendarDateLeadSummary[]
+  }
 }
 
 export interface GoogleCalendarOption {
@@ -128,7 +160,7 @@ export function getGoogleCalendarDates(token?: string | null, filters: GoogleCal
 }
 
 export function createGoogleCalendarDate(token: string | null | undefined, payload: CreateGoogleCalendarDatePayload) {
-  return coreApi<GoogleCalendarDate>('/dates/dates', {
+  return coreApi<CreateGoogleCalendarDateResponse>('/dates/dates', {
     method: 'POST',
     token: token ?? undefined,
     body: payload,

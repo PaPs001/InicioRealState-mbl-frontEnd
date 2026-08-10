@@ -25,6 +25,7 @@ export default function AdviserLayout() {
       <Tabs.Screen name="developments-soon" options={{ title: 'Desarrollos', href: null }} />
       <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
       <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
+      <Tabs.Screen name="mainDashboard" options={{ title: 'Dashboard', href: null }} />
     </Tabs>
   )
 }

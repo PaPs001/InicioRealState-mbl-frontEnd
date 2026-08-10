@@ -12,6 +12,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     borderColor: generalColors.border,
+    backgroundColor: generalColors.backgroundSections,
     padding: 15,
     gap: 15
   },
@@ -73,7 +74,7 @@ export const styles = StyleSheet.create({
     alignContent: 'center'
   },
   statusText:{
-    color: userColors.coordinator.primaryDark
+    color: '#377441'
   },
   activeStatus:{
     flexDirection: 'row',
@@ -84,18 +85,19 @@ export const styles = StyleSheet.create({
     borderColor: borderColor.borderSoft,
     paddingVertical: 5,
     paddingHorizontal: 12,
-    backgroundColor: '#a6ebad7a'
+    backgroundColor: '#EEFFF1'
   },
   editProfileRow:{
     flexDirection: 'row',
     flex: 1,
-    gap: 10,
-    paddingHorizontal: 15,
-    alignItems: 'center'
+    //gap: 10,
+    paddingHorizontal: 110,
+    alignItems: 'center',
   },
   editButton:{
     borderRadius: 8,
     borderColor: generalColors.border,
+    backgroundColor: generalColors.white,
     borderWidth: 1,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -110,12 +112,12 @@ export const styles = StyleSheet.create({
     color: textColor.accentGolden,
     fontSize: 12,
     flexShrink: 1,
-    
   },
   optionsSection:{
     borderRadius: 12,
     borderWidth: 1,
     borderColor: generalColors.border,
+    backgroundColor: generalColors.backgroundSections,
     paddingVertical: 17,
     paddingHorizontal: 10
   },
@@ -127,9 +129,9 @@ export const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: userColors.coordinator.primary,
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 24,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   options: {
     marginTop: 14,

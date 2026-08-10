@@ -12,6 +12,7 @@ export function mapGoogleDateToAppointment(date: GoogleCalendarDate): Appointmen
 
   return {
     id: date._id,
+    appointmentType: date.appointmentType ?? null,
     property: date.title || 'Cita programada',
     client: date.location || descriptionLines[0] || 'Pendiente',
     adviser: date.helpedBy || date.advisorId || 'Pendiente',

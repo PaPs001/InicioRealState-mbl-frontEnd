@@ -97,6 +97,8 @@ export {
   type GoogleCalendarDate,
   type GoogleCalendarDateFilters,
   type CreateGoogleCalendarDatePayload,
+  type CreateGoogleCalendarDateResponse,
+  type GoogleCalendarDateLeadSummary,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarOption,
   type GoogleCalendarSyncResponse,

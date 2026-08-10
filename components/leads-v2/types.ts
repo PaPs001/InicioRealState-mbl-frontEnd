@@ -2,7 +2,7 @@ import type { LeadV2SystemStatus, Property, PropertyLead } from '@/lib/types'
 
 export const LEADS_PAGE_SIZE = 20
 
-export type LeadV2Status = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
+export type LeadV2Status = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'provisional' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
 
 export type LeadV2ViewModel = {
   id: string

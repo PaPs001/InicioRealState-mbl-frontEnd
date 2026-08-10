@@ -64,13 +64,13 @@ export function HeaderInfo({
         </View>
 
         <View style={styles.editProfileRow}>
-          <Pressable onPress={onAddAgentPresentation} style={styles.editButton}>
+          {/*<Pressable onPress={onAddAgentPresentation} style={styles.editButton}>
             <icons.Pencil />
             <Text style={styles.editText}>Agregar foto PDF</Text>
-          </Pressable>
+          </Pressable>*/}
           <Pressable onPress={onChangeProfilePhoto} style={styles.editButton}>
             <icons.Camera />
-            <Text style={styles.editText}>Cambiar Foto</Text>
+            <Text style={styles.editText}>Cambiar Foto </Text>
           </Pressable>
         </View>
       </View>

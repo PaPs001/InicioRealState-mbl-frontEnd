@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import { generalColors, textColor, userColors, borderColor, statusColors } from '@/theme';
+import { generalColors, textColor, userColors, borderColor, statusColors, fontSize } from '@/theme';
 export const styles = StyleSheet.create({
   //Extras
   point:{
@@ -18,7 +18,6 @@ export const styles = StyleSheet.create({
     maxWidth: 640,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingTop: 24,
     paddingBottom: 48,
     gap: 12
   },
@@ -200,7 +199,7 @@ export const styles = StyleSheet.create({
   
   },  
   logOutButton:{
-    paddingVertical: 7,
+    paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 8,
     borderWidth: 1,
@@ -211,6 +210,7 @@ export const styles = StyleSheet.create({
     gap: 7,
   },
   logOutText:{
-    color: statusColors.danger
+    color: statusColors.danger,
+    fontSize: 12,
   },
 })

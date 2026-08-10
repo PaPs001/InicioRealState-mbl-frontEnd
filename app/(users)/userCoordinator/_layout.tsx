@@ -55,6 +55,7 @@ export default function CoordinatorLayout() {
         <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
         <Tabs.Screen name="properties" options={{ title: 'Propiedades' }} />
         <Tabs.Screen name="appointments" options={{ title: 'Citas' }} />
+        <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
         <Tabs.Screen name="leads" options={{ title: 'Seguimiento' }} />
         <Tabs.Screen name="leads-v2" options={{ title: 'Seguimiento V2', href: null }} />
         <Tabs.Screen name="leads-v2/followups" options={{ title: 'Historial V2', href: null }} />

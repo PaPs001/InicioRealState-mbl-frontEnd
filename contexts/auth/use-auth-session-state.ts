@@ -6,8 +6,8 @@ import {
   buildSessionUser,
   clearPersistedAuthSession,
   loadPersistedAuthSession,
-  normalizeAuthUser,
   persistAuthSession,
+  normalizeAuthUser,
   type BackendUser,
 } from '@/lib/services/auth-session'
 import type { User } from '@/lib/types'

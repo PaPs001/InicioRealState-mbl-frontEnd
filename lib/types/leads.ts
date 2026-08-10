@@ -3,7 +3,7 @@
  */
 
 export type LeadStatus = 'nuevo' | 'contactado' | 'cita_agendada' | 'visitado' | 'negociando' | 'cerrado' | 'descartado'
-export type LeadV2SystemStatus = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
+export type LeadV2SystemStatus = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'provisional' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
 export type LeadV2StatusSource = 'advisor' | 'coordinator' | 'system' | 'notion' | 'manychat'
 export type LeadContactType = 'call' | 'whatsapp' | 'email' | 'visit' | 'meeting'
 export type LeadSearchIntent = 'sale' | 'rent'

@@ -209,6 +209,7 @@ export function formatLeadStatus(status: LeadV2Status) {
     congelado: 'Congelado',
     en_espera: 'En espera',
     con_cita: 'Con cita',
+    provisional: 'Provisional',
     lead_muerto: 'Muerto',
     lead_ganador: 'Ganado',
     lead_perdido: 'Perdido',

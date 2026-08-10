@@ -26,7 +26,7 @@ import {
   SunMedium,
 } from "lucide-react-native";
 
-import { BackButton } from "@/assets";
+import { icons } from "@/assets";
 
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
@@ -71,7 +71,7 @@ import {
   isOverdueFollowUp,
   mapGoogleDateToAppointment,
 } from "./dashboard-formatters";
-import { AppointmentCreateModal } from "./AppointmentCreateModal";
+import { AppointmentCreateModal } from "@/modules/users/main/components/AppointmentCreateModal";
 import { styles } from "./UserDashboardScreen.styles";
 import type {
   AppointmentPreviewItem,
@@ -79,7 +79,7 @@ import type {
   DashboardMetric,
   DashboardPriority,
 } from "./types";
-import { useOperationMode } from "@/modules/settings";
+import { AppCapabilities, useOperationMode } from "@/modules/settings";
 import {
   ProfileImageModal,
   useProfileAvatar,
@@ -172,6 +172,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const [appointmentSelectionScreen, setAppointmentSelectionScreen] = useState<
     "lead" | "property" | null
   >(null);
+  const [appointmentLeadMode, setAppointmentLeadMode] = useState<
+    "existing" | "provisional"
+  >("existing");
+  const [provisionalAppointmentLead, setProvisionalAppointmentLead] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+  });
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
   const [isCalendarSettingsLoading, setIsCalendarSettingsLoading] =
@@ -546,6 +554,21 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     );
   }, [availableProperties, catalogProperties]);
 
+  const filteredAppointmentPropertyOptions = useMemo(() => {
+    const appointmentType =
+      testAppointmentForm.appointmentType?.trim().toLowerCase() || "general";
+
+    if (appointmentType === "renta") {
+      return appointmentPropertyOptions.filter(isRentAppointmentProperty);
+    }
+
+    if (appointmentType === "venta") {
+      return appointmentPropertyOptions.filter(isSaleAppointmentProperty);
+    }
+
+    return appointmentPropertyOptions;
+  }, [appointmentPropertyOptions, testAppointmentForm.appointmentType]);
+
   const appointmentLeadOptions = useMemo(
     () =>
       leads
@@ -564,12 +587,20 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const selectedAppointmentProperty = useMemo(
     () =>
-      appointmentPropertyOptions.find(
+      filteredAppointmentPropertyOptions.find(
         (property) =>
           (property.id || property._id) === testAppointmentForm.propertyId,
       ),
-    [appointmentPropertyOptions, testAppointmentForm.propertyId],
+    [filteredAppointmentPropertyOptions, testAppointmentForm.propertyId],
   );
+
+  const openPropertiesCatalog = (type: "rent" | "sale") => {
+    router.push(`${areaConfig.basePath}/properties-list?type=${type}` as never);
+  };
+
+  const openCalendarScreen = () => {
+    router.push(`${areaConfig.basePath}/date` as never);
+  };
 
   const enabledSelectedCalendars = selectedGoogleCalendars.filter(
     (calendar) => calendar.enabled !== false,
@@ -734,6 +765,28 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }));
   };
 
+  const updateProvisionalAppointmentLead = (
+    field: "fullName" | "phone" | "email",
+    value: string,
+  ) => {
+    setProvisionalAppointmentLead((currentLead) => ({
+      ...currentLead,
+      [field]: value,
+    }));
+  };
+
+  const changeAppointmentLeadMode = (mode: "existing" | "provisional") => {
+    setAppointmentLeadMode(mode);
+    setAppointmentSelectionScreen(null);
+
+    if (mode === "provisional") {
+      setTestAppointmentForm((currentForm) => ({
+        ...currentForm,
+        leadId: null,
+      }));
+    }
+  };
+
   const selectTestAppointmentCalendar = (calendar: SelectedGoogleCalendar) => {
     setTestAppointmentForm((currentForm) => ({
       ...currentForm,
@@ -744,7 +797,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   };
 
   const selectAppointmentLead = (lead: PropertyLead) => {
-    const property = appointmentPropertyOptions.find(
+    const property = filteredAppointmentPropertyOptions.find(
       (item) => (item.id || item._id) === lead.propertyId,
     );
     const advisorId = lead.advisorId || lead.agentId || currentUser?.id || null;
@@ -752,7 +805,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setTestAppointmentForm((currentForm) => ({
       ...currentForm,
       leadId: lead.id,
-      propertyId: lead.propertyId || currentForm.propertyId,
+      propertyId: property ? lead.propertyId || currentForm.propertyId : currentForm.propertyId,
       advisorId,
       title:
         currentForm.title?.trim() && currentForm.title !== "Visita de prueba"
@@ -790,8 +843,30 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setIsAppointmentModalVisible(false);
   };
 
+  function canShowAppointment(
+    appointment: AppointmentPreviewItem,
+    capabilites: AppCapabilities,
+  ){
+    const type = appointment.appointmentType
+    if (type === 'renta') return capabilites.canViewRentals
+    if (type === 'venta') return capabilites.canViewSales
+
+    return true
+  }
+
+  const visibleCalendarAppointment = useMemo( 
+    () =>
+      calendarAppointments.filter((appointment) => 
+        canShowAppointment(appointment, capabilities),
+      ),
+      [calendarAppointments, capabilities]
+  )
+
   const handleCreateAppointment = async () => {
     if (!authToken || isCreatingAppointment) return;
+    const appointmentType =
+      testAppointmentForm.appointmentType?.trim().toLowerCase() || "general";
+    const isGeneralAppointment = appointmentType === "general";
 
     if (
       !testAppointmentForm.title.trim() ||
@@ -801,7 +876,11 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       return;
     }
 
-    if (!testAppointmentForm.leadId) {
+    if (
+      !isGeneralAppointment &&
+      appointmentLeadMode === "existing" &&
+      !testAppointmentForm.leadId
+    ) {
       Alert.alert(
         "Falta lead",
         "Selecciona el lead al que se le agendara la cita.",
@@ -809,34 +888,77 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       return;
     }
 
-    if (!testAppointmentForm.propertyId) {
+    if (
+      !isGeneralAppointment &&
+      appointmentLeadMode === "provisional" &&
+      !provisionalAppointmentLead.fullName.trim()
+    ) {
       Alert.alert(
-        "Falta propiedad",
-        "Selecciona la propiedad relacionada con la cita.",
+        "Falta nombre",
+        "Escribe el nombre del lead provisional para crear la cita.",
       );
       return;
     }
 
-    if (!testAppointmentForm.calendarId) {
+    const canResolveCalendarByType =
+      (appointmentType === "renta" || appointmentType === "venta") &&
+      enabledSelectedCalendars.some(
+        (calendar) => calendar.appointmentType?.trim().toLowerCase() === appointmentType,
+      );
+
+    if (!testAppointmentForm.calendarId && !canResolveCalendarByType) {
       Alert.alert(
         "Falta calendario",
-        "Selecciona el calendario donde quieres crear la cita.",
+        appointmentType === "renta" || appointmentType === "venta"
+          ? `Configura un calendario para citas de ${appointmentType}.`
+          : "Selecciona el calendario donde quieres crear la cita.",
       );
       return;
     }
 
     setIsCreatingAppointment(true);
     try {
-      await createGoogleCalendarDate(authToken, {
+      const basePayload: CreateGoogleCalendarDatePayload = {
         ...testAppointmentForm,
+        leadId: isGeneralAppointment ? null : testAppointmentForm.leadId,
+        propertyId: isGeneralAppointment ? null : testAppointmentForm.propertyId,
         endDateTime: getAppointmentEndDateTime(
           testAppointmentForm.startDateTime,
         ),
         advisorId: testAppointmentForm.advisorId || currentUser?.id || null,
         helpedBy: testAppointmentForm.helpedBy || advisorName,
-      });
-      await loadCalendarDates({ sync: true });
-      Alert.alert("Cita creada", "La cita se creo correctamente.");
+      };
+      const appointmentPayload: CreateGoogleCalendarDatePayload =
+        isGeneralAppointment
+          ? {
+              ...basePayload,
+              lead: null,
+            }
+          : appointmentLeadMode === "provisional"
+          ? {
+              ...basePayload,
+              leadId: null,
+              lead: {
+                fullName: provisionalAppointmentLead.fullName.trim(),
+                phone: provisionalAppointmentLead.phone.trim() || null,
+                email: provisionalAppointmentLead.email.trim() || null,
+              },
+            }
+          : {
+              ...basePayload,
+              lead: null,
+            };
+      const response = await createGoogleCalendarDate(authToken, appointmentPayload);
+      await Promise.all([
+        loadCalendarDates({ sync: true }),
+        loadLeads(),
+      ]);
+      Alert.alert(
+        "Cita creada",
+        response.leadResolution.duplicateWarning
+          ? "La cita se creo correctamente. Encontramos posibles leads existentes con ese telefono o correo."
+          : "La cita se creo correctamente.",
+      );
       setIsAppointmentModalVisible(false);
     } catch (error) {
       console.warn("No se pudo crear la cita desde asesor:", error);
@@ -872,7 +994,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               activeOpacity={0.85}
               onPress={() => setIsSettingsOpen(false)}
             >
-              <BackButton />
+              <icons.BackButton />
             </TouchableOpacity>
             <View style={styles.header}>
               <Text style={styles.sectionHeaderTitle}>Configuracion</Text>
@@ -1072,6 +1194,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Text style={styles.dateText}>{formatCurrentDashboardDate()}</Text>
           </View>
         </View>
+        {area === "adviser" ? (
+          <TouchableOpacity
+            style={styles.mainDashboardButton}
+            activeOpacity={0.85}
+            onPress={() => router.push("/userAdviser/mainDashboard" as never)}
+          >
+            <Text style={styles.mainDashboardButtonText}>Ver mainDashboard</Text>
+          </TouchableOpacity>
+        ) : null}
         <View style={styles.profileRow}>
           <View style={styles.profileLeft}>
             <TouchableOpacity
@@ -1149,9 +1280,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               <TouchableOpacity
                 style={styles.availableCard}
                 activeOpacity={0.85}
-                onPress={() =>
-                  router.push(`${areaConfig.basePath}/properties` as never)
-                }
+                onPress={() => openPropertiesCatalog("rent")}
               >
                 <Text style={styles.spacedLabel}>PROPIEDADES</Text>
                 <Text style={styles.availableValue}>
@@ -1160,11 +1289,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 <Text style={styles.spacedLabel}>DISPONIBLES</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.availableCard, styles.availableCardRent]}
+                style={[styles.availableCard, styles.availableCardSale]}
                 activeOpacity={0.85}
-                onPress={() =>
-                  router.push(`${areaConfig.basePath}/properties` as never)
-                }
+                onPress={() => openPropertiesCatalog("sale")}
               >
                 <Text style={styles.spacedLabel}>PROPIEDADES</Text>
                 <Text style={styles.availableValue}>
@@ -1177,12 +1304,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 style={styles.availableCard}
                 activeOpacity={0.85}
                 onPress={() =>
-                  router.push(`${areaConfig.basePath}/properties` as never)
+                  openPropertiesCatalog(operationMode === "sale" ? "sale" : "rent")
                 }
               >
                 <Text style={styles.spacedLabel}>PROPIEDADES</Text>
                 <Text style={styles.availableValue}>
-                  {rentSummary.propertyCount}
+                  {operationMode === "sale"
+                    ? saleSummary.propertyCount
+                    : rentSummary.propertyCount}
                 </Text>
                 <Text style={styles.spacedLabel}>DISPONIBLES</Text>
               </TouchableOpacity> 
@@ -1223,26 +1352,30 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderTitle}>Citas de esta semana</Text>
             <TouchableOpacity
+              //style={styles.centerButton}
               activeOpacity={0.85}
-              onPress={() => router.push(`${areaConfig.basePath}/settings` as never)}
+              onPress={() => loadCalendarDates({ sync: true })}
+              disabled={isCalendarLoading}
             >
-              <Text style={styles.sectionAction}>Configurar</Text>
+              <Text style={styles.sectionAction}>
+                {isCalendarLoading ? "Cargando..." : "Recargar"}
+              </Text>
             </TouchableOpacity>
           </View>
           <ScrollView
             style={styles.appointmentsScroll}
             contentContainerStyle={styles.appointmentList}
             nestedScrollEnabled
-            showsVerticalScrollIndicator={calendarAppointments.length > 5}
+            showsVerticalScrollIndicator={visibleCalendarAppointment.length > 5}
           >
-            {calendarAppointments.length === 0 ? (
+            {visibleCalendarAppointment.length === 0 ? (
               <Text style={styles.panelSubtitle}>
                 {isCalendarLoading
                   ? "Cargando citas reales..."
                   : calendarMessage}
               </Text>
             ) : (
-              calendarAppointments
+              visibleCalendarAppointment
                 .slice(0, 15)
                 .map((appointment) => (
                   <AppointmentCard
@@ -1256,12 +1389,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <TouchableOpacity
               style={styles.centerButton}
               activeOpacity={0.85}
-              onPress={() => loadCalendarDates({ sync: true })}
-              disabled={isCalendarLoading}
+              onPress={openCalendarScreen}
             >
-              <CalendarDays size={17} color="#3d3b3b" />
               <Text style={styles.centerButtonText}>
-                {isCalendarLoading ? "Cargando..." : "Recargar calendario"}
+                Ver calendario
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1269,7 +1400,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               activeOpacity={0.85}
               onPress={handleOpenAppointmentModal}
             >
-              <Plus size={17} color="#3d3b3b" />
+              <icons.WhiteCalendar />
+              {/*<Plus size={17} color="#ffffff" />*/}
               <Text style={styles.centerButtonText}>Agregar cita</Text>
             </TouchableOpacity>
           </View>
@@ -1324,8 +1456,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         </View>
       </ScrollView>
       <AppointmentCreateModal
+        appointmentLeadMode={appointmentLeadMode}
         appointmentLeadOptions={appointmentLeadOptions}
-        appointmentPropertyOptions={appointmentPropertyOptions}
+        appointmentPropertyOptions={filteredAppointmentPropertyOptions}
         enabledSelectedCalendars={enabledSelectedCalendars}
         isCatalogLoading={isCatalogLoading}
         isCreatingAppointment={isCreatingAppointment}
@@ -1334,11 +1467,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         isLeadsLoading={isLeadsLoading}
         onClose={handleCloseAppointmentModal}
         onCreateAppointment={handleCreateAppointment}
+        onLeadModeChange={changeAppointmentLeadMode}
         onSelectCalendar={selectTestAppointmentCalendar}
         onSelectLead={selectAppointmentLead}
         onSelectProperty={selectAppointmentProperty}
         onSelectionScreenChange={setAppointmentSelectionScreen}
+        onUpdateProvisionalLead={updateProvisionalAppointmentLead}
         onUpdateForm={updateTestAppointmentForm}
+        provisionalLead={provisionalAppointmentLead}
         selectedAppointmentLead={selectedAppointmentLead}
         selectedAppointmentProperty={selectedAppointmentProperty}
         selectionScreen={appointmentSelectionScreen}
@@ -1346,5 +1482,22 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         visible={isAppointmentModalVisible}
       />
     </SafeAreaView>
+  );
+}
+
+function isRentAppointmentProperty(property: Property) {
+  return (
+    property.listingType === "rent" ||
+    property.status === "for_rent" ||
+    property.status === "pending_rent" ||
+    Boolean(property.monthlyRent)
+  );
+}
+
+function isSaleAppointmentProperty(property: Property) {
+  return (
+    property.listingType === "sale" ||
+    property.status === "for_sale" ||
+    property.status === "pending_sale"
   );
 }

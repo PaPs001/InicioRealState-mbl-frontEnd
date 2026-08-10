@@ -1,5 +1,6 @@
 export type AppointmentPreviewItem = {
   id?: string
+  appointmentType?: string | null
   property: string
   client: string
   adviser: string

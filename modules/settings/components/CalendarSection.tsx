@@ -4,6 +4,7 @@ import { icons } from '@/assets'
 import { getDefaultAppointmentType } from '@/components/userDashboard/dashboard-formatters'
 import type { GoogleCalendarOption, SelectedGoogleCalendar } from '@/lib/api'
 import { styles } from './styles/CalendarSection.style'
+import { useState } from 'react'
 
 type CalendarSectionProps = {
   googleCalendars: GoogleCalendarOption[]
@@ -38,7 +39,10 @@ export function CalendarSection({
 }: CalendarSectionProps) {
   const isConnected = isGoogleConnected && !needsGoogleReconnect
   const isConnectionActionPending = isConnectingCalendar || isDisconnectingCalendar
-
+  const [canSeeCalendars, setCanSeeCalendars] = useState(false)
+  const toggleCalendars = () => {
+    setCanSeeCalendars((prev) => !prev)
+  }
   return (
     <View style={styles.calendarSection}>
       <View style={styles.calendarHeader}>
@@ -46,77 +50,98 @@ export function CalendarSection({
         <Text style={styles.sectionTitle}>Calendario</Text>
       </View>
 
-      <View>
-        <Text>Calendarios Conectados</Text>
-        <Pressable
-          style={styles.calendarSmallButton}
-          disabled={isCalendarSettingsLoading}
-          onPress={onReloadCalendars}
-        >
-          <Text style={styles.calendarSmallButtonText}>
-            {isCalendarSettingsLoading ? 'Cargando' : 'Actualizar'}
-          </Text>
-        </Pressable>
-
-        {needsGoogleReconnect ? (
-          <Text style={styles.calendarSettingsEmpty}>
-            Google Calendar requiere reconexion para volver a sincronizar.
-          </Text>
-        ) : googleCalendars.length === 0 ? (
-          <Text style={styles.calendarSettingsEmpty}>
-            {isCalendarSettingsLoading ? 'Buscando calendarios...' : 'No hay calendarios disponibles.'}
-          </Text>
-        ) : (
-          <View style={styles.calendarList}>
-            {googleCalendars.map((calendar) => {
-              const selection = selectedGoogleCalendars.find(
-                item => item.calendarId === calendar.calendarId,
-              )
-              const isEnabled = selection?.enabled === true
-
-              return (
-                <View
-                  key={calendar.calendarId ?? calendar.summary}
-                  style={styles.calendarOptionRow}
-                >
-                  <Pressable
-                    style={[styles.calendarToggle, isEnabled && styles.calendarToggleActive]}
-                    onPress={() => onToggleCalendar(calendar)}
-                  >
-                    <Text
-                      style={[
-                        styles.calendarToggleText,
-                        isEnabled && styles.calendarToggleTextActive,
-                      ]}
-                    >
-                      {isEnabled ? 'En uso' : 'Usar'}
-                    </Text>
-                  </Pressable>
-                  <View style={styles.calendarOptionCopy}>
-                    <Text style={styles.calendarOptionTitle} numberOfLines={1}>
-                      {calendar.summary || 'Calendario sin nombre'}
-                    </Text>
-                    <Text style={styles.calendarOptionMeta} numberOfLines={1}>
-                      {selection?.appointmentType || getDefaultAppointmentType(calendar.summary)}
-                    </Text>
-                  </View>
-                </View>
-              )
-            })}
-          </View>
-        )}
-
-        <View style={styles.calendarActionsRow}>
+      <View style={styles.calendarOptions}>
+        <View style={styles.optionsSections}>
           <Pressable
-            style={styles.calendarActionButton}
-            disabled={isSavingCalendarSelection}
-            onPress={onSaveCalendarSelection}
+            onPress={toggleCalendars}
+            style={styles.optionButtonType1}
           >
-            <Text style={styles.calendarActionButtonText}>
-              {isSavingCalendarSelection ? 'Guardando...' : 'Guardar calendarios'}
-            </Text>
+            <icons.CalendarCog/>
+            <View style={styles.textSectionOptionButtonType1}>
+              <Text style={styles.titleOption}>Ver calendarios</Text>
+              <Text style={styles.subtitleOption}>Controla que calendarios visualizar </Text>
+            </View>
+            <icons.ArrowLeft/>
           </Pressable>
         </View>
+        {!canSeeCalendars ? (
+            null  
+          ): 
+          <>
+            <View>
+              <View style={styles.calendarViewing}>
+                <Pressable
+                  style={styles.calendarSmallButton}
+                  disabled={isCalendarSettingsLoading}
+                  onPress={onReloadCalendars}
+                >
+                  <Text style={styles.calendarSmallButtonText}>
+                    {isCalendarSettingsLoading ? 'Cargando' : 'Actualizar'}
+                  </Text>
+                </Pressable>
+        
+                {needsGoogleReconnect ? (
+                  <Text style={styles.calendarSettingsEmpty}>
+                    Google Calendar requiere reconexion para volver a sincronizar.
+                  </Text>
+                ) : googleCalendars.length === 0 ? (
+                  <Text style={styles.calendarSettingsEmpty}>
+                    {isCalendarSettingsLoading ? 'Buscando calendarios...' : 'No hay calendarios disponibles.'}
+                  </Text>
+                ) : (
+                  <View style={styles.calendarList}>
+                    {googleCalendars.map((calendar) => {
+                      const selection = selectedGoogleCalendars.find(
+                        item => item.calendarId === calendar.calendarId,
+                      )
+                      const isEnabled = selection?.enabled === true
+        
+                      return (
+                        <View
+                          key={calendar.calendarId ?? calendar.summary}
+                          style={styles.calendarOptionRow}
+                        >
+                          <Pressable
+                            style={[styles.calendarToggle, isEnabled && styles.calendarToggleActive]}
+                            onPress={() => onToggleCalendar(calendar)}
+                          >
+                            <Text
+                              style={[
+                                styles.calendarToggleText,
+                                isEnabled && styles.calendarToggleTextActive,
+                              ]}
+                            >
+                              {isEnabled ? 'En uso' : 'Usar'}
+                            </Text>
+                          </Pressable>
+                          <View style={styles.calendarOptionCopy}>
+                            <Text style={styles.calendarOptionTitle} numberOfLines={1}>
+                              {calendar.summary || 'Calendario sin nombre'}
+                            </Text>
+                            <Text style={styles.calendarOptionMeta} numberOfLines={1}>
+                              {selection?.appointmentType || getDefaultAppointmentType(calendar.summary)}
+                            </Text>
+                          </View>
+                        </View>
+                      )
+                    })}
+                  </View>
+                )}
+              </View>
+              <View style={styles.calendarActionsRow}>
+                <Pressable
+                  style={styles.calendarActionButton}
+                  disabled={isSavingCalendarSelection}
+                  onPress={onSaveCalendarSelection}
+                >
+                  <Text style={styles.calendarActionButtonText}>
+                    {isSavingCalendarSelection ? 'Guardando...' : 'Guardar calendarios'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </>
+        }
       </View>
 
       <Pressable
