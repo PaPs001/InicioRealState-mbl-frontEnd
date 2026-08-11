@@ -88,10 +88,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#EEFFF1'
   },
   editProfileRow:{
-    flexDirection: 'row',
-    flex: 1,
+    //flexDirection: 'row',
+    //flex: 1,
     //gap: 10,
-    paddingHorizontal: 110,
     alignItems: 'center',
   },
   editButton:{
@@ -103,8 +102,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flex: 1,
     height: '100%',
+    width: 150,
     alignItems: 'center',
     alignContent: 'center',
+    justifyContent: 'center',
     flexDirection: 'row',
     gap: 5
   },

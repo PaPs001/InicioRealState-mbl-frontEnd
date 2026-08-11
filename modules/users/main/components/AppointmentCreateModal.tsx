@@ -1,5 +1,5 @@
-import { Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { ChevronLeft, ChevronRight } from 'lucide-react-native'
+import { Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ChevronRight } from 'lucide-react-native'
 import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
 import type { Property, PropertyLead } from '@/lib/types'
 
@@ -9,6 +9,15 @@ import { styles } from './styles/appointmentCreateModal.style'
 import { generalColors } from '@/theme'
 import { AppointmentDateTimePicker } from './AppointmentDateTimePicker'
 import { useState } from 'react'
+import { AppModal } from '@/components/AppModal'
+
+type AppointmentType = 'renta' | 'venta' | 'general'
+
+const appointmentColors: Record<AppointmentType, string> = {
+  renta: generalColors.rentColor,
+  venta: generalColors.saleColor,
+  general: generalColors.general,
+}
 
 type AppointmentCreateModalProps = {
   appointmentLeadMode: 'existing' | 'provisional'
@@ -68,9 +77,21 @@ export function AppointmentCreateModal({
   visible,
 }: AppointmentCreateModalProps) {
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false)
-  const selectedAppointmentType = (testAppointmentForm.appointmentType || 'general').toLowerCase()
+  const normalizedAppointmentType = (testAppointmentForm.appointmentType || 'general').toLowerCase()
+  const selectedAppointmentType: AppointmentType =
+    normalizedAppointmentType === 'renta' || normalizedAppointmentType === 'venta'
+      ? normalizedAppointmentType
+      : 'general'
   const isGeneralAppointment = selectedAppointmentType === 'general'
 
+  const activeColor = appointmentColors[selectedAppointmentType]
+
+  const modalTitle =
+    selectionScreen === 'lead'
+      ? 'Seleccionar lead'
+      : selectionScreen === 'property'
+        ? 'Seleccionar propiedad'
+        : 'Crear cita'
   const selectedTypeCalendar = enabledSelectedCalendars.find(
     calendar => (calendar.appointmentType || '').toLowerCase() === selectedAppointmentType,
   )
@@ -107,29 +128,59 @@ export function AppointmentCreateModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.appointmentModalOverlay} onPress={onClose}>
-        <Pressable style={styles.appointmentModalPanel} onPress={event => event.stopPropagation()}>
-          <View style={styles.appointmentModalHeader}>
-            {selectionScreen ? (
-              <TouchableOpacity
-                style={styles.appointmentModalBack}
-                onPress={() => onSelectionScreenChange(null)}
-                activeOpacity={0.85}
-              >
-                <ChevronLeft size={18} color="#3d5a40" />
-              </TouchableOpacity>
-            ) : null}
-            <Text style={styles.appointmentModalTitle}>
-              {selectionScreen === 'lead'
-                ? 'Seleccionar lead'
-                : selectionScreen === 'property'
-                  ? 'Seleccionar propiedad'
-                  : 'Crear cita'}
-            </Text>
-          </View>
+    <AppModal
+      visible={visible}
+      title={modalTitle}
+      subtitle={
+        selectionScreen
+          ? undefined
+          : 'Completa la información para agendar una nueva cita'
+      }
+      onClose={onClose}
+      onBack={
+        selectionScreen
+          ? () => onSelectionScreenChange(null)
+          : undefined
+      }
+      showCloseButton={!selectionScreen}
+      accentColor={activeColor}
+      animationType="slide"
+      position="bottom"
+      size="large"
+      keyboardAvoiding
+      closeDisabled={isCreatingAppointment}
+      closeOnBackdropPress={!isCreatingAppointment}
+      footer={
+        !selectionScreen ? (
+          <View style={styles.calendarButtonsSection}>
+            <TouchableOpacity
+              style={styles.calendarCloseTab}
+              onPress={onClose}
+              disabled={isCreatingAppointment}
+            >
+              <Text style={styles.calendarExitButtonText}>Cancelar</Text>
+            </TouchableOpacity>
 
-          {selectionScreen === 'lead' ? (
+            <TouchableOpacity
+              style={[
+                styles.calendarTestCreateButton,
+                { backgroundColor: activeColor },
+              ]}
+              onPress={onCreateAppointment}
+              activeOpacity={0.85}
+              disabled={isCreatingAppointment}
+            >
+              <Text style={styles.calendarCreateButtonText}>
+                {isCreatingAppointment
+                  ? 'Procesando...'
+                  : 'Crear cita'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null
+      }
+    >
+      {selectionScreen === 'lead' ? (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
               {isLeadsLoading ? (
                 <Text style={styles.calendarSettingsEmpty}>Cargando leads...</Text>
@@ -219,7 +270,7 @@ export function AppointmentCreateModal({
                   <FilterChip
                     label="Cita"
                     active={selectedAppointmentType === 'general'}
-                    activeColor={generalColors.rentColor}
+                    activeColor={generalColors.general}
                     onPress={() => selectAppointmentType('general')}
                   />
                 </View>
@@ -281,7 +332,7 @@ export function AppointmentCreateModal({
               <View style={styles.calendarContainer}>
                 <Text style={styles.calendarLabel}>Fecha y Hora de la cita</Text>
                 <Pressable 
-                  style={styles.calendarButton}
+                  style={[styles.calendarButton, {backgroundColor: activeColor}]}
                   onPress={() => setIsDateTimePickerVisible(true)}
                 >
                   <Text style={styles.calendarButtonText}>Escoger fecha y hora</Text>
@@ -328,13 +379,13 @@ export function AppointmentCreateModal({
                       <FilterChip
                         label="Lead Existente"
                         active={appointmentLeadMode === 'existing'}
-                        activeColor={generalColors.rentColor}
+                        activeColor={activeColor}
                         onPress={() => onLeadModeChange('existing')}
                       />
                       <FilterChip
                         label="Cliente sin registrar"
                         active={appointmentLeadMode === 'provisional'}
-                        activeColor={generalColors.rentColor}
+                        activeColor={activeColor}
                         onPress={() => onLeadModeChange('provisional')}
                       />
                     </View>
@@ -418,28 +469,8 @@ export function AppointmentCreateModal({
                   </View>
                 </>
               )}
-              <View style={styles.calendarButtonsSection}>
-                <TouchableOpacity
-                  style={styles.calendarCloseTab}
-                  onPress={onClose}
-                >
-                  <Text style={styles.calendarTestCreateButtonText}>Cancelar </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.calendarTestCreateButton}
-                  onPress={onCreateAppointment}
-                  activeOpacity={0.85}
-                  disabled={isCreatingAppointment}
-                >
-                  <Text style={styles.calendarTestCreateButtonText}>
-                    {isCreatingAppointment ? 'Procesando...' : 'Crear cita'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </ScrollView>
           )}
-        </Pressable>
-      </Pressable>
-    </Modal>
+    </AppModal>
   )
 }

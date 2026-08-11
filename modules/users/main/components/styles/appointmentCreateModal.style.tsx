@@ -390,15 +390,21 @@ export const styles = StyleSheet.create({
   calendarCloseTab:{
     minHeight: 32,
     borderRadius: 6,
-    backgroundColor: statusColors.danger,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
     marginTop: 2,
-    flex: 1
+    flex: 1,
+    borderColor: statusColors.danger,
+    borderWidth: .5,
   },
-  calendarTestCreateButtonText: {
+  calendarCreateButtonText: {
     color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  calendarExitButtonText:{
+    color: '#0c0c0c',
     fontSize: 12,
     fontWeight: '700',
   },

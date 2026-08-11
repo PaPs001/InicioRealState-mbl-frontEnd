@@ -65,6 +65,7 @@ export const styles = StyleSheet.create({
       gap: 15
     },
     optionsSections:{
+      gap: 10
     },
     optionButtonType1:{
       flexDirection: 'row',
@@ -84,7 +85,8 @@ export const styles = StyleSheet.create({
     },
     subtitleOption:{
       fontSize:10,
-      color: textColor.softText
+      color: textColor.softText,
+      flexShrink: 1,
     },
 
     calendarViewing:{

@@ -673,8 +673,7 @@ export const styles = StyleSheet.create({
   panelSubtitle: {
     color: '#7b8780',
     fontSize: 10,
-    marginTop: -4,
-    marginBottom: 11,
+    marginBottom: 5
   },
   metricGrid: {
     flexDirection: 'row',

@@ -28,7 +28,13 @@ export function SettingsOption<T extends string>({
   width
 }: SettingsOptionProps<T>) {
   const isSelected = value === selectedValue
+  const optionColors: Record<string, string> = {
+    rent: generalColors.rentColor,
+    sale: generalColors.saleColor,
+    both: generalColors.general
+  }
 
+  const selectedColor = optionColors[value] ?? userColors.adviser.primary 
   return (
     <Pressable
       accessibilityState={{ checked: isSelected }}
@@ -40,7 +46,7 @@ export function SettingsOption<T extends string>({
         position === 'center' && styles.centerOption,
         position === 'right' && styles.rightOption,
 
-        isSelected && styles.containerSelected,
+        isSelected && {backgroundColor: selectedColor},
       ]}
     >
       <View style={styles.containerIcons}>

@@ -1,4 +1,4 @@
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {styles} from './styles/HeroCards.styles'
 
 type HeroCardColor = {
@@ -18,9 +18,6 @@ export const HeroCards = ({
   OnPress,
   colors
 }: HeroCardProps ) => {
-
-
-
   return(
     <Pressable
       style={[
@@ -30,9 +27,11 @@ export const HeroCards = ({
       ]} 
       onPress={OnPress}
     >
-      <Text style={[styles.spacedLabel, { color: colors.textColor }]}>PROPIEDADES </Text>
-      <Text style={[styles.availableCount, { color: colors.accentColor }]}>{Summary}</Text>
-      <Text style={[styles.spacedLabel, { color: colors.textColor }]}>DISPONIBLES </Text>
+      <View style={styles.textContainer}>
+        <Text style={[styles.spacedLabel, { color: colors.textColor }]}>PROPIEDADES </Text>
+        <Text style={[styles.availableCount, { color: colors.accentColor }]}>{Summary}</Text>
+        <Text style={[styles.spacedLabel, { color: colors.textColor }]}>DISPONIBLES </Text>
+      </View>
     </Pressable>
   )
 }
