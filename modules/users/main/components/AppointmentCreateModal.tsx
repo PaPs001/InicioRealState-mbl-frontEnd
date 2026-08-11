@@ -217,14 +217,14 @@ export function AppointmentCreateModal({
                     onPress={() => selectAppointmentType('venta')}
                   />
                   <FilterChip
-                    label="Cita General"
+                    label="Cita"
                     active={selectedAppointmentType === 'general'}
                     activeColor={generalColors.rentColor}
                     onPress={() => selectAppointmentType('general')}
                   />
                 </View>
               </View>
-              <Text style={styles.calendarLabel}>Calendario de la cita</Text>
+              <Text style={styles.calendarLabel}>Calendario donde se guarda la cita</Text>
               {enabledSelectedCalendars.length === 0 ? (
                 <Text style={styles.calendarSettingsEmpty}>
                   {needsGoogleReconnect
@@ -273,9 +273,38 @@ export function AppointmentCreateModal({
                 <Text style={styles.calendarLabel}>Titulo de la cita</Text>
                 <TextInput
                   style={styles.calendarTestInput}
-                  value={testAppointmentForm.title}
                   onChangeText={value => onUpdateForm('title', value)}
-                  placeholder="Titulo"
+                  placeholder="Titulo de la cita"
+                  placeholderTextColor="#8d8d8d"
+                />
+              </View>
+              <View style={styles.calendarContainer}>
+                <Text style={styles.calendarLabel}>Fecha y Hora de la cita</Text>
+                <Pressable 
+                  style={styles.calendarButton}
+                  onPress={() => setIsDateTimePickerVisible(true)}
+                >
+                  <Text style={styles.calendarButtonText}>Escoger fecha y hora</Text>
+                </Pressable>
+                {isDateTimePickerVisible ? (
+                  <AppointmentDateTimePicker
+                    visible={isDateTimePickerVisible}
+                    onClose={() => setIsDateTimePickerVisible(false)}
+                    value={testAppointmentForm.startDateTime}
+                    onChange={value => {
+                      onUpdateForm('startDateTime', value)
+                      onUpdateForm('endDateTime', getAppointmentEndDateTime(value))
+                    }}
+                  />
+                ): null}
+              </View>
+              <View>
+                <Text style={styles.calendarLabel}>Ubicacion de la cita</Text>
+                <TextInput
+                  style={styles.calendarTestInput}
+                  //value={testAppointmentForm.location ?? ''}
+                  onChangeText={value => onUpdateForm('location', value)}
+                  placeholder="Ubicacion de encuentro con el cliente"
                   placeholderTextColor="#8d8d8d"
                 />
               </View>
@@ -284,7 +313,7 @@ export function AppointmentCreateModal({
                   <Text style={styles.calendarLabel}>Descripcion de la cita</Text>
                   <TextInput
                     style={styles.calendarTestInput}
-                    value={testAppointmentForm.description ?? ''}
+                    //value={testAppointmentForm.description ?? ''}
                     onChangeText={value => onUpdateForm('description', value)}
                     placeholder="Descripcion"
                     placeholderTextColor="#8d8d8d"
@@ -303,7 +332,7 @@ export function AppointmentCreateModal({
                         onPress={() => onLeadModeChange('existing')}
                       />
                       <FilterChip
-                        label="Lead Provisional"
+                        label="Cliente sin registrar"
                         active={appointmentLeadMode === 'provisional'}
                         activeColor={generalColors.rentColor}
                         onPress={() => onLeadModeChange('provisional')}
@@ -333,7 +362,7 @@ export function AppointmentCreateModal({
                     ) : (
                       <View style={styles.appointmentProvisionalFields}>
                         <View style={styles.informationSection}>
-                          <Text style={styles.informationText}>Nombre Completo</Text>
+                          <Text style={styles.informationText}>Nombre Completo del cliente</Text>
                           <TextInput
                             style={styles.calendarTestInput}
                             value={provisionalLead.fullName}
@@ -342,7 +371,7 @@ export function AppointmentCreateModal({
                           />
                         </View>
                         <View style={styles.informationSection}>
-                          <Text style={styles.informationText}>Telefono (opcional)</Text>
+                          <Text style={styles.informationText}>Numero de Telefono (opcional)</Text>
                           <TextInput
                             style={styles.calendarTestInput}
                             value={provisionalLead.phone}
@@ -352,7 +381,7 @@ export function AppointmentCreateModal({
                           />
                         </View>
                         <View style={styles.informationSection}>
-                          <Text style={styles.informationText}>Correo electronico (opcional)</Text>
+                          <Text style={styles.informationText}>Cuenta de correo electronico (opcional)</Text>
                           <TextInput
                             style={styles.calendarTestInput}
                             value={provisionalLead.email}
@@ -366,7 +395,7 @@ export function AppointmentCreateModal({
                     )}
                   </View>
                   <View>
-                    <Text style={styles.calendarLabel}>Propiedad relacionada</Text>
+                    <Text style={styles.calendarLabel}>Propiedad relacionada (Opcional si es propiedad externa)</Text>
                     <TouchableOpacity
                       style={styles.appointmentPickerButton}
                       onPress={() => onSelectionScreenChange('property')}
@@ -389,37 +418,6 @@ export function AppointmentCreateModal({
                   </View>
                 </>
               )}
-              
-              <View>
-                <Text style={styles.calendarLabel}>Ubicacion de la cita</Text>
-                <TextInput
-                  style={styles.calendarTestInput}
-                  value={testAppointmentForm.location ?? ''}
-                  onChangeText={value => onUpdateForm('location', value)}
-                  placeholder="Ubicacion"
-                  placeholderTextColor="#8d8d8d"
-                />
-              </View>
-              <View style={styles.calendarContainer}>
-                <Text style={styles.calendarLabel}>Fecha de la cita</Text>
-                <Pressable 
-                  style={styles.calendarButton}
-                  onPress={() => setIsDateTimePickerVisible(true)}
-                >
-                  <Text style={styles.calendarButtonText}>Escoger fecha</Text>
-                </Pressable>
-                {isDateTimePickerVisible ? (
-                  <AppointmentDateTimePicker
-                    visible={isDateTimePickerVisible}
-                    onClose={() => setIsDateTimePickerVisible(false)}
-                    value={testAppointmentForm.startDateTime}
-                    onChange={value => {
-                      onUpdateForm('startDateTime', value)
-                      onUpdateForm('endDateTime', getAppointmentEndDateTime(value))
-                    }}
-                  />
-                ): null}
-              </View>
               <View style={styles.calendarButtonsSection}>
                 <TouchableOpacity
                   style={styles.calendarCloseTab}

@@ -11,6 +11,8 @@ type CacheUploadedFileOptions = {
   contentType?: string
 }
 
+const pendingCacheRequests = new Map<string, Promise<string>>()
+
 function getUploadedFileUrl(storageKey: string) {
   return `${API_URLS.CORE}/uploads/file?key=${encodeURIComponent(storageKey)}`
 }
@@ -61,6 +63,29 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 }
 
 export async function cacheUploadedFile({
+  storageKey,
+  token,
+  namespace,
+  contentType,
+}: CacheUploadedFileOptions) {
+  const requestKey = `${namespace}:${storageKey}`
+  const pendingRequest = pendingCacheRequests.get(requestKey)
+  if (pendingRequest) return pendingRequest
+
+  const cacheRequest = cacheUploadedFileOnce({
+    storageKey,
+    token,
+    namespace,
+    contentType,
+  }).finally(() => {
+    pendingCacheRequests.delete(requestKey)
+  })
+
+  pendingCacheRequests.set(requestKey, cacheRequest)
+  return cacheRequest
+}
+
+async function cacheUploadedFileOnce({
   storageKey,
   token,
   namespace,

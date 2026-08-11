@@ -32,12 +32,6 @@ export interface AuthContextType {
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
-  favoriteProperties: Property[]
-  favorites: string[]
-  loadFavoriteProperties: () => Promise<void>
-  addNewFavoriteProperty: (propertyId: string) => Promise<void>
-  toggleFavorite: (propertyId: string) => Promise<void>
-  isFavorite: (propertyId: string) => boolean
   newLoadCatalogProperties: () => Promise<void>
   getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: () => Promise<void>
@@ -79,12 +73,6 @@ export type PropertyDomain = Pick<
   | 'isAgentCatalogLoading'
   | 'hasLoadedCatalog'
   | 'hasLoadedAgentCatalog'
-  | 'favoriteProperties'
-  | 'favorites'
-  | 'loadFavoriteProperties'
-  | 'addNewFavoriteProperty'
-  | 'toggleFavorite'
-  | 'isFavorite'
   | 'newLoadCatalogProperties'
   | 'getPropertyById'
   | 'loadCatalogProperties'

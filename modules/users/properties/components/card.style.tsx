@@ -766,12 +766,4 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  favoriteButton: {
-    width: 27,
-    height: 27,
-    borderRadius: 14,
-    backgroundColor: '#f6efe3',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 })

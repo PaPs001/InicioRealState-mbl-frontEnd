@@ -2,7 +2,7 @@ import { StyleSheet, View, ScrollView, Text, Pressable } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Calendar } from "../components/calendar"
 import {EventCard} from "../components/eventsCard"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { useAuth } from "@/contexts/AuthContext"
 import { getGoogleCalendarDates, type GoogleCalendarDate } from "@/lib/api"
@@ -54,17 +54,26 @@ export default function CalendarScreen(){
   const [seeAll, setSeeAll] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const hasLoadedInitialAppointmentsRef = useRef(false)
 
   useEffect(() => {
     let isMounted = true
 
     if (!authToken) {
       setAppointments([])
+      hasLoadedInitialAppointmentsRef.current = false
+      return () => {
+        isMounted = false
+      }
+    }
+    if (hasLoadedInitialAppointmentsRef.current) {
       return () => {
         isMounted = false
       }
     }
 
+    hasLoadedInitialAppointmentsRef.current = true
+    console.info("[CalendarScreen][initial-load]", { service: "appointments" })
     setIsLoading(true)
     setLoadError(null)
 

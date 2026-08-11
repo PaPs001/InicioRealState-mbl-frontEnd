@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert } from 'react-native'
 import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
@@ -34,6 +34,7 @@ export function useGoogleCalendarSettings({
   const [isConnecting, setIsConnecting] = useState(false)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const hasLoadedInitialSettingsRef = useRef(false)
 
   const clearCalendars = useCallback(() => {
     setCalendars([])
@@ -71,8 +72,12 @@ export function useGoogleCalendarSettings({
   }, [authToken, clearCalendars])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialSettingsRef.current) return
+
+    hasLoadedInitialSettingsRef.current = true
+    console.info('[GoogleCalendarSettings][initial-load]')
     void reload()
-  }, [reload])
+  }, [authToken, reload])
 
   const toggleCalendar = useCallback((calendar: GoogleCalendarOption) => {
     const calendarId = calendar.calendarId
