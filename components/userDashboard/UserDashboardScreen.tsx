@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Image,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -10,54 +9,34 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
-import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import {
   Bell,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Eye,
-  Home,
   LogOut,
-  Plus,
   Settings,
   CameraIcon,
-  SunMedium,
 } from "lucide-react-native";
 
 import { icons } from "@/assets";
 
+import { generalColors } from "@/theme";
+
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
-import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
-  API_URLS,
   createGoogleCalendarDate,
-  disconnectGoogleCalendar,
-  getBackendLeadRecords,
-  getCatalogRentProperties,
-  getGoogleCalendarAuthUrl,
-  getGoogleCalendarConnectionStatus,
-  getGoogleCalendarDates,
-  getGoogleCalendars,
-  getSelectedGoogleCalendars,
-  getUploadedAgentPresentation,
-  saveSelectedGoogleCalendars,
-  syncGoogleCalendars,
   type CreateGoogleCalendarDatePayload,
-  type GoogleCalendarConnectionStatus,
-  type GoogleCalendarOption,
   type SelectedGoogleCalendar,
 } from "@/lib/api";
-import type { LeadFollowUp, Property, PropertyLead } from "@/lib/types";
+import type { Property, PropertyLead } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import {
   AppointmentCard,
   FunnelMetric,
   LeadAlertRow,
   LeadMetricCard,
-  PriorityCard,
 } from "./DashboardCards";
 import {
   formatCurrentDashboardDate,
@@ -65,48 +44,27 @@ import {
   getDefaultAppointmentEndDateTime,
   getDefaultAppointmentStartDateTime,
   getDefaultAppointmentType,
-  getInitials,
-  getPropertyDisplayName,
-  hasUpcomingFollowUpDate,
-  isOverdueFollowUp,
-  mapGoogleDateToAppointment,
 } from "./dashboard-formatters";
 import { AppointmentCreateModal } from "@/modules/users/main/components/AppointmentCreateModal";
 import { styles } from "./UserDashboardScreen.styles";
-import type {
-  AppointmentPreviewItem,
-  DashboardLeadAlert,
-  DashboardMetric,
-  DashboardPriority,
-} from "./types";
-import { AppCapabilities, useOperationMode } from "@/modules/settings";
+import { useOperationMode } from "@/modules/settings";
+import { ProfileImageModal } from "@/modules/profile";
 import {
-  ProfileImageModal,
-  useProfileAvatar,
-  useProfileImageUpload,
-} from "@/modules/profile";
-import { cacheUploadedFile } from "@/lib/services/uploaded-file-cache";
+  useDashboardCalendar,
+  useDashboardLeads,
+  useDashboardProfile,
+  useDashboardProperties,
+} from "@/modules/users/main/hooks";
+import { HeroCards } from "@/modules/users/main/components/Advisors/HeroCards";
 WebBrowser.maybeCompleteAuthSession();
+////////
 
+//A eliminar a futuro no tiene necesidad de existencia
 export type UserDashboardArea = "adviser" | "coordinator";
 
 type UserDashboardScreenProps = {
   area: UserDashboardArea;
 };
-
-function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
-  const today = new Date();
-  const startOfToday = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  ).getTime();
-
-  return (
-    appointment.sortTime !== Number.MAX_SAFE_INTEGER &&
-    appointment.sortTime >= startOfToday
-  );
-}
 
 const dashboardAreaConfig = {
   adviser: {
@@ -122,79 +80,29 @@ const dashboardAreaConfig = {
     headline: "Aqui esta lo importante de hoy",
   },
 } as const;
-
-type LeadFollowUpEntry = { lead: PropertyLead; followUp: LeadFollowUp };
-
+////////
 export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
-  const {operationMode, capabilities } = useOperationMode()
+  const { operationMode, capabilities } = useOperationMode()
   const router = useRouter();
   const pathname = usePathname();
   const {
     authToken,
     currentUser,
-    logout,
-    refreshToken,
-    setAuthSession,
   } = useSessionDomain();
-  const {
-    availableProperties,
-    catalogProperties,
-    hasLoadedCatalog,
-    isCatalogLoading,
-    loadCatalogProperties,
-  } = usePropertyDomain();
+
   const areaConfig = dashboardAreaConfig[area];
-  const advisorName =
-    currentUser?.name?.trim() ||
-    currentUser?.email?.split("@")[0] ||
-    areaConfig.fallbackName;
-  const advisorInitials = getInitials(advisorName);
-  const [leads, setLeads] = useState<PropertyLead[]>([]);
-  const [isLeadsLoading, setIsLeadsLoading] = useState(false);
-  const [calendarAppointments, setCalendarAppointments] = useState<
-    AppointmentPreviewItem[]
-  >([]);
-  const [calendarMessage, setCalendarMessage] = useState(
-    "Conecta Google Calendar para cargar tus citas reales.",
-  );
-  const [isCalendarLoading, setIsCalendarLoading] = useState(false);
-  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
-  const [googleConnectionStatus, setGoogleConnectionStatus] =
-    useState<GoogleCalendarConnectionStatus | null>(null);
+  const {
+    advisorInitials,
+    advisorName,
+    profileAvatarUri,
+    profileImageUpload,
+  } = useDashboardProfile({ fallbackName: areaConfig.fallbackName });
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-
-  const { profileAvatarUri, setProfileAvatarUri } = useProfileAvatar()
-  const profileImageUpload = useProfileImageUpload({ setProfileAvatarUri })
-
-  const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
-    useState(false);
-  const [appointmentSelectionScreen, setAppointmentSelectionScreen] = useState<
-    "lead" | "property" | null
-  >(null);
-  const [appointmentLeadMode, setAppointmentLeadMode] = useState<
-    "existing" | "provisional"
-  >("existing");
-  const [provisionalAppointmentLead, setProvisionalAppointmentLead] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-  });
-  const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
-  const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
-  const [isCalendarSettingsLoading, setIsCalendarSettingsLoading] =
-    useState(false);
-  const [isSavingCalendarSelection, setIsSavingCalendarSelection] =
-    useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
-  const [googleCalendars, setGoogleCalendars] = useState<
-    GoogleCalendarOption[]
-  >([]);
-  const [selectedGoogleCalendars, setSelectedGoogleCalendars] = useState<
-    SelectedGoogleCalendar[]
-  >([]);
-  const [testAppointmentForm, setTestAppointmentForm] =
-    useState<CreateGoogleCalendarDatePayload>({
+
+  const [testAppointmentForm, setTestAppointmentForm] = useState<CreateGoogleCalendarDatePayload>({
       title: "Visita de prueba",
       description: "Cita creada desde el panel temporal",
       location: "Oficina Inicio Real Estate",
@@ -214,368 +122,53 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }));
   }, [advisorName, currentUser?.id]);
 
-  useEffect(() => {
-    if (!hasLoadedCatalog && !isCatalogLoading) loadCatalogProperties();
-  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties]);
+  const {
+    appointmentLeadOptions,
+    isLeadsLoading,
+    leadSummary,
+    loadLeads,
+  } = useDashboardLeads({ authToken });
 
-  const loadLeads = useCallback(async () => {
-    if (!authToken) {
-      setLeads([]);
-      return;
-    }
-    setIsLeadsLoading(true);
-    try {
-      setLeads(
-        await getBackendLeadRecords(authToken, { includeFollowUps: true }),
-      );
-    } catch (error) {
-      console.warn("No se pudieron cargar los leads reales del asesor:", error);
-      setLeads([]);
-    } finally {
-      setIsLeadsLoading(false);
-    }
-  }, [authToken]);
+  const {
+    filteredAppointmentPropertyOptions,
+    isCatalogLoading,
+    rentSummary,
+    saleSummary,
+  } = useDashboardProperties(testAppointmentForm.appointmentType);
 
-  useEffect(() => {
-    if (!currentUser || !authToken) return;
-
-    const cacheAgentPresentation = async () => {
-      const presentation = currentUser.agentPresentationKey
-        ? { key: currentUser.agentPresentationKey, contentType: undefined }
-        : await getUploadedAgentPresentation(authToken);
-      const storageKey = presentation?.key;
-      if (!storageKey) return;
-
-      if (!currentUser.agentPresentationKey) {
-        await setAuthSession(
-          { ...currentUser, agentPresentationKey: storageKey },
-          authToken,
-          refreshToken,
-        );
-      }
-
-      await cacheUploadedFile({
-        storageKey,
-        token: authToken,
-        namespace: "agent-presentations",
-        contentType: presentation.contentType,
-      });
-    };
-
-    cacheAgentPresentation().catch((error) => {
-      console.warn("No se pudo cachear agentpresentation:", error);
-    });
-  }, [authToken, currentUser, refreshToken, setAuthSession]);
-
-  const loadCalendarDates = useCallback(
-    async (options: { sync?: boolean } = {}) => {
-      if (!authToken) {
-        setCalendarAppointments([]);
-        setIsGoogleConnected(false);
-        setCalendarMessage("Inicia sesion para cargar tus citas reales.");
-        return;
-      }
-      setIsCalendarLoading(true);
-      try {
-        const dates = await getGoogleCalendarDates(authToken, {
-          sync: options.sync,
-        });
-        const appointments = dates
-          .map(mapGoogleDateToAppointment)
-          .filter(isAppointmentFromTodayOn)
-          .sort((a, b) => a.sortTime - b.sortTime);
-        setCalendarAppointments(appointments);
-        setIsGoogleConnected(true);
-        setCalendarMessage(
-          appointments.length ? "" : "No hay citas de Google para esta semana.",
-        );
-      } catch (error) {
-        console.warn(
-          "No se pudieron cargar las citas de Google Calendar para asesor:",
-          error,
-        );
-        setCalendarAppointments([]);
-        try {
-          const status = await getGoogleCalendarConnectionStatus(authToken);
-          setGoogleConnectionStatus(status);
-          setIsGoogleConnected(status.status === "connected" && status.connected);
-          setCalendarMessage(
-            status.status === "requires_reconnect"
-              ? "Reconecta Google Calendar para recuperar tus citas."
-              : "Conecta Google Calendar para cargar tus citas reales.",
-          );
-        } catch {
-          setIsGoogleConnected(false);
-          setCalendarMessage(
-            "Conecta Google Calendar para cargar tus citas reales.",
-          );
-        }
-      } finally {
-        setIsCalendarLoading(false);
-      }
-    },
-    [authToken],
-  );
-  const loadGoogleCalendarSettings = useCallback(async () => {
-    if (!authToken) {
-      setGoogleCalendars([]);
-      setSelectedGoogleCalendars([]);
-      return;
-    }
-    setIsCalendarSettingsLoading(true);
-    try {
-      const status = await getGoogleCalendarConnectionStatus(authToken);
-      setGoogleConnectionStatus(status);
-      setIsGoogleConnected(status.status === "connected" && status.connected);
-
-      if (status.status === "requires_reconnect") {
-        setGoogleCalendars([]);
-        setSelectedGoogleCalendars([]);
-        setCalendarMessage("Reconecta Google Calendar para recuperar tus citas.");
-        return;
-      }
-
-      if (!status.connected) {
-        setGoogleCalendars([]);
-        setSelectedGoogleCalendars([]);
-        return;
-      }
-
-      const [calendars, selectedCalendars] = await Promise.all([
-        getGoogleCalendars(authToken),
-        getSelectedGoogleCalendars(authToken),
-      ]);
-      setGoogleCalendars(calendars);
-      setSelectedGoogleCalendars(selectedCalendars);
-    } catch (error) {
-      console.warn("No se pudieron cargar los calendarios del asesor:", error);
-    } finally {
-      setIsCalendarSettingsLoading(false);
-    }
-  }, [authToken]);
-
-  useEffect(() => {
-    loadLeads();
-  }, [loadLeads]);
-  useEffect(() => {
-    loadCalendarDates({ sync: true });
-  }, [loadCalendarDates]);
-  useEffect(() => {
-    loadGoogleCalendarSettings();
-  }, [loadGoogleCalendarSettings]);
-
-  const rentSummary = useMemo(() => {
-    const source =
-      catalogProperties.length > 0 ? catalogProperties : availableProperties;
-    const rentProperties = source.filter(
-      (property) =>
-        property.status === "for_rent" || property.status === "pending_rent",
-    );
-    const totalRent = rentProperties.reduce(
-      (sum, property) => sum + (property.monthlyRent ?? property.price ?? 0),
-      0,
-    );
-    return {
-      propertyCount: rentProperties.length,
-      opportunityAmount: totalRent * 0.05,
-    };
-  }, [availableProperties, catalogProperties]);
-
-  const saleSummary = useMemo(() => {
-    const source = catalogProperties.length > 0 ? catalogProperties : availableProperties 
-
-    const saleProperties = source.filter(
-      (property) => property.status == 'for_sale' || property.status === 'pending_sale',
-    ); 
-    const totalSale = saleProperties.reduce(
-      (Sum, property) => Sum + (property.monthlyRent ?? property.price ?? 0),0
-    )
-    return {
-      propertyCount: saleProperties.length,
-      opportunityAmount: totalSale * 0.5
-    }
-  }, [availableProperties, catalogProperties])
-
-  const leadSummary = useMemo(() => {
-    const activeLeads = leads.filter(
-      (lead) => !["cerrado", "descartado"].includes(lead.status),
-    );
-    const entries: LeadFollowUpEntry[] = leads.flatMap((lead) =>
-      (lead.followUps ?? []).map((followUp) => ({ lead, followUp })),
-    );
-    const followUps = entries.map((entry) => entry.followUp);
-    const overdue = followUps.filter(isOverdueFollowUp);
-    const upcoming = followUps.filter(hasUpcomingFollowUpDate);
-    const noAnswer = followUps.filter(
-      (followUp) => followUp.result === "noAnswer",
-    );
-    const appointments = followUps.filter(
-      (followUp) => followUp.result === "appointmentScheduled",
-    );
-    const withFollowUps = activeLeads.filter(
-      (lead) => (lead.followUps ?? []).length > 0,
-    );
-    const withoutNext = activeLeads.filter(
-      (lead) =>
-        !(lead.followUps ?? []).some((followUp) =>
-          Boolean(followUp.nextActionDate),
-        ),
-    );
-    return {
-      followUps: followUps.length,
-      overdueFollowUps: overdue.length,
-      appointmentFollowUps: appointments.length,
-      leadMetrics: [
-        {
-          id: "active",
-          value: activeLeads.length,
-          label: "Leads activos",
-          tone: "neutral",
-        },
-        {
-          id: "pending",
-          value: followUps.length,
-          label: "Seguimientos",
-          tone: "warning",
-        },
-        {
-          id: "late",
-          value: overdue.length,
-          label: "Atrasados",
-          tone: overdue.length ? "danger" : "success",
-        },
-        {
-          id: "today",
-          value: upcoming.length,
-          label: "Proximos",
-          tone: "warning",
-        },
-      ] satisfies DashboardMetric[],
-      leadFunnel: [
-        {
-          id: "new",
-          value: activeLeads.filter(
-            (lead) => (lead.followUps ?? []).length === 0,
-          ).length,
-          label: "Nuevos",
-          tone: "neutral",
-        },
-        {
-          id: "following",
-          value: withFollowUps.length,
-          label: "En seguimiento",
-          tone: "neutral",
-        },
-        {
-          id: "closing",
-          value: appointments.length,
-          label: "Por cerrar",
-          tone: "neutral",
-        },
-        {
-          id: "won",
-          value: leads.filter((lead) => lead.status === "cerrado").length,
-          label: "Ganados",
-          tone: "success",
-        },
-        {
-          id: "lost",
-          value: leads.filter((lead) => lead.status === "descartado").length,
-          label: "Perdidos",
-          tone: "neutral",
-        },
-      ] satisfies DashboardMetric[],
-      leadAlerts: [
-        overdue.length
-          ? {
-              id: "expired",
-              message: `${overdue.length} seguimientos vencidos`,
-            }
-          : null,
-        noAnswer.length
-          ? {
-              id: "no-answer",
-              message: `${noAnswer.length} seguimientos sin respuesta`,
-            }
-          : null,
-        withoutNext.length
-          ? {
-              id: "next-action",
-              message: `${withoutNext.length} leads sin siguiente accion`,
-            }
-          : null,
-      ].filter(Boolean) as DashboardLeadAlert[],
-    };
-  }, [leads]);
-
-  const priorities = useMemo(
-    () =>
-      [
-        {
-          id: "closing",
-          value: leadSummary.appointmentFollowUps,
-          label: "Citas por cerrar",
-        },
-        {
-          id: "followups",
-          value: leadSummary.followUps,
-          label: "Seguimientos",
-        },
-        {
-          id: "properties",
-          value: rentSummary.propertyCount,
-          label: "Propiedades activas",
-        },
-        {
-          id: "urgent",
-          value: leadSummary.overdueFollowUps,
-          label: "Urgentes",
-        },
-      ] satisfies DashboardPriority[],
-    [leadSummary, rentSummary.propertyCount],
-  );
-
-  const appointmentPropertyOptions = useMemo(() => {
-    const source =
-      catalogProperties.length > 0 ? catalogProperties : availableProperties;
-    const propertiesById = new Map<string, Property>();
-
-    source.forEach((property) => {
-      const propertyId = property.id || property._id;
-      if (propertyId && !propertiesById.has(propertyId)) {
-        propertiesById.set(propertyId, property);
-      }
-    });
-
-    return Array.from(propertiesById.values()).sort((current, next) =>
-      getPropertyDisplayName(current).localeCompare(
-        getPropertyDisplayName(next),
-      ),
-    );
-  }, [availableProperties, catalogProperties]);
-
-  const filteredAppointmentPropertyOptions = useMemo(() => {
-    const appointmentType =
-      testAppointmentForm.appointmentType?.trim().toLowerCase() || "general";
-
-    if (appointmentType === "renta") {
-      return appointmentPropertyOptions.filter(isRentAppointmentProperty);
-    }
-
-    if (appointmentType === "venta") {
-      return appointmentPropertyOptions.filter(isSaleAppointmentProperty);
-    }
-
-    return appointmentPropertyOptions;
-  }, [appointmentPropertyOptions, testAppointmentForm.appointmentType]);
-
-  const appointmentLeadOptions = useMemo(
-    () =>
-      leads
-        .filter((lead) => !["cerrado", "descartado"].includes(lead.status))
-        .sort((current, next) => current.name.localeCompare(next.name)),
-    [leads],
-  );
+  const {
+    appointmentLeadMode,
+    appointmentSelectionScreen,
+    calendarMessage,
+    changeAppointmentLeadMode: changeCalendarAppointmentLeadMode,
+    connectGoogleCalendar,
+    disconnectCalendar,
+    enabledSelectedCalendars,
+    getCalendarSelection,
+    googleCalendars,
+    isAppointmentModalVisible,
+    isCalendarLoading,
+    isCalendarSettingsLoading,
+    isConnectingCalendar,
+    isDisconnectingCalendar,
+    isGoogleConnected,
+    isSavingCalendarSelection,
+    loadGoogleCalendarAppointments,
+    loadGoogleCalendarSettings,
+    markPrimaryGoogleCalendar,
+    needsGoogleReconnect,
+    provisionalAppointmentLead,
+    saveGoogleCalendarSelection,
+    setAppointmentSelectionScreen,
+    setIsAppointmentModalVisible,
+    toggleGoogleCalendar,
+    updateProvisionalAppointmentLead,
+    visibleCalendarAppointments,
+  } = useDashboardCalendar({
+    authToken,
+    capabilities,
+    returnPath: pathname,
+  });
 
   const selectedAppointmentLead = useMemo(
     () =>
@@ -602,159 +195,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     router.push(`${areaConfig.basePath}/date` as never);
   };
 
-  const enabledSelectedCalendars = selectedGoogleCalendars.filter(
-    (calendar) => calendar.enabled !== false,
-  );
-  const needsGoogleReconnect =
-    googleConnectionStatus?.status === "requires_reconnect";
-
-  const handleLogout = () =>
-    Alert.alert("Cerrar sesion", "Estas seguro que deseas cerrar sesion?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Cerrar sesion",
-        style: "destructive",
-        onPress: async () => {
-          setIsProfileMenuOpen(false);
-          await logout();
-          router.replace("/login/login" as never);
-        },
-      },
-    ]);
-
-  const handleConnectGoogleCalendar = async () => {
-    if (!authToken || isConnectingCalendar) return;
-    setIsConnectingCalendar(true);
-    try {
-      const returnTo = Linking.createURL(pathname.replace(/^\//, ""));
-      const response = await getGoogleCalendarAuthUrl(authToken, returnTo);
-      const result = await WebBrowser.openAuthSessionAsync(
-        response.url,
-        returnTo,
-      );
-      if (result.type === "success")
-        await Promise.all([
-          loadGoogleCalendarSettings(),
-          loadCalendarDates({ sync: true }),
-        ]);
-    } catch (error) {
-      console.warn("No se pudo conectar Google Calendar en asesor:", error);
-    } finally {
-      setIsConnectingCalendar(false);
-    }
-  };
-
-  const handleDisconnectGoogleCalendar = () => {
-    if (!authToken || isDisconnectingCalendar) return;
-    Alert.alert(
-      "Desconectar Google",
-      "Quieres desconectar la cuenta de Google de esta sesion?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Desconectar",
-          style: "destructive",
-          onPress: async () => {
-            setIsDisconnectingCalendar(true);
-            try {
-              await disconnectGoogleCalendar(authToken);
-              setGoogleCalendars([]);
-              setSelectedGoogleCalendars([]);
-              setCalendarAppointments([]);
-              setGoogleConnectionStatus(null);
-              setIsGoogleConnected(false);
-              setCalendarMessage("Google Calendar fue desconectado.");
-            } catch (error) {
-              console.warn(
-                "No se pudo desconectar Google Calendar en asesor:",
-                error,
-              );
-            } finally {
-              setIsDisconnectingCalendar(false);
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const getCalendarSelection = (calendarId?: string) =>
-    selectedGoogleCalendars.find(
-      (calendar) => calendar.calendarId === calendarId,
-    );
-  const toggleGoogleCalendar = (calendar: GoogleCalendarOption) => {
-    const calendarId = calendar.calendarId;
-    if (!calendarId) return;
-    setSelectedGoogleCalendars((current) => {
-      const existing = current.find((item) => item.calendarId === calendarId);
-      if (existing)
-        return current.map((item) =>
-          item.calendarId === calendarId
-            ? { ...item, enabled: item.enabled === false }
-            : item,
-        );
-      return [
-        ...current,
-        {
-          calendarId,
-          summary: calendar.summary ?? "",
-          enabled: true,
-          appointmentType: getDefaultAppointmentType(calendar.summary),
-          primaryForCreate: current.every(
-            (item) => item.primaryForCreate !== true,
-          ),
-        },
-      ];
-    });
-  };
-  const markPrimaryGoogleCalendar = (calendar: GoogleCalendarOption) => {
-    const calendarId = calendar.calendarId;
-    if (!calendarId) return;
-    setSelectedGoogleCalendars((current) => {
-      const next = current.some((item) => item.calendarId === calendarId)
-        ? current
-        : [
-            ...current,
-            {
-              calendarId,
-              summary: calendar.summary ?? "",
-              enabled: true,
-              appointmentType: getDefaultAppointmentType(calendar.summary),
-            },
-          ];
-      return next.map((item) => ({
-        ...item,
-        enabled: item.calendarId === calendarId ? true : item.enabled,
-        primaryForCreate: item.calendarId === calendarId,
-      }));
-    });
-  };
-  const handleSaveGoogleCalendarSelection = async () => {
-    if (!authToken || isSavingCalendarSelection) return;
-    setIsSavingCalendarSelection(true);
-    try {
-      setSelectedGoogleCalendars(
-        await saveSelectedGoogleCalendars(authToken, selectedGoogleCalendars),
-      );
-      await syncGoogleCalendars(authToken);
-      await Promise.all([
-        loadGoogleCalendarSettings(),
-        loadCalendarDates({ sync: true }),
-      ]);
-      Alert.alert(
-        "Calendarios guardados",
-        "La seleccion fue guardada y las citas fueron sincronizadas.",
-      );
-    } catch (error) {
-      console.warn(
-        "No se pudo guardar la seleccion de calendarios del asesor:",
-        error,
-      );
-    } finally {
-      setIsSavingCalendarSelection(false);
-    }
-  };
-
   const updateTestAppointmentForm = (
     field: keyof CreateGoogleCalendarDatePayload,
     value: string,
@@ -765,19 +205,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }));
   };
 
-  const updateProvisionalAppointmentLead = (
-    field: "fullName" | "phone" | "email",
-    value: string,
-  ) => {
-    setProvisionalAppointmentLead((currentLead) => ({
-      ...currentLead,
-      [field]: value,
-    }));
-  };
-
   const changeAppointmentLeadMode = (mode: "existing" | "provisional") => {
-    setAppointmentLeadMode(mode);
-    setAppointmentSelectionScreen(null);
+    changeCalendarAppointmentLeadMode(mode);
 
     if (mode === "provisional") {
       setTestAppointmentForm((currentForm) => ({
@@ -836,31 +265,13 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const handleOpenAppointmentModal = () => {
     setAppointmentSelectionScreen(null);
     setIsAppointmentModalVisible(true);
+    void loadGoogleCalendarSettings();
   };
 
   const handleCloseAppointmentModal = () => {
     setAppointmentSelectionScreen(null);
     setIsAppointmentModalVisible(false);
   };
-
-  function canShowAppointment(
-    appointment: AppointmentPreviewItem,
-    capabilites: AppCapabilities,
-  ){
-    const type = appointment.appointmentType
-    if (type === 'renta') return capabilites.canViewRentals
-    if (type === 'venta') return capabilites.canViewSales
-
-    return true
-  }
-
-  const visibleCalendarAppointment = useMemo( 
-    () =>
-      calendarAppointments.filter((appointment) => 
-        canShowAppointment(appointment, capabilities),
-      ),
-      [calendarAppointments, capabilities]
-  )
 
   const handleCreateAppointment = async () => {
     if (!authToken || isCreatingAppointment) return;
@@ -950,7 +361,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             };
       const response = await createGoogleCalendarDate(authToken, appointmentPayload);
       await Promise.all([
-        loadCalendarDates({ sync: true }),
+        loadGoogleCalendarAppointments({ sync: true }),
         loadLeads(),
       ]);
       Alert.alert(
@@ -967,6 +378,36 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       setIsCreatingAppointment(false);
     }
   };
+
+  const heroColors = useMemo(() => ({
+    rent: {
+      backgroundColor: generalColors.rentColor,
+      accentColor: '#d4b66f',
+      textColor: '#ffffff',
+    },
+    sale: {
+      backgroundColor: generalColors.saleColor,
+      accentColor: '#d4b66f',
+      textColor: '#ffffff',
+    },
+  }), [])
+
+  const activeHeroColors = operationMode === 'sale'
+    ? heroColors.sale
+    : heroColors.rent
+
+  const activeHeroSummary = operationMode === 'sale'
+    ? saleSummary.propertyCount
+    : rentSummary.propertyCount
+
+  const activeHeroCatalogType = operationMode === 'sale'
+    ? 'sale'
+    : 'rent'
+
+  const activeOpportunityAmount = operationMode === 'sale'
+    ? saleSummary.opportunityAmount
+    : rentSummary.opportunityAmount
+
   if (profileImageUpload.isOpen) {
     return (
       <ProfileImageModal
@@ -981,199 +422,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       />
     );
   }
-  if (isSettingsOpen) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.sectionHeader}>
-            <TouchableOpacity
-              style={styles.notification}
-              activeOpacity={0.85}
-              onPress={() => setIsSettingsOpen(false)}
-            >
-              <icons.BackButton />
-            </TouchableOpacity>
-            <View style={styles.header}>
-              <Text style={styles.sectionHeaderTitle}>Configuracion</Text>
-              <Text style={styles.panelSubtitle}>
-                Calendarios y conexion de Google
-              </Text>
-            </View>
-          </View>
-          <View style={styles.panel}>
-            <Text style={styles.sectionHeaderTitle}>Preferencias de la aplicacion</Text>
-            <Text style={styles.panelSubtitle}>
-              Configura las funciones de renta o venta.
-            </Text>
-            <TouchableOpacity
-              style={styles.centerButton}
-              activeOpacity={0.85}
-              onPress={() => {
-                router.push(`${areaConfig.basePath}/settings` as never);
-              }}
-            >
-              <Settings size={18} color="#ffffff" />
-              <Text style={styles.centerButtonText}>Abrir preferencias</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.panel}>
-            <Text style={styles.sectionHeaderTitle}>Google Calendar</Text>
-            <Text style={styles.panelSubtitle}>
-              Selecciona que calendarios usa el asesor.
-            </Text>
-            <TouchableOpacity
-              style={
-                isGoogleConnected && !needsGoogleReconnect
-                  ? styles.outlineButton
-                  : styles.centerButton
-              }
-              activeOpacity={0.85}
-              disabled={isConnectingCalendar || isDisconnectingCalendar}
-              onPress={
-                isGoogleConnected && !needsGoogleReconnect
-                  ? handleDisconnectGoogleCalendar
-                  : handleConnectGoogleCalendar
-              }
-            >
-              {isGoogleConnected && !needsGoogleReconnect ? (
-                <LogOut size={16} color="#006b43" />
-              ) : (
-                <CalendarDays size={17} color="#3d3b3b" />
-              )}
-              <Text
-                style={
-                  isGoogleConnected && !needsGoogleReconnect
-                    ? styles.outlineButtonText
-                    : styles.centerButtonText
-                }
-              >
-                {isConnectingCalendar
-                  ? "Abriendo Google..."
-                  : isDisconnectingCalendar
-                    ? "Desconectando..."
-                    : needsGoogleReconnect
-                      ? "Reconectar Google Calendar"
-                      : isGoogleConnected
-                      ? "Desconectar Google"
-                      : "Conectar Google Calendar"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.googleCalendarSettings}>
-            <View style={styles.calendarSettingsHeader}>
-              <Text style={styles.calendarSettingsTitle}>
-                Calendarios conectados
-              </Text>
-              <TouchableOpacity
-                style={styles.calendarSmallButton}
-                activeOpacity={0.85}
-                disabled={isCalendarSettingsLoading}
-                onPress={loadGoogleCalendarSettings}
-              >
-                <Text style={styles.calendarSmallButtonText}>
-                  {isCalendarSettingsLoading ? "Cargando" : "Actualizar"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {needsGoogleReconnect ? (
-              <Text style={styles.calendarSettingsEmpty}>
-                Google Calendar requiere reconexion para volver a sincronizar.
-              </Text>
-            ) : googleCalendars.length === 0 ? (
-              <Text style={styles.calendarSettingsEmpty}>
-                {isCalendarSettingsLoading
-                  ? "Buscando calendarios..."
-                  : "No hay calendarios disponibles."}
-              </Text>
-            ) : (
-              <View style={styles.calendarList}>
-                {googleCalendars.map((calendar) => {
-                  const selection = getCalendarSelection(calendar.calendarId);
-                  const isEnabled = selection?.enabled === true;
-                  const isPrimary = selection?.primaryForCreate === true;
-
-                  return (
-                    <View
-                      key={calendar.calendarId ?? calendar.summary}
-                      style={styles.calendarOptionRow}
-                    >
-                      <TouchableOpacity
-                        style={[
-                          styles.calendarToggle,
-                          isEnabled && styles.calendarToggleActive,
-                        ]}
-                        activeOpacity={0.85}
-                        onPress={() => toggleGoogleCalendar(calendar)}
-                      >
-                        <Text
-                          style={[
-                            styles.calendarToggleText,
-                            isEnabled && styles.calendarToggleTextActive,
-                          ]}
-                        >
-                          {isEnabled ? "ON" : "OFF"}
-                        </Text>
-                      </TouchableOpacity>
-                      <View style={styles.calendarOptionCopy}>
-                        <Text
-                          style={styles.calendarOptionTitle}
-                          numberOfLines={1}
-                        >
-                          {calendar.summary || "Calendario sin nombre"}
-                        </Text>
-                        <Text
-                          style={styles.calendarOptionMeta}
-                          numberOfLines={1}
-                        >
-                          {selection?.appointmentType ||
-                            getDefaultAppointmentType(calendar.summary)}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={[
-                          styles.calendarPrimaryButton,
-                          isPrimary && styles.calendarPrimaryButtonActive,
-                        ]}
-                        activeOpacity={0.85}
-                        onPress={() => markPrimaryGoogleCalendar(calendar)}
-                      >
-                        <Text
-                          style={[
-                            styles.calendarPrimaryButtonText,
-                            isPrimary && styles.calendarPrimaryButtonTextActive,
-                          ]}
-                        >
-                          {isPrimary ? "Principal" : "Usar"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-            <View style={styles.calendarActionsRow}>
-              <TouchableOpacity
-                style={styles.calendarActionButton}
-                activeOpacity={0.85}
-                disabled={isSavingCalendarSelection}
-                onPress={handleSaveGoogleCalendarSelection}
-              >
-                <Text style={styles.calendarActionButtonText}>
-                  {isSavingCalendarSelection
-                    ? "Guardando..."
-                    : "Guardar calendarios"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
       <ScrollView
@@ -1189,20 +437,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             : operationMode === 'sale' ? 'Asesor de venta' 
             : operationMode === 'both' ? 'Asesor Mixto' : null}
           </Text>
-          {/*<Text style={styles.roleLabel}>{areaConfig.roleLabel}</Text>*/}
           <View style={styles.datePill}>
             <Text style={styles.dateText}>{formatCurrentDashboardDate()}</Text>
           </View>
         </View>
-        {area === "adviser" ? (
-          <TouchableOpacity
-            style={styles.mainDashboardButton}
-            activeOpacity={0.85}
-            onPress={() => router.push("/userAdviser/mainDashboard" as never)}
-          >
-            <Text style={styles.mainDashboardButtonText}>Ver mainDashboard</Text>
-          </TouchableOpacity>
-        ) : null}
         <View style={styles.profileRow}>
           <View style={styles.profileLeft}>
             <TouchableOpacity
@@ -1222,53 +460,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               <Text style={styles.greeting}>Hola, {advisorName}</Text>
               <Text style={styles.helper}>{areaConfig.headline}</Text>
             </View>
-            {isProfileMenuOpen ? (
-              <View style={styles.profileMenu}>
-                <TouchableOpacity
-                  style={styles.profileMenuButton}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    setIsProfileMenuOpen(false);
-                    profileImageUpload.open("agentpresentation");
-                  }}
-                >
-                  <CameraIcon size={15} color={"#315b41"} />
-                  <Text style={styles.profileMenuButtonText}>Agregar foto del pdf</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.profileMenuButton}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    setIsProfileMenuOpen(false);
-                    profileImageUpload.open("profile");
-                  }}
-                >
-                  <CameraIcon size={15} color={"#315b41"} />
-                  <Text style={styles.profileMenuButtonText}>Agregar foto</Text>
-                </TouchableOpacity>
-                {/*<TouchableOpacity
-                  style={styles.profileMenuButton}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    setIsProfileMenuOpen(false);
-                    router.push(`${areaConfig.basePath}/settings` as never);
-                  }}
-                >
-                  <Settings size={15} color="#315b41" />
-                  <Text style={styles.profileMenuButtonText}>
-                    Configuraciones
-                  </Text>
-                </TouchableOpacity>*/}
-                {/*<TouchableOpacity
-                  style={styles.profileLogoutButton}
-                  activeOpacity={0.85}
-                  onPress={handleLogout}
-                >
-                  <LogOut size={15} color="#ffffff" />
-                  <Text style={styles.profileLogoutText}>Salir de sesion</Text>
-                </TouchableOpacity>*/}
-              </View>
-            ) : null}
           </View>
           <TouchableOpacity style={styles.notification} activeOpacity={0.85}>
             <Bell size={20} color="#c79443" />
@@ -1277,44 +468,25 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         <View style={styles.heroCards}>
           {operationMode === 'both' ? (
             <>
-              <TouchableOpacity
-                style={styles.availableCard}
-                activeOpacity={0.85}
-                onPress={() => openPropertiesCatalog("rent")}
-              >
-                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
-                <Text style={styles.availableValue}>
-                  {rentSummary.propertyCount}
-                </Text>
-                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.availableCard, styles.availableCardSale]}
-                activeOpacity={0.85}
-                onPress={() => openPropertiesCatalog("sale")}
-              >
-                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
-                <Text style={styles.availableValue}>
-                  {saleSummary.propertyCount}
-                </Text>
-                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
-              </TouchableOpacity>
+              <HeroCards
+                Summary={rentSummary.propertyCount}
+                OnPress={() => openPropertiesCatalog("rent")}
+                colors={heroColors.rent}
+              />
+              <HeroCards
+                Summary={saleSummary.propertyCount}
+                OnPress={() => openPropertiesCatalog("sale")}
+                colors={heroColors.sale}
+              />
             </>
-          ): <TouchableOpacity
-                style={styles.availableCard}
-                activeOpacity={0.85}
-                onPress={() =>
-                  openPropertiesCatalog(operationMode === "sale" ? "sale" : "rent")
-                }
-              >
-                <Text style={styles.spacedLabel}>PROPIEDADES</Text>
-                <Text style={styles.availableValue}>
-                  {operationMode === "sale"
-                    ? saleSummary.propertyCount
-                    : rentSummary.propertyCount}
-                </Text>
-                <Text style={styles.spacedLabel}>DISPONIBLES</Text>
-              </TouchableOpacity> 
+          ): 
+          <>
+            <HeroCards
+              OnPress={() => openPropertiesCatalog(activeHeroCatalogType)}
+              Summary={activeHeroSummary}
+              colors={activeHeroColors}
+            />
+          </>
             }
           {area === "coordinator" ? (
             <View style={styles.earningsCard}>
@@ -1326,7 +498,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                   adjustsFontSizeToFit
                   minimumFontScale={0.72}
                 >
-                  {formatCurrency(rentSummary.opportunityAmount)}
+                  {formatCurrency(activeOpportunityAmount)}
                 </Text>
                 <Text style={styles.currency}>MXN</Text>
               </View>
@@ -1334,27 +506,13 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             </View>
           ) : null}
         </View>
-        {/*<View style={styles.listedButton}>
-          <View style={styles.listedIcon}>
-            <Home size={26} color="#d4b66f" />
-          </View>
-          <View style={styles.listedCopy}>
-            <Text style={styles.listedTitle}>Mis propiedades LISTADAS</Text>
-            <Text style={styles.listedMeta}>Muy pronto</Text>
-          </View>
-          <ChevronRight size={18} color="#2a2d31" />
-        </View>*/}
-        {/*<Text style={styles.sectionTitle}>Prioridades de hoy</Text>
-        <View style={styles.prioritiesRow}>{priorities.map((priority, index) => 
-          <PriorityCard key={priority.id} priority={priority} highlight={index === priorities.length - 1} />)}
-        </View>*/}
         <View style={[styles.panel, styles.appointmentsPanel]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderTitle}>Citas de esta semana</Text>
             <TouchableOpacity
               //style={styles.centerButton}
               activeOpacity={0.85}
-              onPress={() => loadCalendarDates({ sync: true })}
+              onPress={() => loadGoogleCalendarAppointments({ sync: true })}
               disabled={isCalendarLoading}
             >
               <Text style={styles.sectionAction}>
@@ -1366,16 +524,16 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             style={styles.appointmentsScroll}
             contentContainerStyle={styles.appointmentList}
             nestedScrollEnabled
-            showsVerticalScrollIndicator={visibleCalendarAppointment.length > 5}
+            showsVerticalScrollIndicator={visibleCalendarAppointments.length > 5}
           >
-            {visibleCalendarAppointment.length === 0 ? (
+            {visibleCalendarAppointments.length === 0 ? (
               <Text style={styles.panelSubtitle}>
                 {isCalendarLoading
-                  ? "Cargando citas reales..."
+                  ? "Cargando citas ..."
                   : calendarMessage}
               </Text>
             ) : (
-              visibleCalendarAppointment
+              visibleCalendarAppointments
                 .slice(0, 15)
                 .map((appointment) => (
                   <AppointmentCard
@@ -1401,7 +559,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               onPress={handleOpenAppointmentModal}
             >
               <icons.WhiteCalendar />
-              {/*<Plus size={17} color="#ffffff" />*/}
               <Text style={styles.centerButtonText}>Agregar cita</Text>
             </TouchableOpacity>
           </View>
@@ -1482,22 +639,5 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         visible={isAppointmentModalVisible}
       />
     </SafeAreaView>
-  );
-}
-
-function isRentAppointmentProperty(property: Property) {
-  return (
-    property.listingType === "rent" ||
-    property.status === "for_rent" ||
-    property.status === "pending_rent" ||
-    Boolean(property.monthlyRent)
-  );
-}
-
-function isSaleAppointmentProperty(property: Property) {
-  return (
-    property.listingType === "sale" ||
-    property.status === "for_sale" ||
-    property.status === "pending_sale"
   );
 }

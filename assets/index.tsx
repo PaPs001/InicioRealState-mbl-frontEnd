@@ -3,7 +3,6 @@ import type { ImageSourcePropType } from 'react-native'
 
 import CalendarDatesIconMobile from './calendarDatesIconMobile.svg'
 import CatalogIconMobile from './catalogIconMobile.svg'
-import FavoritesIconMobile from './favoritesIconMobile.svg'
 import HomeIconMobile from './homeIconMobile.svg'
 import LeadsIconMobile from './leadsIconMobile.svg'
 import LogoInicioSVGNegro from './LogoInicioSVGNegro.svg'
@@ -59,7 +58,6 @@ export const logos = {
 export const icons = {
   calendarDatesMobile: CalendarDatesIconMobile,
   catalogMobile: CatalogIconMobile,
-  favoritesMobile: FavoritesIconMobile,
   homeMobile: HomeIconMobile,
   leadsMobile: LeadsIconMobile,
   profileMobile: ProfileIconMobile,
@@ -139,7 +137,6 @@ export const assets = {
 export {
   CalendarDatesIconMobile,
   CatalogIconMobile,
-  FavoritesIconMobile,
   HomeIconMobile,
   LeadsIconMobile,
   LogoInicioSVGNegro,

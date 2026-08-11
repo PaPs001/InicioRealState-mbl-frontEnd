@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { Property } from '@/lib/types'
 import { getAvailableModuleProperties } from '../services/properties.service'
@@ -26,6 +26,7 @@ export function usePropertiesScreen(authToken?: string | null) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const hasLoadedInitialPropertiesRef = useRef(false)
 
   const loadProperties = useCallback(async () => {
     if (!authToken) {
@@ -54,8 +55,12 @@ export function usePropertiesScreen(authToken?: string | null) {
   }, [authToken])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialPropertiesRef.current) return
+
+    hasLoadedInitialPropertiesRef.current = true
+    console.info('[PropertiesScreen][initial-load]', { service: 'properties' })
     loadProperties()
-  }, [loadProperties])
+  }, [authToken, loadProperties])
 
   const filteredProperties = useMemo(() => {
     const normalizedQuery = normalizeText(searchQuery)

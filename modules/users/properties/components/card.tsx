@@ -16,7 +16,6 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Star,
   TreePine,
   Waves,
 } from 'lucide-react-native'
@@ -784,9 +783,6 @@ const PropertyCard = memo(function PropertyCard({
 
         <View style={styles.cardFooter}>
           <Text style={styles.detailLink}>Ver detalles </Text>
-          <TouchableOpacity style={styles.favoriteButton} activeOpacity={0.85}>
-            <Star size={13} color="#0c6740" fill="#0c6740" />
-          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>

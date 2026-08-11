@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getUploadedProfileImage } from '@/lib/api'
@@ -12,40 +12,49 @@ export function useProfileAvatar() {
     setAuthSession,
   } = useSessionDomain()
   const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null)
+  const currentAvatar = currentUser?.avatar ?? null
+  const currentProfilePhotoKey = currentUser?.profilePhotoKey
+  const hasCurrentUser = !!currentUser
+  const currentUserRef = useRef(currentUser)
+
+  currentUserRef.current = currentUser
 
   useEffect(() => {
     let isMounted = true
 
     setProfileAvatarUri(null)
 
-    if (!currentUser || !authToken) {
-      setProfileAvatarUri(currentUser?.avatar ?? null)
+    if (!hasCurrentUser || !authToken) {
+      setProfileAvatarUri(currentAvatar)
       return () => {
         isMounted = false
       }
     }
 
     const loadProfileAvatar = async () => {
-      const profilePhoto = currentUser.profilePhotoKey
+      const profilePhoto = currentProfilePhotoKey
         ? {
-            key: currentUser.profilePhotoKey,
-            storageKey: currentUser.profilePhotoKey,
-            url: currentUser.avatar ?? '',
+            key: currentProfilePhotoKey,
+            storageKey: currentProfilePhotoKey,
+            url: currentAvatar ?? '',
             contentType: undefined,
           }
         : await getUploadedProfileImage(authToken)
 
       const profilePhotoKey = profilePhoto?.key || profilePhoto?.storageKey
       if (!profilePhotoKey) {
-        if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null)
+        if (isMounted) setProfileAvatarUri(currentAvatar)
         return
       }
 
-      if (!currentUser.profilePhotoKey) {
+      if (!currentProfilePhotoKey) {
+        const latestCurrentUser = currentUserRef.current
+        if (!latestCurrentUser) return
+
         await setAuthSession(
           {
-            ...currentUser,
-            avatar: profilePhoto.url || currentUser.avatar,
+            ...latestCurrentUser,
+            avatar: profilePhoto.url || currentAvatar || undefined,
             profilePhotoKey,
           },
           authToken,
@@ -64,13 +73,13 @@ export function useProfileAvatar() {
 
     void loadProfileAvatar().catch(error => {
       console.warn('No se pudo cargar la foto de perfil:', error)
-      if (isMounted) setProfileAvatarUri(currentUser.avatar ?? null)
+      if (isMounted) setProfileAvatarUri(currentAvatar)
     })
 
     return () => {
       isMounted = false
     }
-  }, [authToken, currentUser, refreshToken, setAuthSession])
+  }, [authToken, currentAvatar, currentProfilePhotoKey, hasCurrentUser, refreshToken, setAuthSession])
 
   return { profileAvatarUri, setProfileAvatarUri }
 }

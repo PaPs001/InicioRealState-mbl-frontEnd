@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import type { Property } from '@/lib/types'
 import type { PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
 import {
-  addFavoritePropertyForUser,
   findPropertyById,
   getAvailableProperties,
   loadAgentCatalogPropertiesFromApi,
   loadCatalogPropertiesFromApi,
   loadCatalogPropertiesFromCore,
-  loadFavoritePropertiesFromApi,
-  removeFavoritePropertyForUser,
 } from '@/lib/services/property-domain'
 import { getUserProperties } from '@/lib/services/user-properties'
 
@@ -23,7 +20,6 @@ type PropertyStateParams = {
 
 export function usePropertyState(params: PropertyStateParams) {
   const { authToken, currentUserId, isAdmin, isAgent } = params
-  const [favorites, setFavorites] = useState<string[]>([])
   const [catalogProperties, setCatalogProperties] = useState<Property[]>([])
   const [agentCatalogProperties, setAgentCatalogProperties] = useState<Property[]>([])
   const [agentCatalogRawData, setAgentCatalogRawData] = useState<PropertyCatalogItemResponse[]>([])
@@ -31,7 +27,8 @@ export function usePropertyState(params: PropertyStateParams) {
   const [isAgentCatalogLoading, setIsAgentCatalogLoading] = useState(false)
   const [hasLoadedCatalog, setHasLoadedCatalog] = useState(false)
   const [hasLoadedAgentCatalog, setHasLoadedAgentCatalog] = useState(false)
-  const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([])
+  const isLoadingCatalogRef = useRef(false)
+  const isLoadingAgentCatalogRef = useRef(false)
 
   const userProperties = useMemo(() => getUserProperties(currentUserId), [currentUserId])
 
@@ -47,92 +44,19 @@ export function usePropertyState(params: PropertyStateParams) {
     [catalogProperties, currentUserId, hasLoadedCatalog, isAdmin, isAgent],
   )
 
-  const loadFavoriteProperties = useCallback(async () => {
-    if (!currentUserId) {
-      setFavoriteProperties([])
-      setFavorites([])
-      return
-    }
-
-    try {
-      console.log('loadFavoriteProperties payload:', {
-        userId: currentUserId,
-        token: authToken,
-      })
-      const data = await loadFavoritePropertiesFromApi(currentUserId, authToken ?? undefined)
-      setFavoriteProperties(data.favoriteProperties)
-      setFavorites(data.favoriteIds)
-    } catch (error) {
-      console.error('Error cargando los datos mi buen amigo', error)
-      setFavoriteProperties([])
-      setFavorites([])
-    }
-  }, [authToken, currentUserId])
-
-  useEffect(() => {
-    loadFavoriteProperties()
-  }, [loadFavoriteProperties])
-
   const getPropertyById = useCallback(
     (id: string) =>
       findPropertyById({
         id,
-        favoriteProperties,
         agentCatalogProperties,
         catalogProperties,
       }),
-    [agentCatalogProperties, catalogProperties, favoriteProperties],
+    [agentCatalogProperties, catalogProperties],
   )
-
-  const addNewFavoriteProperty = useCallback(
-    async (propertyId: string) => {
-      console.log('addFavoriteProperty payload:', {
-        propertyId,
-        token: authToken,
-      })
-
-      const result = await addFavoritePropertyForUser({
-        currentFavorites: favorites,
-        currentUserId,
-        property: getPropertyById(propertyId),
-        propertyId,
-        token: authToken,
-      })
-
-      setFavorites(result.favoriteIds)
-      setFavoriteProperties(result.favoritePropertiesUpdater)
-    },
-    [authToken, currentUserId, favorites, getPropertyById],
-  )
-
-  const toggleFavorite = useCallback(
-    async (propertyId: string) => {
-      if (favorites.includes(propertyId)) {
-        console.log('deleteFavoriteProperties payload:', {
-          propertyId,
-          token: authToken,
-        })
-
-        const result = await removeFavoritePropertyForUser({
-          currentFavorites: favorites,
-          currentUserId,
-          propertyId,
-          token: authToken,
-        })
-
-        setFavorites(result.favoriteIds)
-        setFavoriteProperties(result.favoritePropertiesUpdater)
-        return
-      }
-
-      await addNewFavoriteProperty(propertyId)
-    },
-    [addNewFavoriteProperty, authToken, currentUserId, favorites],
-  )
-
-  const isFavorite = useCallback((propertyId: string) => favorites.includes(propertyId), [favorites])
 
   const loadCatalogProperties = useCallback(async () => {
+    if (isLoadingCatalogRef.current) return
+    isLoadingCatalogRef.current = true
     setIsCatalogLoading(true)
     setHasLoadedCatalog(true)
     try {
@@ -143,6 +67,7 @@ export function usePropertyState(params: PropertyStateParams) {
       setCatalogProperties([])
     } finally {
       setIsCatalogLoading(false)
+      isLoadingCatalogRef.current = false
     }
   }, [])
 
@@ -152,7 +77,9 @@ export function usePropertyState(params: PropertyStateParams) {
       setCatalogProperties([])
       return
     }
+    if (isLoadingCatalogRef.current) return
 
+    isLoadingCatalogRef.current = true
     setIsCatalogLoading(true)
     try {
       const properties = await loadCatalogPropertiesFromCore(authToken)
@@ -164,10 +91,13 @@ export function usePropertyState(params: PropertyStateParams) {
       setHasLoadedCatalog(false)
     } finally {
       setIsCatalogLoading(false)
+      isLoadingCatalogRef.current = false
     }
   }, [authToken])
 
   const loadAgentCatalogProperties = useCallback(async () => {
+    if (isLoadingAgentCatalogRef.current) return
+    isLoadingAgentCatalogRef.current = true
     setIsAgentCatalogLoading(true)
     setHasLoadedAgentCatalog(true)
     try {
@@ -180,21 +110,19 @@ export function usePropertyState(params: PropertyStateParams) {
       setAgentCatalogRawData([])
     } finally {
       setIsAgentCatalogLoading(false)
+      isLoadingAgentCatalogRef.current = false
     }
   }, [])
 
-  const replaceFavoriteIds = useCallback((nextFavorites: string[]) => {
-    setFavorites(nextFavorites)
-  }, [])
-
   const resetPropertyState = useCallback(() => {
-    setFavorites([])
-    setFavoriteProperties([])
+    setCatalogProperties([])
+    setAgentCatalogProperties([])
+    setAgentCatalogRawData([])
+    setHasLoadedCatalog(false)
+    setHasLoadedAgentCatalog(false)
   }, [])
 
   return {
-    favorites,
-    favoriteProperties,
     catalogProperties,
     agentCatalogProperties,
     agentCatalogRawData,
@@ -204,15 +132,10 @@ export function usePropertyState(params: PropertyStateParams) {
     hasLoadedAgentCatalog,
     userProperties,
     availableProperties,
-    loadFavoriteProperties,
-    addNewFavoriteProperty,
-    toggleFavorite,
-    isFavorite,
     getPropertyById,
     loadCatalogProperties,
     newLoadCatalogProperties,
     loadAgentCatalogProperties,
-    replaceFavoriteIds,
     resetPropertyState,
   }
 }
