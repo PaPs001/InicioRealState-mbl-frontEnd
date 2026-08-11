@@ -17,7 +17,8 @@ export const generalColors = {
   greenTitle: '#3D5A40',
   backgroundSections: '#FFFDFC',
   saleColor: '#2d5f6b',
-  rentColor: '#3d5f42'
+  rentColor: '#3d5f42',
+  general: '#643012'
 }
 
 export const textColor ={
