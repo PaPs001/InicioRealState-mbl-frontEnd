@@ -419,7 +419,7 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.saleColor,
   },
   appointmentCardGeneral: {
-    backgroundColor: '#fff8f8',
+    backgroundColor: '#434e31',
   },
   appointmentCopy: {
     flex: 1,

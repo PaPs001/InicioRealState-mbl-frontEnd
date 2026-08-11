@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -116,6 +116,10 @@ export default function CoordinatorRentUserScreen() {
   const [appointmentSelectionScreen, setAppointmentSelectionScreen] = useState<'lead' | 'property' | null>(null)
   const [coordinatorLeads, setCoordinatorLeads] = useState<PropertyLead[]>([])
   const [isCoordinatorLeadsLoading, setIsCoordinatorLeadsLoading] = useState(false)
+  const hasRequestedInitialCatalogRef = useRef(false)
+  const hasLoadedInitialCoordinatorLeadsRef = useRef(false)
+  const hasLoadedInitialCalendarDatesRef = useRef(false)
+  const hasLoadedInitialCalendarSettingsRef = useRef(false)
   const coordinatorName = currentUser?.name?.trim() || currentUser?.email?.split('@')[0] || 'Coordinador'
   const coordinatorInitials = getInitials(coordinatorName)
   const currentDateLabel = formatCurrentDashboardDate()
@@ -130,7 +134,7 @@ export default function CoordinatorRentUserScreen() {
     helpedBy: coordinatorName,
     advisorId: currentUser?.id ?? null,
   })
-  const [calendarMessage, setCalendarMessage] = useState('Conecta Google Calendar para cargar tus citas reales.')
+  const [calendarMessage, setCalendarMessage] = useState('Conecta Google Calendar para cargar tus citas.')
 
   
   useEffect(() => {
@@ -148,9 +152,11 @@ export default function CoordinatorRentUserScreen() {
   }, [coordinatorName, currentUser?.id])
 
   useEffect(() => {
-    if (!hasLoadedCatalog && !isCatalogLoading) {
-      loadCatalogProperties()
-    }
+    if (hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
+
+    hasRequestedInitialCatalogRef.current = true
+    console.info('[CoordinatorDashboard][initial-load]', { service: 'catalog-properties' })
+    loadCatalogProperties()
   }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   const loadCoordinatorLeads = useCallback(async () => {
@@ -172,8 +178,12 @@ export default function CoordinatorRentUserScreen() {
   }, [authToken])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialCoordinatorLeadsRef.current) return
+
+    hasLoadedInitialCoordinatorLeadsRef.current = true
+    console.info('[CoordinatorDashboard][initial-load]', { service: 'leads' })
     loadCoordinatorLeads()
-  }, [loadCoordinatorLeads])
+  }, [authToken, loadCoordinatorLeads])
 
   const refreshCurrentCoordinatorLeads = () => {
     loadCoordinatorLeads()
@@ -217,7 +227,7 @@ export default function CoordinatorRentUserScreen() {
         setCalendarMessage(
           connectionStatus.status === 'requires_reconnect'
             ? 'Reconecta Google Calendar para recuperar tus citas.'
-            : 'Conecta Google Calendar para cargar tus citas reales.',
+            : 'Conecta Google Calendar para cargar tus citas.',
         )
         return
       }
@@ -235,11 +245,11 @@ export default function CoordinatorRentUserScreen() {
         setCalendarMessage(
           connectionStatus.status === 'requires_reconnect'
             ? 'Reconecta Google Calendar para recuperar tus citas.'
-            : 'Conecta Google Calendar para cargar tus citas reales.',
+            : 'Conecta Google Calendar para cargar tus citas.',
         )
       } catch {
         setIsGoogleConnected(false)
-        setCalendarMessage('Conecta Google Calendar para cargar tus citas reales.')
+        setCalendarMessage('Conecta Google Calendar para cargar tus citas.')
       }
     } finally {
       setIsCalendarLoading(false)
@@ -286,12 +296,20 @@ export default function CoordinatorRentUserScreen() {
   }, [authToken])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialCalendarDatesRef.current) return
+
+    hasLoadedInitialCalendarDatesRef.current = true
+    console.info('[CoordinatorDashboard][initial-load]', { service: 'calendar-dates' })
     loadCalendarDates({ sync: true })
-  }, [loadCalendarDates])
+  }, [authToken, loadCalendarDates])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialCalendarSettingsRef.current) return
+
+    hasLoadedInitialCalendarSettingsRef.current = true
+    console.info('[CoordinatorDashboard][initial-load]', { service: 'calendar-settings' })
     loadGoogleCalendarSettings()
-  }, [loadGoogleCalendarSettings])
+  }, [authToken, loadGoogleCalendarSettings])
 
   const rentSummary = useMemo(() => {
     const source = catalogProperties.length > 0 ? catalogProperties : availableProperties
@@ -704,6 +722,7 @@ export default function CoordinatorRentUserScreen() {
   const handleOpenAppointmentModal = () => {
     setAppointmentSelectionScreen(null)
     setIsAppointmentModalVisible(true)
+    void loadGoogleCalendarSettings()
   }
 
   const handleCloseAppointmentModal = () => {

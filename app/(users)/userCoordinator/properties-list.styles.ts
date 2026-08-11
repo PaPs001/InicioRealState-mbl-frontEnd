@@ -809,18 +809,6 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  favoriteButton: {
-    width: 33,
-    height: 33,
-    borderRadius: 19,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#49404031'
-  },
-
-
   landPropertyCar:{
     marginTop: 100
   }
