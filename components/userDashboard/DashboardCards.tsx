@@ -60,7 +60,6 @@ function formatAppointmentType(appointmentType: string) {
   const normalizedType = appointmentType.trim().toLowerCase()
   if (normalizedType === 'renta') return 'Renta'
   if (normalizedType === 'venta') return 'Venta'
-  if (normalizedType === 'sala_juntas') return 'general'
   if (normalizedType === 'general') return 'General'
   return appointmentType
 }

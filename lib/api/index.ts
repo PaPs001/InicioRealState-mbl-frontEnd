@@ -105,6 +105,7 @@ export {
   type SelectedGoogleCalendar,
   type GoogleTask,
   type GoogleTaskList,
+  type AppointmentType,
 } from './endpoints/dates'
 
 export {

@@ -17,6 +17,8 @@ import {
   type SelectedGoogleCalendar,
 } from '@/lib/api'
 
+import { AppointmentType } from '@/lib/api/endpoints/dates'
+
 type UseGoogleCalendarSettingsOptions = {
   authToken?: string | null
   returnPath: string
@@ -85,6 +87,7 @@ export function useGoogleCalendarSettings({
 
     setSelectedCalendars(current => {
       const existing = current.find(item => item.calendarId === calendarId)
+
       if (existing) {
         return current.map(item =>
           item.calendarId === calendarId
@@ -100,7 +103,46 @@ export function useGoogleCalendarSettings({
           summary: calendar.summary ?? '',
           enabled: true,
           appointmentType: getDefaultAppointmentType(calendar.summary),
-          primaryForCreate: current.every(item => item.primaryForCreate !== true),
+        },
+      ]
+    })
+  }, [])
+
+  const assignCalendarType = useCallback((calendar: GoogleCalendarOption, appointmentType: AppointmentType) => {
+    const calendarId = calendar.calendarId
+    if (!calendarId) return
+
+    setSelectedCalendars(current => {
+      const selectedCalendar = current.find(item => item.calendarId === calendarId)
+      if (selectedCalendar?.appointmentType === appointmentType) {
+        return current.map(item =>
+          item.calendarId === calendarId
+            ? { ...item, appointmentType: 'general' as const }
+            : item,
+        )
+      }
+
+      const withoutPreviousSelection = current.map(item => item.appointmentType === appointmentType
+        ? { ...item, appointmentType: 'general' as const }
+        : item
+      )
+
+      const existing = withoutPreviousSelection.find(item => item.calendarId === calendarId)
+      if (existing) {
+        return withoutPreviousSelection.map(item =>
+          item.calendarId === calendarId
+            ? { ...item, enabled: true, appointmentType }
+            : item,
+        )
+      }
+
+      return [
+        ...withoutPreviousSelection,
+        {
+          calendarId,
+          summary: calendar.summary ?? '',
+          enabled: true,
+          appointmentType: appointmentType,
         },
       ]
     })
@@ -111,10 +153,20 @@ export function useGoogleCalendarSettings({
 
     setIsSaving(true)
     try {
-      const savedCalendars = await saveSelectedGoogleCalendars(authToken, selectedCalendars)
-      setSelectedCalendars(savedCalendars)
+      const submittedCalendars = selectedCalendars
+      const savedCalendars = await saveSelectedGoogleCalendars(authToken, submittedCalendars)
+      const savedCalendarsById = new Map(
+        savedCalendars.map(calendar => [calendar.calendarId, calendar]),
+      )
+
+      setSelectedCalendars(
+        submittedCalendars.map(calendar => ({
+          ...calendar,
+          ...savedCalendarsById.get(calendar.calendarId),
+          appointmentType: calendar.appointmentType,
+        })),
+      )
       await syncGoogleCalendars(authToken)
-      await reload()
       Alert.alert(
         'Calendarios guardados',
         'La selección fue guardada y los calendarios fueron sincronizados.',
@@ -124,7 +176,7 @@ export function useGoogleCalendarSettings({
     } finally {
       setIsSaving(false)
     }
-  }, [authToken, isSaving, reload, selectedCalendars])
+  }, [authToken, isSaving, selectedCalendars])
 
   const connect = useCallback(async () => {
     if (!authToken || isConnecting) return
@@ -188,6 +240,7 @@ export function useGoogleCalendarSettings({
       saveSelection,
       connect,
       disconnect,
+      assignCalendarType
     }),
     [
       calendars,
@@ -203,6 +256,7 @@ export function useGoogleCalendarSettings({
       saveSelection,
       selectedCalendars,
       toggleCalendar,
+      assignCalendarType
     ],
   )
 }

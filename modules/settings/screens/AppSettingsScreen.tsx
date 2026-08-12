@@ -98,6 +98,7 @@ export function AppSettingsScreen(
           onChangeProfilePhoto={() => profileImageUpload.open('profile')}
         />
         <CalendarSection
+          onAssignCalendarTypes={googleCalendar.assignCalendarType}
           googleCalendars={googleCalendar.calendars}
           selectedGoogleCalendars={googleCalendar.selectedCalendars}
           isCalendarSettingsLoading={googleCalendar.isLoading}

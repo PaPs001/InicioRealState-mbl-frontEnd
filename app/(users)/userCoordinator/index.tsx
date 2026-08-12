@@ -21,6 +21,7 @@ import {
   getSelectedGoogleCalendars,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
+  type AppointmentType,
   type CreateGoogleCalendarDatePayload,
   type GoogleCalendarDate,
   type GoogleCalendarConnectionStatus,
@@ -528,11 +529,10 @@ export default function CoordinatorRentUserScreen() {
   const getCalendarSelection = (calendarId?: string) =>
     selectedGoogleCalendars.find(calendar => calendar.calendarId === calendarId)
 
-  const getDefaultAppointmentType = (summary?: string) => {
+  const getDefaultAppointmentType = (summary?: string): AppointmentType => {
     const normalizedSummary = summary?.toLowerCase() ?? ''
     if (normalizedSummary.includes('renta')) return 'renta'
     if (normalizedSummary.includes('venta')) return 'venta'
-    if (normalizedSummary.includes('junta')) return 'sala_juntas'
     return 'general'
   }
 
