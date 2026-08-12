@@ -5,6 +5,7 @@ import { getDefaultAppointmentType } from '@/components/userDashboard/dashboard-
 import type { GoogleCalendarOption, SelectedGoogleCalendar } from '@/lib/api'
 
 import { styles } from './styles/CalendarSection.style'
+import { AppointmentType } from '@/lib/api/endpoints/dates'
 
 type CalendarModalProps = {
   visible: boolean
@@ -17,6 +18,10 @@ type CalendarModalProps = {
   onToggleCalendar: (calendar: GoogleCalendarOption) => void
   onSaveCalendarSelection: () => void | Promise<void>
   onClose: () => void
+  onAssignCalendarType: (
+    calendar: GoogleCalendarOption,
+    type: AppointmentType
+  ) => void
 }
 
 export function CalendarModal({
@@ -30,6 +35,7 @@ export function CalendarModal({
   onToggleCalendar,
   onSaveCalendarSelection,
   onClose,
+  onAssignCalendarType
 }: CalendarModalProps) {
   const isBusy = isCalendarSettingsLoading || isSavingCalendarSelection
 
@@ -39,13 +45,14 @@ export function CalendarModal({
       title="Calendarios disponibles"
       subtitle="Selecciona los calendarios que quieres utilizar"
       onClose={onClose}
-      showCloseButton
+      //showCloseButton
       position="bottom"
       size="large"
       animationType="slide"
       scrollable
       closeDisabled={isSavingCalendarSelection}
       closeOnBackdropPress={!isSavingCalendarSelection}
+      footerStyle={{paddingBottom: 54}}
       footer={
         <Pressable
           style={styles.calendarActionButton}
@@ -85,39 +92,83 @@ export function CalendarModal({
               item => item.calendarId === calendar.calendarId,
             )
             const isEnabled = selection?.enabled === true
+            const isRent = selection?.appointmentType === 'renta'
+            const isSale = selection?.appointmentType === 'venta'
 
             return (
-              <View
-                key={calendar.calendarId ?? calendar.summary}
-                style={styles.calendarOptionRow}
-              >
-                <Pressable
-                  style={[
-                    styles.calendarToggle,
-                    isEnabled && styles.calendarToggleActive,
-                  ]}
-                  onPress={() => onToggleCalendar(calendar)}
+              <>
+                <View
+                  key={calendar.calendarId ?? calendar.summary}
+                  style={styles.calendarOptionRow}
                 >
-                  <Text
+                  <Pressable
                     style={[
-                      styles.calendarToggleText,
-                      isEnabled && styles.calendarToggleTextActive,
+                      styles.calendarToggle,
+                      isEnabled && styles.calendarToggleActive,
                     ]}
+                    onPress={() => onToggleCalendar(calendar)}
                   >
-                    {isEnabled ? 'En uso' : 'Usar'}
-                  </Text>
-                </Pressable>
+                    <Text
+                      style={[
+                        styles.calendarToggleText,
+                        isEnabled && styles.calendarToggleTextActive,
+                      ]}
+                    >
+                      {isEnabled ? 'En uso' : 'Usar'}
+                    </Text>
+                  </Pressable>
 
-                <View style={styles.calendarOptionCopy}>
-                  <Text style={styles.calendarOptionTitle} numberOfLines={1}>
-                    {calendar.summary || 'Calendario sin nombre'}
-                  </Text>
-                  <Text style={styles.calendarOptionMeta} numberOfLines={1}>
-                    {selection?.appointmentType ||
-                      getDefaultAppointmentType(calendar.summary)}
-                  </Text>
+                  <View style={styles.calendarOptionCopy}>
+                    <Text style={styles.calendarOptionTitle} numberOfLines={1}>
+                      {calendar.summary || 'Calendario sin nombre'}
+                    </Text>
+                    <Text style={styles.calendarOptionMeta} numberOfLines={1}>
+                      {selection?.appointmentType ||
+                        getDefaultAppointmentType(calendar.summary)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.actionButtonsSection}>
+                    <Pressable
+                      disabled={isBusy}
+                      style={[
+                        styles.calendarToggle,
+                        isRent && styles.calendarToggleActiveRent,
+                      ]}
+                      onPress={() => onAssignCalendarType(calendar, 'renta')}
+                    >
+                      <Text
+                        style={[
+                          styles.calendarToggleText,
+                          isRent && styles.calendarToggleTextActive,
+                        ]}
+                      >
+                        {isRent ? 'Renta' : 'Renta'}
+                      </Text>
+                      
+                    </Pressable>
+                    <Pressable
+                      disabled={isBusy}
+                      style={[
+                        styles.calendarToggle,
+                        isSale && styles.calendarToggleActiveSale,
+                      ]}
+                      onPress={() => onAssignCalendarType(calendar, 'venta')}
+                    >
+                      <Text
+                        style={[
+                          styles.calendarToggleText,
+                          isSale && styles.calendarToggleTextActive,
+                        ]}
+                      >
+                        {isSale ? 'Venta' : 'Venta'}
+                      </Text>
+                      
+                    </Pressable>
+                  </View>
                 </View>
-              </View>
+
+              </>
             )
           })}
         </View>

@@ -205,5 +205,20 @@ export const styles = StyleSheet.create({
       fontWeight: '700',
       textAlign: 'center',
     },
+
+    actionButtonsSection:{
+      flexDirection: 'row',
+      gap: 5,
+      alignItems: 'center',
+      alignContent: 'center',
+      justifyContent: 'center'
+    },
+
+    calendarToggleActiveRent:{
+      backgroundColor: 'green'
+    },
+    calendarToggleActiveSale:{
+      backgroundColor: 'blue'
+    },
   
 })

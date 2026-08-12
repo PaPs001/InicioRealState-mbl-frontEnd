@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { icons } from '@/assets'
-import type { GoogleCalendarOption, SelectedGoogleCalendar } from '@/lib/api'
+import type { GoogleCalendarOption, SelectedGoogleCalendar, AppointmentType } from '@/lib/api'
 import { CalendarModal } from './calendarModal'
 import { styles } from './styles/CalendarSection.style'
 
@@ -20,6 +20,10 @@ type CalendarSectionProps = {
   onSaveCalendarSelection: () => void | Promise<void>
   onConnectCalendar: () => void | Promise<void>
   onDisconnectCalendar: () => void | Promise<void>
+  onAssignCalendarTypes: (
+    calendar: GoogleCalendarOption,
+    appointmentType: AppointmentType
+  ) => void
 }
 
 export function CalendarSection({
@@ -36,6 +40,7 @@ export function CalendarSection({
   onSaveCalendarSelection,
   onConnectCalendar,
   onDisconnectCalendar,
+  onAssignCalendarTypes
 }: CalendarSectionProps) {
   const isConnected = isGoogleConnected && !needsGoogleReconnect
   const isConnectionActionPending = isConnectingCalendar || isDisconnectingCalendar
@@ -64,7 +69,7 @@ export function CalendarSection({
             <icons.ArrowLeft />
           </Pressable>
 
-          <Pressable style={styles.optionButtonType1}>
+          {/*<Pressable style={styles.optionButtonType1}>
             <icons.calendarDatesMobile width={20} height={20} fill="#d4b66f" />
             <View style={styles.textSectionOptionButtonType1}>
               <Text style={styles.titleOption}>Calendario de venta</Text>
@@ -84,7 +89,7 @@ export function CalendarSection({
               </Text>
             </View>
             <icons.ArrowLeft />
-          </Pressable>
+          </Pressable>*/}
         </View>
       </View>
 
@@ -118,6 +123,7 @@ export function CalendarSection({
         onToggleCalendar={onToggleCalendar}
         onSaveCalendarSelection={onSaveCalendarSelection}
         onClose={() => setIsCalendarModalVisible(false)}
+        onAssignCalendarType={onAssignCalendarTypes}
       />
     </View>
   )

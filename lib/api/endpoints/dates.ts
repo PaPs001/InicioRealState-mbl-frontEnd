@@ -1,5 +1,7 @@
 import { coreApi } from '../client'
 
+export type AppointmentType = 'renta' | 'venta' | 'general'
+
 export interface GoogleCalendarDateTime {
   date?: string
   dateTime?: string
@@ -98,7 +100,7 @@ export interface SelectedGoogleCalendar {
   calendarId: string
   summary?: string
   enabled?: boolean
-  appointmentType?: string
+  appointmentType?: AppointmentType
   colorId?: string | null
   primaryForCreate?: boolean
 }

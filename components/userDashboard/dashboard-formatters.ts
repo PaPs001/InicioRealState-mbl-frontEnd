@@ -1,4 +1,4 @@
-import type { GoogleCalendarDate } from '@/lib/api'
+import type { AppointmentType, GoogleCalendarDate } from '@/lib/api'
 import type { LeadFollowUp, Property } from '@/lib/types'
 
 import type { AppointmentPreviewItem } from './types'
@@ -36,11 +36,10 @@ export function formatCurrentDashboardDate() {
   }).format(new Date())
 }
 
-export function getDefaultAppointmentType(summary?: string) {
+export function getDefaultAppointmentType(summary?: string): AppointmentType {
   const value = summary?.toLowerCase() ?? ''
   if (value.includes('renta')) return 'renta'
   if (value.includes('venta')) return 'venta'
-  if (value.includes('junta')) return 'sala_juntas'
   return 'general'
 }
 
