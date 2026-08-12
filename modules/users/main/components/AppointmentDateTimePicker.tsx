@@ -202,7 +202,7 @@ export function AppointmentDateTimePicker({
               ) : step === 'time' ? (
                 <>
                 <View style={styles.timeContainer}>
-                  <View>
+                  <View style={styles.timeSelectorContainer}>
                     <Text style={styles.appointmentDatePickerSectionTitle}>Hora</Text>
                     <WheelNumberSelector
                       options={HOUR_OPTIONS}
@@ -211,7 +211,7 @@ export function AppointmentDateTimePicker({
                       onChange={selectHour}
                     />
                   </View>
-                  <View>
+                  <View style={styles.timeSelectorContainer}>
                     <Text style={styles.appointmentDatePickerSectionTitle}>Minutos</Text>
                     <WheelNumberSelector
                       options={MINUTE_OPTIONS}
@@ -237,7 +237,7 @@ export function AppointmentDateTimePicker({
                   <Text style={styles.appointmentDatePickerValue}>
                     {formatSelectedDateTime(selectedDate, selectedHour, selectedMinute)}
                   </Text>
-                  <View>
+                  <View style={styles.selectionButtonContainer}>
                     <Pressable
                       style={styles.appointmentDatePickerConfirmButton}
                       onPress={() => setStep('date')}

@@ -25,8 +25,8 @@ export const wheelNumberSelectorStyles = StyleSheet.create({
   option: {
     minWidth: 42,
     minHeight: 28,
-    borderRadius: 6,
-    borderWidth: 1,
+    //borderRadius: 6,
+    //borderWidth: 1,
     borderColor: '#ded6ca',
     alignItems: 'center',
     justifyContent: 'center',
