@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { ChevronLeft, X } from 'lucide-react-native'
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { styles } from './AppModal.styles'
 
 export type AppModalSize = 'small' | 'medium' | 'large' | 'fullscreen'
@@ -90,6 +91,8 @@ export function AppModal({
       onClose()
     }
   }
+
+  const inset = useSafeAreaInsets()
 
   const handleBackdropPress = () => {
     if (closeOnBackdropPress) {
@@ -196,7 +199,11 @@ export function AppModal({
       )}
 
       {footer ? (
-        <View style={[styles.footer, footerStyle]}>
+        <View style={[
+          styles.footer, ,
+          {paddingBottom: 18 + inset.bottom},
+          footerStyle
+        ]}>
           {footer}
         </View>
       ) : null}
