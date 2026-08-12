@@ -566,4 +566,11 @@ export const styles = StyleSheet.create({
     color: generalColors.white,
     fontSize: 12
   },
+  selectedDateTimeText: {
+    color: '#3d5a40',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
 })

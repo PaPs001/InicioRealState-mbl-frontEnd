@@ -77,6 +77,7 @@ export function AppointmentCreateModal({
   visible,
 }: AppointmentCreateModalProps) {
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false)
+  const [hasConfirmedDateTime, setHasConfirmedDateTime] = useState(false)
   const normalizedAppointmentType = (testAppointmentForm.appointmentType || 'general').toLowerCase()
   const selectedAppointmentType: AppointmentType =
     normalizedAppointmentType === 'renta' || normalizedAppointmentType === 'venta'
@@ -95,7 +96,10 @@ export function AppointmentCreateModal({
   const selectedTypeCalendar = enabledSelectedCalendars.find(
     calendar => (calendar.appointmentType || '').toLowerCase() === selectedAppointmentType,
   )
-  const selectedCalendar = enabledSelectedCalendars.find(
+  const generalCalendars = enabledSelectedCalendars.filter(
+    calendar => (calendar.appointmentType || 'general').toLowerCase() === 'general',
+  )
+  const selectedCalendar = generalCalendars.find(
     calendar => calendar.calendarId === testAppointmentForm.calendarId,
   )
   const typeCalendar = selectedAppointmentType === 'general' ? selectedCalendar : selectedTypeCalendar
@@ -284,9 +288,13 @@ export function AppointmentCreateModal({
                     ? 'Activa y guarda al menos un calendario antes de crear citas.'
                     : 'Conecta Google Calendar desde configuracion antes de crear citas.'}
                 </Text>
+              ) : shouldSelectCalendarManually && generalCalendars.length === 0 ? (
+                <Text style={styles.calendarSettingsEmpty}>
+                  Configura un calendario general antes de crear esta cita.
+                </Text>
               ) : shouldSelectCalendarManually ? (
                 <View style={styles.calendarDestinationList}>
-                  {enabledSelectedCalendars.map(calendar => {
+                  {generalCalendars.map(calendar => {
                     const isSelected = testAppointmentForm.calendarId === calendar.calendarId
 
                     return (
@@ -337,6 +345,11 @@ export function AppointmentCreateModal({
                 >
                   <Text style={styles.calendarButtonText}>Escoger fecha y hora</Text>
                 </Pressable>
+                {hasConfirmedDateTime ? (
+                  <Text style={styles.selectedDateTimeText}>
+                    {formatAppointmentDateTime(testAppointmentForm.startDateTime)}
+                  </Text>
+                ) : null}
                 {isDateTimePickerVisible ? (
                   <AppointmentDateTimePicker
                     visible={isDateTimePickerVisible}
@@ -345,6 +358,7 @@ export function AppointmentCreateModal({
                     onChange={value => {
                       onUpdateForm('startDateTime', value)
                       onUpdateForm('endDateTime', getAppointmentEndDateTime(value))
+                      setHasConfirmedDateTime(true)
                     }}
                   />
                 ): null}
@@ -473,4 +487,19 @@ export function AppointmentCreateModal({
           )}
     </AppModal>
   )
+}
+
+function formatAppointmentDateTime(value: string) {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) return value
+
+  return new Intl.DateTimeFormat('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
 }

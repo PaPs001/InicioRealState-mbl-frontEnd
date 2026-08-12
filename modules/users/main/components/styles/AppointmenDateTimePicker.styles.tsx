@@ -147,7 +147,11 @@ export const styles = StyleSheet.create({
   timeContainer:{
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 18,
+    gap: 20,
+  },
+  timeSelectorContainer:{
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   appointmentDatePickerSectionTitle: {
     color: '#3d5a40',
@@ -166,10 +170,16 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerFooter: {
     gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionButtonContainer:{
+    flexDirection: 'row',
+    gap: 6
   },
   appointmentDatePickerValue: {
     color: '#232323',
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: '600',
   },
 
