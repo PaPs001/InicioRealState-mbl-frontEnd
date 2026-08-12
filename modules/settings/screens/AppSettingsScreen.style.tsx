@@ -19,6 +19,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 20,
     paddingBottom: 48,
+    paddingTop: 42,
     gap: 12
   },
   headerRow:{
