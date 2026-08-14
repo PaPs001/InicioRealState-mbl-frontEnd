@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ChevronRight } from 'lucide-react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
 import type { Property, PropertyLead } from '@/lib/types'
 
@@ -78,6 +79,7 @@ export function AppointmentCreateModal({
 }: AppointmentCreateModalProps) {
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false)
   const [hasConfirmedDateTime, setHasConfirmedDateTime] = useState(false)
+  const [descriptionInputHeight, setDescriptionInputHeight] = useState(80)
   const normalizedAppointmentType = (testAppointmentForm.appointmentType || 'general').toLowerCase()
   const selectedAppointmentType: AppointmentType =
     normalizedAppointmentType === 'renta' || normalizedAppointmentType === 'venta'
@@ -185,7 +187,10 @@ export function AppointmentCreateModal({
       }
     >
       {selectionScreen === 'lead' ? (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.appointmentModalContent}
+            >
               {isLeadsLoading ? (
                 <Text style={styles.calendarSettingsEmpty}>Cargando leads...</Text>
               ) : appointmentLeadOptions.length === 0 ? (
@@ -221,7 +226,10 @@ export function AppointmentCreateModal({
               )}
             </ScrollView>
           ) : selectionScreen === 'property' ? (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.appointmentModalContent}
+            >
               {isCatalogLoading ? (
                 <Text style={styles.calendarSettingsEmpty}>Cargando propiedades...</Text>
               ) : appointmentPropertyOptions.length === 0 ? (
@@ -255,7 +263,13 @@ export function AppointmentCreateModal({
               )}
             </ScrollView>
           ) : (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.appointmentModalContent}>
+            <KeyboardAwareScrollView
+              enableOnAndroid
+              extraScrollHeight={24}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.appointmentModalContent}
+            >
               <View>
                 <Text style={styles.calendarLabel}>Tipo de cita</Text>
                 <View style={styles.appointmentModeRow}>
@@ -377,12 +391,21 @@ export function AppointmentCreateModal({
                 <View>
                   <Text style={styles.calendarLabel}>Descripcion de la cita</Text>
                   <TextInput
-                    style={styles.calendarTestInput}
+                    style={[
+                      styles.calendarTestInput,
+                      styles.descriptionInput,
+                      { height: descriptionInputHeight },
+                    ]}
                     //value={testAppointmentForm.description ?? ''}
                     onChangeText={value => onUpdateForm('description', value)}
+                    onContentSizeChange={event => {
+                      setDescriptionInputHeight(Math.max(80, event.nativeEvent.contentSize.height))
+                    }}
                     placeholder="Descripcion"
                     placeholderTextColor="#8d8d8d"
                     multiline
+                    scrollEnabled={false}
+                    textAlignVertical="top"
                   />
                 </View>
               ) : (
@@ -483,7 +506,7 @@ export function AppointmentCreateModal({
                   </View>
                 </>
               )}
-            </ScrollView>
+            </KeyboardAwareScrollView>
           )}
     </AppModal>
   )

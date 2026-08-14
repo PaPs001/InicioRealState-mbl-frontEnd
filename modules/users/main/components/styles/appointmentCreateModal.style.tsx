@@ -329,6 +329,9 @@ export const styles = StyleSheet.create({
     marginBottom: 6,
     backgroundColor: '#fffcfc',
   },
+  descriptionInput: {
+    minHeight: 80,
+  },
   calendarPicker: {
     marginBottom: 6,
   },
