@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { refreshAuthTokens } from '@/lib/api/endpoints/auth'
 import {
   buildSessionUser,
   clearPersistedAuthSession,
   loadPersistedAuthSession,
-  normalizeAuthUser,
   persistAuthSession,
+  normalizeAuthUser,
   type BackendUser,
 } from '@/lib/services/auth-session'
 import type { User } from '@/lib/types'
@@ -19,7 +18,6 @@ type AuthSessionState = {
   authToken: string | null
   refreshToken: string | null
   currentUser: User | null
-  hydratedFavorites: string[]
   isLoading: boolean
   setAuthSession: (user: BackendUser | User | null, token: string | null, refreshToken?: string | null) => Promise<void>
   setCurrentUser: (user: BackendUser | User | null) => void
@@ -32,7 +30,6 @@ export function useAuthSessionState(): AuthSessionState {
   const [currentUser, setCurrentUserState] = useState<User | null>(null)
   const [authToken, setAuthToken] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState<string | null>(null)
-  const [hydratedFavorites, setHydratedFavorites] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const setCurrentUser = useCallback((user: BackendUser | User | null) => {
@@ -51,14 +48,35 @@ export function useAuthSessionState(): AuthSessionState {
       hasRefreshToken: !!nextRefreshToken,
       tokenPreview: previewToken(token),
       refreshTokenPreview: previewToken(nextRefreshToken),
+      agentpresentation: user?.agentpresentation
     })
 
-    const sessionUser = buildSessionUser(user, token)
+    const rawPresentation = Boolean(
+      user?.agentpresentation ??
+        user?.agentPresentation ??
+        false,
+    )
+    const normalizedUser = user
+      ? {
+          ...user,
+          agentpresentation: rawPresentation,
+          agentPresentation: rawPresentation,
+        }
+      : null
 
-    setCurrentUserState(sessionUser)
+    const sessionUser = buildSessionUser(normalizedUser, token)
+    const normalizedSessionUser = sessionUser
+      ? {
+          ...sessionUser,
+          agentpresentation: rawPresentation,
+          agentPresentation: rawPresentation,
+        }
+      : null
+
+    setCurrentUserState(normalizedSessionUser)
     setAuthToken(token)
     setRefreshToken(nextRefreshToken)
-    await persistAuthSession(sessionUser, token, nextRefreshToken)
+    await persistAuthSession(normalizedSessionUser, token, nextRefreshToken)
 
     console.log('[auth][session-stored]', {
       sessionUserId: sessionUser?.id ?? null,
@@ -83,13 +101,6 @@ export function useAuthSessionState(): AuthSessionState {
       setAuthToken(persistedSession.token)
       setRefreshToken(persistedSession.refreshToken)
 
-      if (sessionUser?.id) {
-        const storedFavorites = await AsyncStorage.getItem(`favorites_${sessionUser.id}`)
-        setHydratedFavorites(storedFavorites ? JSON.parse(storedFavorites) : [])
-      } else {
-        setHydratedFavorites([])
-      }
-
       console.info('[auth][session-init] persisted session hydrated', {
         hasUser: !!sessionUser,
         hasToken: !!persistedSession.token,
@@ -108,12 +119,10 @@ export function useAuthSessionState(): AuthSessionState {
   }, [initializeSession])
 
   const login = useCallback(
-    async (userId: string) => {
+    async (_userId: string) => {
       setCurrentUser(null)
       setAuthToken(null)
       setRefreshToken(null)
-      const storedFavorites = await AsyncStorage.getItem(`favorites_${userId}`)
-      setHydratedFavorites(storedFavorites ? JSON.parse(storedFavorites) : [])
     },
     [setCurrentUser],
   )
@@ -122,7 +131,6 @@ export function useAuthSessionState(): AuthSessionState {
     setCurrentUserState(null)
     setAuthToken(null)
     setRefreshToken(null)
-    setHydratedFavorites([])
     await clearPersistedAuthSession()
   }, [])
 
@@ -160,7 +168,6 @@ export function useAuthSessionState(): AuthSessionState {
     authToken,
     refreshToken,
     currentUser,
-    hydratedFavorites,
     isLoading,
     setAuthSession,
     setCurrentUser,

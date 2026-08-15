@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useEffect } from 'react'
+import React, { createContext, useContext, ReactNode, useEffect, useMemo } from 'react'
 import type { AuthContextType } from './auth/types'
 import { useActivityState } from './auth/use-activity-state'
 import { useAuthSessionState } from './auth/use-auth-session-state'
@@ -10,7 +10,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const sessionState = useAuthSessionState()
 
-  const { currentUser, authToken, refreshToken, hydratedFavorites, isLoading, login, logout, refreshAuthSession, setAuthSession, setCurrentUser } = sessionState
+  const { currentUser, authToken, refreshToken, isLoading, login, logout, refreshAuthSession, setAuthSession, setCurrentUser } = sessionState
   const isClient = currentUser?.systemRole === 'CLIENT'
   const isAgent = currentUser?.systemRole === 'AGENT'
   const isInvestor = !!currentUser?.investment
@@ -35,8 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   const {
-    favorites,
-    favoriteProperties,
     catalogProperties,
     agentCatalogProperties,
     agentCatalogRawData,
@@ -46,15 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasLoadedAgentCatalog,
     userProperties,
     availableProperties,
-    loadFavoriteProperties,
-    addNewFavoriteProperty,
-    toggleFavorite,
-    isFavorite,
     getPropertyById,
     loadCatalogProperties,
     newLoadCatalogProperties,
     loadAgentCatalogProperties,
-    replaceFavoriteIds,
     resetPropertyState,
   } = propertyDomain
 
@@ -67,10 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     markAllUserNotificationsAsRead,
   } =
     activityDomain
-
-  useEffect(() => {
-    replaceFavoriteIds(hydratedFavorites)
-  }, [hydratedFavorites, replaceFavoriteIds])
 
   useEffect(() => {
     if (!currentUser) {
@@ -86,51 +75,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [refreshAuthSession, refreshToken])
 
+  const authContextValue = useMemo<AuthContextType>(() => ({
+    currentUser,
+    authToken,
+    refreshToken,
+    isLoading,
+    isLoggedIn: !!currentUser,
+    isInvestor,
+    isSearching,
+    isCoordinator,
+    isTenant,
+    isAgent,
+    isAdmin,
+    isClient,
+    login,
+    logout,
+    refreshAuthSession,
+    setCurrentUser,
+    setAuthSession,
+    userProperties,
+    availableProperties,
+    catalogProperties,
+    agentCatalogProperties,
+    newLoadCatalogProperties,
+    agentCatalogRawData,
+    isCatalogLoading,
+    isAgentCatalogLoading,
+    hasLoadedCatalog,
+    hasLoadedAgentCatalog,
+    userLeads,
+    userAppointments,
+    notifications: userNotifications,
+    getPropertyById,
+    loadCatalogProperties,
+    loadAgentCatalogProperties,
+    markNotificationAsRead,
+    markAllUserNotificationsAsRead,
+    unreadNotificationsCount,
+  }), [
+    agentCatalogProperties,
+    agentCatalogRawData,
+    authToken,
+    availableProperties,
+    catalogProperties,
+    currentUser,
+    getPropertyById,
+    hasLoadedAgentCatalog,
+    hasLoadedCatalog,
+    isAdmin,
+    isAgent,
+    isAgentCatalogLoading,
+    isCatalogLoading,
+    isClient,
+    isCoordinator,
+    isInvestor,
+    isLoading,
+    isSearching,
+    isTenant,
+    loadAgentCatalogProperties,
+    loadCatalogProperties,
+    login,
+    logout,
+    markAllUserNotificationsAsRead,
+    markNotificationAsRead,
+    newLoadCatalogProperties,
+    refreshAuthSession,
+    refreshToken,
+    setAuthSession,
+    setCurrentUser,
+    unreadNotificationsCount,
+    userAppointments,
+    userLeads,
+    userNotifications,
+    userProperties,
+  ])
+
   return (
-    <AuthContext.Provider value={{
-      currentUser,
-      authToken,
-      refreshToken,
-      isLoading,
-      isLoggedIn: !!currentUser,
-      isInvestor,
-      isSearching,
-      isCoordinator,
-      isTenant,
-      isAgent,
-      isAdmin,
-      isClient,
-      login,
-      logout,
-      refreshAuthSession,
-      setCurrentUser,
-      setAuthSession,
-      userProperties,
-      availableProperties,
-      catalogProperties,
-      agentCatalogProperties,
-      newLoadCatalogProperties,
-      agentCatalogRawData,
-      isCatalogLoading,
-      isAgentCatalogLoading,
-      hasLoadedCatalog,
-      hasLoadedAgentCatalog,
-      userLeads,
-      userAppointments,
-      notifications: userNotifications,
-      favoriteProperties,
-      loadFavoriteProperties,
-      favorites,
-      addNewFavoriteProperty,
-      toggleFavorite,
-      isFavorite,
-      getPropertyById,
-      loadCatalogProperties,
-      loadAgentCatalogProperties,
-      markNotificationAsRead,
-      markAllUserNotificationsAsRead,
-      unreadNotificationsCount,
-    }}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   )

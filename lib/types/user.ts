@@ -17,6 +17,9 @@ export interface User {
   referralCode?: string
   avatar?: string
   profilePhotoKey?: string
+  agentPresentationKey?: string
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   createdAt: string
 }
 

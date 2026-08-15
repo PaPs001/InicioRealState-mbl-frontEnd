@@ -16,7 +16,6 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Star,
   TreePine,
   Waves,
 } from 'lucide-react-native'
@@ -181,7 +180,7 @@ export default function CoordinatorPropertiesListScreen() {
   const router = useRouter()
   const pathname = usePathname()
   const params = useLocalSearchParams<{ type?: string }>()
-  const { authToken } = useAuth()
+  const { authToken, currentUser } = useAuth()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
   const initialListingFilter: ListingFilter = params.type === 'sale' ? 'sale' : params.type === 'rent' ? 'rent' : 'all'
@@ -424,7 +423,9 @@ export default function CoordinatorPropertiesListScreen() {
     try {
       await waitForHeavyUiToUnmount()
       const pdfPayload = {
-        agentName: pdfAgentName,
+        ...(currentUser?.agentPresentationKey
+          ? { agentName: 'a' as const, agentPresentation: currentUser.agentPresentationKey }
+          : { agentName: pdfAgentName }),
         sales: isPdfSaleList,
         items: selectedPropertyIds,
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
@@ -486,7 +487,7 @@ export default function CoordinatorPropertiesListScreen() {
         <TouchableOpacity
           style={styles.exportButtonSecondary}
           activeOpacity={0.85}
-          onPress={openPdfOptions}
+          onPress={currentUser?.agentPresentationKey ? handleGeneratePdf : openPdfOptions}
           disabled={isGeneratingPdf}
         >
           <Text style={styles.exportButtonSecondaryText}>
@@ -782,9 +783,6 @@ const PropertyCard = memo(function PropertyCard({
 
         <View style={styles.cardFooter}>
           <Text style={styles.detailLink}>Ver detalles </Text>
-          <TouchableOpacity style={styles.favoriteButton} activeOpacity={0.85}>
-            <Star size={13} color="#0c6740" fill="#0c6740" />
-          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>

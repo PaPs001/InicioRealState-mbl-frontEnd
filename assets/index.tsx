@@ -3,7 +3,6 @@ import type { ImageSourcePropType } from 'react-native'
 
 import CalendarDatesIconMobile from './calendarDatesIconMobile.svg'
 import CatalogIconMobile from './catalogIconMobile.svg'
-import FavoritesIconMobile from './favoritesIconMobile.svg'
 import HomeIconMobile from './homeIconMobile.svg'
 import LeadsIconMobile from './leadsIconMobile.svg'
 import LogoInicioSVGNegro from './LogoInicioSVGNegro.svg'
@@ -35,6 +34,19 @@ import Lead from './NavBar/leads.svg'
 import Message from './NavBar/Message.svg'
 import Propertie from './NavBar/Propertie.svg'
 
+/// Settings SVG
+import Pencil from './settings/Pencil.svg'
+import Blend from './settings/blendBoth.svg'
+import BriefcaseBussines from './settings/briefcase-business.svg'
+import BuildingApartment from './settings/BuildingApartmentSale.svg'
+import Camera from './settings/Camera.svg'
+import House from './settings/HouseRent.svg'
+import BigEye from './settings/Eye.svg'
+import Power from './settings/power.svg'
+import CalendarCog from './settings/calendar-cog.svg'
+import ArrowLeft from './settings/arrowLeft.svg'
+import WhiteCalendar from './settings/calendarWhite.svg'
+
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -46,7 +58,6 @@ export const logos = {
 export const icons = {
   calendarDatesMobile: CalendarDatesIconMobile,
   catalogMobile: CatalogIconMobile,
-  favoritesMobile: FavoritesIconMobile,
   homeMobile: HomeIconMobile,
   leadsMobile: LeadsIconMobile,
   profileMobile: ProfileIconMobile,
@@ -66,7 +77,18 @@ export const icons = {
   Pool: Pool,
   Searcher: Searcher,
   Secure: Secure,
-  Tree: Tree
+  Tree: Tree,
+  Pencil: Pencil,
+  Blend: Blend,
+  BriefcaseBussines: BriefcaseBussines,
+  BuildingApartment: BuildingApartment,
+  Camera: Camera,
+  House: House,
+  BigEye: BigEye,
+  Power: Power,
+  CalendarCog: CalendarCog,
+  ArrowLeft: ArrowLeft,
+  WhiteCalendar: WhiteCalendar
 
 } as const
 
@@ -115,7 +137,6 @@ export const assets = {
 export {
   CalendarDatesIconMobile,
   CatalogIconMobile,
-  FavoritesIconMobile,
   HomeIconMobile,
   LeadsIconMobile,
   LogoInicioSVGNegro,
@@ -145,5 +166,16 @@ export {
   Home,
   Lead,
   Message,
-  Propertie
+  Propertie,
+  Pencil,
+  Blend,
+  BriefcaseBussines,
+  BuildingApartment,
+  Camera,
+  BigEye,
+  House,
+  Power,
+  CalendarCog,
+  ArrowLeft,
+  WhiteCalendar
 }

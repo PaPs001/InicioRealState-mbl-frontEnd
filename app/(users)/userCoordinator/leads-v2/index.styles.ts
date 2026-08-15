@@ -1,24 +1,23 @@
 import { StyleSheet } from 'react-native'
-
+import { generalColors } from '@/theme'
 const LARGE_NUMBER_FONT = 'Castoro Titling'
 
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fcfaf8',
+    backgroundColor: generalColors.background,
   },
   container: {
     flex: 1,
+    paddingTop: 42,
   },
   detailContainer: {
     flex: 1,
     paddingHorizontal: 18,
-    paddingTop: 28,
     paddingBottom: 16,
   },
   content: {
     paddingHorizontal: 14,
-    paddingTop: 18,
     paddingBottom: 112,
   },
   brandBlock: {
