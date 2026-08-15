@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 
 import { SettingsContext } from './SettingsProvider'
+import { dashboardAreaConfig } from './constants'
 
 export function useAppSettings() {
   const context = useContext(SettingsContext)
@@ -15,4 +16,8 @@ export function useAppSettings() {
 export function useOperationMode() {
   const { operationMode, capabilities, setOperationMode } = useAppSettings()
   return { operationMode, capabilities, setOperationMode }
+}
+
+export function useDashboardAreaConfig(area: 'adviser' | 'coordinator') {
+  return dashboardAreaConfig[area]
 }

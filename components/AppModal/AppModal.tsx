@@ -180,18 +180,19 @@ export function AppModal({
       ) : null}
 
       {scrollable ? (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.content,
-            styles.scrollContent,
-            contentStyle,
-          ]}
-          keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
+        <View style={styles.scrollWrapper}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={[
+              styles.content,
+              contentStyle,
+            ]}
+            keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
+        </View>
       ) : (
         <View style={[styles.content, contentStyle]}>
           {children}
