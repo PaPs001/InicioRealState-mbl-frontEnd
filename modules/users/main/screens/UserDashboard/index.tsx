@@ -1,29 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import {
-  Bell,
-  CalendarDays,
-  Eye,
-  LogOut,
-  Settings,
-  CameraIcon,
-} from "lucide-react-native";
 
 import { icons } from "@/assets";
-
 import { generalColors } from "@/theme";
-
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
+
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
   createGoogleCalendarDate,
@@ -31,21 +15,15 @@ import {
   type SelectedGoogleCalendar,
 } from "@/lib/api";
 import type { Property, PropertyLead } from "@/lib/types";
-import { formatCurrency } from "@/lib/utils";
-import {
-  AppointmentCard,
-  FunnelMetric,
-  LeadAlertRow,
-  LeadMetricCard,
-} from "./DashboardCards";
+
 import {
   formatCurrentDashboardDate,
   getAppointmentEndDateTime,
   getDefaultAppointmentEndDateTime,
   getDefaultAppointmentStartDateTime,
-  getDefaultAppointmentType,
-} from "./dashboard-formatters";
-import { AppointmentCreateModal } from "@/modules/users/main/components/AppointmentCreateModal";
+} from "@/components/userDashboard/dashboard-formatters";
+
+import { AppointmentCreateModal } from "../../components/AppointmentCreateModal";
 import { styles } from "./UserDashboardScreen.styles";
 import { useOperationMode, useDashboardAreaConfig } from "@/modules/settings";
 import { ProfileImageModal } from "@/modules/profile";
@@ -54,25 +32,30 @@ import {
   useDashboardLeads,
   useDashboardProfile,
   useDashboardProperties,
-} from "@/modules/users/main/hooks";
-import { HeroCards } from "@/modules/users/main/components/Advisors/HeroCards";
-WebBrowser.maybeCompleteAuthSession();
-////////
+} from "../../hooks";
 
-//A eliminar a futuro no tiene necesidad de existencia
+import {
+  ProfileHeader,
+  HeroCardsSection,
+  AppointmentsSection,
+  LeadsSection,
+} from "./components";
+
+WebBrowser.maybeCompleteAuthSession();
+
 export type UserDashboardArea = "adviser" | "coordinator";
 
 type UserDashboardScreenProps = {
   area: UserDashboardArea;
 };
 
-////////
 export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const { operationMode, capabilities } = useOperationMode();
   const areaConfig = useDashboardAreaConfig(area);
   const router = useRouter();
   const pathname = usePathname();
   const { authToken, currentUser } = useSessionDomain();
+
   const { advisorInitials, advisorName, profileAvatarUri, profileImageUpload } =
     useDashboardProfile({ fallbackName: areaConfig.fallbackName });
 
@@ -378,21 +361,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     [],
   );
 
-  const activeHeroColors =
-    operationMode === "sale" ? heroColors.sale : heroColors.rent;
-
-  const activeHeroSummary =
-    operationMode === "sale"
-      ? saleSummary.propertyCount
-      : rentSummary.propertyCount;
-
-  const activeHeroCatalogType = operationMode === "sale" ? "sale" : "rent";
-
-  const activeOpportunityAmount =
-    operationMode === "sale"
-      ? saleSummary.opportunityAmount
-      : rentSummary.opportunityAmount;
-
   return (
     <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
       <ScrollView
@@ -416,179 +384,49 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Text style={styles.dateText}>{formatCurrentDashboardDate()}</Text>
           </View>
         </View>
-        <View style={styles.profileRow}>
-          <View style={styles.profileLeft}>
-            <TouchableOpacity
-              style={styles.avatar}
-              activeOpacity={0.85}
-              onPress={() => {
-                router.push(`${areaConfig.basePath}/settings` as never);
-              }}
-            >
-              {profileAvatarUri ? (
-                <Image
-                  source={{ uri: profileAvatarUri }}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Text style={styles.avatarText}>{advisorInitials}</Text>
-              )}
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.greeting}>Hola, {advisorName}</Text>
-              <Text style={styles.helper}>{areaConfig.headline}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.notification} activeOpacity={0.85}>
-            <Bell size={20} color="#c79443" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.heroCards}>
-          {operationMode === "both" ? (
-            <>
-              <HeroCards
-                Summary={rentSummary.propertyCount}
-                OnPress={() => openPropertiesCatalog("rent")}
-                colors={heroColors.rent}
-              />
-              <HeroCards
-                Summary={saleSummary.propertyCount}
-                OnPress={() => openPropertiesCatalog("sale")}
-                colors={heroColors.sale}
-              />
-            </>
-          ) : (
-            <>
-              <HeroCards
-                OnPress={() => openPropertiesCatalog(activeHeroCatalogType)}
-                Summary={activeHeroSummary}
-                colors={activeHeroColors}
-              />
-            </>
-          )}
-          {area === "coordinator" ? (
-            <View style={styles.earningsCard}>
-              <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>
-              <View style={styles.earningsValueRow}>
-                <Text
-                  style={styles.earningsValue}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.72}
-                >
-                  {formatCurrency(activeOpportunityAmount)}
-                </Text>
-                <Text style={styles.currency}>MXN</Text>
-              </View>
-              <Text style={styles.earningsCaption}>Comision aprox.</Text>
-            </View>
-          ) : null}
-        </View>
-        <View style={[styles.panel, styles.appointmentsPanel]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderTitle}>Citas de esta semana</Text>
-            <TouchableOpacity
-              //style={styles.centerButton}
-              activeOpacity={0.85}
-              onPress={() => loadGoogleCalendarAppointments({ sync: true })}
-              disabled={isCalendarLoading}
-            >
-              <Text style={styles.sectionAction}>
-                {isCalendarLoading ? "Cargando..." : "Recargar"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={styles.appointmentsScroll}
-            contentContainerStyle={styles.appointmentList}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={
-              visibleCalendarAppointments.length > 5
-            }
-          >
-            {visibleCalendarAppointments.length === 0 ? (
-              <Text style={styles.panelSubtitle}>
-                {isCalendarLoading ? "Cargando citas ..." : calendarMessage}
-              </Text>
-            ) : (
-              visibleCalendarAppointments
-                .slice(0, 15)
-                .map((appointment) => (
-                  <AppointmentCard
-                    key={`${appointment.id ?? appointment.property}-${appointment.time}`}
-                    appointment={appointment}
-                  />
-                ))
-            )}
-          </ScrollView>
-          <View style={styles.appointmentActionsRow}>
-            <TouchableOpacity
-              style={styles.centerButton}
-              activeOpacity={0.85}
-              onPress={openCalendarScreen}
-            >
-              <Text style={styles.centerButtonText}>Ver calendario</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.centerButton}
-              activeOpacity={0.85}
-              onPress={handleOpenAppointmentModal}
-            >
-              <icons.WhiteCalendar />
-              <Text style={styles.centerButtonText}>Agregar cita</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={[styles.panel, styles.leadPanel]}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionHeaderTitle}>Seguimientos</Text>
-              <Text style={styles.panelSubtitle}>
-                Panorama general de actividad de leads
-              </Text>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() =>
-                router.push(`${areaConfig.basePath}/leads` as never)
-              }
-            >
-              <Text style={styles.sectionAction}>Ver mas</Text>
-            </TouchableOpacity>
-          </View>
-          {isLeadsLoading ? (
-            <Text style={styles.panelSubtitle}>Cargando leads...</Text>
-          ) : (
-            <>
-              <View style={styles.metricGrid}>
-                {leadSummary.leadMetrics.map((metric) => (
-                  <LeadMetricCard key={metric.id} metric={metric} />
-                ))}
-              </View>
-              <Text style={styles.subTitle}>Vista rapida</Text>
-              <View style={styles.funnelRow}>
-                {leadSummary.leadFunnel.map((metric) => (
-                  <FunnelMetric key={metric.id} metric={metric} />
-                ))}
-              </View>
-              {leadSummary.leadAlerts.map((alert) => (
-                <LeadAlertRow key={alert.id} alert={alert} />
-              ))}
-              <TouchableOpacity
-                style={styles.outlineButton}
-                activeOpacity={0.85}
-                onPress={() =>
-                  router.push(`${areaConfig.basePath}/leads` as never)
-                }
-              >
-                <Eye size={16} color="#006b43" />
-                <Text style={styles.outlineButtonText}>Ver detalle</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+
+        <ProfileHeader
+          advisorInitials={advisorInitials}
+          advisorName={advisorName}
+          profileAvatarUri={profileAvatarUri}
+          areaConfig={areaConfig}
+          styles={styles}
+        />
+
+        <HeroCardsSection
+          operationMode={operationMode}
+          area={area}
+          rentSummary={rentSummary}
+          saleSummary={saleSummary}
+          onOpenRent={() => openPropertiesCatalog("rent")}
+          onOpenSale={() => openPropertiesCatalog("sale")}
+          heroColors={heroColors}
+          styles={styles}
+        />
+
+        <AppointmentsSection
+          visibleCalendarAppointments={visibleCalendarAppointments}
+          isCalendarLoading={isCalendarLoading}
+          calendarMessage={calendarMessage}
+          onRefresh={() => loadGoogleCalendarAppointments({ sync: true })}
+          onViewCalendar={openCalendarScreen}
+          onAddAppointment={handleOpenAppointmentModal}
+          styles={styles}
+        />
+
+        <LeadsSection
+          isLeadsLoading={isLeadsLoading}
+          leadSummary={leadSummary}
+          onViewMore={() =>
+            router.push(`${areaConfig.basePath}/leads` as never)
+          }
+          onViewDetail={() =>
+            router.push(`${areaConfig.basePath}/leads` as never)
+          }
+          styles={styles}
+        />
       </ScrollView>
+
       <AppointmentCreateModal
         appointmentLeadMode={appointmentLeadMode}
         appointmentLeadOptions={appointmentLeadOptions}
