@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
@@ -64,6 +64,9 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
   const [isSelectingProperty, setIsSelectingProperty] = useState(false)
   const [propertySearchQuery, setPropertySearchQuery] = useState('')
   const [dismissedRouteLeadId, setDismissedRouteLeadId] = useState<string | null>(null)
+  const hasLoadedInitialLeadsRef = useRef(false)
+  const hasLoadedInitialStatusesRef = useRef(false)
+  const hasRequestedInitialCatalogRef = useRef(false)
   const propertyOptions = useMemo(() => buildPropertyOptions(catalogProperties, availableProperties), [availableProperties, catalogProperties])
 
   const mapLeadRecord = useCallback((lead: Parameters<typeof mapPropertyLeadToLeadV2ViewModel>[0]) => {
@@ -124,17 +127,27 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
   }, [authToken, mapLeadRecord])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialLeadsRef.current) return
+
+    hasLoadedInitialLeadsRef.current = true
+    console.info('[LeadsV2][initial-load]', { service: 'leads' })
     loadLeads()
-  }, [loadLeads])
+  }, [authToken, loadLeads])
 
   useEffect(() => {
+    if (!authToken || !isAdviserRoute || hasLoadedInitialStatusesRef.current) return
+
+    hasLoadedInitialStatusesRef.current = true
+    console.info('[LeadsV2][initial-load]', { service: 'custom-statuses' })
     loadCustomLeadStatuses()
-  }, [loadCustomLeadStatuses])
+  }, [authToken, isAdviserRoute, loadCustomLeadStatuses])
 
   useEffect(() => {
-    if (!hasLoadedCatalog && !isCatalogLoading) {
-      loadCatalogProperties()
-    }
+    if (hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
+
+    hasRequestedInitialCatalogRef.current = true
+    console.info('[LeadsV2][initial-load]', { service: 'catalog-properties' })
+    loadCatalogProperties()
   }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   useEffect(() => {

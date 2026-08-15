@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { styles } from './followups.styles'
 import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -80,6 +80,7 @@ export default function LeadV2FollowUpsScreen() {
   const [previewImage, setPreviewImage] = useState<FollowingImagePreview | null>(null)
   const [isSavingActivity, setIsSavingActivity] = useState(false)
   const [activityError, setActivityError] = useState<string | null>(null)
+  const hasLoadedInitialFollowingsRef = useRef(false)
 
   const loadFollowings = useCallback(async () => {
     if (!authToken || !leadId) {
@@ -103,8 +104,12 @@ export default function LeadV2FollowUpsScreen() {
   }, [authToken, leadId])
 
   useEffect(() => {
+    if (!authToken || !leadId || hasLoadedInitialFollowingsRef.current) return
+
+    hasLoadedInitialFollowingsRef.current = true
+    console.info('[LeadV2FollowUps][initial-load]', { service: 'followings', leadId })
     loadFollowings()
-  }, [loadFollowings])
+  }, [authToken, leadId, loadFollowings])
 
   const closeActivityModal = () => {
     if (isSavingActivity) return

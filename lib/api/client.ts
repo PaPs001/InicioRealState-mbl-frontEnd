@@ -58,6 +58,10 @@ let authTokenRefreshHandler: AuthTokenRefreshHandler | null = null
 let authTokenRefreshPromise: Promise<string | null> | null = null
 let lastRefreshInputToken: string | null = null
 let lastRefreshOutputToken: string | null = null
+const pendingJsonGetRequests = new Map<string, Promise<unknown>>()
+const requestMonitor = new Map<string, { total: number; windowCount: number; windowStart: number }>()
+const REQUEST_MONITOR_WINDOW_MS = 10_000
+const REQUEST_MONITOR_WARNING_THRESHOLD = 3
 
 export function setAuthTokenRefreshHandler(handler: AuthTokenRefreshHandler | null) {
   authTokenRefreshHandler = handler
@@ -102,12 +106,59 @@ async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
+function logRequestMonitor(
+  source: 'json' | 'raw',
+  baseUrl: string,
+  path: string,
+  method: HttpMethod,
+  token?: string | null,
+) {
+  const now = Date.now()
+  const key = `${method} ${baseUrl}${path}`
+  const current = requestMonitor.get(key)
+  const next = current && now - current.windowStart <= REQUEST_MONITOR_WINDOW_MS
+    ? {
+        total: current.total + 1,
+        windowCount: current.windowCount + 1,
+        windowStart: current.windowStart,
+      }
+    : {
+        total: (current?.total ?? 0) + 1,
+        windowCount: 1,
+        windowStart: now,
+      }
+
+  requestMonitor.set(key, next)
+
+  console.info('[API][request-monitor]', {
+    source,
+    method,
+    path,
+    total: next.total,
+    windowCount: next.windowCount,
+    windowSeconds: REQUEST_MONITOR_WINDOW_MS / 1000,
+    tokenPreview: previewToken(token ?? undefined),
+  })
+
+  if (next.windowCount > REQUEST_MONITOR_WARNING_THRESHOLD) {
+    console.warn('[API][request-loop-suspect]', {
+      source,
+      method,
+      path,
+      repeatedInWindow: next.windowCount,
+      windowSeconds: REQUEST_MONITOR_WINDOW_MS / 1000,
+      total: next.total,
+    })
+  }
+}
+
 export async function fetchWithAuthRetry(
   baseUrl: string,
   path: string,
   options: AuthenticatedFetchOptions = {},
 ): Promise<Response> {
   const { method = 'GET', body, headers = {}, token } = options
+  logRequestMonitor('raw', baseUrl, path, method, token)
 
   const buildHeaders = (requestToken?: string | null): Record<string, string> => {
     const requestHeaders: Record<string, string> = { ...headers }
@@ -170,12 +221,52 @@ export async function fetchWithAuthRetry(
  * @param path - Ruta del endpoint
  * @param options - Opciones de la peticion
  */
+function getJsonRequestDedupeKey(
+  baseUrl: string,
+  path: string,
+  options: ApiClientOptions,
+) {
+  const method = options.method ?? 'GET'
+  if (method !== 'GET' || options.body !== undefined || options.debugLog) {
+    return null
+  }
+
+  return JSON.stringify({
+    baseUrl,
+    path,
+    token: options.token ?? null,
+    headers: options.headers ?? {},
+  })
+}
+
 export async function apiClient<T>(
   baseUrl: string,
   path: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
+  const dedupeKey = getJsonRequestDedupeKey(baseUrl, path, options)
+  if (!dedupeKey) return apiClientRequest<T>(baseUrl, path, options)
+
+  const pendingRequest = pendingJsonGetRequests.get(dedupeKey)
+  if (pendingRequest) {
+    console.info('[API][deduped-get]', { path, baseUrl })
+    return pendingRequest as Promise<T>
+  }
+
+  const request = apiClientRequest<T>(baseUrl, path, options).finally(() => {
+    pendingJsonGetRequests.delete(dedupeKey)
+  })
+  pendingJsonGetRequests.set(dedupeKey, request)
+  return request
+}
+
+async function apiClientRequest<T>(
+  baseUrl: string,
+  path: string,
+  options: ApiClientOptions = {}
+): Promise<T> {
   const { method = 'GET', body, headers = {}, token, debugLog } = options
+  logRequestMonitor('json', baseUrl, path, method, token)
 
   const buildRequestHeaders = (requestToken?: string | null): Record<string, string> => {
     const requestHeaders: Record<string, string> = {
