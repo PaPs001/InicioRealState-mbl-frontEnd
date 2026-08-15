@@ -118,6 +118,11 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
   if (!user) return null
 
   const backendUser = user as BackendUser
+  const agentPresentation = Boolean(
+    user.agentpresentation ??
+      user.agentPresentation ??
+      false,
+  )
 
   return {
     id: user.id ?? backendUser._id ?? backendUser.userId ?? '',
@@ -133,6 +138,8 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     avatar: user.avatar,
     profilePhotoKey: user.profilePhotoKey,
     agentPresentationKey: user.agentPresentationKey,
+    agentpresentation: agentPresentation,
+    agentPresentation: agentPresentation,
     createdAt: user.createdAt ?? new Date().toISOString(),
   }
 }

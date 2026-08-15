@@ -18,6 +18,8 @@ export interface User {
   avatar?: string
   profilePhotoKey?: string
   agentPresentationKey?: string
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   createdAt: string
 }
 
