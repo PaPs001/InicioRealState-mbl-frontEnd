@@ -48,14 +48,35 @@ export function useAuthSessionState(): AuthSessionState {
       hasRefreshToken: !!nextRefreshToken,
       tokenPreview: previewToken(token),
       refreshTokenPreview: previewToken(nextRefreshToken),
+      agentpresentation: user?.agentpresentation
     })
 
-    const sessionUser = buildSessionUser(user, token)
+    const rawPresentation = Boolean(
+      user?.agentpresentation ??
+        user?.agentPresentation ??
+        false,
+    )
+    const normalizedUser = user
+      ? {
+          ...user,
+          agentpresentation: rawPresentation,
+          agentPresentation: rawPresentation,
+        }
+      : null
 
-    setCurrentUserState(sessionUser)
+    const sessionUser = buildSessionUser(normalizedUser, token)
+    const normalizedSessionUser = sessionUser
+      ? {
+          ...sessionUser,
+          agentpresentation: rawPresentation,
+          agentPresentation: rawPresentation,
+        }
+      : null
+
+    setCurrentUserState(normalizedSessionUser)
     setAuthToken(token)
     setRefreshToken(nextRefreshToken)
-    await persistAuthSession(sessionUser, token, nextRefreshToken)
+    await persistAuthSession(normalizedSessionUser, token, nextRefreshToken)
 
     console.log('[auth][session-stored]', {
       sessionUserId: sessionUser?.id ?? null,
