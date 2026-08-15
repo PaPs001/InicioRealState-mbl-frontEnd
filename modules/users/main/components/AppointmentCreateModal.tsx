@@ -153,7 +153,9 @@ export function AppointmentCreateModal({
       animationType="slide"
       position="bottom"
       size="large"
-      keyboardAvoiding
+      containerStyle={styles.createModalContainer}
+      contentStyle={styles.createModalContent}
+      //keyboardAvoiding
       closeDisabled={isCreatingAppointment}
       closeOnBackdropPress={!isCreatingAppointment}
       footer={
@@ -265,9 +267,16 @@ export function AppointmentCreateModal({
           ) : (
             <KeyboardAwareScrollView
               enableOnAndroid
-              extraScrollHeight={24}
-              showsVerticalScrollIndicator={false}
+              enableAutomaticScroll
+              //keyboardDismissMode='on-drag'
+              enableResetScrollToCoords={false}
+              extraHeight={90}
+              bounces={false}
+              overScrollMode='never'
+              extraScrollHeight={0}
+              style={{flex: 1}}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.appointmentModalContent}
             >
               <View>

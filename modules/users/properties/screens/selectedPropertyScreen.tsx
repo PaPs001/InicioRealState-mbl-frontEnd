@@ -17,7 +17,7 @@ import { mockProperty } from '../temporalMock'
 
 //Componentes a usar//
 
-import { ImagesRoulette } from '../components/selectedProperties/imagesRoulette'
+import { ImagesRoulette } from '../components/selectedProperties/ImagesRoulette'
 import { AmenitiesButton } from '../components/selectedProperties/AmenitiesButton'
 import { CardInformation } from '../components/selectedProperties/CardInformation'
 

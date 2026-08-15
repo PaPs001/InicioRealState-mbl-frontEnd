@@ -46,8 +46,11 @@ export function CalendarModal({
       subtitle="Selecciona los calendarios que quieres utilizar"
       onClose={onClose}
       //showCloseButton
+      /*containerStyle={{
+        height: '50%'
+      }}*/
       position="bottom"
-      size="large"
+      size= "medium"
       animationType="slide"
       scrollable
       closeDisabled={isSavingCalendarSelection}

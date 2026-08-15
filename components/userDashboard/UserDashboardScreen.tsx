@@ -47,7 +47,7 @@ import {
 } from "./dashboard-formatters";
 import { AppointmentCreateModal } from "@/modules/users/main/components/AppointmentCreateModal";
 import { styles } from "./UserDashboardScreen.styles";
-import { useOperationMode } from "@/modules/settings";
+import { useOperationMode, useDashboardAreaConfig } from "@/modules/settings";
 import { ProfileImageModal } from "@/modules/profile";
 import {
   useDashboardCalendar,
@@ -66,43 +66,22 @@ type UserDashboardScreenProps = {
   area: UserDashboardArea;
 };
 
-const dashboardAreaConfig = {
-  adviser: {
-    basePath: "/userAdviser",
-    fallbackName: "Asesor",
-    roleLabel: "Asesor de Rentas",
-    headline: "Aqui esta lo importante de hoy",
-  },
-  coordinator: {
-    basePath: "/userCoordinator",
-    fallbackName: "Coordinador",
-    roleLabel: "Coordinador",
-    headline: "Aqui esta lo importante de hoy",
-  },
-} as const;
 ////////
 export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
-  const { operationMode, capabilities } = useOperationMode()
+  const { operationMode, capabilities } = useOperationMode();
+  const areaConfig = useDashboardAreaConfig(area);
   const router = useRouter();
   const pathname = usePathname();
-  const {
-    authToken,
-    currentUser,
-  } = useSessionDomain();
-
-  const areaConfig = dashboardAreaConfig[area];
-  const {
-    advisorInitials,
-    advisorName,
-    profileAvatarUri,
-    profileImageUpload,
-  } = useDashboardProfile({ fallbackName: areaConfig.fallbackName });
+  const { authToken, currentUser } = useSessionDomain();
+  const { advisorInitials, advisorName, profileAvatarUri, profileImageUpload } =
+    useDashboardProfile({ fallbackName: areaConfig.fallbackName });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
 
-  const [testAppointmentForm, setTestAppointmentForm] = useState<CreateGoogleCalendarDatePayload>({
+  const [testAppointmentForm, setTestAppointmentForm] =
+    useState<CreateGoogleCalendarDatePayload>({
       title: "Visita de prueba",
       description: "Cita creada desde el panel temporal",
       location: "Oficina Inicio Real Estate",
@@ -122,12 +101,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }));
   }, [advisorName, currentUser?.id]);
 
-  const {
-    appointmentLeadOptions,
-    isLeadsLoading,
-    leadSummary,
-    loadLeads,
-  } = useDashboardLeads({ authToken });
+  const { appointmentLeadOptions, isLeadsLoading, leadSummary, loadLeads } =
+    useDashboardLeads({ authToken });
 
   const {
     filteredAppointmentPropertyOptions,
@@ -234,7 +209,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setTestAppointmentForm((currentForm) => ({
       ...currentForm,
       leadId: lead.id,
-      propertyId: property ? lead.propertyId || currentForm.propertyId : currentForm.propertyId,
+      propertyId: property
+        ? lead.propertyId || currentForm.propertyId
+        : currentForm.propertyId,
       advisorId,
       title:
         currentForm.title?.trim() && currentForm.title !== "Visita de prueba"
@@ -314,7 +291,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     const canResolveCalendarByType =
       (appointmentType === "renta" || appointmentType === "venta") &&
       enabledSelectedCalendars.some(
-        (calendar) => calendar.appointmentType?.trim().toLowerCase() === appointmentType,
+        (calendar) =>
+          calendar.appointmentType?.trim().toLowerCase() === appointmentType,
       );
 
     if (!testAppointmentForm.calendarId && !canResolveCalendarByType) {
@@ -332,7 +310,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       const basePayload: CreateGoogleCalendarDatePayload = {
         ...testAppointmentForm,
         leadId: isGeneralAppointment ? null : testAppointmentForm.leadId,
-        propertyId: isGeneralAppointment ? null : testAppointmentForm.propertyId,
+        propertyId: isGeneralAppointment
+          ? null
+          : testAppointmentForm.propertyId,
         endDateTime: getAppointmentEndDateTime(
           testAppointmentForm.startDateTime,
         ),
@@ -346,20 +326,23 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               lead: null,
             }
           : appointmentLeadMode === "provisional"
-          ? {
-              ...basePayload,
-              leadId: null,
-              lead: {
-                fullName: provisionalAppointmentLead.fullName.trim(),
-                phone: provisionalAppointmentLead.phone.trim() || null,
-                email: provisionalAppointmentLead.email.trim() || null,
-              },
-            }
-          : {
-              ...basePayload,
-              lead: null,
-            };
-      const response = await createGoogleCalendarDate(authToken, appointmentPayload);
+            ? {
+                ...basePayload,
+                leadId: null,
+                lead: {
+                  fullName: provisionalAppointmentLead.fullName.trim(),
+                  phone: provisionalAppointmentLead.phone.trim() || null,
+                  email: provisionalAppointmentLead.email.trim() || null,
+                },
+              }
+            : {
+                ...basePayload,
+                lead: null,
+              };
+      const response = await createGoogleCalendarDate(
+        authToken,
+        appointmentPayload,
+      );
       await Promise.all([
         loadGoogleCalendarAppointments({ sync: true }),
         loadLeads(),
@@ -379,49 +362,37 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     }
   };
 
-  const heroColors = useMemo(() => ({
-    rent: {
-      backgroundColor: generalColors.rentColor,
-      accentColor: '#d4b66f',
-      textColor: '#ffffff',
-    },
-    sale: {
-      backgroundColor: generalColors.saleColor,
-      accentColor: '#d4b66f',
-      textColor: '#ffffff',
-    },
-  }), [])
+  const heroColors = useMemo(
+    () => ({
+      rent: {
+        backgroundColor: generalColors.rentColor,
+        accentColor: "#d4b66f",
+        textColor: "#ffffff",
+      },
+      sale: {
+        backgroundColor: generalColors.saleColor,
+        accentColor: "#d4b66f",
+        textColor: "#ffffff",
+      },
+    }),
+    [],
+  );
 
-  const activeHeroColors = operationMode === 'sale'
-    ? heroColors.sale
-    : heroColors.rent
+  const activeHeroColors =
+    operationMode === "sale" ? heroColors.sale : heroColors.rent;
 
-  const activeHeroSummary = operationMode === 'sale'
-    ? saleSummary.propertyCount
-    : rentSummary.propertyCount
+  const activeHeroSummary =
+    operationMode === "sale"
+      ? saleSummary.propertyCount
+      : rentSummary.propertyCount;
 
-  const activeHeroCatalogType = operationMode === 'sale'
-    ? 'sale'
-    : 'rent'
+  const activeHeroCatalogType = operationMode === "sale" ? "sale" : "rent";
 
-  const activeOpportunityAmount = operationMode === 'sale'
-    ? saleSummary.opportunityAmount
-    : rentSummary.opportunityAmount
+  const activeOpportunityAmount =
+    operationMode === "sale"
+      ? saleSummary.opportunityAmount
+      : rentSummary.opportunityAmount;
 
-  if (profileImageUpload.isOpen) {
-    return (
-      <ProfileImageModal
-        visible={profileImageUpload.isOpen}
-        title={profileImageUpload.title}
-        imageUri={profileImageUpload.selectedImage?.uri}
-        error={profileImageUpload.error}
-        isSaving={profileImageUpload.isSaving}
-        onSelectImage={profileImageUpload.pickImage}
-        onSave={profileImageUpload.save}
-        onClose={profileImageUpload.close}
-      />
-    );
-  }
   return (
     <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
       <ScrollView
@@ -433,9 +404,13 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         </View>
         <View style={styles.topRow}>
           <Text style={styles.roleLabel}>
-            {operationMode === 'rent' ? 'Asesor de renta' 
-            : operationMode === 'sale' ? 'Asesor de venta' 
-            : operationMode === 'both' ? 'Asesor Mixto' : null}
+            {operationMode === "rent"
+              ? "Asesor de renta"
+              : operationMode === "sale"
+                ? "Asesor de venta"
+                : operationMode === "both"
+                  ? "Asesor Mixto"
+                  : null}
           </Text>
           <View style={styles.datePill}>
             <Text style={styles.dateText}>{formatCurrentDashboardDate()}</Text>
@@ -447,11 +422,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               style={styles.avatar}
               activeOpacity={0.85}
               onPress={() => {
-                router.push(`${areaConfig.basePath}/settings` as never)
+                router.push(`${areaConfig.basePath}/settings` as never);
               }}
             >
               {profileAvatarUri ? (
-                <Image source={{ uri: profileAvatarUri }} style={styles.avatarImage} resizeMode="cover" />
+                <Image
+                  source={{ uri: profileAvatarUri }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
               ) : (
                 <Text style={styles.avatarText}>{advisorInitials}</Text>
               )}
@@ -466,7 +445,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           </TouchableOpacity>
         </View>
         <View style={styles.heroCards}>
-          {operationMode === 'both' ? (
+          {operationMode === "both" ? (
             <>
               <HeroCards
                 Summary={rentSummary.propertyCount}
@@ -479,15 +458,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 colors={heroColors.sale}
               />
             </>
-          ): 
-          <>
-            <HeroCards
-              OnPress={() => openPropertiesCatalog(activeHeroCatalogType)}
-              Summary={activeHeroSummary}
-              colors={activeHeroColors}
-            />
-          </>
-            }
+          ) : (
+            <>
+              <HeroCards
+                OnPress={() => openPropertiesCatalog(activeHeroCatalogType)}
+                Summary={activeHeroSummary}
+                colors={activeHeroColors}
+              />
+            </>
+          )}
           {area === "coordinator" ? (
             <View style={styles.earningsCard}>
               <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>
@@ -524,13 +503,13 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             style={styles.appointmentsScroll}
             contentContainerStyle={styles.appointmentList}
             nestedScrollEnabled
-            showsVerticalScrollIndicator={visibleCalendarAppointments.length > 5}
+            showsVerticalScrollIndicator={
+              visibleCalendarAppointments.length > 5
+            }
           >
             {visibleCalendarAppointments.length === 0 ? (
               <Text style={styles.panelSubtitle}>
-                {isCalendarLoading
-                  ? "Cargando citas ..."
-                  : calendarMessage}
+                {isCalendarLoading ? "Cargando citas ..." : calendarMessage}
               </Text>
             ) : (
               visibleCalendarAppointments
@@ -549,9 +528,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               activeOpacity={0.85}
               onPress={openCalendarScreen}
             >
-              <Text style={styles.centerButtonText}>
-                Ver calendario
-              </Text>
+              <Text style={styles.centerButtonText}>Ver calendario</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.centerButton}

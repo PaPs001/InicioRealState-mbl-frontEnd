@@ -43,8 +43,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   appointmentModalContent: {
-    paddingBottom: 12,
-    gap: 5,
+    paddingBottom: 40,
+    gap: 8,
   },
   appointmentPickerButton: {
     minHeight: 48,
@@ -575,5 +575,14 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 8,
     textAlign: 'center',
+  },
+
+  createModalContainer: {
+    height: '88%',
+  },
+
+  createModalContent: {
+    flex: 1,
+    minHeight: 0,
   },
 })
