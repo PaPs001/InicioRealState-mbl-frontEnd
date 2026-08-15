@@ -23,6 +23,9 @@ export default function AdviserLayout() {
       <Tabs.Screen name="properties.v2" options={{ title: 'Propiedades V2', href: null }} />
       <Tabs.Screen name="rent-followups" options={{ title: 'Seguimientos Rentas', href: null }} />
       <Tabs.Screen name="developments-soon" options={{ title: 'Desarrollos', href: null }} />
+      <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
+      <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
+      <Tabs.Screen name="mainDashboard" options={{ title: 'Dashboard', href: null }} />
     </Tabs>
   )
 }

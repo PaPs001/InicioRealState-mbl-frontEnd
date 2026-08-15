@@ -38,6 +38,8 @@ export type BackendProfileImagePayload = {
   }
 }
 
+export type UploadImageDocumentType = 'profilephoto' | 'agentpresentation'
+
 export type UploadProfileImageResponse = {
   url: string
   key?: string
@@ -69,6 +71,9 @@ export type BackendCurrentUser = {
   tenant?: boolean
   avatar?: string
   profilePhotoKey?: string
+  agentPresentationKey?: string
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   files?: Record<string, unknown>
 }
 
@@ -83,6 +88,23 @@ function getBackendProfilePhotoKey(user?: BackendCurrentUser): string | undefine
   }
 
   const file = profilePhoto as Record<string, unknown>
+  const key = [file.key, file.storageKey]
+    .find(value => typeof value === 'string' && value.length > 0)
+
+  return typeof key === 'string' ? key : undefined
+}
+
+function getBackendAgentPresentationKey(user?: BackendCurrentUser): string | undefined {
+  if (typeof user?.agentPresentationKey === 'string' && user.agentPresentationKey.length > 0) {
+    return user.agentPresentationKey
+  }
+
+  const presentation = user?.files?.agentpresentation
+  if (!presentation || typeof presentation !== 'object' || Array.isArray(presentation)) {
+    return undefined
+  }
+
+  const file = presentation as Record<string, unknown>
   const key = [file.key, file.storageKey]
     .find(value => typeof value === 'string' && value.length > 0)
 
@@ -137,6 +159,8 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     permissions: user.permissions,
     avatar: user.avatar,
     profilePhotoKey: getBackendProfilePhotoKey(user),
+    agentPresentationKey: getBackendAgentPresentationKey(user),
+    agentpresentation: Boolean(user.agentpresentation ?? user.agentPresentation),
     createdAt: new Date().toISOString(),
   }
 }
@@ -155,6 +179,8 @@ type LoginApiPayload = {
   investment?: boolean
   tenant?: boolean
   roles?: BackendUserRole[] | BackendUserRole
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   user?: BackendCurrentUser
   data?: {
     accessToken?: string
@@ -162,6 +188,8 @@ type LoginApiPayload = {
     investment?: boolean
     tenant?: boolean
     roles?: BackendUserRole[] | BackendUserRole
+    agentpresentation?: boolean
+    agentPresentation?: boolean
     user?: BackendCurrentUser
   }
 }
@@ -191,7 +219,24 @@ function extractLoginRefreshToken(payload: LoginApiPayload): string | undefined 
 }
 
 function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefined {
-  return payload.user ?? payload.data?.user
+  const rawUser = payload.user ?? payload.data?.user
+  if (!rawUser) return undefined
+
+  const presentationValue = Boolean(
+    rawUser.agentpresentation ??
+      rawUser.agentPresentation ??
+      payload.agentpresentation ??
+      payload.agentPresentation ??
+      payload.data?.agentpresentation ??
+      payload.data?.agentPresentation ??
+      false,
+  )
+
+  return {
+    ...rawUser,
+    agentpresentation: presentationValue,
+    agentPresentation: presentationValue,
+  }
 }
 
 const previewToken = (token?: string) =>
@@ -671,13 +716,14 @@ export async function updateUserProfile(
 export async function uploadProfileImage(
   payload: BackendProfileImagePayload,
   token: string,
+  documentType: UploadImageDocumentType = 'profilephoto',
 ): Promise<UploadProfileImageResponse> {
   if (!payload.image.uri || !payload.image.name || !payload.image.type) {
     throw new Error('La imagen seleccionada no tiene datos validos para subirla.')
   }
 
   const formData = new FormData()
-  formData.append('documentType', 'profilephoto')
+  formData.append('documentType', documentType)
   formData.append('file', {
     uri: payload.image.uri,
     name: payload.image.name,
@@ -702,7 +748,7 @@ export async function uploadProfileImage(
   }
 
   const result = await response.json() as unknown
-  const uploadedFile = getUploadedProfileFile(result)
+  const uploadedFile = getUploadedProfileFile(result, documentType)
   if (!uploadedFile?.url) {
     throw new Error('El servicio de archivos no devolvio la URL de la imagen.')
   }
@@ -730,14 +776,37 @@ export async function getUploadedProfileImage(token: string): Promise<UploadProf
   return getUploadedProfileFile(await response.json() as UploadedFilesResponse)
 }
 
-export async function deleteUploadedProfileImage(token: string): Promise<void> {
-  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/?documentType=profilephoto', {
-    method: 'DELETE',
+export async function getUploadedAgentPresentation(token: string): Promise<UploadProfileImageResponse | null> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, '/uploads/', {
+    method: 'GET',
     token,
   })
 
   if (!response.ok) {
-    let message = `No se pudo borrar la foto de perfil anterior (${response.status})`
+    throw new Error(`No se pudo obtener la foto para el PDF (${response.status})`)
+  }
+
+  return getUploadedProfileFile(await response.json() as UploadedFilesResponse, 'agentpresentation')
+}
+
+async function deleteUploadedImage(
+  token: string,
+  documentType: UploadImageDocumentType,
+): Promise<void> {
+  const response = await fetchWithAuthRetry(
+    API_URLS.CORE,
+    `/uploads/?documentType=${documentType}`,
+    {
+      method: 'DELETE',
+      token,
+    },
+  )
+
+  if (!response.ok) {
+    const imageLabel = documentType === 'agentpresentation'
+      ? 'la imagen anterior del PDF'
+      : 'la foto de perfil anterior'
+    let message = `No se pudo borrar ${imageLabel} (${response.status})`
     try {
       const errorPayload = await response.json() as { message?: string; error?: string }
       message = errorPayload.message || errorPayload.error || message
@@ -748,7 +817,18 @@ export async function deleteUploadedProfileImage(token: string): Promise<void> {
   }
 }
 
-function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | null {
+export async function deleteUploadedProfileImage(token: string): Promise<void> {
+  return deleteUploadedImage(token, 'profilephoto')
+}
+
+export async function deleteUploadedAgentPresentationImage(token: string): Promise<void> {
+  return deleteUploadedImage(token, 'agentpresentation')
+}
+
+function getUploadedProfileFile(
+  payload: unknown,
+  documentType: UploadImageDocumentType = 'profilephoto',
+): UploadProfileImageResponse | null {
   if (!payload || typeof payload !== 'object') return null
 
   const root = payload as Record<string, unknown>
@@ -766,8 +846,8 @@ function getUploadedProfileFile(payload: unknown): UploadProfileImageResponse | 
     root.data,
     root.file,
     root.upload,
-    rootFiles?.profilephoto,
-    userFiles?.profilephoto,
+    rootFiles?.[documentType],
+    userFiles?.[documentType],
     Array.isArray(root.files) ? root.files[0] : root.files,
     Array.isArray(root.data) ? root.data[0] : undefined,
   ]

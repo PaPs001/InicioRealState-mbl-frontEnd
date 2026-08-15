@@ -16,7 +16,6 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Star,
   TreePine,
   Waves,
 } from 'lucide-react-native'
@@ -24,11 +23,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { createAndOpenTemporaryPropertyListPdf } from '@/lib/api'
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
+import { useOperationMode } from '@/modules/settings'
 import type { PdfReportAgentName } from '@/lib/api'
 import type { Property } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { styles } from './properties-list.styles'
 import { icons } from '@/assets'
+import { generalColors } from '@/theme'
 
 type ListingProperty = {
   id: string
@@ -91,6 +92,10 @@ const PDF_AGENT_LABELS: Record<PdfReportAgentName, string> = {
 }
 
 const PDF_REPORT_LOCATION = 'TODAS'
+
+function hasPropertyTitle(property: Property) {
+  return Boolean(property.title?.trim())
+}
 
 function mapPropertyToListing(property: Property): ListingProperty {
   const amenities = property.amenities?.length ? property.amenities : property.features ?? []
@@ -184,10 +189,20 @@ export default function CoordinatorPropertiesListScreen() {
   const router = useRouter()
   const pathname = usePathname()
   const params = useLocalSearchParams<{ type?: string }>()
-  const { authToken, isLoading: isAuthLoading } = useAuth()
+  const { authToken, currentUser, isLoading: isAuthLoading } = useAuth()
+  const { operationMode, capabilities } = useOperationMode()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
-  const initialListingFilter: ListingFilter = params.type === 'sale' ? 'sale' : params.type === 'rent' ? 'rent' : 'all'
+  const shouldSkipPdfAgentList = Boolean(
+    currentUser?.agentPresentationKey ||
+    currentUser?.agentpresentation ||
+    currentUser?.agentPresentation,
+  )
+
+  const initialListingFilter: ListingFilter =
+    params.type === 'sale' || params.type === 'rent'
+      ? params.type
+      : operationMode === 'both' ? 'rent' : operationMode
   const routeBase = pathname.startsWith('/userAdviser') ? '/userAdviser' : '/userCoordinator'
   const {
     availableProperties,
@@ -217,6 +232,15 @@ export default function CoordinatorPropertiesListScreen() {
   const [sortOption, setSortOption] = useState<SortOption>('price_desc')
 
   useEffect(() => {
+    if (params.type === 'sale' || params.type === 'rent') {
+      setListingFilter(params.type)
+      return
+    }
+
+    setListingFilter(operationMode === 'both' ? 'rent' : operationMode)
+  }, [operationMode, params.type])
+
+  useEffect(() => {
     if (isAuthLoading || !authToken) return
 
     if (!hasLoadedCatalog && !isCatalogLoading) {
@@ -227,6 +251,8 @@ export default function CoordinatorPropertiesListScreen() {
   const listings = useMemo(() => {
     const source = (catalogProperties.length > 0 ? catalogProperties : availableProperties)
       .filter(property => {
+        if (!hasPropertyTitle(property)) return false
+
         const isSale = property.status === 'for_sale' || property.status === 'pending_sale'
         const isRent = property.status === 'for_rent' || property.status === 'pending_rent' || !!property.monthlyRent
 
@@ -365,14 +391,38 @@ export default function CoordinatorPropertiesListScreen() {
         </TouchableOpacity>*/}
 
         <Text style={styles.title}>Propiedades Disponibles</Text>
-        <Text style={styles.subtitle}>Inventario de renta y venta</Text>
+        <Text style={styles.subtitle}>
+          {operationMode === 'rent'
+            ? 'Inventario de renta'
+            : operationMode === 'sale'
+              ? 'Inventario de venta'
+              : 'Inventario de renta y venta'}
+        </Text>
 
         <View style={styles.controlsBlock}>
-          <View style={styles.segmentedControl}>
-            <FilterChip label="Todo" active={listingFilter === 'all'} onPress={() => setListingFilter('all')} />
-            <FilterChip label="Renta" active={listingFilter === 'rent'} onPress={() => setListingFilter('rent')} />
-            <FilterChip label="Venta" active={listingFilter === 'sale'} onPress={() => setListingFilter('sale')} />
-          </View>
+          {operationMode === 'both' ? (
+            <View style={styles.segmentedControl}>
+              {/*<FilterChip
+                label="Todo"
+                active={listingFilter === 'all'}
+                onPress={() => setListingFilter('all')}
+              />*/}
+
+              <FilterChip
+                label="Renta"
+                active={listingFilter === 'rent'}
+                activeColor={generalColors.rentColor}
+                onPress={() => setListingFilter('rent')}
+              />
+
+              <FilterChip
+                label="Venta"
+                active={listingFilter === 'sale'}
+                activeColor={generalColors.saleColor}
+                onPress={() => setListingFilter('sale')}
+              />
+            </View>
+          ): null}
 
           <View style={styles.searchRow}>
             <Search size={13} color="#717171" />
@@ -403,7 +453,7 @@ export default function CoordinatorPropertiesListScreen() {
         </View>
       </View>
     </View>
-  ), [activeAdvancedFilterCount, canvasWidth, isMapMode, listingFilter, routeBase, router, searchQuery, sortOption])
+  ), [activeAdvancedFilterCount, canvasWidth, capabilities, isMapMode, listingFilter, operationMode, routeBase, router, searchQuery, sortOption])
 
   const openPdfOptions = () => {
     if (isGeneratingPdf) return
@@ -429,7 +479,9 @@ export default function CoordinatorPropertiesListScreen() {
     try {
       await waitForHeavyUiToUnmount()
       const pdfPayload = {
-        agentName: pdfAgentName,
+        ...(currentUser?.agentPresentationKey
+          ? { agentName: 'a' as const, agentPresentation: currentUser.agentPresentationKey }
+          : { agentName: pdfAgentName }),
         sales: isPdfSaleList,
         items: selectedPropertyIds,
         action: selectedPropertyIds.length > 0 ? 'SelectProperties' : pdfListingType,
@@ -491,7 +543,7 @@ export default function CoordinatorPropertiesListScreen() {
         <TouchableOpacity
           style={styles.exportButtonSecondary}
           activeOpacity={0.85}
-          onPress={openPdfOptions}
+          onPress={shouldSkipPdfAgentList ? handleGeneratePdf : openPdfOptions}
           disabled={isGeneratingPdf}
         >
           <Text style={styles.exportButtonSecondaryText}>
@@ -522,16 +574,18 @@ export default function CoordinatorPropertiesListScreen() {
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pdfOptionsScroll}>
-              <PdfOptionGroup title="Asesor">
-                {PDF_AGENTS.map(agent => (
-                  <PdfChip
-                    key={agent}
-                    label={PDF_AGENT_LABELS[agent]}
-                    active={pdfAgentName === agent}
-                    onPress={() => setPdfAgentName(agent)}
-                  />
-                ))}
-              </PdfOptionGroup>
+              {!shouldSkipPdfAgentList ? (
+                <PdfOptionGroup title="Asesor">
+                  {PDF_AGENTS.map(agent => (
+                    <PdfChip
+                      key={agent}
+                      label={PDF_AGENT_LABELS[agent]}
+                      active={pdfAgentName === agent}
+                      onPress={() => setPdfAgentName(agent)}
+                    />
+                  ))}
+                </PdfOptionGroup>
+              ) : null}
 
               <View style={styles.pdfActionsRow}>
                 <TouchableOpacity
@@ -684,12 +738,12 @@ export default function CoordinatorPropertiesListScreen() {
         </View>
       </Modal>
 
-      {isMapMode ? null : (
+      {/*{isMapMode ? null : (
         <TouchableOpacity style={styles.mapFloatingButton} onPress={() => setIsMapMode(true)} activeOpacity={0.85}>
           <Text style={styles.mapFloatingButtonText}>Mapa</Text>
           <MapIcon size={16} color="#ffffff" fill="#ffffff" />
         </TouchableOpacity>
-      )}
+      )}*/}
 
     </SafeAreaView>
   )
@@ -752,7 +806,7 @@ const PropertyCard = memo(function PropertyCard({
         <View style={styles.priceRow}>
           <Text style={styles.price}>{property.priceLabel || formatCurrency(property.price)}</Text>
           {property.status === 'for_rent' || property.status === 'pending_rent' ? (
-            <Text style={styles.priceMeta}>MXN / mes </Text>
+            <Text style={styles.priceMeta}></Text>
           ) : null}
         </View>
         {shouldShowPropertyDetails ? (
@@ -803,9 +857,6 @@ const PropertyCard = memo(function PropertyCard({
         </View>
         <View style={styles.cardFooter}>
           <Text style={styles.detailLink}>Ver detalles </Text>
-          <TouchableOpacity style={styles.favoriteButton} activeOpacity={0.85}>
-            <icons.Heart/>
-          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
@@ -827,10 +878,24 @@ function RawInfo({ label, value }: { label: string; value?: string }) {
   )
 }
 
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function FilterChip({
+  label,
+  active,
+  activeColor,
+  onPress,
+}: {
+  label: string
+  active: boolean
+  activeColor?: string
+  onPress: () => void
+}) {
   return (
     <TouchableOpacity
-      style={[styles.filterChip, active && styles.filterChipActive]}
+      style={[
+        styles.filterChip,
+        active && styles.filterChipActive,
+        active && activeColor ? { backgroundColor: activeColor } : null,
+      ]}
       activeOpacity={0.85}
       onPress={onPress}
     >

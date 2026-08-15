@@ -12,6 +12,7 @@ import {
   Radio,
   Search,
 } from 'lucide-react-native'
+import { icons, logos } from '@/assets'
 
 // Circulo de mas opciones de Leads: oculto por solicitud.
 // import { LeadQuickActionsButton } from '@/components/leads/LeadQuickActionsButton'
@@ -133,8 +134,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.brandBlock}>
-              <Text style={styles.brandTitle}>INICIO</Text>
-              <Text style={styles.brandSubtitle}>REAL ESTATE</Text>
+              <logos.irsPrincipal width={146} height={48}/>
             </View>
 
             <View style={styles.headerRow}>

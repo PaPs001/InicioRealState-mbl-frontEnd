@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -68,6 +68,7 @@ export default function CoordinatorLeadsScreen() {
   const [selectedFollowUp, setSelectedFollowUp] = useState<LeadFollowUp | null>(null)
   const [isFollowUpHistoryOpen, setIsFollowUpHistoryOpen] = useState(false)
   const [followUps, setFollowUps] = useState<LeadFollowUp[]>([])
+  const hasLoadedInitialLeadsRef = useRef(false)
 
   const loadLeads = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (mode === 'initial') setIsLoading(true)
@@ -88,8 +89,12 @@ export default function CoordinatorLeadsScreen() {
   }, [authToken])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialLeadsRef.current) return
+
+    hasLoadedInitialLeadsRef.current = true
+    console.info('[CoordinatorLeadsLegacy][initial-load]', { service: 'leads' })
     loadLeads()
-  }, [loadLeads])
+  }, [authToken, loadLeads])
 
   const advisorGroups = useMemo(() => buildAdvisorGroups(leads), [leads])
   const selectedAdvisor = useMemo(

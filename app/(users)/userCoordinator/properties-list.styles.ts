@@ -4,14 +4,14 @@ import { StyleSheet } from 'react-native'
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: generalColors.background,
   },
   pdfWorkState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   pdfWorkTitle: {
     marginTop: 18,
@@ -31,13 +31,15 @@ export const styles = StyleSheet.create({
   listContent: {
     alignItems: 'center',
     paddingBottom: 90,
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   listCanvas: {
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   headerCanvas: {
-    height: 248,
+    paddingTop: 32,
+    paddingHorizontal: 17,
+    paddingBottom: 14,
   },
   backButton: {
     position: 'absolute',
@@ -49,18 +51,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    position: 'absolute',
-    left: 63,
-    top: 32,
+    marginLeft: 46,
     color: '#3D5A40',
     fontSize: 23,
     lineHeight: 25,
     fontWeight: '500',
   },
   subtitle: {
-    position: 'absolute',
-    left: 63,
-    top: 57,
+    marginLeft: 46,
     color: '#afafaf',
     fontSize: 16,
   },
@@ -158,18 +156,15 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   controlsBlock: {
-    position: 'absolute',
-    left: 17,
-    right: 17,
-    top: 95,
+    marginTop: 22,
     gap: 11,
   },
   segmentedControl: {
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#f6efe3',
+    backgroundColor: '#ffffff',
     borderWidth: 0.5,
-    borderColor: '#d8d0c5',
+    borderColor: '#969696',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 4,
@@ -814,18 +809,6 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  favoriteButton: {
-    width: 33,
-    height: 33,
-    borderRadius: 19,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#49404031'
-  },
-
-
   landPropertyCar:{
     marginTop: 100
   }

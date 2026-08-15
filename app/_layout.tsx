@@ -1,12 +1,14 @@
 import { Stack, usePathname, useRouter } from 'expo-router'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
+import { SettingsProvider } from '@/modules/settings'
 import * as NavigationBar from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { colors, clientThemes } from '@/lib/theme'
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native'
 import { Platform, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 // Componente interno que tiene acceso al contexto de auth
 function RootNavigator() {
@@ -125,8 +127,12 @@ function RootNavigator() {
 
 export default function RootLayout(){
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <SettingsProvider>
+          <RootNavigator />
+        </SettingsProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   )
 }

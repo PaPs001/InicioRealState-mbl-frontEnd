@@ -213,6 +213,7 @@ const validSystemStatuses = new Set<LeadV2SystemStatus>([
   'congelado',
   'en_espera',
   'con_cita',
+  'provisional',
   'lead_muerto',
   'lead_ganador',
   'lead_perdido',

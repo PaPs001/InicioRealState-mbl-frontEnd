@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -72,6 +72,7 @@ export default function CoordinatorRentFollowupsScreen() {
   const [isLoadingLeads, setIsLoadingLeads] = useState(true)
   const [selectedAgentName, setSelectedAgentName] = useState<string | null>(null)
   const [leadPage, setLeadPage] = useState(1)
+  const hasLoadedInitialLeadsRef = useRef(false)
 
   const loadLeads = useCallback(async () => {
     if (!authToken) {
@@ -93,8 +94,12 @@ export default function CoordinatorRentFollowupsScreen() {
   }, [authToken])
 
   useEffect(() => {
+    if (!authToken || hasLoadedInitialLeadsRef.current) return
+
+    hasLoadedInitialLeadsRef.current = true
+    console.info('[CoordinatorRentFollowups][initial-load]', { service: 'leads' })
     loadLeads()
-  }, [loadLeads])
+  }, [authToken, loadLeads])
 
   const displayedLeads = leads
   const advisorLabel = currentUser?.name?.trim() || currentUser?.email?.split('@')[0] || 'asesor'
