@@ -72,6 +72,8 @@ export type BackendCurrentUser = {
   avatar?: string
   profilePhotoKey?: string
   agentPresentationKey?: string
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   files?: Record<string, unknown>
 }
 
@@ -158,6 +160,7 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     avatar: user.avatar,
     profilePhotoKey: getBackendProfilePhotoKey(user),
     agentPresentationKey: getBackendAgentPresentationKey(user),
+    agentpresentation: Boolean(user.agentpresentation ?? user.agentPresentation),
     createdAt: new Date().toISOString(),
   }
 }
@@ -176,6 +179,8 @@ type LoginApiPayload = {
   investment?: boolean
   tenant?: boolean
   roles?: BackendUserRole[] | BackendUserRole
+  agentpresentation?: boolean
+  agentPresentation?: boolean
   user?: BackendCurrentUser
   data?: {
     accessToken?: string
@@ -183,6 +188,8 @@ type LoginApiPayload = {
     investment?: boolean
     tenant?: boolean
     roles?: BackendUserRole[] | BackendUserRole
+    agentpresentation?: boolean
+    agentPresentation?: boolean
     user?: BackendCurrentUser
   }
 }
@@ -212,7 +219,24 @@ function extractLoginRefreshToken(payload: LoginApiPayload): string | undefined 
 }
 
 function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefined {
-  return payload.user ?? payload.data?.user
+  const rawUser = payload.user ?? payload.data?.user
+  if (!rawUser) return undefined
+
+  const presentationValue = Boolean(
+    rawUser.agentpresentation ??
+      rawUser.agentPresentation ??
+      payload.agentpresentation ??
+      payload.agentPresentation ??
+      payload.data?.agentpresentation ??
+      payload.data?.agentPresentation ??
+      false,
+  )
+
+  return {
+    ...rawUser,
+    agentpresentation: presentationValue,
+    agentPresentation: presentationValue,
+  }
 }
 
 const previewToken = (token?: string) =>
