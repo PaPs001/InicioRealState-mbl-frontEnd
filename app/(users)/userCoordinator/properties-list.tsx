@@ -193,6 +193,12 @@ export default function CoordinatorPropertiesListScreen() {
   const { operationMode, capabilities } = useOperationMode()
   const { width } = useWindowDimensions()
   const canvasWidth = Math.min(width, 440)
+  const shouldSkipPdfAgentList = Boolean(
+    currentUser?.agentPresentationKey ||
+    currentUser?.agentpresentation ||
+    currentUser?.agentPresentation,
+  )
+
   const initialListingFilter: ListingFilter =
     params.type === 'sale' || params.type === 'rent'
       ? params.type
@@ -537,7 +543,7 @@ export default function CoordinatorPropertiesListScreen() {
         <TouchableOpacity
           style={styles.exportButtonSecondary}
           activeOpacity={0.85}
-          onPress={currentUser?.agentPresentationKey ? handleGeneratePdf : openPdfOptions}
+          onPress={shouldSkipPdfAgentList ? handleGeneratePdf : openPdfOptions}
           disabled={isGeneratingPdf}
         >
           <Text style={styles.exportButtonSecondaryText}>
@@ -568,16 +574,18 @@ export default function CoordinatorPropertiesListScreen() {
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pdfOptionsScroll}>
-              <PdfOptionGroup title="Asesor">
-                {PDF_AGENTS.map(agent => (
-                  <PdfChip
-                    key={agent}
-                    label={PDF_AGENT_LABELS[agent]}
-                    active={pdfAgentName === agent}
-                    onPress={() => setPdfAgentName(agent)}
-                  />
-                ))}
-              </PdfOptionGroup>
+              {!shouldSkipPdfAgentList ? (
+                <PdfOptionGroup title="Asesor">
+                  {PDF_AGENTS.map(agent => (
+                    <PdfChip
+                      key={agent}
+                      label={PDF_AGENT_LABELS[agent]}
+                      active={pdfAgentName === agent}
+                      onPress={() => setPdfAgentName(agent)}
+                    />
+                  ))}
+                </PdfOptionGroup>
+              ) : null}
 
               <View style={styles.pdfActionsRow}>
                 <TouchableOpacity
