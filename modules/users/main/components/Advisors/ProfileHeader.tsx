@@ -21,29 +21,29 @@ export function ProfileHeader({
 
   return (
     <View style={styles.profileRow}>
-      <View style={styles.profileLeft}>
         <TouchableOpacity
-          style={styles.avatar}
+          style={styles.profileLeft}
           activeOpacity={0.85}
           onPress={() => {
             router.push(`${areaConfig.basePath}/settings` as never);
           }}
         >
-          {profileAvatarUri ? (
-            <Image
-              source={{ uri: profileAvatarUri }}
-              style={styles.avatarImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={styles.avatarText}>{advisorInitials}</Text>
-          )}
+          <View style={styles.avatar}>
+            {profileAvatarUri ? (
+              <Image
+                source={{ uri: profileAvatarUri }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.avatarText}>{advisorInitials}</Text>
+            )}
+          </View>
+          <View>
+            <Text style={styles.greeting}>Hola, {advisorName}</Text>
+            <Text style={styles.helper}>{areaConfig.headline}</Text>
+          </View>
         </TouchableOpacity>
-        <View>
-          <Text style={styles.greeting}>Hola, {advisorName}</Text>
-          <Text style={styles.helper}>{areaConfig.headline}</Text>
-        </View>
-      </View>
       <TouchableOpacity style={styles.notification} activeOpacity={0.85}>
         <Bell size={20} color="#c79443" />
       </TouchableOpacity>

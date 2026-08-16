@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { HeroCards } from "../../../components/Advisors/HeroCards";
+import { HeroCards } from "./HeroCards";
 import { formatCurrency } from "@/lib/utils";
 
 type HeroCardsSectionProps = {

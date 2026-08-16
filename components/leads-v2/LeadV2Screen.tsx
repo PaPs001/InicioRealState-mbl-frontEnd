@@ -22,6 +22,7 @@ import { useLeadsV2Screen, coordinatorLeadV2Channels } from '@/components/leads-
 import { coordinatorLeadV2AssistantActions, type LeadV2ViewModel, type LeadsV2RouteParams } from '@/components/leads-v2/types'
 import { getParamValue } from '@/components/leads-v2/lead-v2-utils'
 import { LeadDetailView } from '@/app/(users)/userCoordinator/leads-v2/leads'
+import { LeadDetailScreen } from '@/modules/users/leads/screens/leadsDetailsScreen'
 import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
 
 type LeadV2ScreenMode = 'coordinator' | 'advisor'
@@ -116,7 +117,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
         {selectedLead ? (
-          <LeadDetailView
+          <LeadDetailScreen
             customLeadStatuses={customLeadStatuses}
             getPropertyName={(propertyId) => getPropertyById(propertyId)?.title}
             isLoadingCustomLeadStatuses={isLoadingCustomLeadStatuses}
@@ -298,7 +299,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
         )}
 
         {!selectedLead ? <View style={styles.assistantDock}>
-          {isAssistantOpen ? (
+          {/*{isAssistantOpen ? (
             <View style={styles.assistantMenu}>
               {coordinatorLeadV2AssistantActions.map((action, index) => (
                 <TouchableOpacity
@@ -321,17 +322,18 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
                 </TouchableOpacity>
               ))}
             </View>
-          ) : null}
+          ) : null}*/}
           <View style={styles.assistantButtonRow}>
             <TouchableOpacity
               style={styles.assistantButton}
               activeOpacity={0.85}
               onPress={() => {
-                setIsAssistantOpen((current) => !current)
+                openCreateLeadModal()
+                //setIsAssistantOpen((current) => !current)
               }}
             >
-              <Text style={styles.assistantButtonText}>Asistente IA</Text>
-              {isAssistantOpen ? <ChevronDown size={16} color="#ffffff" /> : <ChevronUp size={16} color="#ffffff" />}
+              <Text style={styles.assistantButtonText}>Agregar Lead</Text>
+              {/*{isAssistantOpen ? <ChevronDown size={16} color="#ffffff" /> : <ChevronUp size={16} color="#ffffff" />}*/}
             </TouchableOpacity>
             {/*
               Circulo de mas opciones de Leads.
