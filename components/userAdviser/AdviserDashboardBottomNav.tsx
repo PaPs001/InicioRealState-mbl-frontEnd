@@ -30,7 +30,7 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
     label: 'Seguimiento',
     size: 24,
   },
-  {
+  /*{
     key: 'dates',
     href: '/userAdviser/date',
     icon: (color, size) => <Date width={size} height={size} />,
@@ -38,7 +38,7 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
       pathname.startsWith('/userAdviser/date'),
     label: 'Calendario',
     size: 24,
-  }
+  }*/
 ]
 
 export function AdviserDashboardBottomNav() {

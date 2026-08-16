@@ -19,7 +19,6 @@ import type { Property, PropertyLead } from "@/lib/types";
 import {
   formatCurrentDashboardDate,
   getAppointmentEndDateTime,
-  getDefaultAppointmentEndDateTime,
   getDefaultAppointmentStartDateTime,
 } from "@/components/userDashboard/dashboard-formatters";
 
@@ -39,7 +38,7 @@ import {
   HeroCardsSection,
   AppointmentsSection,
   LeadsSection,
-} from "./components";
+} from "../../components/Advisors";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -65,13 +64,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const [testAppointmentForm, setTestAppointmentForm] =
     useState<CreateGoogleCalendarDatePayload>({
-      title: "Visita de prueba",
-      description: "Cita creada desde el panel temporal",
-      location: "Oficina Inicio Real Estate",
+      title: "",
       startDateTime: getDefaultAppointmentStartDateTime(),
-      endDateTime: getDefaultAppointmentEndDateTime(),
+      endDateTime: getAppointmentEndDateTime(getDefaultAppointmentStartDateTime()),
       timeZone: "America/Mexico_City",
-      appointmentType: "venta",
       helpedBy: advisorName,
       advisorId: currentUser?.id ?? null,
     });
@@ -196,20 +192,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         ? lead.propertyId || currentForm.propertyId
         : currentForm.propertyId,
       advisorId,
-      title:
-        currentForm.title?.trim() && currentForm.title !== "Visita de prueba"
-          ? currentForm.title
-          : `Cita con ${lead.name}`,
-      description:
-        currentForm.description?.trim() &&
-        currentForm.description !== "Cita creada desde el panel temporal"
-          ? currentForm.description
-          : `Lead: ${lead.name}${lead.phone ? `\nTelefono: ${lead.phone}` : ""}${lead.email ? `\nCorreo: ${lead.email}` : ""}`,
-      location: property?.address || property?.city || currentForm.location,
     }));
     setAppointmentSelectionScreen(null);
   };
-
   const selectAppointmentProperty = (property: Property) => {
     const propertyId = property.id || property._id;
     if (!propertyId) return;
@@ -217,7 +202,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     setTestAppointmentForm((currentForm) => ({
       ...currentForm,
       propertyId,
-      location: property.address || property.city || currentForm.location,
     }));
     setAppointmentSelectionScreen(null);
   };
@@ -455,4 +439,8 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
       />
     </SafeAreaView>
   );
+}
+
+export function AdvisorScreen() {
+  return <UserDashboardScreen area="adviser" />;
 }

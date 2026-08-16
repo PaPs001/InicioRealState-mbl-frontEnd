@@ -9,36 +9,20 @@ export const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 42,
-  },
-  detailContainer: {
-    flex: 1,
-    paddingHorizontal: 18,
-    paddingBottom: 16,
+    paddingHorizontal: 11,
+    //paddingTop: 42,
+    paddingBottom: 70,
+    gap: 9
   },
   content: {
-    paddingHorizontal: 14,
-    paddingBottom: 112,
+    
   },
   brandBlock: {
-    minHeight: 58,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandTitle: {
-    color: '#264721',
-    fontSize: 29,
-    lineHeight: 34,
-    fontWeight: '600',
-    letterSpacing: 8,
-  },
-  brandSubtitle: {
-    color: '#bf8638',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '500',
-    letterSpacing: 2.3,
-  },
+  
   headerRow: {
     marginTop: 10,
     flexDirection: 'row',
@@ -533,7 +517,7 @@ export const styles = StyleSheet.create({
   assistantButton: {
     flex: 1,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 999,
     backgroundColor: '#0f362b',
     flexDirection: 'row',
     alignItems: 'center',

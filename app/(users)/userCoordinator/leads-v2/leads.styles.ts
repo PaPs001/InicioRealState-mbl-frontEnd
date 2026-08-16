@@ -715,7 +715,8 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 15,
     fontWeight: '800',
-  },  quickActionsGrid: {
+  },  
+  quickActionsGrid: {
     flexDirection: 'row',
     gap: 6,
     marginTop: 8,
@@ -831,7 +832,8 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '600',
-  },  aiSection: {
+  },  
+  aiSection: {
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#d8d1c8',
@@ -986,7 +988,7 @@ export const styles = StyleSheet.create({
   detailBottomDock: {
     borderTopWidth: 1,
     borderTopColor: '#ded5c8',
-    backgroundColor: '#fbf8f2',
+    backgroundColor: '#8b7446',
     paddingHorizontal: 10,
     paddingTop: 10,
     paddingBottom: 10,
