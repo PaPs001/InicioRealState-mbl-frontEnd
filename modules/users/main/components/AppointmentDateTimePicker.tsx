@@ -250,7 +250,7 @@ export function AppointmentDateTimePicker({
                         activeOpacity={0.85}
                         onPress={confirmSelection}
                       >
-                        <Text style={styles.appointmentDatePickerConfirmText}>Confirmaraa fecha  </Text>
+                        <Text style={styles.appointmentDatePickerConfirmText}>Confirmar fecha  </Text>
                       </TouchableOpacity>
                     ) : null}
                   </View>

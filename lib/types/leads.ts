@@ -34,6 +34,7 @@ export interface PropertyLead {
   createdDate: string
   firstContactDate?: string
   lastContactDate?: string
+  imageUri?: string
 }
 
 export interface LeadFollowUp {

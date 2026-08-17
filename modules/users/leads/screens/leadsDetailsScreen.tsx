@@ -154,26 +154,34 @@ export function LeadDetailScreen({
         <View  style={styles.rowBlock}>
           <View style={styles.informationContainer}>
             <View style={styles.headerInformationContainer}>
-              <Image 
-                resizeMode='cover'
-                style={styles.imageLead}
-                
-              />
+              <View style={styles.profileAvatarContainer}>
+                {lead.imageUri ? (
+                  <Image
+                    source={{uri: lead.imageUri}}
+                    resizeMode='cover'
+                    style={styles.imageLead}
+                  />
+                ): (
+                  <View>
+                    <Text></Text>
+                  </View>
+                )}
+              </View>
               <View style={styles.dataLeadContainer}>
-                <Text style={styles.nameLead}>Andrea Oritz</Text>
-                <Text style={styles.placeLead}>Aldea Hortus D-506</Text>
+                <Text style={styles.nameLead}>{lead.name}</Text>
+                <Text style={styles.placeLead}>{lead.propertyId}</Text>
                 <View style={styles.statusBar}>
                   <icons.Power/>
-                  <Text style={styles.statusText}>En seguimiento </Text>
+                  <Text style={styles.statusText}>{lead.systemStatus} </Text>
                 </View>
                 <View style={styles.typeLeadContainer}>
                   <View style={styles.typeLead}>
                     <icons.ArrowDown/>
-                    <Text>ManyChat</Text>
+                    <Text style={styles.sourceText}>{lead.source}</Text>
                   </View>
-                  <View>
+                  <View style={styles.typeLead}>
                     <icons.ArrowDown/>
-                    <Text>Instagram</Text>
+                    <Text style={styles.sourceText}>{lead.source}</Text>
                   </View>
                 </View>
               </View>
