@@ -45,11 +45,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',  
     flex: 1,
   },
-
-  imageLead:{
-    width: 34,
-    height: 34,
+  profileAvatarContainer:{
+    width: 120,
+    height: 120,
     borderRadius: 999
+  },
+  imageLead:{
+    width: '100%',
+    height: '100%'
   },
 
   dataLeadContainer:{
@@ -76,7 +79,8 @@ export const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent: 'center',
     gap: 7,
-    paddingVertical: 4
+    paddingVertical: 4,
+    width: 120
   },
   statusText:{
     fontSize: 10
@@ -87,7 +91,15 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   typeLead:{
-    
+    flexDirection: 'row',
+    gap: 4,
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sourceText:{
+    fontSize: 10,
+
   },
 
 
