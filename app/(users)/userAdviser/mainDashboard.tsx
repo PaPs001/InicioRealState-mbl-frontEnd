@@ -1,5 +1,5 @@
-import { AdvisorScreen } from '@/modules/users/main'
+import { UserDashboardScreen } from "@/modules/users/main";
 
 export default function AdviserMainDashboardScreen() {
-  return <AdvisorScreen />
+  return <UserDashboardScreen area="adviser" />;
 }

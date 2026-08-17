@@ -154,7 +154,6 @@ export function LeadDetailView({
       style={styles.subScreenContainer}
     >
       <View style={styles.detailScreen}>
-      <View style={styles.detailScreen}>
         <ScreenHeader
           title="Detalle del lead"
           subtitle={`Seguimiento de ${lead.name}`}
@@ -468,7 +467,6 @@ export function LeadDetailView({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
       </View>
     </KeyboardAvoidingView>
   );
