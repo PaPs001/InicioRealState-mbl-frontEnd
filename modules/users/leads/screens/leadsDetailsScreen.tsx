@@ -1,7 +1,7 @@
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import {useMemo, useState, type ReactNode} from 'react'
-import { icons, images } from '@/assets'
+import { icons, images, logos } from '@/assets'
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { 
   KeyboardAvoidingView,
@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  Image
 } from 'react-native'
 
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
@@ -141,9 +142,66 @@ export function LeadDetailScreen({
     <SafeAreaView
       style={styles.safeArea} edges={['top', 'bottom']}
     >
-      <ScrollView>
-        <View style={styles.container}>
-          <Text>HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</Text>
+      <ScrollView style={styles.container}>
+        <View style={styles.logoContainer}> #Este es el logo
+          <logos.irsPrincipal/>
+        </View> #Este es el header
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Detalle del lead</Text>
+          <Text style={styles.subtitle}>Seguimiento de andrea Ortiz</Text>
+        </View>
+        ## Primer bloque de informacion del lead
+        <View  style={styles.rowBlock}>
+          <View style={styles.informationContainer}>
+            <View style={styles.headerInformationContainer}>
+              <Image 
+                resizeMode='cover'
+                style={styles.imageLead}
+                
+              />
+              <View style={styles.dataLeadContainer}>
+                <Text style={styles.nameLead}>Andrea Oritz</Text>
+                <Text style={styles.placeLead}>Aldea Hortus D-506</Text>
+                <View style={styles.statusBar}>
+                  <icons.Power/>
+                  <Text style={styles.statusText}>En seguimiento </Text>
+                </View>
+                <View style={styles.typeLeadContainer}>
+                  <View style={styles.typeLead}>
+                    <icons.ArrowDown/>
+                    <Text>ManyChat</Text>
+                  </View>
+                  <View>
+                    <icons.ArrowDown/>
+                    <Text>Instagram</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View> ## aqui comienza el bloque de informacion del usuario
+              <View>
+                <View>
+                  <Text>Numero de telefono alt</Text>
+                </View>
+                <View>
+                  <Text>Correo electronico alt</Text>
+                </View>
+              </View>
+              <View>
+                <View>
+                  <Text>Numeor de telefono alt</Text>
+                </View>
+                <View>
+                  <Text>Correo electronico alt</Text>
+                </View>
+              </View>
+              <View>
+                <View>
+                  <Text>Numero de telefono alt</Text>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

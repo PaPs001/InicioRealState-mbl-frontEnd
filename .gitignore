@@ -52,3 +52,5 @@ ios/
 
 # Mac
 *.swp
+
+package-lock.json

@@ -1,4 +1,5 @@
-import { generalColors } from "@/theme";
+import { colors } from "@/lib/theme";
+import { generalColors, textColor } from "@/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -7,14 +8,89 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.background
   },
   container: {
-    paddingHorizontal: 18,
-    paddingTop: 28,
-    paddingBottom: 16,
-    backgroundColor: 'red'
+    
+  },
+  logoContainer:{
+    alignItems: 'center',
+    alignContent: 'center',
+  },
+  headerContainer:{
+
+  },
+  title:{
+    fontSize: 22,
+    lineHeight: 25,
+    fontWeight: '700'
+  },
+  subtitle: {
+    color: '#717171',
+    fontSize: 13,
+    lineHeight: 18,
   },
   detailScreen:{
     flex: 1
   },
+  informationContainer:{
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D4D3D3',
+    paddingHorizontal: 9,
+    paddingVertical: 12,
+  },
+  rowBlock:{
+    gap: 8,
+  },  
+  headerInformationContainer:{
+    gap: 20,
+    flexDirection: 'row',  
+    flex: 1,
+  },
+
+  imageLead:{
+    width: 34,
+    height: 34,
+    borderRadius: 999
+  },
+
+  dataLeadContainer:{
+    gap: 3
+  },
+  nameLead:{
+    fontSize: 17,
+    fontWeight: '500',
+    lineHeight: 22,
+  },
+  placeLead:{
+    fontSize: 15,
+    fontWeight: '600',
+    color: textColor.accentGolden,
+    fontStyle: 'italic',
+  },
+  statusBar:{
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderColor: '#BDBDBD',
+    borderWidth: .5,
+    backgroundColor: '#EDF1E0',
+    alignContent: 'center',
+    alignItems:'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 4
+  },
+  statusText:{
+    fontSize: 10
+  },
+
+  typeLeadContainer:{
+    flexDirection: 'row',
+    gap: 12,
+  },
+  typeLead:{
+    
+  },
+
+
   leadDetailScroll:{
     flex: 1,
   },
@@ -426,12 +502,7 @@ export const styles = StyleSheet.create({
     minWidth: 0,
   },
 
-  subtitle: {
-    marginTop: 4,
-    color: '#717171',
-    fontSize: 13,
-    lineHeight: 18,
-  },
+  
 
 
 
