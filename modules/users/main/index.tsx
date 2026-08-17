@@ -1,2 +1,1 @@
-export { AdvisorScreen as AdvisorScreen } from "./screen/advisorScreen";
-
+export { AdvisorScreen, UserDashboardScreen } from "./screens/advisor";

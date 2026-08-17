@@ -14,13 +14,10 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.background,
   },
   content: {
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 48,
-    paddingTop: 42,
-    gap: 12
+    paddingHorizontal: 11,
+    //paddingTop: 42,
+    paddingBottom: 96,
+    gap: 9
   },
   headerRow:{
     width: '100%',
@@ -31,11 +28,12 @@ export const styles = StyleSheet.create({
   backButton:{
     position: 'absolute',
     zIndex: 2,
-    left: 0,  
+    left: 13,  
     top: 0,
     bottom: 0,
     justifyContent: 'center',
     paddingLeft: 2,
+    width: '15%'
   },
   headerLogo:{
     alignSelf: 'center', 
