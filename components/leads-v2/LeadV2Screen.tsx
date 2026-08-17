@@ -262,7 +262,9 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
                     <PriorityLeadCard
                       key={lead.id}
                       lead={lead}
-                      onPress={() => setSelectedLead(lead)}
+                      onPress={() => {
+                         setSelectedLead(lead)
+                      }}
                     />
                   ))}
                 </View>
