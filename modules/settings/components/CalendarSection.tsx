@@ -98,17 +98,17 @@ export function CalendarSection({
         disabled={isConnectionActionPending}
         onPress={isConnected ? onDisconnectCalendar : onConnectCalendar}
       >
-        <icons.BackButton />
+        
         <Text style={isConnected ? styles.outlineButtonText : styles.centerButtonText}>
           {isConnectingCalendar
-            ? 'Abriendo Google...'
+            ? 'Abriendo Permisos de Google...'
             : isDisconnectingCalendar
               ? 'Desconectando...'
               : needsGoogleReconnect
-                ? 'Reconectar Google Calendar'
+                ? 'Reconectar Calendario'
                 : isGoogleConnected
-                  ? 'Desconectar Google'
-                  : 'Conectar Google Calendar'}
+                  ? 'Desconectar Calendario'
+                  : 'Conectar Calendario'}
         </Text>
       </Pressable>
 

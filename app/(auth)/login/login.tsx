@@ -161,7 +161,7 @@ export default function LoginNewScreen() {
             <ImageBackground source={heroImage} style={loginNewStyles.heroImage} imageStyle={loginNewStyles.heroImageContent}>
               <TouchableOpacity
                 style={loginNewStyles.brandArc}
-                onPress={() => setIsDebugPanelVisible((isVisible) => !isVisible)}
+                //onPress={() => setIsDebugPanelVisible((isVisible) => !isVisible)}
                 activeOpacity={0.92}
                 accessibilityRole="button"
                 accessibilityLabel="Mostrar diagnostico de inicio de sesion"
@@ -231,7 +231,7 @@ export default function LoginNewScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text style={loginNewStyles.registerPrompt}>No tienes cuenta?, !Registrate! </Text>
+            {/*<Text style={loginNewStyles.registerPrompt}>No tienes cuenta?, !Registrate! </Text>
 
             <TouchableOpacity
               style={loginNewStyles.secondaryButton}
@@ -239,7 +239,7 @@ export default function LoginNewScreen() {
               activeOpacity={0.82}
             >
               <Text style={loginNewStyles.secondaryButtonText}>Registrarse </Text>
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
             <View style={loginNewStyles.forgetPasswordContainer}>
               <Text style={loginNewStyles.forgetPassword}>¿Has olvidado tu contraseña? </Text>
               <Pressable

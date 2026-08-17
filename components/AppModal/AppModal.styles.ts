@@ -127,18 +127,22 @@ export const styles = StyleSheet.create({
   },
 
   scrollView: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
+  scrollWrapper: {
     flexShrink: 1,
   },
 
-  content: {
-    flexShrink: 1,
-    minHeight: 0,
-    padding: 18,
-    gap: 14,
+  content: { 
+    flexShrink: 1, 
+    minHeight: 0, 
+    padding: 18, 
+    gap: 14, 
   },
 
   scrollContent: {
-    flexGrow: 1,
+    //flexGrow: 1,
   },
 
   footer: {
@@ -149,4 +153,6 @@ export const styles = StyleSheet.create({
     borderTopColor: '#e4ded5',
     backgroundColor: '#fffdf9',
   },
+
+  
 })
