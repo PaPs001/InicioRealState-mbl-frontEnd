@@ -1,5 +1,5 @@
 import { colors } from "@/lib/theme";
-import { generalColors, textColor } from "@/theme";
+import { generalColors, textColor, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -8,11 +8,26 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.background
   },
   container: {
-    
+    flex: 1,
+  },
+  contentContainer:{
+    gap: 17,
+    paddingHorizontal: 11,
   },
   logoContainer:{
+    position: 'relative',
+    minHeight: 48,
     alignItems: 'center',
-    alignContent: 'center',
+    justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50,
+    height: 50,
   },
   headerContainer:{
 
@@ -36,25 +51,42 @@ export const styles = StyleSheet.create({
     borderColor: '#D4D3D3',
     paddingHorizontal: 9,
     paddingVertical: 12,
+    gap: 12,
+
+    shadowColor: '#0000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 9,
+    elevation: 5
   },
   rowBlock:{
     gap: 8,
   },  
   headerInformationContainer:{
-    gap: 20,
+    gap: 8,
     flexDirection: 'row',  
     flex: 1,
   },
   profileAvatarContainer:{
-    width: 120,
-    height: 120,
-    borderRadius: 999
+    width: 100,
+    height: 100,
+    borderRadius: 999,
+    alignContent:'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e5e7eb'
   },
   imageLead:{
     width: '100%',
     height: '100%'
   },
+  avatarText:{
+    fontSize: 22,
 
+  },
   dataLeadContainer:{
     gap: 3
   },
@@ -67,7 +99,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: textColor.accentGolden,
-    fontStyle: 'italic',
+    //fontStyle: 'italic',
   },
   statusBar:{
     flexDirection: 'row',
@@ -81,6 +113,12 @@ export const styles = StyleSheet.create({
     gap: 7,
     paddingVertical: 4,
     width: 120
+  },
+  statusDot:{
+    borderRadius: 99,
+    width: 12,
+    height: 12,
+    backgroundColor: '#454A36'
   },
   statusText:{
     fontSize: 10
@@ -101,483 +139,318 @@ export const styles = StyleSheet.create({
     fontSize: 10,
 
   },
+  /// estilos de primer bloque
+  tableInformation:{
+    paddingHorizontal: 7,
+    flexDirection: 'row',
+  },
+  lineInformation:{
+    flex: 1,
+    borderTopWidth: .5,
+    borderLeftWidth: .5,
+  },
 
+  lineInformationNoBor: {
+    borderLeftWidth: 0,
+    borderTopWidth: .5
+  },
+  lineInformationInterior:{
+    borderBottomWidth: .5,
+    minHeight: 35,
+    justifyContent: 'center',
+    paddingHorizontal: 12 
+  },
+  lineInformationInteriorLast:{
+    minHeight: 35,
+    justifyContent: 'center',
+    paddingHorizontal: 12
+  },
+  lineInformationEdge:{
+    borderTopWidth: .5,
+    borderLeftWidth: .5,
+  },
+  informationText:{
+    fontSize: 9
+  },
+  informationTextRight:{
+    textAlign: 'right'
+  },
 
-  leadDetailScroll:{
-    flex: 1,
-  },
-  leadDetailContent: {
-    paddingTop: 14,
-    paddingBottom: 19,
-  },
-  profileCard: {
+  // estilos bloque 2
+  nextActionButton:{
+    borderWidth: 1,
+    borderColor: '#CED8A8',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    padding: 10,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  profileTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 84,
-  },
-  profileAvatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#0c6740',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileAvatarText: {
-    color: '#ffffff',
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: '700',
-  },
-  profileCopy: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 14,
-  },
-  profileName: {
-    color: '#111111',
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: '700',
-  },
-  profileProperty: {
-    marginTop: 2,
-    color: '#b58526',
-    fontSize: 13,
-    lineHeight: 17,
-    fontWeight: '600',
-  },
-  statusBadgeStack: {
-    alignItems: 'flex-start',
-    gap: 6,
-    marginTop: 7,
-  },
-  stageBadge: {
-    alignSelf: 'flex-start',
-    minHeight: 24,
-    borderRadius: 12,
-    backgroundColor: '#f1eadf',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    marginTop: 7,
-  },
-  stageDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#3d5a40',
-  },
-  advisorStageBadge: {
-    backgroundColor: '#fff9eb',
-    borderWidth: 1,
-    borderColor: '#e8c986',
-  },
-  advisorStageDot: {
-    backgroundColor: '#c78d1c',
-  },
-  advisorStageText: {
-    color: '#8a5d13',
-  },
-  stageText: {
-    color: '#3d5a40',
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '700',
-  },
-  sourceRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 6,
-    marginLeft: 86,
-  },
-  infoGrid: {
-    borderTopWidth: 0.5,
-    borderTopColor: '#ded5c8',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  detailSection: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    padding: 10,
-    marginTop: 12,
-  },
-  detailSectionTitle: {
-    color: '#19191f',
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  customStatusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 8,
-  },
-  customStatusSubtitle: {
-    flexShrink: 1,
-    color: '#0c6740',
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '700',
-  },
-  statusChipList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 7,
-  },
-  customStatusChip: {
-    maxWidth: '100%',
-    minHeight: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 11,
-  },
-  customStatusChipActive: {
-    borderColor: '#064b38',
-    backgroundColor: '#064b38',
-  },
-  customStatusChipText: {
-    color: '#19191f',
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '700',
-  },
-  customStatusChipTextActive: {
-    color: '#ffffff',
-  },
-  customStatusEmpty: {
-    color: '#717171',
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  customStatusForm: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 10,
-  },
-  customStatusInput: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 38,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    color: '#19191f',
-    fontSize: 13,
-    paddingHorizontal: 10,
     paddingVertical: 8,
-  },
-  customStatusButton: {
-    minWidth: 82,
-    minHeight: 38,
-    borderRadius: 19,
-    backgroundColor: '#064b38',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  customStatusButtonDisabled: {
-    backgroundColor: '#9a9084',
-  },
-  customStatusButtonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: '800',
-  },
-  customStatusError: {
-    marginTop: 7,
-    color: '#a13b2f',
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '600',
-  },
-  nextActionCard: {
-    minHeight: 62,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d0dca8',
-    backgroundColor: '#fbfcf5',
+    paddingHorizontal: 15,
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    gap: 8,
+    backgroundColor: '#F6F7F2'
   },
-  nextActionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#064b38',
+  iconCircle:{
+    borderRadius: 999,
+    backgroundColor: userColors.adviser.primaryDark,
+    width: 60,
+    height: 60,
+    alignContent:'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextActionCopy: {
-    flex: 1,
+  actionTextContainer:{
+    flex:1,
     minWidth: 0,
-    marginLeft: 11,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
-  nextActionTitle: {
-    color: '#19191f',
-    fontSize: 15,
+  actionTitle:{
+    fontSize: 17,
     lineHeight: 19,
-    fontWeight: '700',
+    fontWeight: '700'
   },
-  nextActionMeta: {
-    color: '#c78d1c',
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '700',
-  },
-  nextActionAdvisor: {
-    color: '#717171',
-    fontSize: 10,
-    lineHeight: 13,
-  },
-  nextActionForm: {
-    gap: 8,
-    marginTop: 10,
-  },
-  nextActionInput: {
-    minHeight: 39,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    color: '#19191f',
-    fontSize: 13,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  nextActionSaveButton: {
-    minHeight: 39,
-    borderRadius: 20,
-    backgroundColor: '#064b38',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  nextActionSaveButtonDisabled: {
-    backgroundColor: '#9a9084',
-  },
-  nextActionSaveButtonText: {
-    color: '#ffffff',
+  actionDateText:{
     fontSize: 12,
-    lineHeight: 15,
-    fontWeight: '800',
+    lineHeight: 14,
+    color: textColor.accentGolden,
+    fontWeight: '600'
   },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 8,
-  },
-  aiSection: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    padding: 10,
-    marginTop: 12,
-  },
-  aiHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  aiTitle: {
-    color: '#19191f',
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: '600',
-  },
-  emptyFollowState: {
-    minHeight: 240,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  historySection: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d8d1c8',
-    backgroundColor: '#ffffff',
-    padding: 10,
-    marginTop: 12,
-  },
-  emptyStateText: {
-    color: '#717171',
-    fontSize: 13,
-    lineHeight: 25,
-    textAlign: 'center',
-  },
-
-  detailBottomActions: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  secondaryDetailButton: {
-    flex: 1.12,
-    minWidth: 0,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: '#064b38',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  secondaryDetailButtonText: {
-    color: '#19191f',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '700',
-  },
-
-  aiDetailButton: {
-    flex: 0.7,
-    minWidth: 0,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: '#d8b57d',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-  },
-  aiDetailButtonText: {
-    color: '#19191f',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '700',
-  },
-  primaryDetailButton: {
-    flex: 1.22,
-    minWidth: 0,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#064b38',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  primaryDetailButtonText: {
-    color: '#ffffff',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '700',
-  },
-
-  screenHeader: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#f3eee6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  screenHeaderCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-
-  
-
-
-
-  infoPill: {
-    maxWidth: 120,
-    minHeight: 22,
-    borderRadius: 11,
-    backgroundColor: '#f8f2ee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 9,
-  },
-  infoPillText: {
-    color: '#19191f',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '600',
-  },
-
-
-
-  detailMetric: {
-    width: '50%',
-    minHeight: 34,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#ded5c8',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  detailMetricWide: {
-    width: '100%',
-    borderBottomWidth: 0,
-  },
-  detailMetricText: {
-    flex: 1,
-    minWidth: 0,
-    color: '#19191f',
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '600',
-  },
-
-  quickActionButton: {
-    flex: 1,
-    minWidth: 0,
-    height: 62,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ded5c8',
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 4,
-  },
-  quickActionText: {
-    color: '#19191f',
+  actionAdvisorText:{
     fontSize: 9,
     lineHeight: 12,
-    fontWeight: '700',
-    textAlign: 'center',
+    color: textColor.softText
+  },
+
+  optionButton:{
+    minWidth: 100,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D4D3D3',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignContent:'center',
+    alignItems: 'center',
+    gap: 3,
+  },
+  optionText:{
+    fontSize: 10,
+    lineHeight: 17,
+    textAlign: 'center'
+  },
+  contentButtons:{
+    gap: 6
+  },
+  headerIAInformation:{
+    flexDirection: 'row',
+    gap: 10,
+    alignContent: 'center',
+    alignItems: 'center',
+  },
+
+
+  iaRecommendationsContainer:{
+    borderWidth: 1,
+    borderColor: '#D7D7D7',
+    borderRadius: 12,
+    //paddingVertical: 9,
+    //paddingHorizontal: 12,
+    marginHorizontal: 15,
+    overflow: 'hidden'
+  },
+  recommendationBlock:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+
+    minHeight: 82,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+
+    borderBottomWidth: 1,
+    borderBottomColor: '#D7D7D7',
+  },
+  recommendationBlockLast:{
+    borderBottomWidth: 0,
+  },
+  iaAnnotation:{
+    flexDirection: 'row',
+    gap: 7,
+    alignContent:'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: '#FDF4E9',
+    width: '100%',
+    paddingVertical: 9,
+    paddingHorizontal: 14
+  },
+  iaAnnotationText:{
+    fontSize: 11,
+    flexShrink: 1,
+
+  },
+  recommendationTextContainer:{
+    flex: 1,
+    minWidth: 0
+  },
+  recommendationTitle:{
+    fontSize: 14,
+    flexShrink: 1,
+  },
+  recommendationSubtitle:{
+    fontSize: 12,
+    flexShrink: 1
+  },
+
+
+
+
+  //para texxtos y pantallas de error
+  invalidInformationContainer:{
+    flexDirection: 'row',
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+
+  },
+  invalidInformationText:{
+    fontSize: 17
+  },
+
+
+  ///
+
+  timelineItem:{
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+
+  timelineRail: {
+    width: 42,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
+
+  timelineDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fefc',
+    zIndex: 2,
+    borderColor: '#0f0f0f',
+    borderWidth: 1
+  },
+
+  timelineLine: {
+    flex: 1,
+    width: 1,
+    backgroundColor: '#BDBDBD',
+
+    marginBottom: -13,
+  },
+  timelineContent:{
+    flex: 1,
+    minWidth: 0,
+    paddingBottom: 14,
+  },
+  timelineHeader:{
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  timelineHeaderLeft:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    minWidth: 0
+  },
+  timelineDate:{
+    fontSize: 11,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  timelineType:{
+    fontSize: 11,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  timelineTime: {
+    fontSize: 10,
+  },
+  timelineDescription:{
+    marginTop: 3,
+    fontSize: 11,
+    lineHeight: 15,
+    flexShrink: 1
+  },
+  attachmentList: {
+    gap: 8,
+    paddingTop: 8,
+    paddingRight: 8,
+  },
+
+
+
+  bottomButtons:{
+    flexDirection: 'row',
+    paddingVertical: 9,
+    paddingHorizontal: 9,
+    gap: 4,
+    borderRadius: 76,
+    borderColor: '#B9A075',
+    borderWidth: 1,
+    marginBottom: 12
+  },
+  followingButton:{
+    flex:1,
+    borderColor: '#01302A',
+    borderWidth: 1,
+    borderRadius: 15,
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 12  
+  },
+  iaButton:{
+    //flex: 1,
+    borderColor: '#DB9A28',
+    borderWidth: 1,
+    borderRadius: 15,
+    flexDirection: 'row',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    gap: 5
+  },
+  seeFollowingsButton:{
+    flex: 1,
+    borderColor: '#417770',
+    backgroundColor: '#003129',
+    borderWidth: 1,
+    borderRadius: 15,
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 12  
+  },
+  buttonText:{
+    fontSize: 10,
+    lineHeight: 17,
+  },
+  whiteColor: {
+    color: '#dbdbdb'
+  },
+
+
+
+  noActionContainer:{
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })
