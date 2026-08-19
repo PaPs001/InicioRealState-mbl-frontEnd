@@ -47,6 +47,13 @@ import CalendarCog from './settings/calendar-cog.svg'
 import ArrowLeft from './settings/arrowLeft.svg'
 import WhiteCalendar from './settings/calendarWhite.svg'
 
+
+/// leads SVG
+import ActionIcon from './leads/detailsLead/action_icon.svg'
+import CalendarAction from './leads/detailsLead/calendar_icon.svg'
+import Phone from './leads/detailsLead/phone_icon.svg'
+import WhatsAppIcon from './leads/detailsLead/WhatsApp_icon.svg'
+
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -88,8 +95,11 @@ export const icons = {
   Power: Power,
   CalendarCog: CalendarCog,
   ArrowLeft: ArrowLeft,
-  WhiteCalendar: WhiteCalendar
-
+  WhiteCalendar: WhiteCalendar,
+  WhatsAppIcon: WhatsAppIcon,
+  CalendarAction: CalendarAction,
+  ActionIcon: ActionIcon,
+  Phone: Phone
 } as const
 
 export const images = {
@@ -177,5 +187,9 @@ export {
   Power,
   CalendarCog,
   ArrowLeft,
-  WhiteCalendar
+  WhiteCalendar,
+  WhatsAppIcon,
+  CalendarAction,
+  ActionIcon,
+  Phone,
 }

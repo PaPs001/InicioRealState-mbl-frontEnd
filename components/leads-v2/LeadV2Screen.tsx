@@ -31,6 +31,8 @@ type LeadV2ScreenProps = {
   mode: LeadV2ScreenMode
 }
 
+
+
 export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
   const routeParams = useLocalSearchParams<LeadsV2RouteParams>()
   const isAdviserRoute = mode === 'advisor'
@@ -80,6 +82,10 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
     submitCreateLead,
     totalLeadPages,
     updateCreateLeadField,
+    selectedLeadFollowings,
+    selectedLeadFollowingsError,
+    isLoadingSelectedLeadFollowings,
+    loadSelectedLeadFollowings,
   } = useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam })
 
   const openLeadFollowUps = (lead: LeadV2ViewModel) => {
@@ -115,7 +121,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.container}>
+      <View style={[styles.container, selectedLead && styles.detailContainer]}>
         {selectedLead ? (
           <LeadDetailScreen
             customLeadStatuses={customLeadStatuses}
@@ -127,6 +133,10 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
             onApplyNextAction={applyLeadNextAction}
             onBack={closeLeadDetail}
             onViewFollowUps={() => openLeadFollowUps(selectedLead)}
+            followings={selectedLeadFollowings}
+            followingsError={selectedLeadFollowingsError}
+            isLoadingFollowings={isLoadingSelectedLeadFollowings}
+            onReloadFollowings={loadSelectedLeadFollowings}
           />
         ) : (
           <ScrollView

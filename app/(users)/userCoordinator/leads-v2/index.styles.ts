@@ -11,8 +11,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 11,
     //paddingTop: 42,
-    paddingBottom: 70,
+    //paddingBottom: 70,
     gap: 9
+  },
+  detailContainer: {
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    gap: 0,
   },
   content: {
     
@@ -804,4 +809,5 @@ export const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '800',
   },
+  
 })
