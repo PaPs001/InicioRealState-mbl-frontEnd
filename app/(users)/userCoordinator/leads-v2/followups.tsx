@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { styles } from './followups.styles'
-import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, Pressable } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, usePathname } from 'expo-router'
-import * as ImagePicker from 'expo-image-picker'
-import * as FileSystem from 'expo-file-system/legacy'
 
 import {
   ArrowLeft,
   Clock3,
-  X,
   FileText,
   Image as ImageIcon,
   ListFilter,
@@ -22,28 +19,21 @@ import {
 } from 'lucide-react-native'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import {
-  API_URLS,
-  createBackendLeadV2Following,
   getBackendLeadV2Followings,
   type BackendLeadV2FollowingRecord,
 } from '@/lib/api'
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
+import {
+  isFollowingImageAttachment,
+} from '@/modules/users/leads/hooks/useFollowingAttachmentImage'
+import {FollowingImageAttachment, type FollowingImagePreview} from '@/modules/users/leads/components/FollowingImageAttachment'
+import {FollowingImagePreviewModal} from '@/modules/users/leads/components/FollowingImagePreviewModal'
+import {CreateLeadFollowingModal} from '@/modules/users/leads/components/CreateLeadFollowingModal'
 
 type LeadFollowUpHistoryParams = {
   leadId?: string
   leadName?: string
   returnTo?: string
-}
-
-type SelectedFollowingImage = {
-  uri: string
-  name: string
-  type: string
-}
-
-type FollowingImagePreview = {
-  uri: string
-  title: string
 }
 
 type HistoryFilter = {
@@ -75,11 +65,7 @@ export default function LeadV2FollowUpsScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false)
-  const [activityText, setActivityText] = useState('')
-  const [selectedImage, setSelectedImage] = useState<SelectedFollowingImage | null>(null)
   const [previewImage, setPreviewImage] = useState<FollowingImagePreview | null>(null)
-  const [isSavingActivity, setIsSavingActivity] = useState(false)
-  const [activityError, setActivityError] = useState<string | null>(null)
   const hasLoadedInitialFollowingsRef = useRef(false)
 
   const loadFollowings = useCallback(async () => {
@@ -110,70 +96,6 @@ export default function LeadV2FollowUpsScreen() {
     console.info('[LeadV2FollowUps][initial-load]', { service: 'followings', leadId })
     loadFollowings()
   }, [authToken, leadId, loadFollowings])
-
-  const closeActivityModal = () => {
-    if (isSavingActivity) return
-    setIsActivityModalOpen(false)
-    setActivityText('')
-    setSelectedImage(null)
-    setActivityError(null)
-  }
-
-  const pickActivityImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (!permission.granted) {
-      setActivityError('Necesitamos permiso para escoger una imagen.')
-      return
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: false,
-      mediaTypes: ['images'],
-      quality: 0.8,
-    })
-
-    if (result.canceled || !result.assets[0]) return
-
-    const asset = result.assets[0]
-    setSelectedImage({
-      uri: asset.uri,
-      name: asset.fileName || `seguimiento-${Date.now()}.jpg`,
-      type: asset.mimeType || 'image/jpeg',
-    })
-    setActivityError(null)
-  }
-
-  const submitActivity = async () => {
-    if (!authToken || !leadId) {
-      setActivityError('No hay sesion o lead valido para guardar.')
-      return
-    }
-
-    if (!activityText.trim() && !selectedImage) {
-      setActivityError('Agrega texto o una imagen para guardar el seguimiento.')
-      return
-    }
-
-    setIsSavingActivity(true)
-    setActivityError(null)
-    try {
-      await createBackendLeadV2Following(leadId, {
-        text: activityText,
-        contactDate: new Date().toISOString(),
-        contactType: 'app',
-        image: selectedImage,
-      }, authToken)
-      setIsActivityModalOpen(false)
-      setActivityText('')
-      setSelectedImage(null)
-      await loadFollowings()
-    } catch (error) {
-      console.warn('No se pudo guardar el seguimiento v2:', error)
-      setActivityError('No se pudo guardar el seguimiento. Intenta de nuevo.')
-    } finally {
-      setIsSavingActivity(false)
-    }
-  }
 
   const goBackToLeadDetail = () => {
     const fallbackPath = pathname.startsWith('/userAdviser')
@@ -276,89 +198,16 @@ export default function LeadV2FollowUpsScreen() {
             </TouchableOpacity>
           </View>
 
-          <Modal animationType="slide" transparent visible={isActivityModalOpen} onRequestClose={closeActivityModal}>
-            <Pressable
-              style={styles.modalBackdrop}
-              onPress={closeActivityModal}
-            >
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.modalKeyboardAvoidingView}
-              >
-              <Pressable 
-                style={styles.activityModal} 
-                onPress={(event) => event.stopPropagation()}
-              >
-                <View style={styles.modalHeader}>
-                  <View style={styles.modalTitleBlock}>
-                    <Text style={styles.modalTitle}>Agregar actividad</Text>
-                    <Text style={styles.modalSubtitle}>Guarda texto o una imagen en el seguimiento</Text>
-                  </View>
-                  <TouchableOpacity style={styles.modalCloseButton} activeOpacity={0.85} onPress={closeActivityModal}>
-                    <X size={18} color="#19191f" />
-                  </TouchableOpacity>
-                </View>
+          {isActivityModalOpen ? (
+            <CreateLeadFollowingModal
+              leadId={leadId}
+              visible
+              onClose={() => setIsActivityModalOpen(false)}
+              onCreated={loadFollowings}
+            />
+          ) : null}
 
-                <Text style={styles.inputLabel}>Texto del seguimiento</Text>
-                <TextInput
-                  style={styles.activityInput}
-                  value={activityText}
-                  onChangeText={(value) => {
-                    setActivityText(value)
-                    setActivityError(null)
-                  }}
-                  placeholder="Escribe la actualizacion del lead"
-                  placeholderTextColor="#9a9188"
-                  multiline
-                  textAlignVertical="top"
-                />
-
-                <TouchableOpacity style={styles.imagePickerButton} activeOpacity={0.85} onPress={pickActivityImage}>
-                  <ImageIcon size={16} color="#12382f" />
-                  <View style={styles.imagePickerCopy}>
-                    <Text style={styles.imagePickerTitle}>{selectedImage ? 'Imagen seleccionada' : 'Agregar imagen opcional'}</Text>
-                    <Text style={styles.imagePickerMeta} numberOfLines={1}>
-                      {selectedImage?.name || 'Puedes guardar solo texto si lo prefieres'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                {selectedImage ? (
-                  <TouchableOpacity style={styles.removeImageButton} activeOpacity={0.85} onPress={() => setSelectedImage(null)}>
-                    <Text style={styles.removeImageText}>Quitar imagen</Text>
-                  </TouchableOpacity>
-                ) : null}
-
-                {activityError ? <Text style={styles.modalErrorText}>{activityError}</Text> : null}
-
-                <TouchableOpacity
-                  style={[styles.saveActivityButton, isSavingActivity && styles.saveActivityButtonDisabled]}
-                  activeOpacity={0.85}
-                  disabled={isSavingActivity}
-                  onPress={submitActivity}
-                >
-                  <Text style={styles.saveActivityText}>{isSavingActivity ? 'Guardando...' : 'Guardar actividad'}</Text>
-                </TouchableOpacity>
-              </Pressable>
-              </KeyboardAvoidingView>
-            </Pressable>
-          </Modal>
-
-          <Modal animationType="fade" transparent visible={Boolean(previewImage)} onRequestClose={() => setPreviewImage(null)}>
-            <View style={styles.imagePreviewBackdrop}>
-              <View style={styles.imagePreviewHeader}>
-                <Text style={styles.imagePreviewTitle} numberOfLines={1}>
-                  {previewImage?.title || 'Imagen adjunta'}
-                </Text>
-                <TouchableOpacity style={styles.imagePreviewCloseButton} activeOpacity={0.85} onPress={() => setPreviewImage(null)}>
-                  <X size={18} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-              {previewImage ? (
-                <Image source={{ uri: previewImage.uri }} style={styles.imagePreview} resizeMode="contain" />
-              ) : null}
-            </View>
-          </Modal>
+          <FollowingImagePreviewModal image={previewImage} onClose={() => setPreviewImage(null)} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -377,7 +226,7 @@ function FollowingCard({
   token?: string | null
 }) {
   const text = following.text.trim() || 'Seguimiento sin texto'
-  const imageAttachments = following.attachments.filter(isImageAttachment)
+  const imageAttachments = following.attachments.filter(isFollowingImageAttachment)
 
   return (
     <View style={[styles.timelineRow, isLast && styles.timelineRowLast]}>
@@ -420,75 +269,6 @@ function FollowingCard({
   )
 }
 
-function FollowingImageAttachment({
-  attachment,
-  followingId,
-  index,
-  leadId,
-  onOpenImage,
-  token,
-}: {
-  attachment: BackendLeadV2FollowingRecord['attachments'][number]
-  followingId: string
-  index: number
-  leadId: string
-  onOpenImage: (image: FollowingImagePreview) => void
-  token?: string | null
-}) {
-  const [localUri, setLocalUri] = useState<string | null>(null)
-  const [hasLoadError, setHasLoadError] = useState(false)
-  const title = attachment.filename || `Imagen ${index + 1}`
-  const remoteUri = getAttachmentImageUrl(leadId, attachment)
-
-  useEffect(() => {
-    let isMounted = true
-
-    setLocalUri(null)
-    setHasLoadError(false)
-
-    if (!remoteUri) {
-      setHasLoadError(true)
-      return () => {
-        isMounted = false
-      }
-    }
-
-    cacheAttachmentImage(remoteUri, getAttachmentRequestHeaders(token), attachment, followingId, index)
-      .then((cachedUri) => {
-        if (isMounted) setLocalUri(cachedUri)
-      })
-      .catch((error) => {
-        console.warn('No se pudo cachear la imagen del seguimiento:', error)
-        if (isMounted) setHasLoadError(true)
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [attachment.filename, attachment.mime, attachment.storageKey, attachment.url, followingId, index, remoteUri, token])
-
-  return (
-    <TouchableOpacity
-      style={styles.attachmentThumbButton}
-      activeOpacity={0.85}
-      disabled={!localUri}
-      onPress={() => localUri && onOpenImage({ uri: localUri, title })}
-    >
-      {localUri ? (
-        <Image source={{ uri: localUri }} style={styles.attachmentThumb} resizeMode="cover" />
-      ) : (
-        <View style={styles.attachmentThumbPlaceholder}>
-          <Text style={styles.attachmentThumbPlaceholderText}>{hasLoadError ? 'No disponible' : 'Cargando...'}</Text>
-        </View>
-      )}
-      <View style={styles.attachmentMeta}>
-        <ImageIcon size={12} color="#0c6740" />
-        <Text style={styles.attachmentName} numberOfLines={1}>{title}</Text>
-      </View>
-    </TouchableOpacity>
-  )
-}
-
 function BottomPill({ dark = false, icon, label }: { dark?: boolean; icon: ReactNode; label: string }) {
   return (
     <TouchableOpacity style={[styles.bottomPill, dark && styles.bottomPillDark]} activeOpacity={0.85}>
@@ -498,108 +278,9 @@ function BottomPill({ dark = false, icon, label }: { dark?: boolean; icon: React
   )
 }
 
-const attachmentCacheDirectory = `${FileSystem.cacheDirectory || FileSystem.documentDirectory || ''}lead-following-attachments/`
-
-async function cacheAttachmentImage(
-  remoteUri: string,
-  headers: Record<string, string>,
-  attachment: BackendLeadV2FollowingRecord['attachments'][number],
-  followingId: string,
-  index: number,
-) {
-  if (!attachmentCacheDirectory) {
-    throw new Error('No hay directorio local disponible para cachear imagenes.')
-  }
-
-  await FileSystem.makeDirectoryAsync(attachmentCacheDirectory, { intermediates: true }).catch(() => undefined)
-
-  const fileUri = `${attachmentCacheDirectory}${getAttachmentCacheFilename(attachment, followingId, index)}`
-  const cachedFile = await FileSystem.getInfoAsync(fileUri)
-  if (cachedFile.exists) return fileUri
-
-  const response = await fetch(remoteUri, { headers })
-  if (!response.ok) {
-    throw new Error(`No se pudo descargar la imagen (${response.status})`)
-  }
-
-  const arrayBuffer = await response.arrayBuffer()
-  await FileSystem.writeAsStringAsync(fileUri, arrayBufferToBase64(arrayBuffer), {
-    encoding: FileSystem.EncodingType.Base64,
-  })
-
-  return fileUri
-}
-
-function getAttachmentCacheFilename(
-  attachment: BackendLeadV2FollowingRecord['attachments'][number],
-  followingId: string,
-  index: number,
-) {
-  const source = attachment.storageKey || attachment.url || attachment.filename || `${followingId}-${index}`
-  const safeName = source.replace(/[^a-zA-Z0-9._-]/g, '_')
-  const extension = getAttachmentExtension(attachment)
-  return safeName.toLowerCase().endsWith(extension) ? safeName : `${safeName}${extension}`
-}
-
-function getAttachmentExtension(attachment: BackendLeadV2FollowingRecord['attachments'][number]) {
-  const filenameExtension = attachment.filename?.match(/\.[a-zA-Z0-9]+$/)?.[0]
-  if (filenameExtension) return filenameExtension
-
-  const mime = attachment.mime?.toLowerCase() || ''
-  if (mime.includes('png')) return '.png'
-  if (mime.includes('webp')) return '.webp'
-  if (mime.includes('gif')) return '.gif'
-  if (mime.includes('heic')) return '.heic'
-  if (mime.includes('heif')) return '.heif'
-  return '.jpg'
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer) {
-  const bytes = new Uint8Array(buffer)
-  const chunkSize = 0x8000
-  let binary = ''
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize)
-    binary += String.fromCharCode(...chunk)
-  }
-
-  return btoa(binary)
-}
-
 function getParamValue(value?: string | string[]) {
   if (Array.isArray(value)) return value[0] ?? ''
   return value ?? ''
-}
-
-function isImageAttachment(attachment: BackendLeadV2FollowingRecord['attachments'][number]) {
-  if (!attachment.url && !attachment.storageKey) return false
-  const mime = attachment.mime?.toLowerCase() || ''
-  const filename = attachment.filename?.toLowerCase() || ''
-  return mime.startsWith('image/') || /\.(jpe?g|png|webp|gif|heic|heif)$/.test(filename)
-}
-
-function getAttachmentImageUrl(leadId: string, attachment: BackendLeadV2FollowingRecord['attachments'][number]) {
-  if (!attachment.storageKey) return attachment.url || ''
-
-  const encodedKey = encodeURIComponent(attachment.storageKey)
-  return `${API_URLS.CORE}/leads-v2/${leadId}/followings/attachment?key=${encodedKey}`
-}
-
-function getAttachmentRequestHeaders(token?: string | null) {
-  const headers: Record<string, string> = {
-    Accept: 'image/*',
-  }
-
-  if (API_URLS.CORE.includes('ngrok-free')) {
-    headers['ngrok-skip-browser-warning'] = 'true'
-  }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  return headers
 }
 
 function formatAuthorType(value: string) {
