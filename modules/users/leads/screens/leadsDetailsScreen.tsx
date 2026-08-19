@@ -1,25 +1,35 @@
-import { SafeAreaView } from 'react-native-safe-area-context'
-
 import {useMemo, useState, type ReactNode} from 'react'
 import { icons, images, logos } from '@/assets'
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { 
-  KeyboardAvoidingView,
   Linking,
-  Platform,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
   Image
 } from 'react-native'
+import { getInitials } from '@/components/userDashboard/dashboard-formatters'
 
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 
 import type { PropertyLead } from '@/lib/types'
 import {styles} from './styles/LeadsDetailsScreen'
-
+import { BackendLeadV2FollowingRecord } from '@/lib/api'
+import {
+  isFollowingImageAttachment,
+} from '@/modules/users/leads/hooks/useFollowingAttachmentImage'
+import {FollowingImageAttachment, type FollowingImagePreview} from '@/modules/users/leads/components/FollowingImageAttachment'
+import {FollowingImagePreviewModal} from '@/modules/users/leads/components/FollowingImagePreviewModal'
+import {AppointmentCreateFlow} from '@/modules/users/main/components/AppointmentCreateFlow'
+import {CreateLeadFollowingModal} from '@/modules/users/leads/components/CreateLeadFollowingModal'
+import {NextActionModal} from '@/modules/users/leads/components/NextActionModal'
+import { colors } from '@/lib/theme'
+import { fontFamily } from '@/theme'
+import { router } from 'expo-router'
+import { formatDateFollowing, formatTime } from '@/components/userDashboard/dashboard-formatters'
+import { formatDateInput, normalizeDateInput, openPhoneCall, openWhatsApp } from '@/components/userDashboard/dashboard-formatters'
 type LeadDetailScreenProps= {
   customLeadStatuses?: string[];
   getPropertyName: (propertyId: string) => string | undefined;
@@ -37,6 +47,10 @@ type LeadDetailScreenProps= {
   ) => Promise<unknown> | unknown;
   onBack: () => void;
   onViewFollowUps: () => void;
+  followings?: BackendLeadV2FollowingRecord[]
+  followingsError?: string | null
+  isLoadingFollowings?: boolean
+  onReloadFollowings?: () => Promise<void> | void
 }
 
 export function LeadDetailScreen({
@@ -49,8 +63,18 @@ export function LeadDetailScreen({
   onApplyNextAction,
   onBack,
   onViewFollowUps,
+  followings,
+  followingsError,
+  isLoadingFollowings,
+  onReloadFollowings,
+
 }: LeadDetailScreenProps){
   useHideBottomNav()
+  const {authToken} = useSessionDomain()
+  const [previewImage, setPreviewImage] = useState<FollowingImagePreview | null>(null)
+  const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false)
+  const [isFollowingModalVisible, setIsFollowingModalVisible] = useState(false)
+  const [isNextActionModalVisible, setIsNextActionModalVisible] = useState(false)
 
   const [customStatusInput, setCustomStatusInput] = useState("");
     const [customStatusError, setCustomStatusError] = useState<string | null>(
@@ -63,6 +87,15 @@ export function LeadDetailScreen({
     );
     const [nextActionError, setNextActionError] = useState<string | null>(null);
     const [isSavingNextAction, setIsSavingNextAction] = useState(false);
+
+    const openNextActionModal = () => {
+      setNextActionInput(lead.nextAction || '')
+      setNextActionAtInput(
+        formatDateInput(lead.nextActionAt || lead.nextFollowUpAt || ''),
+      )
+      setNextActionError(null)
+      setIsNextActionModalVisible(true)
+    }
   
     const propertyName =
       getPropertyName(lead.propertyId) || "Sin propiedad asignada";
@@ -128,6 +161,7 @@ export function LeadDetailScreen({
       setNextActionError(null);
       try {
         await onApplyNextAction(lead.id, normalizedAction, normalizedDate);
+        setIsNextActionModalVisible(false)
       } catch (error) {
         console.warn("No se pudo actualizar la proxima accion del lead:", error);
         setNextActionError(
@@ -138,12 +172,51 @@ export function LeadDetailScreen({
       }
     };
 
+    const latestFollowings = useMemo(() => {
+      return [...(followings || [])]
+        .sort((current, next) => {
+          const currentDate = new Date(current.createdAt || 0).getTime();
+          const nextDate = new Date(next.createdAt || 0).getTime();
+
+          return nextDate - currentDate;
+        })
+        .slice(0, 3);
+    }, [followings]);
+
+
+    /*Esto se eliminara y se enviara al componente de informacion de recomendaciones de ia e incluso se eliminara sin problema es solo pruebas
+
+    const recommendations = [
+      {
+        id: 1,
+        titulo: "agendar cita",
+        descripcion: "Llámele hoy entre 5:30 pm y 6:15 pm. es el horario en el que mas responde"
+      },
+      {
+        id: 2,
+        titulo: "agendar cita",
+        descripcion: "Llámele hoy entre 5:30 pm y 6:15 pm. es el horario en el que mas responde"
+      },
+      {
+        id: 3,
+        titulo: "agendar cita",
+        descripcion: "Llámele hoy entre 5:30 pm y 6:15 pm. es el horario en el que mas responde"
+      }
+    ]
+
+    const iaAnnotation = "algo en especial como evitar insistir nuevamente en temas ya resueltos su mayor interes actual es terraza, amenidades y facilidad de credito"*/
+    
   return(
-    <SafeAreaView
-      style={styles.safeArea} edges={['top', 'bottom']}
-    >
-      <ScrollView style={styles.container}>
+    <View style={styles.safeArea}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.logoContainer}> #Este es el logo
+          <Pressable style={styles.backButton} onPress={onBack}>
+            <icons.BackButton/>
+          </Pressable>
           <logos.irsPrincipal/>
         </View> #Este es el header
         <View style={styles.headerContainer}>
@@ -162,67 +235,281 @@ export function LeadDetailScreen({
                     style={styles.imageLead}
                   />
                 ): (
-                  <View>
-                    <Text></Text>
-                  </View>
+                  <Text style={styles.avatarText}>{getInitials(lead.name)}</Text>
                 )}
               </View>
               <View style={styles.dataLeadContainer}>
                 <Text style={styles.nameLead}>{lead.name}</Text>
-                <Text style={styles.placeLead}>{lead.propertyId}</Text>
+                <Text style={styles.placeLead}>{propertyName}</Text>
                 <View style={styles.statusBar}>
-                  <icons.Power/>
+                  <View style={styles.statusDot}/>
                   <Text style={styles.statusText}>{lead.systemStatus} </Text>
                 </View>
                 <View style={styles.typeLeadContainer}>
                   <View style={styles.typeLead}>
-                    <icons.ArrowDown/>
-                    <Text style={styles.sourceText}>{lead.source}</Text>
-                  </View>
-                  <View style={styles.typeLead}>
-                    <icons.ArrowDown/>
-                    <Text style={styles.sourceText}>{lead.source}</Text>
+                    <Text style={styles.sourceText}>{formatLeadSource(lead.source)} </Text>
                   </View>
                 </View>
               </View>
             </View>
-            <View> ## aqui comienza el bloque de informacion del usuario
-              <View>
-                <View>
-                  <Text>Numero de telefono alt</Text>
+            <View style={styles.tableInformation}> ## aqui comienza el bloque de informacion del usuario
+              <View style={[styles.lineInformation,styles.lineInformationNoBor]}>
+                <View style={styles.lineInformationInterior}>
+                  {lead.phone ? (
+                    <Text style={styles.informationText}>{lead.phone}</Text>
+                  ): (
+                    <Text style={styles.informationText}>Telefono sin registrar </Text>
+                  )}
                 </View>
-                <View>
-                  <Text>Correo electronico alt</Text>
+                <View style={styles.lineInformationInterior}>
+                  <Text style={styles.informationText}>Presupuesto:</Text>
+                </View>
+                <View style={styles.lineInformationInteriorLast}>
+                  <Text style={styles.informationText}>Forma de pago</Text>
                 </View>
               </View>
-              <View>
-                <View>
-                  <Text>Numeor de telefono alt</Text>
+              <View style={[styles.lineInformation, styles.lineInformationEdge]}>
+                <View style={styles.lineInformationInterior}>
+                  {lead.email ? (
+                    <Text style={[styles.informationText, styles.informationTextRight]}>{lead.email}</Text>
+                  ): (
+                    <Text style={[styles.informationText, styles.informationTextRight]}>Correo sin registrar </Text>
+                  )}
                 </View>
-                <View>
-                  <Text>Correo electronico alt</Text>
-                </View>
-              </View>
-              <View>
-                <View>
-                  <Text>Numero de telefono alt</Text>
+                <View style={styles.lineInformationInterior}>
+                  <Text style={[styles.informationText, styles.informationTextRight]}>Zona Preferida</Text>
                 </View>
               </View>
             </View>
           </View>
+
+          <View style={styles.informationContainer}>
+            <View> #titulo del bloque
+              <Text>Proxima accion</Text>
+            </View>
+            <View style={styles.nextActionButton}>## primer boton sobre las citas
+              {!nextAction ? (
+                <>
+                  <View style={styles.iconCircle}/> ##aqui es el circulo con el icono
+                    <View style={styles.actionTextContainer}>
+                      <View>
+                        <Text 
+                          style={styles.actionTitle}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {nextAction}   
+                        </Text>
+                        <Text style={styles.actionDateText}>{formatDateFollowing(lead.nextActionAt)}</Text>
+                        <Text style={styles.actionAdvisorText}>Asesor: {lead.assignedAgentName}</Text>
+                      </View> 
+                    </View>
+                    </>
+                  ): (
+                    <View style={styles.noActionContainer}>
+                      <Text>No hay accion definida todavia</Text>
+                    </View>
+                  )}
+                {/*<icons.ArrowLeft/>*/}
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.contentButtons}
+            >
+              <Pressable style={styles.optionButton}
+                onPress={() => openWhatsApp(lead.phone)}
+              >
+                <icons.WhatsAppIcon />
+                <Text style={styles.optionText}>Whatsapp </Text>
+              </Pressable>
+
+              <Pressable style={styles.optionButton}
+                onPress={() => openPhoneCall(lead.phone)}
+              >
+                <icons.Phone />
+                <Text style={styles.optionText}>Llamar </Text>
+              </Pressable>
+
+              <Pressable style={styles.optionButton} onPress={() => setIsAppointmentModalVisible(true)}>
+                <icons.CalendarAction />
+                <Text style={styles.optionText}>Agendar Cita </Text>
+              </Pressable>
+
+              <Pressable style={styles.optionButton}
+                onPress={openNextActionModal}
+                disabled={!canManageNextAction}
+              >
+                <icons.ActionIcon />
+                <Text style={styles.optionText}>Cambiar acción </Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+
+          ##esto se enviara componente externo se mantendra una funcionalidad relativa para obtener los datos rapidamente
+          {/*<View style={[styles.informationContainer]}>
+            <View style={[styles.headerIAInformation]}>
+              <icons.BackButton/>
+              <Text>Acompañamiento de IA </Text> ##aun no mantiene funcionalidad, estos es solo para tenerlo a futuro
+            </View>
+            <View style={styles.iaRecommendationsContainer}>
+              {recommendations.length === 0 ? (
+                <View style={styles.invalidInformationContainer}>
+                  <icons.BackButton/>
+                  <Text style={styles.invalidInformationText}>
+                    Aun no tienes recomendaciones disponibles
+                  </Text>  
+                </View>
+              ): (
+                recommendations.map((recommendation, Index) => {
+                  const isLast = Index === recommendations.length - 1
+                  return(
+                    <View
+                      key={recommendation.id}
+                      style={[styles.recommendationBlock, isLast && styles.recommendationBlockLast]}
+                    >
+                      <icons.BackButton/>
+                      <View style={styles.recommendationTextContainer}>
+                        <Text style={styles.recommendationTitle}>{recommendation.titulo}</Text>
+                        <Text style={styles.recommendationSubtitle}>{recommendation.descripcion}</Text>
+                      </View>
+                    </View>
+                  )
+                })
+              )}
+            </View>
+            <View style={styles.iaAnnotation}>
+              <icons.BackButton/>
+              <Text style={styles.iaAnnotationText}>Nota de ia: {iaAnnotation}</Text>
+            </View>
+          </View>*/}
+          <View style={styles.informationContainer}>
+            <Text>Historial de seguimiento</Text>
+            {isLoadingFollowings ? (
+              <Text>Cargando seguimientos...</Text>
+            ) : followingsError ? (
+              <Pressable onPress={onReloadFollowings}>
+                <Text>{followingsError}</Text>
+                <Text>Presiona para intentar de nuevo</Text>
+              </Pressable>
+            ): followings?.length === 0 ? (
+              <Text>Sin seguimientos para mostrar</Text>
+            ): (
+              latestFollowings?.map((following, Index) => {
+                const isLast = Index === latestFollowings.length - 1 
+                const imageAttachments = following.attachments.filter(isFollowingImageAttachment)
+
+                return(
+                  <View
+                    key={following.id}
+                    style={styles.timelineItem}
+                  >
+                    <View style={styles.timelineRail}>
+                      <View style={styles.timelineDot}/>
+
+                      {!isLast && (
+                        <View style={styles.timelineLine}/>
+                      )}
+                    </View>
+
+                    <View style={styles.timelineContent}>
+                      <View style={styles.timelineHeader}>
+                        <View style={styles.timelineHeaderLeft}>
+                          <Text style={styles.timelineDate}>
+                            {formatDateFollowing(following.createdAt)}
+                          </Text>
+                          {/*<Text style={styles.timelineType}>
+                            Sin nota
+                          </Text>*/}
+                        </View>
+                        <Text style={styles.timelineTime}>
+                          {formatTime(following.createdAt)}
+                        </Text>
+                      </View>
+                      <Text style={styles.timelineDescription}>
+                        {following.text}
+                      </Text>
+                      {imageAttachments.length > 0 ? (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.attachmentList}
+                        >
+                          {imageAttachments.map((attachment, attachmentIndex) => (
+                            <FollowingImageAttachment
+                              attachment={attachment}
+                              followingId={following.id}
+                              index={attachmentIndex}
+                              key={attachment._id || attachment.storageKey || `${following.id}-${attachmentIndex}`}
+                              leadId={following.leadId || lead.id}
+                              onOpenImage={setPreviewImage}
+                              token={authToken}
+                            />
+                          ))}
+                        </ScrollView>
+                      ) : null}
+                    </View>
+                  </View>
+                )
+              })
+            )}
+          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      <View style={{paddingHorizontal: 12}}>
+        <View style={styles.bottomButtons}>
+          <Pressable style={styles.followingButton} onPress={onViewFollowUps}>
+            <Text style={styles.buttonText}>Ver seguimiento </Text>
+          </Pressable>
+          {/*<Pressable style={styles.iaButton}>
+            <icons.BackButton/>
+            <Text style={styles.buttonText}>Usar IA</Text>
+          </Pressable>*/}
+          <Pressable style={styles.seeFollowingsButton} onPress={() => setIsFollowingModalVisible(true)}> 
+            <Text style={[styles.buttonText, styles.whiteColor]}>Registrar seguimiento </Text>
+          </Pressable>
+          
+        </View>
+      </View>
+      <FollowingImagePreviewModal image={previewImage} onClose={() => setPreviewImage(null)} />
+      {isAppointmentModalVisible ? (
+        <AppointmentCreateFlow
+          initialLead={lead}
+          visible
+          onClose={() => setIsAppointmentModalVisible(false)}
+        />
+      ) : null}
+      {isFollowingModalVisible ? (
+        <CreateLeadFollowingModal
+          leadId={lead.id}
+          visible
+          onClose={() => setIsFollowingModalVisible(false)}
+          onCreated={onReloadFollowings}
+        />
+      ) : null}
+
+      <NextActionModal
+        visible={isNextActionModalVisible}
+        action={nextActionInput}
+        actionAt={nextActionAtInput}
+        error={nextActionError}
+        isSaving={isSavingNextAction}
+        onActionChange={setNextActionInput}
+        onActionAtChange={setNextActionAtInput}
+        onClose={() => setIsNextActionModalVisible(false)}
+        onSubmit={applyNextAction}
+      />
+    </View>
   )
 }
 
 
 
 
+
+
+
 // funciones de apoyo (utils) que apoyan a que algunas funcionalidades esten completas tales como normalizacion de estatus de leads, formateo de fecha, formateo de numero de telefono y apoyo para enviar al whatssap, son funcionales y con uso constante por lo que por ahora se mantiene hasta moverlos a sus espacios especificos
-function getInitial(name: string) {
-  return name.trim().slice(0, 1).toUpperCase() || "L";
-}
 
 function formatSystemStatus(status?: PropertyLead["systemStatus"]) {
   const labels: Record<string, string> = {
@@ -260,63 +547,11 @@ function formatLeadStatus(status: PropertyLead["status"]) {
   return labels[status] ?? status;
 }
 
-function formatDateInput(value?: string) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+function formatLeadSource(source?: string) {
+  if (!source) return "Sin origen";
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+  return source.trim().toLowerCase() === "appointment"
+    ? "Creado por cita "
+    : source;
 }
 
-function normalizeDateInput(value: string) {
-  const normalizedValue = value.trim();
-  if (!normalizedValue) return null;
-
-  const date = new Date(
-    normalizedValue.includes("T")
-      ? normalizedValue
-      : normalizedValue.replace(" ", "T"),
-  );
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString();
-}
-
-function getPickerDate(value: string) {
-  const normalizedValue = normalizeDateInput(value);
-  const date = normalizedValue ? new Date(normalizedValue) : new Date();
-  return Number.isNaN(date.getTime()) ? new Date() : date;
-}
-
-function formatDateTimeInput(value: string) {
-  const normalizedValue = normalizeDateInput(value);
-  if (!normalizedValue) return value;
-  return formatDateInput(normalizedValue);
-}
-
-function formatDate(value?: string) {
-  if (!value) return "Sin fecha";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("es-MX", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function openWhatsApp(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return;
-  Linking.openURL(`https://wa.me/${digits}`).catch(() => undefined);
-}
-
-function openPhoneCall(phone: string) {
-  const digits = phone.replace(/[^\d+]/g, "");
-  if (!digits) return;
-  Linking.openURL(`tel:${digits}`).catch(() => undefined);
-}
