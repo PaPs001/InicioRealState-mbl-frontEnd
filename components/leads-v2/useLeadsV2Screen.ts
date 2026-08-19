@@ -10,6 +10,8 @@ import {
   getBackendLeadV2Statuses,
   setBackendLeadV2NextAction,
   setBackendLeadV2Status,
+  getBackendLeadV2Followings,
+  type BackendLeadV2FollowingRecord
 } from '@/lib/api'
 import {
   LEADS_PAGE_SIZE,
@@ -68,6 +70,57 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
   const hasLoadedInitialStatusesRef = useRef(false)
   const hasRequestedInitialCatalogRef = useRef(false)
   const propertyOptions = useMemo(() => buildPropertyOptions(catalogProperties, availableProperties), [availableProperties, catalogProperties])
+
+  const [selectedLeadFollowings, setSelectedLeadFollowings] = useState<BackendLeadV2FollowingRecord[]>([])
+
+  const [isLoadingSelectedLeadFollowings, setIsLoadingSelectedLeadFollowings,] = useState(false)
+
+  const [ selectedLeadFollowingsError, setSelectedLeadFollowingsError,] = useState<string | null>(null)
+
+
+  //esto es para seguimientos se cargara al mismo tiempo que el lead que se vaya a escoger OJO: si no se ha eliminado el servicio de carga de seguimientos de la pantalla seguimientos entonces se hara carga doble de seguimientos
+
+  const loadSelectedLeadFollowings = useCallback(async () => {
+    if (!authToken || !selectedLead?.id) {
+      setSelectedLeadFollowings([])
+      setSelectedLeadFollowingsError(null)
+      setIsLoadingSelectedLeadFollowings(false)
+      return
+    }
+
+    setIsLoadingSelectedLeadFollowings(true)
+    setSelectedLeadFollowingsError(null)
+
+    try {
+      const records = await getBackendLeadV2Followings(
+        selectedLead.id,
+        authToken,
+      )
+
+      console.log(
+        '[SelectedLeadFollowings]',
+        JSON.stringify(records, null, 2),
+      )
+
+      setSelectedLeadFollowings(records)
+    } catch (error) {
+      console.warn(
+        'No se pudieron cargar los seguimientos del lead:',
+        error,
+      )
+
+      setSelectedLeadFollowings([])
+      setSelectedLeadFollowingsError(
+        'No se pudieron cargar los seguimientos',
+      )
+    } finally {
+      setIsLoadingSelectedLeadFollowings(false)
+    }
+  }, [authToken, selectedLead?.id])
+
+  useEffect(() => {
+    loadSelectedLeadFollowings()
+  }, [loadSelectedLeadFollowings])
 
   const mapLeadRecord = useCallback((lead: Parameters<typeof mapPropertyLeadToLeadV2ViewModel>[0]) => {
     const screenMode = isAdviserRoute ? 'advisor' : 'coordinator'
@@ -377,6 +430,10 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
     submitCreateLead,
     totalLeadPages,
     updateCreateLeadField,
+    selectedLeadFollowings,
+    selectedLeadFollowingsError,
+    isLoadingSelectedLeadFollowings,
+    loadSelectedLeadFollowings
   }
 }
 
