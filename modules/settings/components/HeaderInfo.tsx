@@ -24,6 +24,7 @@ type HeaderInfoProps = {
   operationMode: OperationMode
   onSelectOperationMode: (mode: OperationMode) => void
   onAddAgentPresentation: () => void
+  hasAgentPresentation: boolean
   onChangeProfilePhoto: () => void
 }
 
@@ -35,6 +36,7 @@ export function HeaderInfo({
   operationMode,
   onSelectOperationMode,
   onAddAgentPresentation,
+  hasAgentPresentation,
   onChangeProfilePhoto,
 }: HeaderInfoProps) {
   return (
@@ -64,10 +66,16 @@ export function HeaderInfo({
         </View>
 
         <View style={styles.editProfileRow}>
-          {/*<Pressable onPress={onAddAgentPresentation} style={styles.editButton}>
+          <Pressable
+            disabled={hasAgentPresentation}
+            onPress={onAddAgentPresentation}
+            style={[styles.editButton, hasAgentPresentation && styles.editButtonDisabled]}
+          >
             <icons.Pencil />
-            <Text style={styles.editText}>Agregar foto PDF</Text>
-          </Pressable>*/}
+            <Text style={[styles.editText, hasAgentPresentation && styles.editTextDisabled]}>
+              Agregar foto PDF
+            </Text>
+          </Pressable>
           <Pressable onPress={onChangeProfilePhoto} style={styles.editButton}>
             <icons.Camera />
             <Text style={styles.editText}>Cambiar Foto </Text>
