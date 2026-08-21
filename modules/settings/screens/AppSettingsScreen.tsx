@@ -95,6 +95,9 @@ export function AppSettingsScreen(
           operationMode={operationMode}
           onSelectOperationMode={setOperationMode}
           onAddAgentPresentation={() => profileImageUpload.open('agentpresentation')}
+          hasAgentPresentation={Boolean(
+            currentUser?.agentpresentation ?? currentUser?.agentPresentation,
+          )}
           onChangeProfilePhoto={() => profileImageUpload.open('profile')}
         />
         <CalendarSection
