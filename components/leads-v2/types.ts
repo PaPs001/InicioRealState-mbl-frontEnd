@@ -50,8 +50,22 @@ export type LeadV2CreateForm = {
   phone: string
   email: string
   propertyOfInterestId: string
+  lastContactDate: string
+  estimatedBudget: string
   origin: string
   operation: string
+}
+
+export function isLeadV2CreateFormValid(form: LeadV2CreateForm) {
+  return [
+    form.fullName,
+    form.phone,
+    form.propertyOfInterestId,
+    form.lastContactDate,
+    form.estimatedBudget,
+    form.origin,
+    form.operation,
+  ].every((value) => value.trim().length > 0)
 }
 
 export type LeadPropertyOption = {
@@ -89,6 +103,8 @@ export const emptyLeadV2CreateForm: LeadV2CreateForm = {
   phone: '',
   email: '',
   propertyOfInterestId: '',
+  lastContactDate: '',
+  estimatedBudget: '',
   origin: '',
   operation: '',
 }

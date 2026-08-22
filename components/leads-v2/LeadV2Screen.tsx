@@ -253,7 +253,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
                 <View style={styles.leadList}>
                   {filteredAgentGroups.map((group) => (
                     <AgentGroupCard
-                      key={group.id}
+                      key={group.name + group.id}
                       group={group}
                       onPress={() => selectAgentGroup(group)}
                     />
