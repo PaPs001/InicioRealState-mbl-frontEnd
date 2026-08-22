@@ -17,6 +17,7 @@ import {
   LEADS_PAGE_SIZE,
   coordinatorLeadV2Channels,
   emptyLeadV2CreateForm,
+  isLeadV2CreateFormValid,
   type AgentLeadGroup,
   type CoordinatorLeadV2Channel,
   type LeadPropertyOption,
@@ -355,6 +356,11 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
     return replaceLeadRecord(updatedLead)
   }, [authToken, replaceLeadRecord])
   const submitCreateLead = async () => {
+    if (!isLeadV2CreateFormValid(createLeadForm)) {
+      setCreateLeadError('Completa todos los campos obligatorios para guardar el lead.')
+      return
+    }
+
     if (!authToken) {
       setCreateLeadError('No hay sesion activa para crear el lead.')
       return
@@ -368,6 +374,8 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
         phone: createLeadForm.phone,
         email: createLeadForm.email,
         propertyOfInterestId: createLeadForm.propertyOfInterestId,
+        lastContactDate: createLeadForm.lastContactDate || undefined,
+        estimatedBudget: createLeadForm.estimatedBudget ? Number.parseInt(createLeadForm.estimatedBudget, 10) : undefined,
         origin: createLeadForm.origin || 'app',
         operation: createLeadForm.operation,
       }, authToken)
