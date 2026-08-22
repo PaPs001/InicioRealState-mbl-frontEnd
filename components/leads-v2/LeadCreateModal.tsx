@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { ChevronRight, Clock3, Search } from 'lucide-react-native'
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { CalendarDays, ChevronRight, Clock3, Search } from 'lucide-react-native'
 
 import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
-import type { LeadPropertyOption, LeadV2CreateForm } from './types'
+import { isLeadV2CreateFormValid, type LeadPropertyOption, type LeadV2CreateForm } from './types'
 import { formatPropertyPrice } from './lead-v2-utils'
 
-const leadOriginOptions = ['ManyChat', 'Meta', 'Google Ads', 'Referido'] as const
+const leadOriginOptions = ['ManyChat', 'Meta', 'Google Ads', 'Referido', 'Monday', 'Página Web'] as const
 const leadOperationOptions = [
   { label: 'Renta', value: 'renta' },
   { label: 'Venta', value: 'venta' },
@@ -48,6 +50,8 @@ export function LeadCreateModal({
   selectedProperty,
   visible,
 }: LeadCreateModalProps) {
+  const isFormValid = isLeadV2CreateFormValid(form)
+
   return (
     <Modal
       animationType="slide"
@@ -105,10 +109,21 @@ export function LeadCreateModal({
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+                <LeadFormField
+                  label="Presupuesto Estimado"
+                  placeholder="Ej. 250000"
+                  value={form.estimatedBudget}
+                  onChangeText={(value) => onUpdateField('estimatedBudget', value.replace(/[^0-9]/g, ''))}
+                  keyboardType="numeric"
+                />
                 <PropertySelectField
                   property={selectedProperty}
                   propertyId={form.propertyOfInterestId}
                   onPress={onOpenPropertyPicker}
+                />
+                <LeadLastContactDateField
+                  value={form.lastContactDate}
+                  onChange={(value) => onUpdateField('lastContactDate', value)}
                 />
                 <LeadOptionField
                   label="Origen"
@@ -128,9 +143,9 @@ export function LeadCreateModal({
                 ) : null}
 
                 <TouchableOpacity
-                  style={[styles.createLeadButton, isCreating && styles.createLeadButtonDisabled]}
+                  style={[styles.createLeadButton, (!isFormValid || isCreating) && styles.createLeadButtonDisabled]}
                   activeOpacity={0.85}
-                  disabled={isCreating}
+                  disabled={isCreating || !isFormValid}
                   onPress={onSubmit}
                 >
                   <Text style={styles.createLeadButtonText}>
@@ -145,6 +160,63 @@ export function LeadCreateModal({
       </Pressable>
     </Modal>
   )
+}
+
+function LeadLastContactDateField({
+  onChange,
+  value,
+}: {
+  onChange: (value: string) => void
+  value: string
+}) {
+  const [isPickerVisible, setIsPickerVisible] = useState(false)
+  const pickerDate = value ? new Date(value) : new Date()
+
+  const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (event.type === 'dismissed') {
+      setIsPickerVisible(false)
+      return
+    }
+
+    if (selectedDate) {
+      onChange(selectedDate.toISOString())
+    }
+
+    if (Platform.OS !== 'ios') setIsPickerVisible(false)
+  }
+
+  return (
+    <View style={styles.formField}>
+      <Text style={styles.formLabel}>Fecha Ultimo Contacto</Text>
+      <TouchableOpacity
+        style={styles.dateSelectButton}
+        activeOpacity={0.85}
+        onPress={() => setIsPickerVisible(true)}
+      >
+        <CalendarDays size={17} color="#0f362b" />
+        <Text style={[styles.dateSelectText, !value && styles.dateSelectPlaceholder]} numberOfLines={1}>
+          {value ? formatLeadDate(value) : 'Seleccionar fecha'}
+        </Text>
+      </TouchableOpacity>
+      {isPickerVisible ? (
+        <DateTimePicker
+          value={pickerDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          maximumDate={new Date()}
+          onChange={handleChange}
+        />
+      ) : null}
+    </View>
+  )
+}
+
+function formatLeadDate(value: string) {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value))
 }
 
 function LeadOptionField({
@@ -330,7 +402,7 @@ function LeadFormField({
   value,
 }: {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  keyboardType?: 'default' | 'email-address' | 'phone-pad'
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad'
   label: string
   onChangeText: (value: string) => void
   placeholder: string
