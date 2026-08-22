@@ -276,7 +276,7 @@ export default function CoordinatorRentFollowupsScreen() {
                 {filteredAgentGroups.map((group) => (
                   <AgentGroupCard
                     group={group}
-                    key={group.id}
+                    key={group.id + 1 }
                     onPress={() => {
                       setSelectedAgentName(group.name)
                       setSearchQuery('')
