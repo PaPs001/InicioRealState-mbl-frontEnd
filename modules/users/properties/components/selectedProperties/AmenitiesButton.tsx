@@ -1,18 +1,31 @@
-import { Text, View, Pressable } from "react-native";
-import { icons } from "@/assets";
-import { SvgProps } from "react-native-svg";
+import { Text, View } from "react-native";
+import {styles} from './styles/AmenitiesButton.style'
+import { capitalizeFirstLetter } from "@/components/userDashboard/dashboard-formatters";
 type AmenitiesButtonProps = {
-  label: string,
-  icon: SvgProps,
+  amenitiesData: string[],
+  //icon: SvgProps,
 }
-export const AmenitiesButton = ({
-  label,
-  icon,
+export const Amenities = ({
+ amenitiesData 
 }: AmenitiesButtonProps) => {
   return(
-    <View>
-      
-
+    <View style={styles.amenitiesContainer}>
+      {amenitiesData.map((amenitie, index) => {
+        return(
+          <View
+            key={`${amenitie}-${index}`}
+            style={styles.amenitieCard}
+          >
+            <Text 
+              style={styles.amenitieText}
+              adjustsFontSizeToFit
+            >
+              {capitalizeFirstLetter(amenitie)}
+            </Text>
+          </View>
+        )
+      })}
     </View>
   )
 }
+
