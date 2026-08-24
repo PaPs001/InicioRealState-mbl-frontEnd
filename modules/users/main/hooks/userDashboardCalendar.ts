@@ -89,7 +89,7 @@ export function useDashboardCalendar({
         })
         const appointments = dates
           .map(mapGoogleDateToAppointment)
-          .filter(isAppointmentFromTodayOn)
+          .filter(isAppointmentFromCurrentWeek)
           .sort((current, next) => current.sortTime - next.sortTime)
 
         setCalendarAppointments(appointments)
@@ -389,17 +389,23 @@ export function useDashboardCalendar({
   }
 }
 
-function isAppointmentFromTodayOn(appointment: AppointmentPreviewItem) {
+function isAppointmentFromCurrentWeek(appointment: AppointmentPreviewItem) {
   const today = new Date()
-  const startOfToday = new Date(
+  const startOfWeek = new Date(
     today.getFullYear(),
     today.getMonth(),
-    today.getDate(),
-  ).getTime()
+    today.getDate() - ((today.getDay() + 6) % 7),
+  )
+  const startOfNextWeek = new Date(
+    startOfWeek.getFullYear(),
+    startOfWeek.getMonth(),
+    startOfWeek.getDate() + 7,
+  )
 
   return (
     appointment.sortTime !== Number.MAX_SAFE_INTEGER &&
-    appointment.sortTime >= startOfToday
+    appointment.sortTime >= startOfWeek.getTime() &&
+    appointment.sortTime < startOfNextWeek.getTime()
   )
 }
 

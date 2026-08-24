@@ -12,6 +12,8 @@ import LogoIRSPrincipal from './logoIRSprincipal.svg'
 import ProfileIconMobile from './profileIconMobile.svg'
 import RegistryIconMobile from './RegistryIconMobile.svg'
 import TextoLogoInicio from './TextoLogoInicio.svg'
+import LogoIRSBlanco from './logoIRSBlanco.svg'
+
 import BackButton from './properties/backButton.svg'
 import ArrowDown from './properties/arrowDown.svg'
 import Bathroom from './properties/bathroom.svg'
@@ -48,11 +50,24 @@ import ArrowLeft from './settings/arrowLeft.svg'
 import WhiteCalendar from './settings/calendarWhite.svg'
 
 
+
 /// leads SVG
 import ActionIcon from './leads/detailsLead/action_icon.svg'
 import CalendarAction from './leads/detailsLead/calendar_icon.svg'
 import Phone from './leads/detailsLead/phone_icon.svg'
 import WhatsAppIcon from './leads/detailsLead/WhatsApp_icon.svg'
+
+
+/// selected properties
+
+import ArrowRight from './selectedProperties/arrowRight.svg'
+import SealCheck from './selectedProperties/SealCheck.svg'
+import Send from './selectedProperties/send.svg'
+import Beach from './selectedProperties/beach.svg'
+import Restaurants from './selectedProperties/restaurants.svg'
+import SuperMarket from './selectedProperties/superMarket.svg'
+
+
 
 export const logos = {
   inicioGris: LogoInicioSVGris,
@@ -60,6 +75,7 @@ export const logos = {
   irsPrincipal: LogoIRSPrincipal,
   navBarPrincipal: LogoNavBarPrincipal,
   textoInicio: TextoLogoInicio,
+  irsBlanco: LogoIRSBlanco
 } as const
 
 export const icons = {
@@ -99,7 +115,13 @@ export const icons = {
   WhatsAppIcon: WhatsAppIcon,
   CalendarAction: CalendarAction,
   ActionIcon: ActionIcon,
-  Phone: Phone
+  Phone: Phone,
+  ArrowRight: ArrowRight,
+  SealChek: SealCheck,
+  Send: Send,
+  Beach: Beach,
+  SuperMarket: SuperMarket,
+  Restaurants: Restaurants
 } as const
 
 export const images = {
@@ -192,4 +214,10 @@ export {
   CalendarAction,
   ActionIcon,
   Phone,
+  Send,
+  SealCheck,
+  ArrowRight,
+  Beach,
+  SuperMarket,
+  Restaurants
 }
