@@ -1,17 +1,19 @@
 import { Tabs } from 'expo-router'
 import { AdviserDashboardBottomNav } from '@/components/userAdviser/AdviserDashboardBottomNav'
+import { CalendarDataProvider } from '@/modules/users/date/context/CalendarDataContext'
 
 export default function AdviserLayout() {
   return (
-    <Tabs
-      tabBar={() => <AdviserDashboardBottomNav />}
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: 'none' },
-        sceneStyle: { backgroundColor: '#ffffff' },
-        lazy: true,
-      }}
-    >
+    <CalendarDataProvider>
+      <Tabs
+        tabBar={() => <AdviserDashboardBottomNav />}
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
+          sceneStyle: { backgroundColor: '#ffffff' },
+          lazy: true,
+        }}
+      >
       <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
       <Tabs.Screen name="properties" options={{ title: 'Propiedades' }} />
       <Tabs.Screen name="appointments" options={{ title: 'Citas' }} />
@@ -26,6 +28,7 @@ export default function AdviserLayout() {
       <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
       <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
       <Tabs.Screen name="mainDashboard" options={{ title: 'Dashboard', href: null }} />
-    </Tabs>
+      </Tabs>
+    </CalendarDataProvider>
   )
 }

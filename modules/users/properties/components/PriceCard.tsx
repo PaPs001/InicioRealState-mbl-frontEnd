@@ -34,7 +34,7 @@ export const PriceCard = ({
                     </Text>
                     <Text 
                         style={styles.textCard}
-                        adjustsFontSizeToFit
+                        //adjustsFontSizeToFit
                         numberOfLines={1}    
                     >
                        MXN / mes
@@ -50,7 +50,7 @@ export const PriceCard = ({
                 <Text 
                     style={styles.maintainText}
                     numberOfLines={1}
-                    adjustsFontSizeToFit
+                    //adjustsFontSizeToFit
                 >
                     Mantenimiento incluido
                 </Text>
