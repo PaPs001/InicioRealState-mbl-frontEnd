@@ -35,13 +35,19 @@ export const ImagesRoulette = ({
   const [firstImage,  ...otherImages] = images
   const imageCount = images.length
   const availableWidth = imagesRowWidth - HORIZONTAL_PADDING * 2
+
   
   const visibleImagesCount = Math.max(
     1,
     Math.floor((availableWidth + IMAGES_GAP) / (IMAGE_WIDTH + IMAGES_GAP)),
   )
-
+  
   const visibleImages = otherImages.slice(0, visibleImagesCount)
+  
+  const hiddenImagesCount = Math.max(
+    0,
+    imageCount - 1 - visibleImagesCount,
+  );
 
   return(
     <View style={styles.container}>
@@ -87,7 +93,7 @@ export const ImagesRoulette = ({
 
             {isLastVisibleImage ? (
               <View style={styles.imagesCountOverlay}>
-                <Text style={styles.imagesCountText}>+ {visibleImagesCount}</Text>
+                <Text style={styles.imagesCountText}>+ {hiddenImagesCount}</Text>
               </View>
             ) : null}
           </Pressable>
