@@ -88,9 +88,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#EEFFF1'
   },
   editProfileRow:{
-    //flexDirection: 'row',
-    //flex: 1,
-    //gap: 10,
+    flexDirection: 'row',
+    flex: 1,
+    gap: 10,
     alignItems: 'center',
   },
   editButton:{
@@ -109,10 +109,17 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 5
   },
+  editButtonDisabled: {
+    opacity: 0.45,
+  },
   editText:{
     color: textColor.accentGolden,
     fontSize: 12,
     flexShrink: 1,
+    marginBottom: 5,
+  },
+  editTextDisabled: {
+    color: textColor.softText,
   },
   optionsSection:{
     borderRadius: 12,

@@ -2,6 +2,8 @@ import type * as ImagePicker from 'expo-image-picker'
 
 const PDF_IMAGE_PHYSICAL_WIDTH_IN = 11.25
 const PDF_IMAGE_PHYSICAL_HEIGHT_IN = 24.07
+const LEGACY_IMAGE_ASPECT_RATIO = 1080 / 2300
+const MIN_SCALED_IMAGE_HEIGHT = 1600
 
 function parseExifNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value
@@ -36,10 +38,10 @@ export function validateAgentPresentationImage(
   const yDpi = yResolution ? yResolution * unitMultiplier : xDpi
 
   const isLegacySize = asset.width === 1080 && asset.height === 2300
-  const isLegacyDensity = xDpi !== null && yDpi !== null
-    && Math.abs(xDpi - 96) <= 0.5
-    && Math.abs(yDpi - 96) <= 0.5
-  if (isLegacySize && isLegacyDensity) return null
+  const aspectRatio = asset.width / asset.height
+  const isScaledLegacySize = asset.height >= MIN_SCALED_IMAGE_HEIGHT
+    && Math.abs(aspectRatio - LEGACY_IMAGE_ASPECT_RATIO) <= 0.002
+  if (isLegacySize || isScaledLegacySize) return null
 
   if (asset.width === 3375 && asset.height === 7221 && !xDpi && !yDpi) return null
 
