@@ -178,3 +178,14 @@ export function openPhoneCall(phone: string) {
   if (!digits) return;
   Linking.openURL(`tel:${digits}`).catch(() => undefined);
 }
+
+export function capitalizeFirstLetter(text: string){
+  const normalizedText = text.trim().toLowerCase()
+  if (!text) return ''
+  return normalizedText.charAt(0).toUpperCase() + normalizedText.slice(1)
+}
+
+export function deleteMXNWord(text: string){
+  const normalizedText = text.trim().toLowerCase()
+  return normalizedText.replace("mxn", "")
+}

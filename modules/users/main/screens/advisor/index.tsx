@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -51,6 +51,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] = useState(false);
   const { isLeadsLoading, leadSummary } =
     useDashboardLeads({ authToken });
 
@@ -122,9 +123,25 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.logoWrap}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Mostrar acceso temporal a la propiedad"
+          onPress={() => setIsPropertyShortcutVisible((isVisible) => !isVisible)}
+          style={styles.logoWrap}
+        >
           <LogoIRSPrincipal width={146} height={48} />
-        </View>
+        </Pressable>
+
+        {isPropertyShortcutVisible ? (
+          <Pressable
+            onPress={() => router.push("/selected-property" as never)}
+            style={styles.propertyShortcutButton}
+          >
+            <Text style={styles.propertyShortcutButtonText}>
+              Abrir propiedad seleccionada
+            </Text>
+          </Pressable>
+        ) : null}
         <View style={styles.topRow}>
           <Text style={styles.roleLabel}>
             {operationMode === "rent"

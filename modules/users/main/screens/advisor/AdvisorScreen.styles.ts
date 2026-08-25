@@ -20,6 +20,19 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  propertyShortcutButton: {
+    alignSelf: 'center',
+    backgroundColor: '#315b41',
+    borderRadius: 6,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  propertyShortcutButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   topRow: {
     minHeight: 64,
     flexDirection: 'row',

@@ -1,9 +1,19 @@
+import { icons } from "@/assets"
+
 export const mockProperty = {
   title: 'Casa en Montebello',
   code: 'IRS-2048',
-  status: 'disponible',
-  view: 'Vista alberca',
+  status: 'disPONIBLE',
+  view: {
+    label: 'Vista alberca',
+    icon: icons.Pool
+  },
   city: 'Merida',
+  moreInformation: {
+    label: 'Amueblado, A/C, Equipado',
+    icon: icons.Blend
+
+  },
   propertyAmenities: [
     'seguridad',
     'alberca',
@@ -17,7 +27,7 @@ export const mockProperty = {
   address: 'Mezcalez, Bahía de Banderas',
   priceLabel: '$4,250,000 MXN',
   maintainIncluded: true,
-  operation: 'Venta',
+  operation: 'renta',
   type: 'Casa',
   bedrooms: 3,
   bathrooms: 3.5,
