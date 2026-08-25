@@ -66,8 +66,27 @@ import Send from './selectedProperties/send.svg'
 import Beach from './selectedProperties/beach.svg'
 import Restaurants from './selectedProperties/restaurants.svg'
 import SuperMarket from './selectedProperties/superMarket.svg'
+import Lock from './properties/lock.svg'
 
 
+/// Amenities Icons
+
+import Shield from './amenitiesIcons/chield.svg'
+import Oven from './amenitiesIcons/Oven.svg'
+import PawPrint from './amenitiesIcons/PawPrint.svg'
+import Snowflake from './amenitiesIcons/Snowflake.svg'
+import TreeGreen from './amenitiesIcons/Tree.svg'
+import Waves from './amenitiesIcons/Waves.svg'
+import Wifi from './amenitiesIcons/wifi.svg'
+import Barbell from './amenitiesIcons/barbell.svg'
+
+import Cutlery from './amenitiesIcons/bigIcons/cutlery.svg'
+import Fridge from './amenitiesIcons/bigIcons/fridge.svg'
+import OvenBigger from './amenitiesIcons/bigIcons/oven.svg'
+import Parking from './amenitiesIcons/bigIcons/parking.svg'
+import PoolBigger from './amenitiesIcons/bigIcons/poolBigger.svg'
+import SnowflakeBigger from './amenitiesIcons/bigIcons/Snowflake.svg'
+import Tv from './amenitiesIcons/bigIcons/tv.svg'
 
 export const logos = {
   inicioGris: LogoInicioSVGris,
@@ -121,7 +140,23 @@ export const icons = {
   Send: Send,
   Beach: Beach,
   SuperMarket: SuperMarket,
-  Restaurants: Restaurants
+  Restaurants: Restaurants,
+  Shield: Shield,
+  Oven: Oven,
+  PawPrint: PawPrint,
+  Snowflake: Snowflake,
+  TreeGreen: TreeGreen,
+  Waves: Waves,
+  Wifi: Wifi,
+  Barbell: Barbell,
+  Cutlery: Cutlery,
+  Fridge: Fridge,
+  OvenBigger: OvenBigger,
+  Parking: Parking,
+  PoolBigger: PoolBigger,
+  SnowflakeBigger: SnowflakeBigger,
+  Tv: Tv,
+  Lock: Lock
 } as const
 
 export const images = {
@@ -219,5 +254,20 @@ export {
   ArrowRight,
   Beach,
   SuperMarket,
-  Restaurants
+  Restaurants,
+  Shield,
+  Oven,
+  PawPrint,
+  Snowflake,
+  TreeGreen,
+  Waves,
+  Wifi,
+  Barbell,
+  Cutlery,
+  Fridge,
+  OvenBigger,
+  Parking,
+  PoolBigger,
+  SnowflakeBigger,
+  Lock
 }

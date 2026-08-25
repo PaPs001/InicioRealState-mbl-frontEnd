@@ -19,6 +19,7 @@ interface CalendarProps {
   visibleMonth: Date
   onSelectDate?: (date: Date) => void
   onVisibleMonthChange?: (date: Date) => void
+  onHeaderBottomChange?: (position: number) => void
 }
 
 export function Calendar({
@@ -27,6 +28,7 @@ export function Calendar({
   visibleMonth,
   onSelectDate,
   onVisibleMonthChange,
+  onHeaderBottomChange,
 }: CalendarProps){
   const today = new Date()
   
@@ -52,7 +54,13 @@ export function Calendar({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View
+        style={styles.header}
+        onLayout={event => {
+          const { y, height } = event.nativeEvent.layout
+          onHeaderBottomChange?.(y + height + 10)
+        }}
+      >
         <Pressable
           style={styles.navigationButton}
           onPress={goToPreviousDate}
@@ -154,16 +162,18 @@ export function Calendar({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f7f4f4',
-    borderRadius: 20,
-    padding: 16,
+    //backgroundColor: "#f7f4f4",
+    //borderRadius: 8,
+    paddingHorizontal: 25,
+    paddingTop: 15,
+    paddingBottom: 8,
   },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
   headerTitle: {
@@ -193,7 +203,7 @@ const styles = StyleSheet.create({
 
   weekHeader: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 2,
   },
 
   weekDayCell: {
@@ -213,8 +223,8 @@ const styles = StyleSheet.create({
   },
 
   dayCell: {
-    width: '14.2857%',
-    aspectRatio: 1,
+    width: "14.2857%",
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -222,7 +232,7 @@ const styles = StyleSheet.create({
   dayCircle: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },

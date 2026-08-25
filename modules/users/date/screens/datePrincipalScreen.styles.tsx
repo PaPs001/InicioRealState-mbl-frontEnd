@@ -1,55 +1,87 @@
+import { generalColors } from '@/theme'
 import {StyleSheet} from 'react-native'
 
 
 export const styles = StyleSheet.create({
   safeArea:{
     flex: 1,
-    backgroundColor: '#FCFAF8',
+    backgroundColor: generalColors.background,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 12,
   },
   eventCardsContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    backgroundColor: '#FCFAF8',
+    borderTopLeftRadius: 45,
+    borderTopRightRadius: 45,
+    borderColor: generalColors.border,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  dragIndicator: {
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#9A9A9A',
+  },
+  dragHandle: {
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eventsContent: {
     flex: 1,
     minHeight: 0,
-  },
-  monthSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  monthNavigationButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#F4F4F6",
-  },
-  monthSelectorText: {
-    color: "#19191F",
-    fontSize: 20,
-    fontWeight: "700",
+    paddingTop: 8,
   },
   eventsScroll: {
     flex: 1,
   },
   contentEventCard: {
-    gap: 10,
+    gap: 18,
     paddingBottom: 20,
+    paddingTop: 5,
+  },
+  appointmentGroup: {
+    gap: 8,
+  },
+  appointmentGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  appointmentGroupDate: {
+    color: '#474747',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  appointmentGroupLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: generalColors.border,
+  },
+  appointmentGroupCards: {
+    gap: 10,
   },
   screen: {
     flex: 1,
+    position: 'relative',
     paddingHorizontal: 10,
-    paddingTop: 16,
+    paddingTop: 42,
     paddingBottom: 70,
     gap: 5,
   },
   eventCardsTitleContainer:{
     flexDirection: 'row',
-    gap: 15,
+    gap: 8,
     alignContent: 'center',
     alignItems: 'center',
-    justifyContent: 'center',
     padding: 10,
   },
   eventCardTitle:{
@@ -58,35 +90,38 @@ export const styles = StyleSheet.create({
     flexShrink: 1
   },
   dateContain:{
+    flexDirection: 'row',
     alignItems: 'center',
-    alignContent: 'center',
-    gap: 2,
+    gap: 5,
   },
   todayText:{
     fontSize: 17
   },
   dateText:{
-    fontSize: 25
+    fontSize: 17
   },
   dayText:{
-    fontSize: 14
+    fontSize: 15
   },
   eventSpace:{
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   eventText:{
-    fontSize: 17
+    fontSize: 18
   },
-  viewAllButton:{
-    borderRadius: 12,
-    padding: 5,
-    borderColor: '#155721',
-    backgroundColor: '#064936',
-    borderWidth: 1
+  datesContainer:{
+    flexDirection: 'row',
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  viewAllText:{
-    color:'#ffffff'
-  },
+
+  line:{
+    borderWidth: .5,
+    flex: 1,
+
+  }
 })

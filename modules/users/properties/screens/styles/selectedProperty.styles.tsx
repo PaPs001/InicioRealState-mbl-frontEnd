@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: generalColors.background,
   },
   container: {
     flex: 1,
@@ -146,5 +146,15 @@ export const styles = StyleSheet.create({
 
     paddingVertical: 12,
     paddingHorizontal: 18,
+  },
+
+  mapTextAdviseContainer:{
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  mapText:{
+    fontSize: 12,
+    color: textColor.softText,
   }
 })

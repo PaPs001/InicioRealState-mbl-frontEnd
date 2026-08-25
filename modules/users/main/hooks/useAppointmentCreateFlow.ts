@@ -6,6 +6,7 @@ import {useSessionDomain} from '@/contexts/auth/use-session-domain'
 import {createGoogleCalendarDate, type CreateGoogleCalendarDatePayload, type SelectedGoogleCalendar} from '@/lib/api'
 import type {Property, PropertyLead} from '@/lib/types'
 import type {AppCapabilities} from '@/modules/settings'
+import {useCalendarData} from '@/modules/users/date/context/CalendarDataContext'
 import {useDashboardCalendar} from './userDashboardCalendar'
 import {useDashboardLeads} from './userDashboardLeads'
 import {useDashboardProperties} from './userDashboardProperties'
@@ -23,6 +24,7 @@ type Params = {
 
 export function useAppointmentCreateFlow({capabilities, helpedBy, initialLead, initialProperty, onClose, onCreated, returnPath, visible}: Params) {
   const {authToken, currentUser} = useSessionDomain()
+  const {addAppointment} = useCalendarData()
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false)
   const [form, setForm] = useState<CreateGoogleCalendarDatePayload>(() => createInitialForm(currentUser?.id, helpedBy))
   const {appointmentLeadOptions, isLeadsLoading, loadLeads} = useDashboardLeads({authToken})
@@ -92,17 +94,23 @@ export function useAppointmentCreateFlow({capabilities, helpedBy, initialLead, i
         ? {...base, leadId: null, lead: {fullName: calendar.provisionalAppointmentLead.fullName.trim(), phone: calendar.provisionalAppointmentLead.phone.trim() || null, email: calendar.provisionalAppointmentLead.email.trim() || null}}
         : {...base, lead: null}
       const response = await createGoogleCalendarDate(authToken, payload)
-      await Promise.all([calendar.loadGoogleCalendarAppointments({sync: true}), loadLeads()])
+      addAppointment(response.date)
       Alert.alert('Cita creada', response.leadResolution.duplicateWarning ? 'La cita se creo correctamente. Encontramos posibles leads existentes con ese telefono o correo.' : 'La cita se creo correctamente.')
       onCreated?.()
       onClose()
+      void Promise.all([
+        calendar.loadGoogleCalendarAppointments({sync: true}),
+        loadLeads(),
+      ]).catch(error => {
+        console.warn('La cita se creo, pero no se pudo refrescar la informacion:', error)
+      })
     } catch (error) {
       console.warn('No se pudo crear la cita:', error)
       Alert.alert('Error', 'No se pudo crear la cita.')
     } finally {
       setIsCreatingAppointment(false)
     }
-  }, [authToken, calendar, currentUser?.id, currentUser?.name, form, helpedBy, isCreatingAppointment, loadLeads, onClose, onCreated])
+  }, [addAppointment, authToken, calendar, currentUser?.id, currentUser?.name, form, helpedBy, isCreatingAppointment, loadLeads, onClose, onCreated])
 
   return {
     calendar,
