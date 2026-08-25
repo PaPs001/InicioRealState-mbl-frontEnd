@@ -23,6 +23,7 @@ type BackendLead = {
   nextFollowUpAt?: string | Date | null
   phone?: string | null
   dateFirstContact?: string | Date | null
+  lastContactDate?: string | Date | null
   campaign?: string | null
   adsCampain?: string | null
   typeOfOperation?: 'FOR RENT' | 'FOR SALE' | string | null
@@ -30,6 +31,7 @@ type BackendLead = {
   leadOrigin?: string | null
   origin?: string | null
   propertyOfInterestId?: string | null
+  estimatedBudget?: number | string | null
   acquiredPropertyId?: string | null
   email?: string | null
   advisor?: string | { _id?: string | null; id?: string | null; name?: string | null; fullName?: string | null } | null
@@ -121,6 +123,8 @@ export type CreateBackendLeadV2Payload = {
   phone?: string
   email?: string
   propertyOfInterestId?: string
+  lastContactDate?: string
+  estimatedBudget?: number
   origin?: string
   operation?: string
   statusSource?: 'advisor' | 'coordinator' | 'system' | 'notion' | 'manychat'
@@ -346,7 +350,11 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
     notes,
     createdDate: normalizeDate(lead.createdAt || firstContactDate),
     firstContactDate,
-    lastContactDate: lead.updatedAt ? normalizeDate(lead.updatedAt) : undefined,
+    lastContactDate: lead.lastContactDate
+      ? normalizeDate(lead.lastContactDate)
+      : lead.updatedAt
+        ? normalizeDate(lead.updatedAt)
+        : undefined,
     followUps: (lead.followUps ?? []).map(mapBackendFollowUpToLeadFollowUp),
   }
 }
