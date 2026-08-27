@@ -123,3 +123,31 @@ export interface SaleRentRegistration {
   reviewedBy?: string
   notes?: string
 }
+
+export type ListingProperty = {
+  id: string
+  title: string
+  code: string
+  city: string
+  price: number
+  priceLabel?: string
+  listingType?: Property['listingType']
+  view?: string
+  description?: string
+  solarPanelLabel?: string
+  propertyType: Property['type']
+  googleDriveImages?: string
+  locationUrl?: string
+  bedrooms: string
+  bedroomsCount: number
+  bathrooms: string
+  bathroomsCount: number
+  parking: string
+  parkingCount: number
+  isFurnished: boolean
+  furnishedLabel?: string
+  isLand: boolean
+  image?: string
+  tags: string[]
+  status: Property['status']
+}

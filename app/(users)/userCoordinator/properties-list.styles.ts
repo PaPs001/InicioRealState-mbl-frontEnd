@@ -29,7 +29,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContent: {
-    alignItems: 'center',
     paddingBottom: 90,
     //backgroundColor: '#ffffff',
   },
@@ -517,7 +516,9 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
   propertyCard: {
-    width: 405,
+    width: '100%',
+    maxWidth: 405,
+    alignSelf: 'center',
     minHeight: 150,
     borderRadius: 10,
     backgroundColor: '#ffffff',

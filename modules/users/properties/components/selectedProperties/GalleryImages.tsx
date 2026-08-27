@@ -5,7 +5,7 @@ import {
     Pressable
 } from 'react-native'
 import { styles } from './styles/GalleryImages.styles'
-import { Blocks } from 'lucide-react-native'
+import { Blocks, ReceiptRussianRuble } from 'lucide-react-native'
 import {FlashList} from '@shopify/flash-list'
 import { icons } from '@/assets'
 type GalleryProps = {
@@ -15,7 +15,7 @@ type GalleryProps = {
     onFavorite: () => void
 }
 
-type GalleryPattern = 'threeColumns' | 'twoColumns'
+type GalleryPattern = 'twoColumns' | 'threeColumns' | 'fourBlocks' | "fourBlocksInverted"
 
 type GalleryBlock = {
     pattern: GalleryPattern
@@ -31,6 +31,14 @@ const galleryPatterns = [
     type: 'twoColumns',
     count: 2,
   },
+  {
+    type: 'fourBlocks',
+    count: 4
+  },
+  {
+    type: 'fourBlocksInverted',
+    count: 4
+  }
 ] as const  
 
 const createImageBlock = (images: string[]): GalleryBlock[] => {
@@ -116,6 +124,8 @@ const GalleryBlock = ({
     images,
     pattern
 }: GalleryBlockProps) => {
+    const [topLeftImage, topRightImage, bottomLeftImage, bottomRightImage] = images
+
     switch(pattern){
         case 'threeColumns':
             return(
@@ -141,5 +151,32 @@ const GalleryBlock = ({
                     ))}
                 </View>
             )
+        case 'fourBlocks':
+            return(
+                <View style={styles.fourColumn}>
+                    <View style={styles.leftColumn}>
+                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
+                        <Image source={{uri: bottomLeftImage}} style={styles.bottomLeftImage}/>
+                    </View>
+                    <View style={styles.rightColumn}>
+                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
+                        <Image source={{uri: bottomRightImage}} style={styles.bottomRightImage}/>
+                    </View>
+                </View>
+            )
+        case 'fourBlocksInverted':
+            return(
+                <View style={styles.fourColumn}>
+                    <View style={styles.rightColumn}>
+                        <Image source={{uri: topRightImage}} style={styles.topRightImage}/>
+                        <Image source={{uri: bottomRightImage}} style={styles.bottomRightImage}/>
+                    </View>
+                    <View style={styles.leftColumn}>
+                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
+                        <Image source={{uri: bottomLeftImage}} style={styles.bottomLeftImage}/>
+                    </View>
+                </View>
+            )
+        
     }
 }

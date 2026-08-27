@@ -94,6 +94,8 @@ export {
   getSelectedGoogleCalendars,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
+  updateGoogleCalendarDate,
+  type UpdateGoogleCalendarDatePayload,
   type GoogleCalendarDate,
   type GoogleCalendarDateFilters,
   type CreateGoogleCalendarDatePayload,
