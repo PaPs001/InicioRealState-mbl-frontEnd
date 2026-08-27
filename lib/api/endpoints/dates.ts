@@ -61,6 +61,22 @@ export interface CreateGoogleCalendarDatePayload {
   } | null
 }
 
+export type UpdateGoogleCalendarDatePayload = {
+  title?: string,
+  description?: string,
+  location?: string | null,
+  startDateTime?: string,
+  endDateTime?: string,
+  timeZone?: string,
+  appointmentType?: AppointmentType,
+  calendarId?: string,
+  colorId?: string | null
+  leadId?: string | null
+  propertyId?: string | null
+  advisorId?: string | null
+  helpedBy?: string | null
+}
+
 export interface GoogleCalendarDateLeadSummary {
   _id?: string
   id?: string | null
@@ -174,6 +190,21 @@ export function deleteGoogleCalendarDate(token: string | null | undefined, dateI
     method: 'DELETE',
     token: token ?? undefined,
   })
+}
+
+export function updateGoogleCalendarDate(
+  token: string | null | undefined,
+  dateId: string,
+  payload: UpdateGoogleCalendarDatePayload
+) {
+  return coreApi<GoogleCalendarDate>(
+    `/dates/dates/${encodeURIComponent(dateId)}`,
+    {
+      method: 'PATCH',
+      token: token ?? undefined,
+      body: payload
+    }
+  )
 }
 
 export function getGoogleCalendars(token?: string | null) {

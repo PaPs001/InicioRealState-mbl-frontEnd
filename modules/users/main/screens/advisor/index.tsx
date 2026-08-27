@@ -48,9 +48,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const { advisorInitials, advisorName, profileAvatarUri, profileImageUpload } =
     useDashboardProfile({ fallbackName: areaConfig.fallbackName });
-
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] = useState(false);
   const { isLeadsLoading, leadSummary } =
     useDashboardLeads({ authToken });
@@ -62,22 +59,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const {
     calendarMessage,
-    connectGoogleCalendar,
-    disconnectCalendar,
-    getCalendarSelection,
-    googleCalendars,
     isAppointmentModalVisible,
     isCalendarLoading,
-    isCalendarSettingsLoading,
-    isConnectingCalendar,
-    isDisconnectingCalendar,
-    isGoogleConnected,
-    isSavingCalendarSelection,
     loadGoogleCalendarAppointments,
-    markPrimaryGoogleCalendar,
-    saveGoogleCalendarSelection,
     setIsAppointmentModalVisible,
-    toggleGoogleCalendar,
     visibleCalendarAppointments,
   } = useDashboardCalendar({
     authToken,
@@ -133,14 +118,24 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         </Pressable>
 
         {isPropertyShortcutVisible ? (
-          <Pressable
-            onPress={() => router.push("/selected-property" as never)}
-            style={styles.propertyShortcutButton}
-          >
-            <Text style={styles.propertyShortcutButtonText}>
-              Abrir propiedad seleccionada
-            </Text>
-          </Pressable>
+          <View style={styles.propertyShortcuts}>
+            <Pressable
+              onPress={() => router.push("/selected-property" as never)}
+              style={styles.propertyShortcutButton}
+            >
+              <Text style={styles.propertyShortcutButtonText}>
+                Abrir propiedad seleccionada
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push(`${areaConfig.basePath}/properties-list-module` as never)}
+              style={styles.propertyShortcutButton}
+            >
+              <Text style={styles.propertyShortcutButtonText}>
+                Abrir nuevo listado
+              </Text>
+            </Pressable>
+          </View>
         ) : null}
         <View style={styles.topRow}>
           <Text style={styles.roleLabel}>

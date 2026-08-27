@@ -12,18 +12,20 @@ import {
 import { getDefaultAppointmentType } from '@/components/userDashboard/dashboard-formatters'
 import { useAuth } from '@/contexts/AuthContext'
 import {
+  deleteGoogleCalendarDate,
   getGoogleCalendarConnectionStatus,
   getGoogleCalendarDates,
   getGoogleCalendars,
   getSelectedGoogleCalendars,
   saveSelectedGoogleCalendars,
   syncGoogleCalendars,
+  updateGoogleCalendarDate,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarDate,
   type GoogleCalendarOption,
   type SelectedGoogleCalendar,
 } from '@/lib/api'
-import type { AppointmentType } from '@/lib/api/endpoints/dates'
+import type { AppointmentType, UpdateGoogleCalendarDatePayload } from '@/lib/api/endpoints/dates'
 
 type LoadAppointmentsOptions = {
   sync?: boolean
@@ -46,8 +48,15 @@ type CalendarDataContextValue = {
   markPrimaryCalendar: (calendar: GoogleCalendarOption) => void
   saveCalendarSelection: () => Promise<void>
   toggleCalendar: (calendar: GoogleCalendarOption) => void
+  updateAppointment: (
+    dateId: string,
+    payload: UpdateGoogleCalendarDatePayload
+  ) => Promise<GoogleCalendarDate>
+  deleteAppointment: (
+    dateId: string,
+  ) => Promise<void>
 }
-
+ 
 const CalendarDataContext = createContext<CalendarDataContextValue | null>(null)
 
 function getAppointmentIdentity(appointment: GoogleCalendarDate) {
@@ -295,6 +304,47 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     }
   }, [authToken, isSavingSelection, loadAppointments, loadSettings, selectedCalendars])
 
+  const updateAppointment = useCallback(
+    async(
+      dateId: string,
+      payload: UpdateGoogleCalendarDatePayload
+    ) => {
+      if(!authToken){
+        throw new Error('No hay una sesion activa')
+      }
+
+      const updateAppointment = await updateGoogleCalendarDate(
+        authToken,
+        dateId,
+        payload,
+      )
+
+      setAppointments(current => current.map(appointment => appointment._id === dateId ?
+        updateAppointment 
+        : appointment
+      ))
+
+      return updateAppointment
+    }, [authToken]
+  )
+
+  const deleteAppointment = useCallback(
+    async (dateId: string) => {
+      if(!authToken){
+        throw new Error('No hay una sesion activa')
+      }
+      
+      await deleteGoogleCalendarDate(
+        authToken,
+        dateId,
+      )
+
+      setAppointments(current => current.filter(
+        appointment => appointment._id !== dateId,
+      ))
+    }, [authToken],
+  )
+
   const value = useMemo<CalendarDataContextValue>(() => ({
     appointments,
     calendars,
@@ -312,6 +362,8 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     markPrimaryCalendar,
     saveCalendarSelection,
     toggleCalendar,
+    updateAppointment,
+    deleteAppointment
   }), [
     addAppointment,
     appointments,
@@ -329,6 +381,8 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     saveCalendarSelection,
     selectedCalendars,
     toggleCalendar,
+    updateAppointment,
+    deleteAppointment
   ])
 
   return (
