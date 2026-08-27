@@ -208,9 +208,12 @@ export const PropertiesList = () => {
                 <Text style={styles.sectionTitle}>Dónde vas a estar</Text>
                 <View>
                   {/* aqui estara el mapa*/}
-                  <View>
-                    <icons.BackButton/>
-                    <Text>La ubicacion exacta se comparte al confirmar la visita</Text>
+                  <View style={styles.mapTextAdviseContainer}>
+                    <icons.Lock/>
+                    <Text 
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      style={styles.mapText}>La ubicacion exacta se comparte al confirmar la visita</Text>
                   </View>
                 </View>
               </View>

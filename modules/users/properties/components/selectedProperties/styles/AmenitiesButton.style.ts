@@ -16,6 +16,8 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 7,
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 5,
 
     },
     amenitieText:{
