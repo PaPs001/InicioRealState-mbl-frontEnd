@@ -2,6 +2,7 @@ import { Component, type ReactNode } from 'react'
 import { Text, View } from 'react-native'
 import { Tabs } from 'expo-router'
 import { CoordinatorBottomNav } from '@/components/userCoordinator/CoordinatorBottomNav'
+import { CalendarDataProvider } from '@/modules/users/date/context/CalendarDataContext'
 
 type CoordinatorErrorBoundaryState = {
   errorMessage: string | null
@@ -43,15 +44,16 @@ class CoordinatorErrorBoundary extends Component<{ children: ReactNode }, Coordi
 export default function CoordinatorLayout() {
   return (
     <CoordinatorErrorBoundary>
-      <Tabs
-        tabBar={() => <CoordinatorBottomNav />}
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: { display: 'none' },
-          sceneStyle: { backgroundColor: '#ffffff' },
-          lazy: true,
-        }}
-      >
+      <CalendarDataProvider>
+        <Tabs
+          tabBar={() => <CoordinatorBottomNav />}
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: { display: 'none' },
+            sceneStyle: { backgroundColor: '#ffffff' },
+            lazy: true,
+          }}
+        >
         <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
         <Tabs.Screen name="properties" options={{ title: 'Propiedades' }} />
         <Tabs.Screen name="appointments" options={{ title: 'Citas' }} />
@@ -62,9 +64,11 @@ export default function CoordinatorLayout() {
         <Tabs.Screen name="rent-followups" options={{ title: 'Seguimientos Rentas', href: null }} />
         <Tabs.Screen name="messages" options={{ title: 'Mensajes' }} />
         <Tabs.Screen name="properties-list" options={{ title: 'Listado', href: null }} />
+        <Tabs.Screen name="properties-list-module" options={{ title: 'Nuevo listado', href: null }} />
         <Tabs.Screen name="developments-soon" options={{ title: 'Desarrollos', href: null }} />
         <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
-      </Tabs>
+        </Tabs>
+      </CalendarDataProvider>
     </CoordinatorErrorBoundary>
   )
 }

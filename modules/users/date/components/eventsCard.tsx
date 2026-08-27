@@ -7,10 +7,12 @@ import {
 } from 'react-native'
 import {
   ArrowBigRight,
+  EllipsisVertical,
   Pencil,
   Trash,
 } from 'lucide-react-native'
 import type { GoogleCalendarDate } from '@/lib/api'
+import { generalColors } from '@/theme'
 
 type EventCardProps = {
   appointment: GoogleCalendarDate
@@ -98,7 +100,7 @@ export function EventCard({ appointment }: EventCardProps) {
           style={styles.optionsButton}
           onPress={toggleOptions}
         >
-          <ArrowBigRight />
+          <EllipsisVertical/>
         </Pressable>
 
         {showOptions && (
@@ -195,4 +197,13 @@ const styles = StyleSheet.create({
     borderWidth: .5,
     height: 10
   },
+  threePoints:{
+    flex: 1,
+
+  },
+  point:{
+    flex: 1,
+    backgroundColor: generalColors.black,
+    
+  }
 })

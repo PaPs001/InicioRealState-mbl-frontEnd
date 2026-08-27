@@ -1,27 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'react-native'
 import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
 
 import type { AppointmentPreviewItem } from '@/components/userDashboard/types'
-import {
-  getDefaultAppointmentType,
-  mapGoogleDateToAppointment,
-} from '@/components/userDashboard/dashboard-formatters'
+import { mapGoogleDateToAppointment } from '@/components/userDashboard/dashboard-formatters'
 import {
   disconnectGoogleCalendar,
   getGoogleCalendarAuthUrl,
-  getGoogleCalendarConnectionStatus,
-  getGoogleCalendarDates,
-  getGoogleCalendars,
-  getSelectedGoogleCalendars,
-  saveSelectedGoogleCalendars,
-  syncGoogleCalendars,
-  type GoogleCalendarConnectionStatus,
-  type GoogleCalendarOption,
-  type SelectedGoogleCalendar,
 } from '@/lib/api'
 import type { AppCapabilities } from '@/modules/settings'
+import { useCalendarData } from '@/modules/users/date/context/CalendarDataContext'
 
 type UseDashboardCalendarParams = {
   authToken: string | null
@@ -45,21 +34,34 @@ export function useDashboardCalendar({
   capabilities,
   returnPath,
 }: UseDashboardCalendarParams) {
-  const [calendarAppointments, setCalendarAppointments] = useState<AppointmentPreviewItem[]>([])
   const [calendarMessage, setCalendarMessage] = useState(DEFAULT_CALENDAR_MESSAGE)
-  const [isCalendarLoading, setIsCalendarLoading] = useState(false)
-
-  const [isGoogleConnected, setIsGoogleConnected] = useState(false)
-  const [googleConnectionStatus, setGoogleConnectionStatus] =
-    useState<GoogleCalendarConnectionStatus | null>(null)
-  const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendarOption[]>([])
-  const [selectedGoogleCalendars, setSelectedGoogleCalendars] = useState<SelectedGoogleCalendar[]>([])
+  const {
+    appointments: calendarDates,
+    calendars: googleCalendars,
+    selectedCalendars: selectedGoogleCalendars,
+    connectionStatus: googleConnectionStatus,
+    isAppointmentsLoading: isCalendarLoading,
+    isSettingsLoading: isCalendarSettingsLoading,
+    isSavingSelection: isSavingCalendarSelection,
+    clearCalendarData,
+    loadAppointments,
+    loadSettings,
+    markPrimaryCalendar,
+    saveCalendarSelection,
+    toggleCalendar,
+    updateAppointment,
+    deleteAppointment
+  } = useCalendarData()
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false)
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false)
-  const [isCalendarSettingsLoading, setIsCalendarSettingsLoading] = useState(false)
-  const [isSavingCalendarSelection, setIsSavingCalendarSelection] = useState(false)
 
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false)
+  
+  // Estados para modal de informacion, eliminacion y edicion de la cita
+  const [isAppointmentInformationVisible, setisAppointmentInformationVisible] = useState(false)
+  const [isEditionSectionVisible, setisEditionSectionVisible] = useState(false)
+
+
   const [appointmentSelectionScreen, setAppointmentSelectionScreen] =
     useState<AppointmentSelectionScreen>(null)
   const [appointmentLeadMode, setAppointmentLeadMode] =
@@ -70,112 +72,67 @@ export function useDashboardCalendar({
       phone: '',
       email: '',
     })
-  const hasLoadedInitialAppointmentsRef = useRef(false)
-  const hasLoadedInitialSettingsRef = useRef(false)
+  const calendarAppointments = useMemo(
+    () => calendarDates
+      .map(mapGoogleDateToAppointment)
+      .filter(isAppointmentFromCurrentWeek)
+      .sort((current, next) => current.sortTime - next.sortTime),
+    [calendarDates],
+  )
+
+  useEffect(() => {
+    if (!authToken) {
+      setCalendarMessage('Inicia sesion para cargar tus citas reales.')
+      return
+    }
+    if (googleConnectionStatus?.status === 'requires_reconnect') {
+      setCalendarMessage('Reconecta Google Calendar para recuperar tus citas.')
+      return
+    }
+    if (calendarAppointments.length) {
+      setCalendarMessage('')
+      return
+    }
+    if (googleConnectionStatus?.connected) {
+      setCalendarMessage('No hay citas de Google para esta semana.')
+    }
+  }, [authToken, calendarAppointments.length, googleConnectionStatus])
 
   const loadGoogleCalendarAppointments = useCallback(
     async (options: { sync?: boolean } = {}) => {
       if (!authToken) {
-        setCalendarAppointments([])
-        setIsGoogleConnected(false)
         setCalendarMessage('Inicia sesion para cargar tus citas reales.')
         return
       }
 
-      setIsCalendarLoading(true)
       try {
-        const dates = await getGoogleCalendarDates(authToken, {
-          sync: options.sync,
-        })
+        const dates = await loadAppointments(options)
         const appointments = dates
           .map(mapGoogleDateToAppointment)
           .filter(isAppointmentFromCurrentWeek)
           .sort((current, next) => current.sortTime - next.sortTime)
 
-        setCalendarAppointments(appointments)
-        setIsGoogleConnected(true)
         setCalendarMessage(
           appointments.length ? '' : 'No hay citas de Google para esta semana.',
         )
       } catch (error) {
         console.warn('No se pudieron cargar las citas de Google Calendar:', error)
-        setCalendarAppointments([])
-
         try {
-          const status = await getGoogleCalendarConnectionStatus(authToken)
-          setGoogleConnectionStatus(status)
-          setIsGoogleConnected(status.status === 'connected' && status.connected)
+          await loadSettings()
           setCalendarMessage(
-            status.status === 'requires_reconnect'
+            googleConnectionStatus?.status === 'requires_reconnect'
               ? 'Reconecta Google Calendar para recuperar tus citas.'
               : DEFAULT_CALENDAR_MESSAGE,
           )
         } catch {
-          setIsGoogleConnected(false)
           setCalendarMessage(DEFAULT_CALENDAR_MESSAGE)
         }
-      } finally {
-        setIsCalendarLoading(false)
       }
     },
-    [authToken],
+    [authToken, googleConnectionStatus?.status, loadAppointments, loadSettings],
   )
 
-  const loadGoogleCalendarSettings = useCallback(async () => {
-    if (!authToken) {
-      setGoogleCalendars([])
-      setSelectedGoogleCalendars([])
-      return
-    }
-
-    setIsCalendarSettingsLoading(true)
-    try {
-      const status = await getGoogleCalendarConnectionStatus(authToken)
-      setGoogleConnectionStatus(status)
-      setIsGoogleConnected(status.status === 'connected' && status.connected)
-
-      if (status.status === 'requires_reconnect') {
-        setGoogleCalendars([])
-        setSelectedGoogleCalendars([])
-        setCalendarMessage('Reconecta Google Calendar para recuperar tus citas.')
-        return
-      }
-
-      if (!status.connected) {
-        setGoogleCalendars([])
-        setSelectedGoogleCalendars([])
-        return
-      }
-
-      const [calendars, selectedCalendars] = await Promise.all([
-        getGoogleCalendars(authToken),
-        getSelectedGoogleCalendars(authToken),
-      ])
-
-      setGoogleCalendars(calendars)
-      setSelectedGoogleCalendars(selectedCalendars)
-    } catch (error) {
-      console.warn('No se pudieron cargar los calendarios:', error)
-    } finally {
-      setIsCalendarSettingsLoading(false)
-    }
-  }, [authToken])
-
-  useEffect(() => {
-    if (!authToken || hasLoadedInitialAppointmentsRef.current) return
-
-    hasLoadedInitialAppointmentsRef.current = true
-    console.info('[DashboardCalendar][initial-load]', { service: 'appointments' })
-    loadGoogleCalendarAppointments({ sync: true })
-  }, [authToken, loadGoogleCalendarAppointments])
-
-  useEffect(() => {
-    if (!authToken || hasLoadedInitialSettingsRef.current) return
-
-    hasLoadedInitialSettingsRef.current = true
-    console.info('[DashboardCalendar][initial-load]', { service: 'settings' })
-    loadGoogleCalendarSettings()
-  }, [authToken, loadGoogleCalendarSettings])
+  const loadGoogleCalendarSettings = loadSettings
 
   const connectGoogleCalendar = useCallback(async () => {
     if (!authToken || isConnectingCalendar) return
@@ -220,11 +177,7 @@ export function useDashboardCalendar({
             setIsDisconnectingCalendar(true)
             try {
               await disconnectGoogleCalendar(authToken)
-              setGoogleCalendars([])
-              setSelectedGoogleCalendars([])
-              setCalendarAppointments([])
-              setGoogleConnectionStatus(null)
-              setIsGoogleConnected(false)
+              clearCalendarData()
               setCalendarMessage('Google Calendar fue desconectado.')
             } catch (error) {
               console.warn('No se pudo desconectar Google Calendar:', error)
@@ -235,7 +188,7 @@ export function useDashboardCalendar({
         },
       ],
     )
-  }, [authToken, isDisconnectingCalendar])
+  }, [authToken, clearCalendarData, isDisconnectingCalendar])
 
   const getCalendarSelection = useCallback(
     (calendarId?: string) =>
@@ -243,85 +196,25 @@ export function useDashboardCalendar({
     [selectedGoogleCalendars],
   )
 
-  const toggleGoogleCalendar = useCallback((calendar: GoogleCalendarOption) => {
-    const calendarId = calendar.calendarId
-    if (!calendarId) return
-
-    setSelectedGoogleCalendars((current) => {
-      const existing = current.find((item) => item.calendarId === calendarId)
-
-      if (existing) {
-        return current.map((item) =>
-          item.calendarId === calendarId
-            ? { ...item, enabled: item.enabled === false }
-            : item,
-        )
-      }
-
-      return [
-        ...current,
-        {
-          calendarId,
-          summary: calendar.summary ?? '',
-          enabled: true,
-          appointmentType: getDefaultAppointmentType(calendar.summary),
-          primaryForCreate: current.every((item) => item.primaryForCreate !== true),
-        },
-      ]
-    })
-  }, [])
-
-  const markPrimaryGoogleCalendar = useCallback((calendar: GoogleCalendarOption) => {
-    const calendarId = calendar.calendarId
-    if (!calendarId) return
-
-    setSelectedGoogleCalendars((current) => {
-      const next = current.some((item) => item.calendarId === calendarId)
-        ? current
-        : [
-            ...current,
-            {
-              calendarId,
-              summary: calendar.summary ?? '',
-              enabled: true,
-              appointmentType: getDefaultAppointmentType(calendar.summary),
-            },
-          ]
-
-      return next.map((item) => ({
-        ...item,
-        enabled: item.calendarId === calendarId ? true : item.enabled,
-        primaryForCreate: item.calendarId === calendarId,
-      }))
-    })
-  }, [])
+  const toggleGoogleCalendar = toggleCalendar
+  const markPrimaryGoogleCalendar = markPrimaryCalendar
 
   const saveGoogleCalendarSelection = useCallback(async () => {
     if (!authToken || isSavingCalendarSelection) return
 
-    setIsSavingCalendarSelection(true)
     try {
-      const savedSelection = await saveSelectedGoogleCalendars(authToken, selectedGoogleCalendars)
-      setSelectedGoogleCalendars(savedSelection)
-      await syncGoogleCalendars(authToken)
-      await Promise.all([
-        loadGoogleCalendarSettings(),
-        loadGoogleCalendarAppointments(),
-      ])
+      await saveCalendarSelection() 
       Alert.alert(
         'Calendarios guardados',
         'La seleccion fue guardada y las citas fueron sincronizadas.',
       )
     } catch (error) {
       console.warn('No se pudo guardar la seleccion de calendarios:', error)
-    } finally {
-      setIsSavingCalendarSelection(false)
     }
   }, [
     authToken,
     isSavingCalendarSelection,
-    loadGoogleCalendarAppointments,
-    loadGoogleCalendarSettings,
+    saveCalendarSelection,
     selectedGoogleCalendars,
   ])
 
@@ -340,6 +233,24 @@ export function useDashboardCalendar({
     [],
   )
 
+  const handleDeleteAppointment = useCallback(
+    (dateId: string) => {
+      Alert.alert(
+        'Eliminar cita',
+        '¿Seguro que deseas eliminar la cita?',
+        [
+          {
+            text: 'cancelar', style: 'cancel',
+          },
+          {
+            text: 'Eliminar',
+            onPress: () => deleteAppointment(dateId)
+          }
+        ]
+      )
+    }, [deleteAppointment]
+  )
+
   const visibleCalendarAppointments = useMemo(
     () =>
       calendarAppointments.filter((appointment) =>
@@ -354,6 +265,7 @@ export function useDashboardCalendar({
   )
 
   const needsGoogleReconnect = googleConnectionStatus?.status === 'requires_reconnect'
+  const isGoogleConnected = googleConnectionStatus?.connected === true
 
   return {
     appointmentLeadMode,
