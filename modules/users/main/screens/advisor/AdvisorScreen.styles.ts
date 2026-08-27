@@ -20,11 +20,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  propertyShortcuts: {
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   propertyShortcutButton: {
     alignSelf: 'center',
     backgroundColor: '#315b41',
     borderRadius: 6,
-    marginBottom: 12,
     paddingHorizontal: 16,
     paddingVertical: 9,
   },

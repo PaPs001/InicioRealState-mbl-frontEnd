@@ -49,11 +49,19 @@ export function useDashboardCalendar({
     markPrimaryCalendar,
     saveCalendarSelection,
     toggleCalendar,
+    updateAppointment,
+    deleteAppointment
   } = useCalendarData()
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false)
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false)
 
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false)
+  
+  // Estados para modal de informacion, eliminacion y edicion de la cita
+  const [isAppointmentInformationVisible, setisAppointmentInformationVisible] = useState(false)
+  const [isEditionSectionVisible, setisEditionSectionVisible] = useState(false)
+
+
   const [appointmentSelectionScreen, setAppointmentSelectionScreen] =
     useState<AppointmentSelectionScreen>(null)
   const [appointmentLeadMode, setAppointmentLeadMode] =
@@ -195,7 +203,7 @@ export function useDashboardCalendar({
     if (!authToken || isSavingCalendarSelection) return
 
     try {
-      await saveCalendarSelection()
+      await saveCalendarSelection() 
       Alert.alert(
         'Calendarios guardados',
         'La seleccion fue guardada y las citas fueron sincronizadas.',
@@ -223,6 +231,24 @@ export function useDashboardCalendar({
       }))
     },
     [],
+  )
+
+  const handleDeleteAppointment = useCallback(
+    (dateId: string) => {
+      Alert.alert(
+        'Eliminar cita',
+        '¿Seguro que deseas eliminar la cita?',
+        [
+          {
+            text: 'cancelar', style: 'cancel',
+          },
+          {
+            text: 'Eliminar',
+            onPress: () => deleteAppointment(dateId)
+          }
+        ]
+      )
+    }, [deleteAppointment]
   )
 
   const visibleCalendarAppointments = useMemo(
