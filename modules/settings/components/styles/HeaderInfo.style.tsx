@@ -121,6 +121,19 @@ export const styles = StyleSheet.create({
   editTextDisabled: {
     color: textColor.softText,
   },
+  notionButton: {
+    alignItems: 'center',
+    borderColor: generalColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: generalColors.white,
+    paddingVertical: 10,
+  },
+  notionButtonText: {
+    color: userColors.coordinator.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   optionsSection:{
     borderRadius: 12,
     borderWidth: 1,

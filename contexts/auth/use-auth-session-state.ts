@@ -97,7 +97,7 @@ export function useAuthSessionState(): AuthSessionState {
       const persistedSession = await loadPersistedAuthSession()
       const sessionUser = persistedSession.user
 
-      setCurrentUserState(sessionUser)
+      setCurrentUserState(normalizeAuthUser(sessionUser))
       setAuthToken(persistedSession.token)
       setRefreshToken(persistedSession.refreshToken)
 
