@@ -11,8 +11,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sessionState = useAuthSessionState()
 
   const { currentUser, authToken, refreshToken, isLoading, login, logout, refreshAuthSession, setAuthSession, setCurrentUser } = sessionState
+  const normalizedUserRoles = [
+    currentUser?.systemRole,
+    ...(currentUser?.roles ?? []),
+  ].filter((role): role is NonNullable<typeof role> => Boolean(role)).map(role => role.toUpperCase())
   const isClient = currentUser?.systemRole === 'CLIENT'
-  const isAgent = currentUser?.systemRole === 'AGENT'
+  const isAgent = normalizedUserRoles.includes('AGENT')
   const isInvestor = !!currentUser?.investment
   const isTenant = !!currentUser?.tenant
   const isSearching = isClient && !isInvestor && !isTenant

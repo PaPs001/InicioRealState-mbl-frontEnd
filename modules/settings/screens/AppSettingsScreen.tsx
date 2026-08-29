@@ -23,11 +23,13 @@ import {
 } from '@/assets'
 import { useState } from 'react'
 import {useSessionDomain} from "@/contexts/auth/use-session-domain"
+import { activateAgentNotion } from '@/lib/api'
 import {
   ProfileImageModal,
   useProfileAvatar,
   useProfileImageUpload,
 } from '@/modules/profile'
+import { NotionModal } from '../components/NotionModal'
 import {
   getInitials,
 } from "@/components/userDashboard/dashboard-formatters"
@@ -42,8 +44,12 @@ export function AppSettingsScreen(
   const {
     authToken,
     currentUser,
+    isAgent,
     logout,
   } = useSessionDomain();
+  const [isNotionModalOpen, setIsNotionModalOpen] = useState(false)
+  const [isSavingNotion, setIsSavingNotion] = useState(false)
+  const [notionError, setNotionError] = useState<string | null>(null)
   const pathname = usePathname();
   const googleCalendar = useGoogleCalendarSettings({ authToken, returnPath: pathname })
   const { profileAvatarUri, setProfileAvatarUri } = useProfileAvatar()
@@ -73,6 +79,35 @@ export function AppSettingsScreen(
     },
   ]);
 
+  const handleOpenNotion = () => {
+    setNotionError(null)
+    setIsNotionModalOpen(true)
+  }
+
+  const handleActivateNotion = async (name: string) => {
+    if (!currentUser?.id || !authToken) {
+      setNotionError('No se pudo validar la sesión. Intenta iniciar sesión nuevamente.')
+      return
+    }
+
+    setIsSavingNotion(true)
+    setNotionError(null)
+
+    try {
+      await activateAgentNotion({
+        userId: currentUser.id,
+        name: name.trim().toUpperCase(),
+        status: true,
+      }, authToken)
+      setIsNotionModalOpen(false)
+      Alert.alert('Notion activado', 'Tu identificación de Notion fue guardada correctamente.')
+    } catch (error) {
+      setNotionError(error instanceof Error ? error.message : 'No se pudo activar Notion.')
+    } finally {
+      setIsSavingNotion(false)
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -99,6 +134,9 @@ export function AppSettingsScreen(
             currentUser?.agentpresentation ?? currentUser?.agentPresentation,
           )}
           onChangeProfilePhoto={() => profileImageUpload.open('profile')}
+          isAgent={isAgent}
+          agentLeadNotion={currentUser?.agentLeadNotion}
+          onActivateNotion={handleOpenNotion}
         />
         <CalendarSection
           onAssignCalendarTypes={googleCalendar.assignCalendarType}
@@ -137,6 +175,14 @@ export function AppSettingsScreen(
         onSelectImage={profileImageUpload.pickImage}
         onSave={profileImageUpload.save}
         onClose={profileImageUpload.close}
+      />
+      <NotionModal
+        visible={isNotionModalOpen}
+        isSaving={isSavingNotion}
+        error={notionError}
+        agentLeadNotion={currentUser?.agentLeadNotion}
+        onSave={handleActivateNotion}
+        onClose={() => setIsNotionModalOpen(false)}
       />
     </SafeAreaView>
   )
