@@ -144,6 +144,7 @@ export function normalizeAuthUser(user: BackendUser | User | null): User | null 
     agentPresentationKey: user.agentPresentationKey,
     agentpresentation: agentPresentation,
     agentPresentation: agentPresentation,
+    agentLeadNotion: (user as User).agentLeadNotion,
     createdAt: user.createdAt ?? new Date().toISOString(),
   }
 }

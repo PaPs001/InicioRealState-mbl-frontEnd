@@ -18,14 +18,14 @@ type NotionModalProps = {
 export function NotionModal({ visible, isSaving, error, agentLeadNotion, onSave, onClose }: NotionModalProps) {
   const [name, setName] = useState('')
   const trimmedName = name.trim()
-  const isEditingNotion = agentLeadNotion?.status === true
+  const isEditingNotion = agentLeadNotion?.status === true || (agentLeadNotion?.name && agentLeadNotion.name.length > 0)
   const modalTitle = isEditingNotion ? 'Cambiar nombre en Notion' : 'Activar Notion'
   const modalSubtitle = isEditingNotion ? 'Actualiza tu nombre de identificación en Notion' : 'Escribe tu nombre de identificación en Notion'
 
   useEffect(() => {
     if (visible) {
-      // If Notion is already active, populate the field with the current name
-      if (isEditingNotion && agentLeadNotion?.name) {
+      // If Notion is already active or has a name, populate the field with the current name
+      if (agentLeadNotion?.name) {
         setName(agentLeadNotion.name)
       } else {
         setName('')
@@ -33,7 +33,7 @@ export function NotionModal({ visible, isSaving, error, agentLeadNotion, onSave,
     } else {
       setName('')
     }
-  }, [visible, isEditingNotion, agentLeadNotion])
+  }, [visible, agentLeadNotion])
 
   const handleClose = () => {
     if (!isSaving) {
