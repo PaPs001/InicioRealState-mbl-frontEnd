@@ -74,6 +74,10 @@ export type BackendCurrentUser = {
   agentPresentationKey?: string
   agentpresentation?: boolean
   agentPresentation?: boolean
+  agentLeadNotion?: {
+    name: string
+    status: boolean
+  }
   files?: Record<string, unknown>
 }
 
@@ -161,6 +165,7 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     profilePhotoKey: getBackendProfilePhotoKey(user),
     agentPresentationKey: getBackendAgentPresentationKey(user),
     agentpresentation: Boolean(user.agentpresentation ?? user.agentPresentation),
+    agentLeadNotion: user.agentLeadNotion,
     createdAt: new Date().toISOString(),
   }
 }

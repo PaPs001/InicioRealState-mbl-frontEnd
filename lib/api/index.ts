@@ -18,6 +18,7 @@
 export { apiClient, coreApi, notificationsApi, API_URLS } from './client'
 
 import * as auth from './endpoints/auth'
+import * as agentNotion from './endpoints/agentNotion'
 import * as activity from './endpoints/activity'
 import * as catalog from './endpoints/catalog'
 import * as dates from './endpoints/dates'
@@ -28,6 +29,7 @@ import * as portfolio from './endpoints/portfolio'
 import * as properties from './endpoints/properties'
 
 export const api = {
+  agentNotion,
   activity,
   auth,
   catalog,
@@ -38,6 +40,11 @@ export const api = {
   portfolio,
   properties,
 } as const
+
+export {
+  activateAgentNotion,
+  type ActivateAgentNotionPayload,
+} from './endpoints/agentNotion'
 
 export {
   getAppointmentActivityRecords,

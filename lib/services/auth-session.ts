@@ -41,24 +41,28 @@ function mapBackendRolesToSystemRole(
   systemRole?: BackendUserRole,
   role?: BackendUserRole,
 ): BackendUserRole {
-  if (roles?.includes('ADMIN')) {
+  const normalizedRoles = roles?.map(item => item.toUpperCase() as BackendUserRole) ?? []
+  const normalizedSystemRole = systemRole?.toUpperCase() as BackendUserRole | undefined
+  const normalizedRole = role?.toUpperCase() as BackendUserRole | undefined
+
+  if (normalizedRoles.includes('ADMIN')) {
     return 'ADMIN'
   }
 
-  if (roles?.includes('COORDINATOR')) {
+  if (normalizedRoles.includes('COORDINATOR')) {
     return 'COORDINATOR'
   }
 
-  if (roles?.includes('AGENT')) {
+  if (normalizedRoles.includes('AGENT')) {
     return 'AGENT'
   }
 
-  if (role) {
-    return role
+  if (normalizedRole) {
+    return normalizedRole
   }
 
-  if (systemRole) {
-    return systemRole
+  if (normalizedSystemRole) {
+    return normalizedSystemRole
   }
 
   return 'CLIENT'
