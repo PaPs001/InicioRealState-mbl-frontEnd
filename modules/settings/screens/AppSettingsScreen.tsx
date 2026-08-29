@@ -135,6 +135,7 @@ export function AppSettingsScreen(
           )}
           onChangeProfilePhoto={() => profileImageUpload.open('profile')}
           isAgent={isAgent}
+          agentLeadNotion={currentUser?.agentLeadNotion}
           onActivateNotion={handleOpenNotion}
         />
         <CalendarSection

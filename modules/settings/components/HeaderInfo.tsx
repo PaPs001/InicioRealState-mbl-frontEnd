@@ -46,7 +46,8 @@ export function HeaderInfo({
   agentLeadNotion,
   onActivateNotion,
 }: HeaderInfoProps) {
-  const notionButtonText = agentLeadNotion?.status === true ? 'Cambiar nombre en Notion' : 'Activar Notion'
+  const hasExistingNotion = agentLeadNotion?.status === true || (agentLeadNotion?.name && agentLeadNotion.name.length > 0)
+  const notionButtonText = hasExistingNotion ? 'Cambiar nombre en Notion' : 'Activar Notion'
 
   return (
     <>
