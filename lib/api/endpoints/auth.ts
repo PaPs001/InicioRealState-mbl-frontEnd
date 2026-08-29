@@ -74,6 +74,10 @@ export type BackendCurrentUser = {
   agentPresentationKey?: string
   agentpresentation?: boolean
   agentPresentation?: boolean
+  agentLeadNotion?: {
+    name: string
+    status: boolean
+  }
   files?: Record<string, unknown>
 }
 
@@ -161,6 +165,7 @@ function mapBackendAuthUser(user?: BackendCurrentUser): User | undefined {
     profilePhotoKey: getBackendProfilePhotoKey(user),
     agentPresentationKey: getBackendAgentPresentationKey(user),
     agentpresentation: Boolean(user.agentpresentation ?? user.agentPresentation),
+    agentLeadNotion: user.agentLeadNotion,
     createdAt: new Date().toISOString(),
   }
 }
@@ -181,6 +186,10 @@ type LoginApiPayload = {
   roles?: BackendUserRole[] | BackendUserRole
   agentpresentation?: boolean
   agentPresentation?: boolean
+  agentLeadNotion?: {
+    name: string
+    status: boolean
+  }
   user?: BackendCurrentUser
   data?: {
     accessToken?: string
@@ -190,6 +199,10 @@ type LoginApiPayload = {
     roles?: BackendUserRole[] | BackendUserRole
     agentpresentation?: boolean
     agentPresentation?: boolean
+    agentLeadNotion?: {
+      name: string
+      status: boolean
+    }
     user?: BackendCurrentUser
   }
 }
@@ -222,6 +235,9 @@ function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefi
   const rawUser = payload.user ?? payload.data?.user
   if (!rawUser) return undefined
 
+  // Extract agentLeadNotion from root or data level
+  const agentLeadNotion = payload.agentLeadNotion ?? payload.data?.agentLeadNotion ?? rawUser.agentLeadNotion
+
   const presentationValue = Boolean(
     rawUser.agentpresentation ??
       rawUser.agentPresentation ??
@@ -236,6 +252,7 @@ function extractLoginUser(payload: LoginApiPayload): BackendCurrentUser | undefi
     ...rawUser,
     agentpresentation: presentationValue,
     agentPresentation: presentationValue,
+    agentLeadNotion,
   }
 }
 
@@ -532,18 +549,6 @@ export async function loginUser(
         investment: user?.investment ?? null,
         tenant: user?.tenant ?? null,
       },
-    })
-    console.log('[auth][login] response', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenPreview: previewToken(accessToken),
-      refreshTokenPreview: previewToken(refreshToken),
-      userId: user?.id ?? null,
-      rawUserKeys: rawUser ? Object.keys(rawUser) : [],
-      systemRole: user?.systemRole ?? null,
-      roles: user?.roles ?? null,
-      investment: user?.investment ?? null,
-      tenant: user?.tenant ?? null,
     })
 
     return {
