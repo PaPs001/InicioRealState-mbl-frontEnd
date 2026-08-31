@@ -1,4 +1,4 @@
-import { View, ScrollView, Text } from "react-native"
+import { Alert, View, ScrollView, Text } from "react-native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
@@ -14,6 +14,8 @@ import type { GoogleCalendarDate } from "@/lib/api"
 import {styles} from './datePrincipalScreen.styles'
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg"
 import { useCalendarData } from "../context/CalendarDataContext"
+import { AppointmentUpdateFlow } from "@/modules/users/main/hooks/useAppointmentUpdateFlow"
+import { mapGoogleDateToAppointment } from "@/modules/users/main/utils/dashboard-formatters"
 
 const COLLAPSED_PANEL_HEIGHT = 300
 const PANEL_EXPANDED_GAP = 0
@@ -61,6 +63,7 @@ export default function CalendarScreen(){
     appointments,
     appointmentsError: loadError,
     isAppointmentsLoading: isLoading,
+    deleteAppointment,
   } = useCalendarData()
   const [screenHeight, setScreenHeight] = useState(0)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
@@ -70,6 +73,7 @@ export default function CalendarScreen(){
   const [calendarTop, setCalendarTop] = useState(0)
   const [calendarHeaderBottom, setCalendarHeaderBottom] = useState(64)
   const [isPanelExpanded, setIsPanelExpanded] = useState(false)
+  const [appointmentToEdit, setAppointmentToEdit] = useState<GoogleCalendarDate | null>(null)
   const panelTranslateY = useSharedValue(0)
   const panelDragStartY = useSharedValue(0)
 
@@ -210,6 +214,31 @@ export default function CalendarScreen(){
     appointment => appointment.appointmentType?.toLowerCase() === "venta",
   ).length
 
+  const handleDeleteAppointment = (appointment: GoogleCalendarDate) => {
+    const dateId = appointment._id
+    if (!dateId) {
+      Alert.alert("No se puede eliminar", "Esta cita no tiene un identificador válido.")
+      return
+    }
+
+    Alert.alert(
+      "Eliminar cita",
+      `¿Quieres eliminar “${appointment.title || "Cita sin título"}”? Esta acción no se puede deshacer.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            void deleteAppointment(dateId).catch(() => {
+              Alert.alert("Error", "No se pudo eliminar la cita.")
+            })
+          },
+        },
+      ],
+    )
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
         <View
@@ -329,6 +358,8 @@ export default function CalendarScreen(){
                           {group.appointments.map((appointment, index) => (
                             <EventCard
                               appointment={appointment}
+                              onDelete={handleDeleteAppointment}
+                              onEdit={setAppointmentToEdit}
                               key={appointment._id ?? appointment.googleEventId ?? `${appointment.startDateTime}-${index}`}
                             />
                           ))}
@@ -339,6 +370,8 @@ export default function CalendarScreen(){
                     visibleAppointments.map((appointment, index) => (
                       <EventCard
                         appointment={appointment}
+                        onDelete={handleDeleteAppointment}
+                        onEdit={setAppointmentToEdit}
                         key={appointment._id ?? appointment.googleEventId ?? `${appointment.startDateTime}-${index}`}
                       />
                     ))
@@ -348,6 +381,13 @@ export default function CalendarScreen(){
             </View>
           </Animated.View>
         </View>
+        {appointmentToEdit ? (
+          <AppointmentUpdateFlow
+            appointment={mapGoogleDateToAppointment(appointmentToEdit)}
+            visible
+            onClose={() => setAppointmentToEdit(null)}
+          />
+        ) : null}
     </SafeAreaView>
   )
 }

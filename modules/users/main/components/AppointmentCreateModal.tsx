@@ -5,7 +5,7 @@ import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/
 import type { Property, PropertyLead } from '@/lib/types'
 
 import { FilterChip } from '@/components/FilterChip'
-import { getAppointmentEndDateTime, getPropertyDisplayName } from '@/components/userDashboard/dashboard-formatters'
+import { getAppointmentEndDateTime, getPropertyDisplayName } from '@/modules/users/main/utils/dashboard-formatters'
 import { styles } from './styles/appointmentCreateModal.style'
 import { generalColors } from '@/theme'
 import { AppointmentDateTimePicker } from './AppointmentDateTimePicker'

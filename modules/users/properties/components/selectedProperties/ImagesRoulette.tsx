@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import { styles } from './styles/ImagesRoulette.style';
 
-import { capitalizeFirstLetter } from '@/components/userDashboard/dashboard-formatters';
+import { capitalizeFirstLetter } from '@/modules/users/main/utils/dashboard-formatters';
 import { icons } from '@/assets';
 
 const IMAGE_WIDTH = 90
