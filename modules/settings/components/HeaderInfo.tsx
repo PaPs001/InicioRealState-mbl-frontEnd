@@ -4,6 +4,7 @@ import type { SvgProps } from 'react-native-svg'
 
 import { icons } from '@/assets'
 import type { OperationMode } from '../types'
+import type { AgentLeadNotion } from '@/lib/types'
 import { SettingsOption } from './SettingsOption'
 import { styles } from './styles/HeaderInfo.style'
 
@@ -26,6 +27,9 @@ type HeaderInfoProps = {
   onAddAgentPresentation: () => void
   hasAgentPresentation: boolean
   onChangeProfilePhoto: () => void
+  isAgent: boolean
+  agentLeadNotion?: AgentLeadNotion
+  onActivateNotion: () => void
 }
 
 export function HeaderInfo({
@@ -38,7 +42,13 @@ export function HeaderInfo({
   onAddAgentPresentation,
   hasAgentPresentation,
   onChangeProfilePhoto,
+  isAgent,
+  agentLeadNotion,
+  onActivateNotion,
 }: HeaderInfoProps) {
+  const hasExistingNotion = agentLeadNotion?.status === true || (agentLeadNotion?.name && agentLeadNotion.name.length > 0)
+  const notionButtonText = hasExistingNotion ? 'Cambiar nombre en Notion' : 'Activar Notion'
+
   return (
     <>
       <View style={styles.profileInformationContainer}>
@@ -81,6 +91,11 @@ export function HeaderInfo({
             <Text style={styles.editText}>Cambiar Foto </Text>
           </Pressable>
         </View>
+        {isAgent ? (
+          <Pressable onPress={onActivateNotion} style={styles.notionButton}>
+            <Text style={styles.notionButtonText}>{notionButtonText}</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={styles.optionsSection}>

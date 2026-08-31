@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, InteractionManager, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import { createAndOpenTemporaryPropertyListPdf, type PdfReportAgentName } from '@/lib/api'
+import { createAndOpenSinglePropertyPdf, createAndOpenTemporaryPropertyListPdf, type PdfReportAgentName } from '@/lib/api'
 import type { ListingProperty, Property } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
@@ -84,6 +84,7 @@ export function usePropertiesScreen() {
   const [isPdfCleanupMode, setIsPdfCleanupMode] = useState(false)
   const [isSelectingProperties, setIsSelectingProperties] = useState(false)
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([])
+  const [activePropertyId, setActivePropertyId] = useState<string | null>(null)
   const [isPdfOptionsVisible, setIsPdfOptionsVisible] = useState(false)
   const [pdfAgentName, setPdfAgentName] = useState<PdfReportAgentName>('AlexaDiaz')
   const [listingFilter, setListingFilter] = useState<ListingFilter>(initialFilter)
@@ -200,6 +201,24 @@ export function usePropertiesScreen() {
   const keyExtractor = useCallback((property: ListingProperty) => property.id, [])
   const openPdfOptions = useCallback(() => { if (!isGeneratingPdf) setIsPdfOptionsVisible(true) }, [isGeneratingPdf])
   const handleToggleSelectionMode = useCallback(() => setIsSelectingProperties(value => !value), [])
+  const handlePropertyPress = useCallback((propertyId: string) => setActivePropertyId(propertyId), [])
+
+  const handleGenerateSinglePdf = useCallback(async () => {
+    if (!activePropertyId || isGeneratingPdf) return
+
+    setIsGeneratingPdf(true)
+    setIsPdfCleanupMode(true)
+
+    try {
+      await createAndOpenSinglePropertyPdf(authToken, { design: 'modern', propertyId: activePropertyId })
+      Alert.alert('PDF descargado', 'El PDF se ha descargado.')
+    } catch (error: any) {
+      Alert.alert('No se pudo descargar y abrir el PDF', error?.message || 'Revisa la conexion con PDF Reports.')
+    } finally {
+      setIsPdfCleanupMode(false)
+      setIsGeneratingPdf(false)
+    }
+  }, [activePropertyId, authToken, isGeneratingPdf])
   
   const handleGeneratePdf = useCallback(async () => {
     if (isGeneratingPdf) return
@@ -268,6 +287,9 @@ export function usePropertiesScreen() {
     availableSortOptions, 
     resetAdvancedFilters,
     togglePropertySelection, 
+    activePropertyId,
+    handlePropertyPress,
+    handleGenerateSinglePdf,
     openPdfOptions, 
     handleToggleSelectionMode, 
     handleGeneratePdf }

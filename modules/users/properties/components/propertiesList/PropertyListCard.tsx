@@ -31,11 +31,13 @@ export const PropertyCard = memo(function PropertyCard({
   isSelected,
   isSelecting,
   onToggleSelection,
+  onPress,
 }: {
   property: ListingProperty
   isSelected: boolean
   isSelecting: boolean
   onToggleSelection: (propertyId: string) => void
+  onPress?: () => void
 }) {
   const primaryTags = property.tags.slice(0, 4)
   const detailTags = property.tags.slice(4, 6)
@@ -44,7 +46,7 @@ export const PropertyCard = memo(function PropertyCard({
   return (
     <Pressable
       style={[styles.propertyCard, isSelected && styles.propertyCardSelected]}
-      onPress={isSelecting ? () => onToggleSelection(property.id) : undefined}
+      onPress={isSelecting ? () => onToggleSelection(property.id) : onPress}
     >
       <View style={styles.imageWrap}>
         {property.image ? (
