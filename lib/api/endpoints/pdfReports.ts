@@ -7,6 +7,7 @@ import { API_URLS, fetchWithAuthRetry } from '../client'
 const ANDROID_ACTION_VIEW = 'android.intent.action.VIEW'
 const ANDROID_FLAG_GRANT_READ_URI_PERMISSION = 1
 const DIRECT_REPORT_ENDPOINT = '/reports/property-list'
+const SINGLE_REPORT_ENDPOINT = '/generate-pdf-single'
 
 export type PdfReportAgentName =
   | 'AlexaDiaz'
@@ -49,6 +50,11 @@ export type GeneratePropertyListPdfPayload = {
   location: string
   list: PdfReportList
   design: PdfReportDesign
+}
+
+export type GenerateSinglePropertyPdfPayload = {
+  design: 'modern'
+  propertyId: string
 }
 
 export type TemporaryPdfReport = {
@@ -177,6 +183,76 @@ export async function createTemporaryPropertyListPdfUrl(
     contentType,
     localUri,
   }
+}
+
+export async function createSinglePropertyPdfUrl(
+  token: string | null | undefined,
+  payload: GenerateSinglePropertyPdfPayload,
+): Promise<TemporaryPdfReport> {
+  const response = await fetchWithAuthRetry(API_URLS.CORE, SINGLE_REPORT_ENDPOINT, {
+    method: 'POST',
+    headers: getCoreApiHeaders(token),
+    token,
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response))
+  }
+
+  const arrayBuffer = await response.arrayBuffer()
+  const filename = getFilenameFromContentDisposition(
+    response.headers.get('content-disposition'),
+    `Propiedad_${payload.propertyId}.pdf`,
+  )
+  const localUri = `${FileSystem.documentDirectory}${filename}`
+
+  await FileSystem.writeAsStringAsync(localUri, arrayBufferToBase64(arrayBuffer), {
+    encoding: FileSystem.EncodingType.Base64,
+  })
+
+  return {
+    filename,
+    byteLength: arrayBuffer.byteLength,
+    contentType: response.headers.get('content-type') || 'application/pdf',
+    localUri,
+  }
+}
+
+export async function createAndOpenSinglePropertyPdf(
+  token: string | null | undefined,
+  payload: GenerateSinglePropertyPdfPayload,
+) {
+  const androidDirectoryPermissions = Platform.OS === 'android'
+    ? await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()
+    : null
+
+  if (Platform.OS === 'android' && !androidDirectoryPermissions?.granted) {
+    throw new Error('No se selecciono una carpeta para guardar el PDF.')
+  }
+
+  const report = await createSinglePropertyPdfUrl(token, payload)
+
+  if (Platform.OS === 'android' && androidDirectoryPermissions?.granted) {
+    const savedUri = await FileSystem.StorageAccessFramework.createFileAsync(
+      androidDirectoryPermissions.directoryUri,
+      getSafFilename(report.filename),
+      'application/pdf',
+    )
+
+    await FileSystem.StorageAccessFramework.copyAsync({
+      from: report.localUri!,
+      to: savedUri,
+    })
+    report.savedUri = savedUri
+    report.openUri = savedUri
+    await openPdfWithIntent(savedUri)
+    return report
+  }
+
+  report.openUri = report.localUri
+  await Linking.openURL(report.localUri!)
+  return report
 }
 
 export async function createAndOpenTemporaryPropertyListPdf(
