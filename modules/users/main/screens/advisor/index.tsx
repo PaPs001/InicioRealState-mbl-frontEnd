@@ -11,12 +11,12 @@ import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
   formatCurrentDashboardDate,
-} from "@/components/userDashboard/dashboard-formatters";
+} from "@/modules/users/main/utils/dashboard-formatters";
 
 import { AppointmentCreateFlow } from "../../components/AppointmentCreateFlow";
 import { styles } from "./AdvisorScreen.styles";
 import { useOperationMode, useDashboardAreaConfig } from "@/modules/settings";
-import { ProfileImageModal } from "@/modules/profile";
+
 import {
   useDashboardCalendar,
   useDashboardLeads,
@@ -30,6 +30,7 @@ import {
   AppointmentsSection,
   LeadsSection,
 } from "../../components/Advisors";
+import { AppointmentUpdateFlow } from "../../hooks/useAppointmentUpdateFlow";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -64,6 +65,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     loadGoogleCalendarAppointments,
     setIsAppointmentModalVisible,
     visibleCalendarAppointments,
+    selectedAppointment,
+    isAppointmentInformationVisible,
+    isEditionSectionVisible,
+    selectAppointment,
+    openAppointmentEdition,
+    closeAppointmentEdition,
+    closeAppointmentInformation,
+    handleDeleteAppointment
   } = useDashboardCalendar({
     authToken,
     capabilities,
@@ -179,6 +188,14 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           onViewCalendar={openCalendarScreen}
           onAddAppointment={handleOpenAppointmentModal}
           styles={styles}
+          selectedAppointment={selectedAppointment}
+          isAppointmentInformationVisible={isAppointmentInformationVisible}
+          isEditionSectionVisible={isEditionSectionVisible}
+          selectAppointment={selectAppointment}
+          openAppointmentEdition={openAppointmentEdition}
+          closeAppointmentEdition={closeAppointmentEdition}
+          closeAppointmentInformation={closeAppointmentInformation}
+          handleDeleteAppointment={handleDeleteAppointment}
         />
 
         <LeadsSection
@@ -193,6 +210,13 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           styles={styles}
         />
       </ScrollView>
+      {selectedAppointment ? (
+        <AppointmentUpdateFlow
+          appointment={selectedAppointment}
+          visible={isEditionSectionVisible}
+          onClose={closeAppointmentEdition}
+        />
+      ): null}  
 
       {isAppointmentModalVisible ? (
         <AppointmentCreateFlow

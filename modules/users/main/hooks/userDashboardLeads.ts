@@ -6,11 +6,11 @@ import {
 import {
   isOverdueFollowUp,
   hasUpcomingFollowUpDate
-} from '@/components/userDashboard/dashboard-formatters'
+} from '@/modules/users/main/utils/dashboard-formatters'
 import {
   DashboardMetric,
   DashboardLeadAlert
-} from '@/components/userDashboard/types'
+} from '@/modules/users/main/types'
 
 type UseDashboardLeadsParams = {
   authToken: string | null

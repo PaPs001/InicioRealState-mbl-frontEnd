@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import {styles} from './styles/AmenitiesButton.style'
-import { capitalizeFirstLetter } from "@/components/userDashboard/dashboard-formatters";
+import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
 import { amenitiesConfigSelectedProperty } from "../../constants/propertyConstants";
 type AmenitiesButtonProps = {
   amenitiesData: string[],

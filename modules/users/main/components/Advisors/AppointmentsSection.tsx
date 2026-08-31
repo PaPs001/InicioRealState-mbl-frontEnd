@@ -1,15 +1,24 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { icons } from "@/assets";
-import { AppointmentCard } from "@/components/userDashboard/DashboardCards";
+import { AppointmentCard } from "./DashboardCards";
+import type { AppointmentPreviewItem } from "../../types";
 
 type AppointmentsSectionProps = {
-  visibleCalendarAppointments: any[];
+  visibleCalendarAppointments: AppointmentPreviewItem[];
   isCalendarLoading: boolean;
   calendarMessage: string;
   onRefresh: () => void;
   onViewCalendar: () => void;
   onAddAppointment: () => void;
   styles: any;
+  selectedAppointment: AppointmentPreviewItem | null;
+  isAppointmentInformationVisible: boolean;
+  isEditionSectionVisible: boolean;
+  selectAppointment: (appointment: AppointmentPreviewItem) => void;
+  openAppointmentEdition: () => void;
+  closeAppointmentEdition: () => void;
+  closeAppointmentInformation: () => void;
+  handleDeleteAppointment: (dateId: string) => void;
 };
 
 export function AppointmentsSection({
@@ -20,6 +29,14 @@ export function AppointmentsSection({
   onViewCalendar,
   onAddAppointment,
   styles,
+  selectedAppointment,
+  isAppointmentInformationVisible,
+  isEditionSectionVisible,
+  selectAppointment,
+  openAppointmentEdition,
+  closeAppointmentEdition,
+  closeAppointmentInformation,
+  handleDeleteAppointment,
 }: AppointmentsSectionProps) {
   return (
     <View style={[styles.panel, styles.appointmentsPanel]}>
@@ -39,7 +56,7 @@ export function AppointmentsSection({
         style={styles.appointmentsScroll}
         contentContainerStyle={styles.appointmentList}
         nestedScrollEnabled
-        showsVerticalScrollIndicator={visibleCalendarAppointments.length > 5}
+        showsVerticalScrollIndicator={false}
       >
         {visibleCalendarAppointments.length === 0 ? (
           <Text style={styles.panelSubtitle}>
@@ -52,6 +69,20 @@ export function AppointmentsSection({
               <AppointmentCard
                 key={`${appointment.id ?? appointment.property}-${appointment.time}`}
                 appointment={appointment}
+                isSelected={
+                  appointment.id
+                    ? selectedAppointment?.id === appointment.id
+                    : selectedAppointment === appointment
+                }
+                isAppointmentInformationVisible={isAppointmentInformationVisible}
+                isEditionSectionVisible={isEditionSectionVisible}
+                onPress={() => selectAppointment(appointment)}
+                onEdit={openAppointmentEdition}
+                onCloseInformation={closeAppointmentInformation}
+                onCloseEdition={closeAppointmentEdition}
+                onDelete={() => {
+                  if (appointment.id) handleDeleteAppointment(appointment.id);
+                }}
               />
             ))
         )}
