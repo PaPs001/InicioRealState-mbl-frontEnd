@@ -161,7 +161,10 @@ export {
 export {
   createAndOpenTemporaryPropertyListPdf,
   createTemporaryPropertyListPdfUrl,
+  createAndOpenSinglePropertyPdf,
+  createSinglePropertyPdfUrl,
   type GeneratePropertyListPdfPayload,
+  type GenerateSinglePropertyPdfPayload,
   type TemporaryPdfReport,
   type PdfReportAction,
   type PdfReportAgentName,
