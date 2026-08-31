@@ -3,6 +3,12 @@
  */
 
 export type BackendUserRole = 'CLIENT' | 'AGENT' | 'COORDINATOR' | 'ADMIN'
+
+export interface AgentLeadNotion {
+  name: string
+  status: boolean
+}
+
 export interface User {
   id: string
   name: string
@@ -20,6 +26,7 @@ export interface User {
   agentPresentationKey?: string
   agentpresentation?: boolean
   agentPresentation?: boolean
+  agentLeadNotion?: AgentLeadNotion
   createdAt: string
 }
 
