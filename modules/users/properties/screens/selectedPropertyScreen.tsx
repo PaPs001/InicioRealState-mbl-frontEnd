@@ -10,7 +10,7 @@ import{
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {styles} from './styles/selectedProperty.styles'
 import { icons, logos } from '@/assets'
-import { capitalizeFirstLetter } from '@/components/userDashboard/dashboard-formatters'
+import { capitalizeFirstLetter } from '@/modules/users/main/utils/dashboard-formatters'
 import { RoomsRow } from '../components/selectedProperties/RoomsRow'
 import { NearPlaces } from '../components/selectedProperties/NearPlaces'
 import { PriceCard } from '../components/PriceCard'

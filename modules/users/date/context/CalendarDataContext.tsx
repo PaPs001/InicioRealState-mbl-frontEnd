@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react'
 
-import { getDefaultAppointmentType } from '@/components/userDashboard/dashboard-formatters'
+import { getDefaultAppointmentType } from '@/modules/users/main/utils/dashboard-formatters'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   deleteGoogleCalendarDate,
@@ -310,21 +310,44 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       payload: UpdateGoogleCalendarDatePayload
     ) => {
       if(!authToken){
+        console.warn('[CalendarDataContext][update] No hay una sesión activa', { dateId })
         throw new Error('No hay una sesion activa')
       }
 
-      const updateAppointment = await updateGoogleCalendarDate(
-        authToken,
+      console.info('[CalendarDataContext][update] Iniciando PATCH', {
         dateId,
         payload,
-      )
+      })
+
+      let updatedAppointment
+      try {
+        updatedAppointment = await updateGoogleCalendarDate(
+          authToken,
+          dateId,
+          payload,
+        )
+      } catch (error) {
+        console.warn('[CalendarDataContext][update] El PATCH fue rechazado o no respondió', {
+          dateId,
+          error,
+        })
+        throw error
+      }
+
+      console.info('[CalendarDataContext][update] PATCH exitoso', {
+        requestedDateId: dateId,
+        returnedDateId: updatedAppointment._id,
+        status: updatedAppointment.status,
+        syncStatus: updatedAppointment.syncStatus,
+        googleCalendarId: updatedAppointment.googleCalendarId,
+      })
 
       setAppointments(current => current.map(appointment => appointment._id === dateId ?
-        updateAppointment 
+        updatedAppointment 
         : appointment
       ))
 
-      return updateAppointment
+      return updatedAppointment
     }, [authToken]
   )
 

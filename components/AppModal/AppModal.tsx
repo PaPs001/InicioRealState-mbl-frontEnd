@@ -145,14 +145,13 @@ export function AppModal({
   )
 
   const modalContent = (
-    <Pressable
+    <View
       style={[
         styles.container,
         sizeStyle,
         position === 'bottom' && styles.bottomContainer,
         containerStyle,
       ]}
-      onPress={event => event.stopPropagation()}
       accessibilityViewIsModal
     >
       {hasHeader ? (
@@ -208,7 +207,7 @@ export function AppModal({
           {footer}
         </View>
       ) : null}
-    </Pressable>
+    </View>
   )
 
   return (
@@ -219,10 +218,13 @@ export function AppModal({
       statusBarTranslucent={statusBarTranslucent}
       onRequestClose={handleClose}
     >
-      <Pressable
-        style={[styles.overlay, positionStyle]}
-        onPress={handleBackdropPress}
-      >
+      <View style={[styles.overlay, positionStyle]}>
+        <Pressable
+          style={styles.backdropPressArea}
+          onPress={handleBackdropPress}
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar modal"
+        />
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
             style={[styles.keyboardAvoidingView, positionStyle]}
@@ -233,7 +235,7 @@ export function AppModal({
         ) : (
           modalContent
         )}
-      </Pressable>
+      </View>
     </Modal>
   )
 }

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getUploadedAgentPresentation } from '@/lib/api'
 import { cacheUploadedFile } from '@/lib/services/uploaded-file-cache'
-import { getInitials } from '@/components/userDashboard/dashboard-formatters'
+import { getInitials } from '@/modules/users/main/utils/dashboard-formatters'
 import {
   useProfileAvatar,
   useProfileImageUpload,

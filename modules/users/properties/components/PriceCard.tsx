@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { icons } from '@/assets'
 import { generalColors, textColor, userColors } from '@/theme'
-import { deleteMXNWord } from '@/components/userDashboard/dashboard-formatters'
+import { deleteMXNWord } from '@/modules/users/main/utils/dashboard-formatters'
 
 type PriceCardProps ={
     onDate: () => void,

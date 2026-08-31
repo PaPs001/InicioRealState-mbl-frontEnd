@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import type { Property } from '@/lib/types'
-import { getPropertyDisplayName } from '@/components/userDashboard/dashboard-formatters'
+import { getPropertyDisplayName } from '@/modules/users/main/utils/dashboard-formatters'
 
 type AppointmentPropertyType = 'renta' | 'venta' | 'general' | string | null | undefined
 

@@ -9,7 +9,7 @@ import {
   View,
   Image
 } from 'react-native'
-import { getInitials } from '@/components/userDashboard/dashboard-formatters'
+import { getInitials } from '@/modules/users/main/utils/dashboard-formatters'
 
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
@@ -28,8 +28,8 @@ import {NextActionModal} from '@/modules/users/leads/components/NextActionModal'
 import { colors } from '@/lib/theme'
 import { fontFamily } from '@/theme'
 import { router } from 'expo-router'
-import { formatDateFollowing, formatTime } from '@/components/userDashboard/dashboard-formatters'
-import { formatDateInput, normalizeDateInput, openPhoneCall, openWhatsApp } from '@/components/userDashboard/dashboard-formatters'
+import { formatDateFollowing, formatTime } from '@/modules/users/main/utils/dashboard-formatters'
+import { formatDateInput, normalizeDateInput, openPhoneCall, openWhatsApp } from '@/modules/users/main/utils/dashboard-formatters'
 type LeadDetailScreenProps= {
   customLeadStatuses?: string[];
   getPropertyName: (propertyId: string) => string | undefined;
