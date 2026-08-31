@@ -34,6 +34,7 @@ export default function CoordinatorPropertiesListScreen() {
     isPdfCleanupMode,
     isSelectingProperties, 
     selectedPropertyIds, 
+    activePropertyId,
     isPdfOptionsVisible, 
     setIsPdfOptionsVisible,
     pdfAgentName, 
@@ -64,6 +65,8 @@ export default function CoordinatorPropertiesListScreen() {
     availableSortOptions,
     resetAdvancedFilters, 
     togglePropertySelection, 
+    handlePropertyPress,
+    handleGenerateSinglePdf,
     openPdfOptions,
     handleToggleSelectionMode, 
     handleGeneratePdf,
@@ -75,6 +78,7 @@ export default function CoordinatorPropertiesListScreen() {
       isSelected={selectedPropertyIds.includes(item.id)}
       isSelecting={isSelectingProperties}
       onToggleSelection={togglePropertySelection}
+      onPress={() => handlePropertyPress(item.id)}
     />
   )
 
@@ -180,6 +184,18 @@ export default function CoordinatorPropertiesListScreen() {
 
       {/** Panel de exportado de pdf */}
       <View style={styles.exportPanel}>
+        {activePropertyId && !isSelectingProperties ? (
+          <TouchableOpacity
+            style={styles.exportButtonSingle}
+            activeOpacity={0.85}
+            onPress={handleGenerateSinglePdf}
+            disabled={isGeneratingPdf}
+          >
+            <Text style={styles.exportButtonSingleText}>
+              {isGeneratingPdf ? 'Generando...' : 'PDF'}{isGeneratingPdf ? '' : '\n'}{isGeneratingPdf ? '' : 'individual'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity
           style={styles.exportButtonSecondary}
           activeOpacity={0.85}
