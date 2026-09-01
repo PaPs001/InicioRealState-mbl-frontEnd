@@ -197,74 +197,9 @@ export function UpdateDateModal({
             contentContainerStyle={styles.modalScrollContent}
           >
             <EditableField
-              label="Título de la cita"
-              originalValue={appointment.title}
-            >
-              <TextInput
-                style={styles.calendarTestInput}
-                value={form.title ?? ""}
-                onChangeText={(value) => onUpdateField("title", value)}
-                placeholder="Título de la cita"
-                placeholderTextColor="#8d8d8d"
-              />
-            </EditableField>
-
-            <EditableField
-              label="Calendario"
-              originalValue={getCalendarName(
-                enabledCalendars,
-                appointment.calendarId,
-              )}
-            >
-              {isLoadingCalendars ? (
-                <Text style={styles.calendarEmptyText}>
-                  Cargando calendarios...
-                </Text>
-              ) : enabledCalendars.length === 0 ? (
-                <Text style={styles.calendarEmptyText}>
-                  No hay calendarios habilitados.
-                </Text>
-              ) : (
-                <View style={styles.calendarOptions}>
-                  {enabledCalendars.map((calendar) => {
-                    const isActive = form.calendarId === calendar.calendarId;
-                    return (
-                      <Pressable
-                        key={calendar.calendarId}
-                        style={[
-                          styles.calendarOption,
-                          isActive && styles.calendarOptionActive,
-                        ]}
-                        onPress={() => onSelectCalendar(calendar)}
-                        disabled={isUpdating}
-                      >
-                        <Text
-                          style={[
-                            styles.calendarOptionTitle,
-                            isActive && styles.calendarOptionTitleActive,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {calendar.summary || calendar.calendarId}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.calendarOptionMeta,
-                            isActive && styles.calendarOptionMetaActive,
-                          ]}
-                        >
-                          {formatAppointmentType(calendar.appointmentType)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              )}
-            </EditableField>
-
-            <EditableField
               label="Tipo de cita"
               originalValue={formatAppointmentType(appointment.appointmentType)}
+              typeSelectedDate={form.appointmentType}
             >
               <View style={styles.appointmentModeRow}>
                 {APPOINTMENT_TYPES.map((type) => {
@@ -274,7 +209,15 @@ export function UpdateDateModal({
                       key={type.value}
                       style={[
                         styles.appointmentModeButton,
-                        isActive && styles.appointmentModeButtonActive,
+                        isActive &&
+                          type.value === "renta" &&
+                          styles.appointmentModeButtonRentActive,
+                        isActive &&
+                          type.value === "venta" &&
+                          styles.appointmentModeButtonSaleActive,
+                        isActive &&
+                          type.value === "general" &&
+                          styles.appointmentModeButtonGeneralActive,
                       ]}
                       onPress={() => onSelectAppointmentType(type.value)}
                       disabled={isUpdating}
@@ -292,67 +235,22 @@ export function UpdateDateModal({
                 })}
               </View>
             </EditableField>
-
+            
             <EditableField
-              label="Fecha y hora"
-              originalValue={formatAppointmentDateTime(
-                appointment.startDateTime,
-              )}
-            >
-              <View style={styles.dateSelectionRow}>
-                <Text style={styles.selectedDateTimeText}>
-                  {formatAppointmentDateTime(startDateTime)}
-                </Text>
-                <Pressable
-                  style={styles.calendarButton}
-                  onPress={() => setIsDateTimePickerVisible(true)}
-                  disabled={isUpdating}
-                >
-                  <Text style={styles.calendarButtonText}>Cambiar fecha</Text>
-                </Pressable>
-              </View>
-            </EditableField>
-
-            <EditableField
-              label="Ubicación"
-              originalValue={appointment.location}
+              label="Título de la cita"
+              originalValue={appointment.title}
+              typeSelectedDate={form.appointmentType}
             >
               <TextInput
                 style={styles.calendarTestInput}
-                value={form.location ?? ""}
-                onChangeText={(value) => onUpdateField("location", value)}
-                placeholder="Ubicación de la cita"
+                value={form.title ?? ""}
+                onChangeText={(value) => onUpdateField("title", value)}
+                placeholder="Título de la cita"
                 placeholderTextColor="#8d8d8d"
               />
             </EditableField>
 
-            <EditableField
-              label="Descripción"
-              originalValue={appointment.description}
-            >
-              <TextInput
-                style={[styles.calendarTestInput, styles.descriptionInput]}
-                value={form.description ?? ""}
-                onChangeText={(value) => onUpdateField("description", value)}
-                placeholder="Descripción de la cita"
-                placeholderTextColor="#8d8d8d"
-                multiline
-                textAlignVertical="top"
-              />
-            </EditableField>
-
-            <EditableField
-              label="Persona de apoyo"
-              originalValue={appointment.helpedBy}
-            >
-              <TextInput
-                style={styles.calendarTestInput}
-                value={form.helpedBy ?? ""}
-                onChangeText={(value) => onUpdateField("helpedBy", value)}
-                placeholder="Persona de apoyo"
-                placeholderTextColor="#8d8d8d"
-              />
-            </EditableField>
+            
 
             {form.appointmentType !== "general" ? (
               <>
@@ -361,6 +259,7 @@ export function UpdateDateModal({
                   originalValue={
                     appointment.externalAdvisorName || appointment.adviser
                   }
+                  typeSelectedDate={form.appointmentType}
                 >
                   <View style={styles.advisorAssignmentRow}>
                     <AssignmentButton
@@ -394,51 +293,181 @@ export function UpdateDateModal({
                   )}
                 </EditableField>
 
+                <EditableField
+              label="Persona de apoyo"
+              originalValue={appointment.helpedBy}
+              typeSelectedDate={form.appointmentType}
+            >
+              <TextInput
+                style={styles.calendarTestInput}
+                value={form.helpedBy ?? ""}
+                onChangeText={(value) => onUpdateField("helpedBy", value)}
+                placeholder="Persona de apoyo"
+                placeholderTextColor="#8d8d8d"
+              />
+            </EditableField>
+
                 <View style={styles.relatedInformationSection}>
-                <Text style={styles.sectionTitle}>Información relacionada</Text>
-                <Pressable
-                  style={styles.relationButton}
-                  onPress={() => onSelectionScreenChange("lead")}
-                >
-                  <View style={styles.relationButtonCopy}>
-                    <Text style={styles.relatedInformationLabel}>Lead</Text>
-                    <Text
-                      style={styles.relatedInformationValue}
-                      numberOfLines={1}
-                    >
-                      {selectedLead?.name ||
-                        (form.leadId === appointment.leadId
-                          ? appointment.client
-                          : undefined) ||
-                        "Seleccionar lead"}
-                    </Text>
-                  </View>
-                  <ChevronRight size={18} color="#3d5a40" />
-                </Pressable>
-                <Pressable
-                  style={styles.relationButton}
-                  onPress={() => onSelectionScreenChange("property")}
-                >
-                  <View style={styles.relationButtonCopy}>
-                    <Text style={styles.relatedInformationLabel}>
-                      Propiedad
-                    </Text>
-                    <Text
-                      style={styles.relatedInformationValue}
-                      numberOfLines={1}
-                    >
-                      {selectedProperty
-                        ? getPropertyDisplayName(selectedProperty)
-                        : form.propertyId === appointment.propertyId
-                          ? appointment.property || "Seleccionar propiedad"
-                          : "Seleccionar propiedad"}
-                    </Text>
-                  </View>
-                  <ChevronRight size={18} color="#3d5a40" />
-                </Pressable>
+                  <Text style={styles.sectionTitle}>
+                    Información relacionada
+                  </Text>
+                  <Pressable
+                    style={styles.relationButton}
+                    onPress={() => onSelectionScreenChange("lead")}
+                  >
+                    <View style={styles.relationButtonCopy}>
+                      <Text style={styles.relatedInformationLabel}>Lead</Text>
+                      <Text
+                        style={styles.relatedInformationValue}
+                        numberOfLines={1}
+                      >
+                        {selectedLead?.name ||
+                          (form.leadId === appointment.leadId
+                            ? appointment.client
+                            : undefined) ||
+                          "Seleccionar lead"}
+                      </Text>
+                    </View>
+                    <ChevronRight size={18} color="#3d5a40" />
+                  </Pressable>
+                  <Pressable
+                    style={styles.relationButton}
+                    onPress={() => onSelectionScreenChange("property")}
+                  >
+                    <View style={styles.relationButtonCopy}>
+                      <Text style={styles.relatedInformationLabel}>
+                        Propiedad
+                      </Text>
+                      <Text
+                        style={styles.relatedInformationValue}
+                        numberOfLines={1}
+                      >
+                        {selectedProperty
+                          ? getPropertyDisplayName(selectedProperty)
+                          : form.propertyId === appointment.propertyId
+                            ? appointment.property || "Seleccionar propiedad"
+                            : "Seleccionar propiedad"}
+                      </Text>
+                    </View>
+                    <ChevronRight size={18} color="#3d5a40" />
+                  </Pressable>
                 </View>
               </>
             ) : null}
+
+             <EditableField
+              label="Ubicación"
+              originalValue={appointment.location}
+              typeSelectedDate={form.appointmentType}
+            >
+              <TextInput
+                style={styles.calendarTestInput}
+                value={form.location ?? ""}
+                onChangeText={(value) => onUpdateField("location", value)}
+                placeholder="Ubicación de la cita"
+                placeholderTextColor="#8d8d8d"
+              />
+            </EditableField>
+
+            <EditableField
+              label="Descripción"
+              originalValue={appointment.description}
+              typeSelectedDate={form.appointmentType}
+            >
+              <TextInput
+                style={[styles.calendarTestInput, styles.descriptionInput]}
+                value={form.description ?? ""}
+                onChangeText={(value) => onUpdateField("description", value)}
+                placeholder="Descripción de la cita"
+                placeholderTextColor="#8d8d8d"
+                multiline
+                textAlignVertical="top"
+              />
+            </EditableField>
+
+            {form.appointmentType === 'general' ? (
+
+              <EditableField
+                label="Calendario"
+                originalValue={getCalendarName(
+                  enabledCalendars,
+                  appointment.calendarId,
+                )}
+                typeSelectedDate={form.appointmentType}
+              >
+                {isLoadingCalendars ? (
+                  <Text style={styles.calendarEmptyText}>
+                    Cargando calendarios...
+                  </Text>
+                ) : enabledCalendars.length === 0 ? (
+                  <Text style={styles.calendarEmptyText}>
+                    No hay calendarios habilitados.
+                  </Text>
+                ) : (
+                  <View style={styles.calendarOptions}>
+                    {enabledCalendars.map((calendar) => {
+                      const isActive = form.calendarId === calendar.calendarId;
+                      return (
+                        <Pressable
+                          key={calendar.calendarId}
+                          style={[
+                            styles.calendarOption,
+                            isActive && styles.calendarOptionActive,
+                          ]}
+                          onPress={() => onSelectCalendar(calendar)}
+                          disabled={isUpdating}
+                        >
+                          <Text
+                            style={[
+                              styles.calendarOptionTitle,
+                              isActive && styles.calendarOptionTitleActive,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {calendar.summary || calendar.calendarId}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.calendarOptionMeta,
+                              isActive && styles.calendarOptionMetaActive,
+                            ]}
+                          >
+                            {formatAppointmentType(calendar.appointmentType)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
+              </EditableField>
+            ): null}
+
+            <EditableField
+              label="Fecha y hora"
+              originalValue={formatAppointmentDateTime(
+                appointment.startDateTime,
+              )}
+              typeSelectedDate={form.appointmentType}
+            >
+              <View style={styles.dateSelectionRow}>
+                <Text style={styles.selectedDateTimeText}>
+                  {formatAppointmentDateTime(startDateTime)}
+                </Text>
+                <Pressable
+                  style={styles.calendarButton}
+                  onPress={() => setIsDateTimePickerVisible(true)}
+                  disabled={isUpdating}
+                >
+                  <Text style={styles.calendarButtonText}>Cambiar fecha</Text>
+                </Pressable>
+              </View>
+            </EditableField>
+
+           
+
+            
+
+            
           </KeyboardAwareScrollView>
 
           {isDateTimePickerVisible && startDateTime ? (
@@ -457,6 +486,8 @@ export function UpdateDateModal({
     </AppModal>
   );
 }
+
+/// Componentes mas pequeños para la selección de relaciones, botones de asignación y campos editables
 
 function RelationSelectionList({
   children,
@@ -576,17 +607,37 @@ function EditableField({
   children,
   label,
   originalValue,
+  typeSelectedDate,
 }: {
   children: ReactNode;
   label: string;
   originalValue?: string | null;
+  typeSelectedDate?: string | null;
 }) {
   return (
     <View style={styles.fieldSection}>
       <Text style={styles.calendarLabel}>{label}</Text>
-      <View style={styles.originalValueContainer}>
-        <Text style={styles.originalValueLabel}>Información actual</Text>
-        <Text style={styles.originalValueText}>
+      <View style={[
+          styles.originalValueContainer,
+          typeSelectedDate === "renta" && styles.rentValueContainer,
+          typeSelectedDate === "venta" && styles.saleValueContainer,
+          typeSelectedDate === "general" && styles.generalValueContainer,
+        ]}
+      >
+        <Text
+          style={[
+            styles.originalValueLabel,
+            typeSelectedDate && styles.coloredValueText,
+          ]}
+        >
+          Información actual
+        </Text>
+        <Text
+          style={[
+            styles.originalValueText,
+            typeSelectedDate && styles.coloredValueText,
+          ]}
+        >
           {originalValue?.trim() || "Sin información"}
         </Text>
       </View>
