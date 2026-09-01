@@ -216,6 +216,18 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 5,
   },
+  rentValueContainer:{
+    backgroundColor: generalColors.rentColor
+  },
+  saleValueContainer: {
+    backgroundColor: generalColors.saleColor
+  },
+  generalValueContainer: {
+    backgroundColor: generalColors.general,
+  },
+  coloredValueText: {
+    color: generalColors.white,
+  },
   relatedLeadSection:{
     gap: 3
   },
@@ -240,9 +252,17 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 8,
   },
-  appointmentModeButtonActive: {
-    backgroundColor: '#3d5a40',
-    borderColor: '#3d5a40',
+  appointmentModeButtonRentActive: {
+    backgroundColor: generalColors.rentColor,
+    borderColor: generalColors.rentColor,
+  },
+  appointmentModeButtonSaleActive: {
+    backgroundColor: generalColors.saleColor,
+    borderColor: generalColors.saleColor,
+  },
+  appointmentModeButtonGeneralActive: {
+    backgroundColor: generalColors.general,
+    borderColor: generalColors.general,
   },
   appointmentModeButtonText: {
     color: '#3d5a40',
@@ -631,6 +651,11 @@ export const styles = StyleSheet.create({
   },
   fieldSection: {
     gap: 7,
+    backgroundColor: '#fafafa',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: .5,
+    borderColor: '#ded6ca',
   },
   originalValueContainer: {
     borderRadius: 8,

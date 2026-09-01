@@ -20,7 +20,6 @@ import { useDashboardProperties } from "./userDashboardProperties";
 
 type Params = {
   capabilities?: AppCapabilities;
-  helpedBy?: string;
   initialLead?: PropertyLead;
   initialProperty?: Property;
   onClose: () => void;
@@ -31,7 +30,6 @@ type Params = {
 
 export function useAppointmentCreateFlow({
   capabilities,
-  helpedBy,
   initialLead,
   initialProperty,
   onClose,
@@ -43,7 +41,7 @@ export function useAppointmentCreateFlow({
   const { addAppointment } = useCalendarData();
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
   const [form, setForm] = useState<CreateGoogleCalendarDatePayload>(() =>
-    createInitialForm(currentUser?.id, helpedBy),
+    createInitialForm(currentUser?.id),
   );
   const { appointmentLeadOptions, isLeadsLoading, loadLeads } =
     useDashboardLeads({ authToken });
@@ -80,7 +78,7 @@ export function useAppointmentCreateFlow({
     const initialPropertyId =
       getPropertyId(initialProperty) || initialLead?.propertyId || null;
     setForm((current) => ({
-      ...createInitialForm(currentUser?.id, helpedBy),
+      ...createInitialForm(currentUser?.id),
       appointmentType:
         getInitialAppointmentType(initialLead, initialProperty) ||
         current.appointmentType,
@@ -101,7 +99,6 @@ export function useAppointmentCreateFlow({
     initialLead?.propertyId,
     initialProperty,
     currentUser?.id,
-    helpedBy,
   ]);
 
   const updateForm = useCallback(
@@ -193,7 +190,7 @@ export function useAppointmentCreateFlow({
         propertyId: isGeneral ? null : form.propertyId,
         endDateTime: getAppointmentEndDateTime(form.startDateTime),
         advisorId: form.advisorId || currentUser?.id || null,
-        helpedBy: form.helpedBy || helpedBy || currentUser?.name || "",
+        helpedBy: isGeneral ? "" : form.helpedBy?.trim() || "",
       };
       const payload: CreateGoogleCalendarDatePayload =
         !isGeneral && calendar.appointmentLeadMode === "provisional"
@@ -237,9 +234,7 @@ export function useAppointmentCreateFlow({
     authToken,
     calendar,
     currentUser?.id,
-    currentUser?.name,
     form,
-    helpedBy,
     isCreatingAppointment,
     loadLeads,
     onClose,
@@ -279,17 +274,14 @@ export function useAppointmentCreateFlow({
   };
 }
 
-function createInitialForm(
-  advisorId?: string,
-  helpedBy?: string,
-): CreateGoogleCalendarDatePayload {
+function createInitialForm(advisorId?: string): CreateGoogleCalendarDatePayload {
   const startDateTime = getDefaultAppointmentStartDateTime();
   return {
     title: "",
     startDateTime,
     endDateTime: getAppointmentEndDateTime(startDateTime),
     timeZone: "America/Mexico_City",
-    helpedBy: helpedBy || "",
+    helpedBy: "",
     advisorId: advisorId || null,
   };
 }

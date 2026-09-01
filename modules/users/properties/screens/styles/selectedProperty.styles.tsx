@@ -7,11 +7,16 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.background,
   },
   container: {
-    flex: 1,
     paddingHorizontal: 20,
-    paddingBottom: 92,
     paddingTop: 5,
     gap: 10
+  },
+  propertyListContent: {
+    paddingBottom: 92,
+  },
+  listSection: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   operationContainer:{
     flexDirection: 'row',
