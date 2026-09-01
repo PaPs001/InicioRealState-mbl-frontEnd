@@ -8,8 +8,7 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
     href: '/userAdviser/properties-list',
     icon: (color, size) => <Propertie/>,
     isActive: (pathname) =>
-      pathname.startsWith('/userAdviser/properties') ||
-      pathname.startsWith('/userAdviser/developments-soon'),
+      pathname.startsWith('/userAdviser/properties'),
     label: 'Propiedades',
     size: 24,
   },
