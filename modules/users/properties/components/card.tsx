@@ -351,7 +351,7 @@ export default function CoordinatorPropertiesListScreen() {
               return
             }
 
-            router.replace(`${routeBase}/properties` as never)
+            router.replace(`${routeBase}/properties-list` as never)
           }}
           activeOpacity={0.85}
         >

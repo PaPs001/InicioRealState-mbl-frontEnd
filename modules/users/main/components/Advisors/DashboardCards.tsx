@@ -2,8 +2,11 @@ import { Pressable, Text, View } from "react-native";
 import {
   Bell,
   CalendarDays,
+  CalendarIcon,
   ChevronRight,
   Edit,
+  HouseIcon,
+  KeyRoundIcon,
   TextAlignStartIcon,
   Trash,
   User2Icon,
@@ -51,10 +54,7 @@ export function AppointmentCard({
   appointment,
   onPress,
   isSelected,
-  isEditionSectionVisible,
   onEdit,
-  onCloseInformation,
-  onCloseEdition,
   onDelete,
 }: {
   onPress: () => void;
@@ -79,6 +79,23 @@ export function AppointmentCard({
     appointment.createdBy,
   ].some(hasText);
 
+  const appointmentType = appointment.appointmentType;
+
+  const appointmentTypeConfig =
+    appointmentType === "renta"
+      ? {
+          label: "Cita renta",
+          icon: <KeyRoundIcon size={18} stroke={'#caab5e'}/>,
+        }
+      : appointmentType === "venta"
+        ? {
+            label: "Cita venta",
+            icon: <HouseIcon size={18} stroke={'#caab5e'}/>,
+          }
+        : {
+            label: "Cita general",
+            icon: <CalendarIcon size={18} stroke={'#caab5e'}/>,
+          };
   return (
     <View>
       <Pressable
@@ -93,9 +110,26 @@ export function AppointmentCard({
         <View style={[styles.appointmentContent]}>
           <View style={styles.leftSection}>
             {hasText(appointment.title) ? (
-              <Text style={styles.appointmentTitle} numberOfLines={1}>
-                {appointment.title}
-              </Text>
+              <View style={styles.appoinmentTitleRow}>
+                <View style={styles.appointmentTypeIcon}>{appointmentTypeConfig.icon}</View>
+                <View style={styles.appointmentTextRow}>
+                  <Text style={styles.appointmentTitle} numberOfLines={1}>
+                    {appointment.title}
+                  </Text>
+                  <View style={[styles.appointmentTypeGeneral,
+                    appointmentTone === 'rent' && styles.appointmentTypeRent,
+                    appointmentTone === 'sale' && styles.appointmentTypeSale
+                  ]}>
+                    <Text 
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      style={[styles.appointmentTypeText]}
+                    >
+                      {appointmentTypeConfig.label}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             ) : null}
             {!hasPrimaryDetails ? (
               <View style={styles.googleCalendarEmptyState}>
@@ -234,7 +268,13 @@ export function AppointmentCard({
           <View style={styles.rightSection}>
             <View style={styles.dayPill}>
               <CalendarDays size={10} color="#ffffff" />
-              <Text style={styles.appointmentDay}>{appointment.day}</Text>
+              <Text
+                style={styles.appointmentDay}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                {appointment.day}
+              </Text>
             </View>
             <Text style={styles.appointmentTime}>{appointment.time}</Text>
 
@@ -313,15 +353,17 @@ export function AppointmentCard({
             onPress={onEdit}
             style={[styles.editionButton, styles.button]}
           >
-            <Edit height={"45%"} width={"45%"} stroke={textColor.accentGolden} />
-            
+            <Edit
+              height={"45%"}
+              width={"45%"}
+              stroke={textColor.accentGolden}
+            />
           </Pressable>
-          <Pressable 
-          onPress={onDelete}
+          <Pressable
+            onPress={onDelete}
             style={[styles.deleteButton, styles.button]}
           >
-            <Trash height={"45%"} width={"45%"} stroke={'red'} />
-            
+            <Trash height={"45%"} width={"45%"} stroke={"red"} />
           </Pressable>
         </View>
       ) : null}

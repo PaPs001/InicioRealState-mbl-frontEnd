@@ -86,8 +86,7 @@ export function getDefaultAppointmentType(summary?: string): AppointmentType {
 
 export function getDefaultAppointmentStartDateTime() {
   const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setHours(10, 0, 0, 0);
+  date.setHours(12, 0, 0, 0);
   return date.toISOString();
 }
 

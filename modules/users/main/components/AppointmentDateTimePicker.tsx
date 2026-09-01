@@ -3,7 +3,6 @@ import {
   Modal,
   Pressable,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -35,10 +34,10 @@ export function AppointmentDateTimePicker({
   onClose,
   visible,
 }: AppointmentDateTimePickerProps) {
-  const [step, setStep] = useState<'date' | 'time' | 'summary'>('date')
-  const [hasSelectedDate, setHasSelectedDate] = useState(false)
-  const [hasSelectedHour, setHasSelectedHour] = useState(false)
-  const [hasSelectedMinute, setHasSelectedMinute] = useState(false)
+  const [step, setStep] = useState<'date' | 'time'>('date')
+  const [hasSelectedDate, setHasSelectedDate] = useState(true)
+  const [hasSelectedHour, setHasSelectedHour] = useState(true)
+  const [hasSelectedMinute, setHasSelectedMinute] = useState(true)
   const valueDate = getSafeDate(value)
   const [selectedDate, setSelectedDate] = useState(valueDate)
   const [visibleMonth, setVisibleMonth] = useState(
@@ -62,9 +61,9 @@ export function AppointmentDateTimePicker({
     setSelectedHour(getSafeHour(nextDate.getHours()))
     setSelectedMinute(roundMinute(nextDate.getMinutes()))
     setStep('date')
-    setHasSelectedDate(false)
-    setHasSelectedHour(false)
-    setHasSelectedMinute(false)
+    setHasSelectedDate(true)
+    setHasSelectedHour(true)
+    setHasSelectedMinute(true)
   }, [value])
 
   function goToPreviousMonth() {
@@ -99,20 +98,14 @@ export function AppointmentDateTimePicker({
     onClose()
   }
 
-  const canGoToSummary = hasSelectedDate && hasSelectedHour && hasSelectedMinute
-  const canConfirmSelection = step === 'summary' && canGoToSummary
   const pickerTitle =
     step === 'date'
       ? 'Seleccionar fecha '
-      : step === 'time'
-        ? 'Seleccionar hora '
-        : 'Confirmar cita'
+      : 'Seleccionar hora '
   const pickerSubtitle =
     step === 'date'
       ? 'Elige el dia de la cita  '
-      : step === 'time'
-        ? 'Elige la hora de la cita  '
-        : 'Revisa la fecha y hora seleccionadas  '
+      : 'Elige la hora de la cita  '
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -189,9 +182,7 @@ export function AppointmentDateTimePicker({
                     </View>
                     <Pressable
                       style={styles.appointmentDatePickerConfirmButton}
-                      onPress={() => {
-                        if (hasSelectedDate) setStep('time')
-                      }}
+                      onPress={() => setStep('time')}
                     >
                       <Text style={styles.appointmentDatePickerConfirmText}>
                         Continuar
@@ -224,38 +215,13 @@ export function AppointmentDateTimePicker({
                   <View>
                     <Pressable
                       style={styles.appointmentDatePickerConfirmButton}
-                      onPress={() => {
-                        if (canGoToSummary) setStep('summary')
-                      }}
+                      onPress={confirmSelection}
                     >
-                      <Text style={styles.appointmentDatePickerConfirmText}>Continuar</Text>
+                      <Text style={styles.appointmentDatePickerConfirmText}>Seleccionar hora</Text>
                     </Pressable>
                   </View>
                 </>
-              ) : (
-                <View style={styles.appointmentDatePickerFooter}>
-                  <Text style={styles.appointmentDatePickerValue}>
-                    {formatSelectedDateTime(selectedDate, selectedHour, selectedMinute)}
-                  </Text>
-                  <View style={styles.selectionButtonContainer}>
-                    <Pressable
-                      style={styles.appointmentDatePickerConfirmButton}
-                      onPress={() => setStep('date')}
-                    >
-                      <Text style={styles.appointmentDatePickerConfirmText}>Volver a escoger fecha</Text>
-                    </Pressable>
-                    {canConfirmSelection ? (
-                      <TouchableOpacity
-                        style={styles.appointmentDatePickerConfirmButton}
-                        activeOpacity={0.85}
-                        onPress={confirmSelection}
-                      >
-                        <Text style={styles.appointmentDatePickerConfirmText}>Confirmar fecha  </Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                </View>
-              )}
+              ) : null}
             </View>
           </Pressable>
         </Pressable>
@@ -273,16 +239,6 @@ function roundMinute(minute: number) {
 
 function getSafeHour(hour: number) {
   return HOUR_OPTIONS.includes(hour) ? hour : HOUR_OPTIONS[0]
-}
-
-function formatSelectedDateTime(date: Date, hour: number, minute: number) {
-  const nextDate = new Date(date)
-  nextDate.setHours(hour, minute, 0, 0)
-
-  return new Intl.DateTimeFormat('es-MX', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(nextDate)
 }
 
 function formatSelectedDate(date: Date) {

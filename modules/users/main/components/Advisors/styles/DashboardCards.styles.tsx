@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from "react-native";
-import { generalColors } from "@/theme";
+import { borderColor, generalColors } from "@/theme";
 
 const numberFont = Platform.select({
   ios: "Georgia",
@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.saleColor,
   },
   appointmentCardGeneral: {
-    backgroundColor: "#434e31",
+    backgroundColor: generalColors.general,
   },
   appointmentTitle: {
     color: "#d4b66f",
@@ -79,6 +79,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    paddingHorizontal: 16,
   },
   circularIconAdviser: {
     borderRadius: 9999,
@@ -231,13 +232,48 @@ export const styles = StyleSheet.create({
   appointmentContent: {
     flexDirection: "row",
   },
-
   leftSection: {
-    flex: 2,
+    flex: 1.9,
     paddingRight: 10,
     gap: 6,
   },
-
+  appoinmentTitleRow:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  appointmentTypeIcon:{
+     
+  },
+  appointmentTextRow:{
+    gap: 3,
+  },
+  appointmentTypeText:{
+    fontSize: 9,
+    lineHeight: 12,
+    color: generalColors.white
+  },
+  appointmentTypeRent: {
+    backgroundColor: generalColors.rentColor,
+    borderColor: '#fff',
+    borderWidth: 0.5,
+  },
+  appointmentTypeSale:{
+    backgroundColor: generalColors.saleColor,
+    borderColor: '#fff',
+    borderWidth: 0.5,
+  },
+  appointmentTypeGeneral:{
+    borderRadius: 8,
+    backgroundColor: 'rgb(73, 4, 4)',
+    paddingVertical: 3,
+    paddingHorizontal: 12,
+    width: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#fff',
+    borderWidth: 0.5,
+  },
   googleCalendarEmptyState: {
     flex: 1,
     justifyContent: "center",
@@ -254,6 +290,8 @@ export const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: "#d8c596",
     paddingLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
 

@@ -137,7 +137,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => router.push(`${areaConfig.basePath}/properties-list-module` as never)}
+              onPress={() => router.push(`${areaConfig.basePath}/properties-list` as never)}
               style={styles.propertyShortcutButton}
             >
               <Text style={styles.propertyShortcutButtonText}>
@@ -220,7 +220,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
       {isAppointmentModalVisible ? (
         <AppointmentCreateFlow
-          helpedBy={advisorName}
           onClose={handleCloseAppointmentModal}
           visible
         />
