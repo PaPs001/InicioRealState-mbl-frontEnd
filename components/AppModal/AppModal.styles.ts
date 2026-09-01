@@ -6,6 +6,10 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(18, 24, 21, 0.52)',
   },
 
+  backdropPressArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
   overlayCenter: {
     alignItems: 'center',
     justifyContent: 'center',

@@ -32,7 +32,7 @@ import {
 import { NotionModal } from '../components/NotionModal'
 import {
   getInitials,
-} from "@/components/userDashboard/dashboard-formatters"
+} from "@/modules/users/main/utils/dashboard-formatters"
 import {styles} from './AppSettingsScreen.style'
 import { useHideBottomNav } from '@/lib/navigation/bottom-nav-visibility'
 

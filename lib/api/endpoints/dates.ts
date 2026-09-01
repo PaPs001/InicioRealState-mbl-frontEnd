@@ -7,6 +7,26 @@ export interface GoogleCalendarDateTime {
   dateTime?: string
   timeZone?: string
 }
+export interface GoogleCalendarDateLead {
+  leadId: string
+  name?: string | null
+  phone?: string | null
+  email?: string | null
+}
+
+export interface GoogleCalendarDateProperty {
+  propertyId: string
+  name?: string | null
+  location?: string | null
+  price?: string | null
+}
+
+export interface GoogleCalendarDateUser {
+  userId: string
+  name?: string | null
+  phone?: string | null
+  email?: string | null
+}
 
 export interface GoogleCalendarDate {
   _id?: string
@@ -14,10 +34,13 @@ export interface GoogleCalendarDate {
   description?: string | null
   location?: string | null
   helpedBy?: string | null
+  externalAdvisorName?: string | null
   appointmentType?: string | null
   leadId?: string | null
   propertyId?: string | null
   advisorId?: string | null
+  property?: GoogleCalendarDateProperty | null
+  advisor?: GoogleCalendarDateUser | null
   startDateTime?: string | null
   endDateTime?: string | null
   timeZone?: string | null
@@ -27,6 +50,11 @@ export interface GoogleCalendarDate {
   googleCalendarId?: string | null
   googleEventId?: string | null
   googleHtmlLink?: string | null
+  lead?: GoogleCalendarDateLead | null
+  createdBy?: string | null
+  updatedBy?: string | null
+  createdByUser?: GoogleCalendarDateUser | null
+  updatedByUser?: GoogleCalendarDateUser | null
 }
 
 export interface GoogleCalendarDateFilters {
@@ -74,6 +102,7 @@ export type UpdateGoogleCalendarDatePayload = {
   leadId?: string | null
   propertyId?: string | null
   advisorId?: string | null
+  externalAdvisorName?: string | null
   helpedBy?: string | null
 }
 

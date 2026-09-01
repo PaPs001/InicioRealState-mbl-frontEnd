@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter } from "@/components/userDashboard/dashboard-formatters";
+import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
 import { icons } from "@/assets";
 import { ComponentType } from "react";
 import { SvgProps } from "react-native-svg";

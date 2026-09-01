@@ -8,8 +8,7 @@ const coordinatorBottomNavItems: BottomNavItem[] = [
     href: '/userCoordinator/properties-list',
     icon: (color, size) => <Users size={size} color={color} />,
     isActive: (pathname) =>
-      pathname.startsWith('/userCoordinator/properties') ||
-      pathname.startsWith('/userCoordinator/developments-soon'),
+      pathname.startsWith('/userCoordinator/properties'),
     label: 'Propiedades',
     size: 24,
   },
