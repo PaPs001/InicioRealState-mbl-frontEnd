@@ -1,11 +1,11 @@
-import { Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { FlatList, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ChevronRight } from 'lucide-react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
 import type { Property, PropertyLead } from '@/lib/types'
 
 import { FilterChip } from '@/components/FilterChip'
-import { getAppointmentEndDateTime, getPropertyDisplayName } from '@/components/userDashboard/dashboard-formatters'
+import { getAppointmentEndDateTime, getPropertyDisplayName } from '@/modules/users/main/utils/dashboard-formatters'
 import { styles } from './styles/appointmentCreateModal.style'
 import { generalColors } from '@/theme'
 import { AppointmentDateTimePicker } from './AppointmentDateTimePicker'
@@ -119,6 +119,7 @@ export function AppointmentCreateModal({
 
     if (appointmentType === 'general') {
       onUpdateForm('calendarId', '')
+      onUpdateForm('helpedBy', '')
       return
     }
 
@@ -228,42 +229,42 @@ export function AppointmentCreateModal({
               )}
             </ScrollView>
           ) : selectionScreen === 'property' ? (
-            <ScrollView
+            <FlatList
+              data={isCatalogLoading ? [] : appointmentPropertyOptions}
+              keyExtractor={property => property.id || property._id || getPropertyDisplayName(property)}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.appointmentModalContent}
-            >
-              {isCatalogLoading ? (
-                <Text style={styles.calendarSettingsEmpty}>Cargando propiedades...</Text>
-              ) : appointmentPropertyOptions.length === 0 ? (
-                <Text style={styles.calendarSettingsEmpty}>No hay propiedades disponibles.</Text>
-              ) : (
-                <View style={styles.appointmentSelectionList}>
-                  {appointmentPropertyOptions.map(property => {
-                    const propertyId = property.id || property._id
-                    const isSelected = testAppointmentForm.propertyId === propertyId
-
-                    return (
-                      <TouchableOpacity
-                        key={propertyId}
-                        style={[styles.appointmentSelectionRow, isSelected && styles.appointmentSelectionRowActive]}
-                        onPress={() => onSelectProperty(property)}
-                        activeOpacity={0.85}
-                      >
-                        <View style={styles.appointmentSelectionRowCopy}>
-                          <Text style={[styles.appointmentSelectionRowTitle, isSelected && styles.appointmentSelectionRowTitleActive]} numberOfLines={1}>
-                            {getPropertyDisplayName(property)}
-                          </Text>
-                          <Text style={[styles.appointmentSelectionRowMeta, isSelected && styles.appointmentSelectionRowMetaActive]} numberOfLines={2}>
-                            {property.city || property.address || property.status}
-                          </Text>
-                        </View>
-                        <ChevronRight size={17} color={isSelected ? '#ffffff' : '#3d5a40'} />
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
+              ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+              ListEmptyComponent={(
+                <Text style={styles.calendarSettingsEmpty}>
+                  {isCatalogLoading
+                    ? 'Cargando propiedades...'
+                    : 'No hay propiedades disponibles.'}
+                </Text>
               )}
-            </ScrollView>
+              renderItem={({ item: property }) => {
+                const propertyId = property.id || property._id
+                const isSelected = testAppointmentForm.propertyId === propertyId
+
+                return (
+                  <TouchableOpacity
+                    style={[styles.appointmentSelectionRow, isSelected && styles.appointmentSelectionRowActive]}
+                    onPress={() => onSelectProperty(property)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.appointmentSelectionRowCopy}>
+                      <Text style={[styles.appointmentSelectionRowTitle, isSelected && styles.appointmentSelectionRowTitleActive]} numberOfLines={1}>
+                        {getPropertyDisplayName(property)}
+                      </Text>
+                      <Text style={[styles.appointmentSelectionRowMeta, isSelected && styles.appointmentSelectionRowMetaActive]} numberOfLines={2}>
+                        {property.city || property.address || property.status}
+                      </Text>
+                    </View>
+                    <ChevronRight size={17} color={isSelected ? '#ffffff' : '#3d5a40'} />
+                  </TouchableOpacity>
+                )
+              }}
+            />
           ) : (
             <KeyboardAwareScrollView
               enableOnAndroid
@@ -419,6 +420,16 @@ export function AppointmentCreateModal({
                 </View>
               ) : (
                 <>
+                  <View>
+                    <Text style={styles.calendarLabel}>Persona de apoyo</Text>
+                    <TextInput
+                      style={styles.calendarTestInput}
+                      value={testAppointmentForm.helpedBy ?? ''}
+                      onChangeText={value => onUpdateForm('helpedBy', value)}
+                      placeholder="Nombre de la persona de apoyo"
+                      placeholderTextColor="#8d8d8d"
+                    />
+                  </View>
                   <View style={styles.relatedLeadSection}>
                     <Text style={styles.calendarLabel}>Lead relacionado</Text>
                     <View style={styles.appointmentModeRow}>

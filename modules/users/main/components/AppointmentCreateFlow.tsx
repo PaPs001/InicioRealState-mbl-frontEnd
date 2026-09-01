@@ -6,7 +6,6 @@ import {AppointmentCreateModal} from './AppointmentCreateModal'
 import {useAppointmentCreateFlow} from '../hooks/useAppointmentCreateFlow'
 
 type Props = {
-  helpedBy?: string
   initialLead?: PropertyLead
   initialProperty?: Property
   onClose: () => void

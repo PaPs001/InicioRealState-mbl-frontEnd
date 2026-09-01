@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native'
 
 import { AppModal } from '@/components/AppModal'
-import { getDefaultAppointmentType } from '@/components/userDashboard/dashboard-formatters'
+import { getDefaultAppointmentType } from '@/modules/users/main/utils/dashboard-formatters'
 import type { GoogleCalendarOption, SelectedGoogleCalendar } from '@/lib/api'
 
 import { styles } from './styles/CalendarSection.style'

@@ -4,7 +4,7 @@ import {
   LeadMetricCard,
   FunnelMetric,
   LeadAlertRow,
-} from "@/components/userDashboard/DashboardCards";
+} from "./DashboardCards";
 
 type LeadsSectionProps = {
   isLeadsLoading: boolean;

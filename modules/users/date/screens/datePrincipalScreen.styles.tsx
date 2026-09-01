@@ -30,6 +30,24 @@ export const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#9A9A9A',
   },
+  countButtonRow:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  countRent:{
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: generalColors.rentColor,
+    borderRadius: 10,
+  },
+  countSale:{
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: generalColors.saleColor,
+    borderRadius: 10
+  },
   dragHandle: {
     height: 24,
     alignItems: 'center',
@@ -98,10 +116,14 @@ export const styles = StyleSheet.create({
     fontSize: 17
   },
   dateText:{
-    fontSize: 17
+    fontSize: 14, 
+    fontWeight: '600',
+    color: '#474747'
   },
   dayText:{
-    fontSize: 15
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#474747'
   },
   eventSpace:{
     flexDirection: 'row',
@@ -110,7 +132,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   eventText:{
-    fontSize: 18
+    fontSize: 13,
+    color: generalColors.white,
+    fontWeight: '500',
   },
   datesContainer:{
     flexDirection: 'row',
@@ -122,6 +146,5 @@ export const styles = StyleSheet.create({
   line:{
     borderWidth: .5,
     flex: 1,
-
   }
 })
