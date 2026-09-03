@@ -9,9 +9,7 @@ import { generalColors } from "@/theme";
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
-import {
-  formatCurrentDashboardDate,
-} from "@/modules/users/main/utils/dashboard-formatters";
+import { formatCurrentDashboardDate } from "@/modules/users/main/utils/dashboard-formatters";
 
 import { AppointmentCreateFlow } from "../../components/AppointmentCreateFlow";
 import { styles } from "./AdvisorScreen.styles";
@@ -49,14 +47,11 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
 
   const { advisorInitials, advisorName, profileAvatarUri, profileImageUpload } =
     useDashboardProfile({ fallbackName: areaConfig.fallbackName });
-  const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] = useState(false);
-  const { isLeadsLoading, leadSummary } =
-    useDashboardLeads({ authToken });
+  const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] =
+    useState(false);
+  const { isLeadsLoading, leadSummary } = useDashboardLeads({ authToken });
 
-  const {
-    rentSummary,
-    saleSummary,
-  } = useDashboardProperties();
+  const { rentSummary, saleSummary } = useDashboardProperties();
 
   const {
     calendarMessage,
@@ -72,7 +67,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     openAppointmentEdition,
     closeAppointmentEdition,
     closeAppointmentInformation,
-    handleDeleteAppointment
+    handleDeleteAppointment,
   } = useDashboardCalendar({
     authToken,
     capabilities,
@@ -120,7 +115,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Mostrar acceso temporal a la propiedad"
-          onPress={() => setIsPropertyShortcutVisible((isVisible) => !isVisible)}
+          onPress={() =>
+            setIsPropertyShortcutVisible((isVisible) => !isVisible)
+          }
           style={styles.logoWrap}
         >
           <LogoIRSPrincipal width={146} height={48} />
@@ -137,7 +134,9 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => router.push(`${areaConfig.basePath}/properties-list` as never)}
+              onPress={() =>
+                router.push(`${areaConfig.basePath}/development-list` as never)
+              }
               style={styles.propertyShortcutButton}
             >
               <Text style={styles.propertyShortcutButtonText}>
@@ -216,13 +215,10 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           visible={isEditionSectionVisible}
           onClose={closeAppointmentEdition}
         />
-      ): null}  
+      ) : null}
 
       {isAppointmentModalVisible ? (
-        <AppointmentCreateFlow
-          onClose={handleCloseAppointmentModal}
-          visible
-        />
+        <AppointmentCreateFlow onClose={handleCloseAppointmentModal} visible />
       ) : null}
     </SafeAreaView>
   );
