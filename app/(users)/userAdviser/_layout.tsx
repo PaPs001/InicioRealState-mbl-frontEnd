@@ -22,6 +22,7 @@ export default function AdviserLayout() {
       <Tabs.Screen name="properties.v2" options={{ title: 'Propiedades V2', href: null }} />
       <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
       <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
+      <Tabs.Screen name="development-list" options={{ title: 'Desarrollos', href: null }} />
       </Tabs>
     </CalendarDataProvider>
   )
