@@ -7,11 +7,7 @@
     "icon": "./assets/iconoIRSprincipaltransparencia.png",
     "userInterfaceStyle": "automatic",
     "scheme": "inicio-real-estate",
-    "splash": {
-      "image": "./assets/iconoIRSprincipaltransparencia.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1e2d32"
-    },
+    
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -44,7 +40,8 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
