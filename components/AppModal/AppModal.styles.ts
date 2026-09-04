@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
   },
 
   backdropPressArea: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 
   overlayCenter: {

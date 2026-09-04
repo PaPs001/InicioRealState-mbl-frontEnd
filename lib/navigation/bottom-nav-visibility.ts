@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect } from 'expo-router'
 
 let hiddenRequestCount = 0
 const listeners = new Set<(isHidden: boolean) => void>()

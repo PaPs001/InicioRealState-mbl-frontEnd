@@ -1,12 +1,11 @@
-import { Stack, usePathname, useRouter } from 'expo-router'
+import { Stack, usePathname, useRouter, ThemeProvider, DefaultTheme  } from 'expo-router'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { SettingsProvider } from '@/modules/settings'
-import * as NavigationBar from 'expo-navigation-bar'
+import {NavigationBar} from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { colors, clientThemes } from '@/lib/theme'
-import { ThemeProvider, DefaultTheme } from '@react-navigation/native'
 import { Platform, View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
@@ -54,7 +53,7 @@ function RootNavigator() {
     },
   }
 
-  useEffect(() => {
+  /*useEffect(() => {
     const setupNavigationBar = async () => {
       try {
         if (Platform.OS === 'android') {
@@ -69,7 +68,7 @@ function RootNavigator() {
     }
     setupNavigationBar()
   }, [backgroundColor, isDarkTheme]);
-
+*/
   useEffect(() => {
     const tokenPreview = authToken ? `${authToken.slice(0, 12)}...` : 'SIN_TOKEN'
     console.log('[auth][route]', {
@@ -108,6 +107,10 @@ function RootNavigator() {
     <ThemeProvider value={navigationTheme}>
       <View style={{ flex: 1, backgroundColor }}>
         <StatusBar hidden={true} style={isDarkTheme ? 'light' : 'dark'} />
+        <NavigationBar
+          hidden
+          style={isDarkTheme ? 'dark' : 'light'}
+        />
         <Stack
           screenOptions={{
             headerShown: false,
