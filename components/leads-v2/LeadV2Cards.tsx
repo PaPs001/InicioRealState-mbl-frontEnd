@@ -78,6 +78,15 @@ export function PriorityLeadCard({ lead, onPress }: { lead: LeadV2ViewModel; onP
               <Text style={[styles.statusText, styles.advisorStatusText]} numberOfLines={1}>{lead.advisorStatusLabel}</Text>
             </View>
           ) : null}
+          {lead.rawLead.leadNotionId || lead.rawLead.statusSource === 'notion' ? (
+            <View
+              accessibilityLabel="Lead de Notion"
+              accessibilityRole="image"
+              style={styles.notionIcon}
+            >
+              <Text style={styles.notionIconText}>N</Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
