@@ -22,7 +22,7 @@ export function PropertyPdfOptionsModal({
   controller: PropertiesController;
 }) {
   const {
-    handleGeneratePdf,
+    handleGenerateSelectedPdf,
     isGeneratingPdf,
     isPdfOptionsVisible,
     pdfAgentName,
@@ -74,11 +74,15 @@ export function PropertyPdfOptionsModal({
               </Pressable>
               <Pressable
                 style={styles.pdfGenerateButton}
-                onPress={handleGeneratePdf}
+                onPress={handleGenerateSelectedPdf}
                 disabled={isGeneratingPdf}
               >
                 <Text style={styles.pdfGenerateButtonText}>
-                  {isGeneratingPdf ? "Generando..." : "Generar PDF"}
+                  {isGeneratingPdf
+                    ? "Generando..."
+                    : selectedPropertyIds.length === 1
+                      ? "Generar PDF de propiedad"
+                      : "Generar PDF"}
                 </Text>
               </Pressable>
             </View>
