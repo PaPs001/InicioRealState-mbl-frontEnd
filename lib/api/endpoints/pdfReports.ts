@@ -240,10 +240,20 @@ export async function createAndOpenSinglePropertyPdf(
       'application/pdf',
     )
 
-    await FileSystem.StorageAccessFramework.copyAsync({
-      from: report.localUri!,
-      to: savedUri,
-    })
+    try {
+      await FileSystem.StorageAccessFramework.copyAsync({
+        from: report.localUri!,
+        to: savedUri,
+      })
+    } catch {
+      const base64 = await FileSystem.readAsStringAsync(report.localUri!, {
+        encoding: FileSystem.EncodingType.Base64,
+      })
+      await FileSystem.StorageAccessFramework.writeAsStringAsync(savedUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      })
+    }
+
     report.savedUri = savedUri
     report.openUri = savedUri
     await openPdfWithIntent(savedUri)

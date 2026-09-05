@@ -7,27 +7,46 @@ type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 export const ExportPdfPanel = ({ controller }: { controller: PropertiesController }) => {
   const {
     shouldSkipPdfAgentList,
-    handleGeneratePdf,
+    handleGenerateSelectedPdf,
     openPdfOptions,
     isGeneratingPdf,
     handleToggleSelectionMode,
     isSelectingProperties,
     selectedPropertyIds
   } = controller
+  const shouldShowSinglePropertyButton = selectedPropertyIds.length === 1;
+  const shouldShowNormalExportButtons = !shouldShowSinglePropertyButton;
+
   return (
     <View style={styles.exportPanel}>
+      {shouldShowNormalExportButtons ? (
+        <Pressable
+          style={styles.exportButtonSecondary}
+          onPress={shouldSkipPdfAgentList ? handleGenerateSelectedPdf : openPdfOptions}
+          disabled={isGeneratingPdf}
+        >
+          <Text style={styles.exportButtonSecondaryText}>
+            {isGeneratingPdf ? "Generando..." : "Generar"}
+            {"\n"}Pdf / Cards
+          </Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          style={styles.exportButtonSecondary}
+          onPress={handleGenerateSelectedPdf}
+          disabled={isGeneratingPdf}
+        >
+          <Text style={styles.exportButtonSecondaryText}>
+            {isGeneratingPdf ? "Generando..." : "Generar"}
+            {"\n"}PDF propiedad
+          </Text>
+        </Pressable>
+      )}
       <Pressable
-        style={styles.exportButtonSecondary}
-        onPress={shouldSkipPdfAgentList ? handleGeneratePdf : openPdfOptions}
-        disabled={isGeneratingPdf}
-      >
-        <Text style={styles.exportButtonSecondaryText}>
-          {isGeneratingPdf ? "Generando..." : "Generar"}
-          {"\n"}Pdf / Cards
-        </Text>
-      </Pressable>
-      <Pressable
-        style={styles.exportButtonPrimary}
+        style={[
+          styles.exportButtonPrimary,
+          shouldShowSinglePropertyButton ? styles.exportButtonPrimaryWithSingleAction : null,
+        ]}
         onPress={handleToggleSelectionMode}
       >
         <Text style={styles.exportButtonPrimaryText}>
@@ -99,6 +118,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  exportButtonPrimaryWithSingleAction: {
+    marginTop: 0,
   },
   exportButtonPrimaryText: {
     color: "#ffffff",
