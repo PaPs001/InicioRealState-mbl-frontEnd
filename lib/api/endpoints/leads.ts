@@ -328,6 +328,7 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
 
   return {
     id: lead.id || lead.sourceId || lead.leadNotionId || lead._id || `lead-${Date.now()}`,
+    leadNotionId: lead.leadNotionId || undefined,
     propertyId,
     agentId: advisorId,
     advisorId,
