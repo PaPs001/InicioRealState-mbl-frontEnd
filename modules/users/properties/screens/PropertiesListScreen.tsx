@@ -38,7 +38,7 @@ export const PropertiesListScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <View style={styles.safeArea}>
       <FlashList
         data={isMapMode ? [] : filteredListings}
         keyExtractor={keyExtractor}
@@ -55,7 +55,7 @@ export const PropertiesListScreen = () => {
       <PropertySortModal controller={controller} />
       <PropertyPdfOptionsModal controller={controller} />
       <ExportPdfPanel controller={controller} />
-    </SafeAreaView>
+    </View>
   )
 }
 

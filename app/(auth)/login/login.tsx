@@ -254,13 +254,6 @@ export default function LoginNewScreen() {
 
             {isDebugPanelVisible ? (
               <View style={loginNewStyles.debugPanel}>
-                <Pressable
-                  onPress={() => router.push('/userAdviser/properties.v2' as never)}  
-                >
-                  <Text>
-                    Propiedades v2
-                  </Text>
-                </Pressable>
                 <Text style={loginNewStyles.debugTitle}>Diagnostico de inicio de sesion</Text>
                 {loginLogs.map((log) => {
                   const details = formatLogDetails(log.details)
