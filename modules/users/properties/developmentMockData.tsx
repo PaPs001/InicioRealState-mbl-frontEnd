@@ -2,23 +2,42 @@ export type DevelopmentMock = {
   id: string;
   name: string;
   location: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
   zone: string;
   image?: string;
   typeView: string;
   nearTo: string;
+  description: string;
+  amenities: string[];
   portraitImage: string;
-  developmentGallery: object[];
+  developmentGallery: DevelopmentGalleryItem[];
+  minPrice: number | null;
+  maxPrice: number | null;
 };
 
-export const DevelopmentMocks: DevelopmentMock[] = [
+export type DevelopmentGalleryItem = {
+  label: string,
+  url: string
+}
+
+const developmentBase: Omit<DevelopmentMock, "minPrice" | "maxPrice">[] = [
   {
     id: "ADHO",
     name: "Aldea Hortus",
     location: "Tondoroque, Nayarit",
+    coordinates: {
+      lat: 20.7296,
+      lng: -105.1605,
+    },
     image: "https://picsum.photos/900/600?random=2",
     zone: "Bahia de banderas",
     typeView: "Vista panoramica",
     nearTo: "Cercas de la playa",
+    description: "Desarrollo residencial en Bahía de Banderas, diseñado para disfrutar la vida en comunidad.\n\nUn entorno pensado para familias que buscan comodidad, tranquilidad y espacios para crecer, rodeados de amenidades y áreas para disfrutar cada día.",
+    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
     portraitImage: "https://picsum.photos/900/600?random=2",
     developmentGallery: [
       {
@@ -47,10 +66,16 @@ export const DevelopmentMocks: DevelopmentMock[] = [
     id: "VBC",
     name: "V Bucerias",
     location: "Bucerias, Nayarit",
+    coordinates: {
+      lat: 20.7565,
+      lng: -105.334,
+    },
     image: "https://picsum.photos/900/600?random=1",
     zone: "Bahia de banderas",
     typeView: "Vista panoramica",
     nearTo: "Cercas de la playa",
+    description: "V Bucerias es un desarrollo residencial de estilo contemporaneo ubicado cerca de la playa y de los principales servicios de Bucerias.",
+    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
     portraitImage: "https://picsum.photos/900/600?random=1",
     developmentGallery: [
       {
@@ -79,10 +104,16 @@ export const DevelopmentMocks: DevelopmentMock[] = [
     id: "MDP",
     name: "Mar de Plata",
     location: "Bucerias, Nayarit",
+    coordinates: {
+      lat: 20.7543,
+      lng: -105.3311,
+    },
     image: "https://picsum.photos/900/600?random=3",
     zone: "Bahia de banderas",
     typeView: "Vista panoramica",
     nearTo: "Cercas de la playa",
+    description: "Mar de Plata ofrece espacios residenciales contemporaneos en una ubicacion privilegiada de Bucerias, Nayarit.",
+    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
     portraitImage: "https://picsum.photos/900/600?random=3",
     developmentGallery: [
       {
@@ -111,10 +142,16 @@ export const DevelopmentMocks: DevelopmentMock[] = [
     id: "AVI",
     name: "Altea Vida Integral",
     location: "La floresta, Puerto Vallarta",
+    coordinates: {
+      lat: 20.6534,
+      lng: -105.2253,
+    },
     image: "https://picsum.photos/900/600?random=4",
     zone: "Puerto Vallarta",
     typeView: "Vista panoramica",
     nearTo: "Cercas de la playa",
+    description: "Altea Vida Integral combina espacios residenciales modernos con una ubicacion conveniente en Puerto Vallarta.",
+    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
     portraitImage: "https://picsum.photos/900/600?random=4",
     developmentGallery: [
       {
@@ -143,10 +180,16 @@ export const DevelopmentMocks: DevelopmentMock[] = [
     id: "ALNA",
     name: "Alana",
     location: "Mezcales, Nayarit",
+    coordinates: {
+      lat: 20.7307,
+      lng: -105.2824,
+    },
     image: "https://picsum.photos/900/600?random=5  ",
     zone: "Bahia de banderas",
     typeView: "Vista panoramica",
     nearTo: "Cercas de la playa",
+    description: "Alana es un desarrollo residencial con ambientes contemporaneos y acceso a los servicios de Mezcales y Bahia de Banderas.",
+    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
     portraitImage: "https://picsum.photos/900/600?random=5",
     developmentGallery: [
       {
@@ -173,6 +216,23 @@ export const DevelopmentMocks: DevelopmentMock[] = [
   },
 ];
 
+export const DevelopmentMocks: DevelopmentMock[] = developmentBase.map((development) => ({
+  ...development,
+  get minPrice() {
+    const models = DevelopmentMockData.filter((model) => model.developmentId === development.id);
+    return models.length > 0 ? Math.min(...models.map((model) => model.minPrice)) : null;
+  },
+  get maxPrice() {
+    const models = DevelopmentMockData.filter((model) => model.developmentId === development.id);
+    return models.length > 0 ? Math.max(...models.map((model) => model.maxPrice)) : null;
+  },
+}));
+
+type photosData = {
+  label: string,
+  url: string
+}
+
 export type DevelopmentMockData = {
   id: string;
   status: string | number;
@@ -185,13 +245,8 @@ export type DevelopmentMockData = {
   parking: number;
   area: number;
   has: string[];
-  amenities: string[];
-  photos: object[];
+  photos: photosData[];
   portraitImage: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
   type: string;
   numDisponible: number;
   details: string[];
@@ -199,7 +254,6 @@ export type DevelopmentMockData = {
     name: string;
     render: string;
   }[];
-  description: string;
   nearTo: string;
   developmentId: string;
   developmentData: DevelopmentMock;
@@ -415,8 +469,7 @@ function createDevelopmentModel(
     bath,
     parking,
     area,
-    has: ["Cocina equipada", "Sala-comedor", "Terraza", "Area de lavado"],
-    amenities: ["Alberca", "Areas verdes", "Seguridad 24/7", "Pet friendly"],
+    has: ["Cocina equipada", "Sala-comedor", "Terraza", "Area de lavado", "aviones incluidos", "termostatos", "recreaciones inaugurales"],
     photos: [
       {
         label: "Fachada",
@@ -435,8 +488,7 @@ function createDevelopmentModel(
         url: `https://picsum.photos/900/600?random=${imageSeed + 3}`,
       }
     ],
-    portraitImage: `https://source.unsplash.com/featured/?architecture&sig=${imageSeed + 7}`,
-    location: getDevelopmentLocation(developmentData.id),
+    portraitImage: `https://picsum.photos/900/600?random=${imageSeed + 7}`,
     type: rec === 1 ? " Casa" : "Departamento",
     numDisponible: Math.max(2, 8 - rec),
     details: getModelDetails(rec),
@@ -456,7 +508,6 @@ function createDevelopmentModel(
           }]
         : []),
     ],
-    description: `${name} es un modelo de ${area} m2 dentro de ${developmentData.name}, con espacios funcionales, iluminacion natural y acabados contemporaneos.`,
     nearTo: developmentData.nearTo,
     developmentId: developmentData.id,
     developmentData,
@@ -475,17 +526,3 @@ function getModelDetails(rec: number): string[] {
   ];
 }
 
-function getDevelopmentLocation(developmentId: string): {
-  lat: number;
-  lng: number;
-} {
-  const locations: Record<string, { lat: number; lng: number }> = {
-    ADHO: { lat: 20.7296, lng: -105.1605 },
-    VBC: { lat: 20.7565, lng: -105.334 },
-    MDP: { lat: 20.7543, lng: -105.3311 },
-    AVI: { lat: 20.6534, lng: -105.2253 },
-    ALNA: { lat: 20.7307, lng: -105.2824 },
-  };
-
-  return locations[developmentId];
-}

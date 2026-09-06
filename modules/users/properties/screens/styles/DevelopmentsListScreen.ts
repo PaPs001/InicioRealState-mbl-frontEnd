@@ -6,10 +6,19 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.background,
   },
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 5,
     flex: 1,
-    gap: 10
+  },
+  floatingHeader: {
+    position: "absolute",
+    top: 5,
+    left: 17,
+    right: 17,
+    zIndex: 10,
+    gap: 10,
+    backgroundColor: "#fdfbf93d",
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderRadius: 15,
   },
   backButton: {},
   filterContainer: {
@@ -17,10 +26,10 @@ export const styles = StyleSheet.create({
     alignItems: "stretch",
     gap: 10,
     paddingRight: 25,
-    backgroundColor: generalColors.backgroundSections,
   },
   searchInput: {
     flex: 1,
+    minHeight: 42,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: generalColors.borderSoft,
@@ -31,20 +40,34 @@ export const styles = StyleSheet.create({
   },
   filterButton: {
     aspectRatio: 1,
-    flexShrink: 0,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: generalColors.borderSoft,
     alignItems: "center",
     justifyContent: "center",
   },
+
+  searchTextInput: {
+    flex: 1,
+    fontSize: 10,
+  },
+
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 95,
+    paddingBottom: 24,
+  },
+
   developmentsContainer: {
     flex: 1,
     gap: 10,
+    paddingBottom: 60
   },
   developmentsTitle: {
     fontSize: 24,
     color: generalColors.development,
-
+  },
+  headerList: {
+    marginBottom: 15,
   },
 });

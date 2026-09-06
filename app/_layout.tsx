@@ -95,8 +95,7 @@ function RootNavigator() {
       pathname === '/regCoordinator' ||
       pathname === '/password/mail' ||
       pathname === '/password/verify' ||
-      pathname === '/password/password' ||
-      pathname === '/userAdviser/properties.v2'
+      pathname === '/password/password'
 
     if (!isLoading && !authToken && !isAuthRoute) {
       router.replace('/login/login')
