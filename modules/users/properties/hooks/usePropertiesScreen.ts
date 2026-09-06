@@ -203,14 +203,15 @@ export function usePropertiesScreen() {
   const handleToggleSelectionMode = useCallback(() => setIsSelectingProperties(value => !value), [])
   const handlePropertyPress = useCallback((propertyId: string) => setActivePropertyId(propertyId), [])
 
-  const handleGenerateSinglePdf = useCallback(async () => {
-    if (!activePropertyId || isGeneratingPdf) return
+  const handleGenerateSinglePdf = useCallback(async (propertyId?: string | null) => {
+    const resolvedPropertyId = propertyId ?? selectedPropertyIds[0] ?? activePropertyId
+    if (!resolvedPropertyId || isGeneratingPdf) return
 
     setIsGeneratingPdf(true)
     setIsPdfCleanupMode(true)
 
     try {
-      await createAndOpenSinglePropertyPdf(authToken, { design: 'modern', propertyId: activePropertyId })
+      await createAndOpenSinglePropertyPdf(authToken, { design: 'modern', propertyId: resolvedPropertyId })
       Alert.alert('PDF descargado', 'El PDF se ha descargado.')
     } catch (error: any) {
       Alert.alert('No se pudo descargar y abrir el PDF', error?.message || 'Revisa la conexion con PDF Reports.')
@@ -218,32 +219,54 @@ export function usePropertiesScreen() {
       setIsPdfCleanupMode(false)
       setIsGeneratingPdf(false)
     }
-  }, [activePropertyId, authToken, isGeneratingPdf])
-  
+  }, [activePropertyId, authToken, isGeneratingPdf, selectedPropertyIds])
+
   const handleGeneratePdf = useCallback(async () => {
     if (isGeneratingPdf) return
-    setIsPdfOptionsVisible(false); 
-    setIsGeneratingPdf(true); 
-    setIsPdfCleanupMode(true); 
-    setSearchQuery(''); 
+    setIsPdfOptionsVisible(false)
+    setIsGeneratingPdf(true)
+    setIsPdfCleanupMode(true)
+    setSearchQuery('')
     setIsMapMode(false)
-    
+
     const list = listingFilter === 'sale' ? 'sale' : 'rent'
-    
+
     try {
       await new Promise<void>(resolve => InteractionManager.runAfterInteractions(() => setTimeout(resolve, 120)))
-      const payload = { ...(currentUser?.agentPresentationKey 
-        ? { agentName: 'a' as const, agentPresentation: currentUser.agentPresentationKey } 
-        : { agentName: pdfAgentName }), sales: listingFilter === 'sale', items: selectedPropertyIds, action: selectedPropertyIds.length ? 'SelectProperties' 
-        : list, location: 'TODAS', list, design: 'modern' } as const
+      const payload = {
+        ...(currentUser?.agentPresentationKey
+          ? { agentName: 'a' as const, agentPresentation: currentUser.agentPresentationKey }
+          : { agentName: pdfAgentName }),
+        sales: listingFilter === 'sale',
+        items: selectedPropertyIds,
+        action: selectedPropertyIds.length ? 'SelectProperties' : list,
+        location: 'TODAS',
+        list,
+        design: 'modern',
+      } as const
 
       await createAndOpenTemporaryPropertyListPdf(authToken, payload)
-      Alert.alert('PDF descargado', 'El PDF se ha descargado.'); setIsSelectingProperties(false); setIsPdfCleanupMode(false)
-    } catch (error: any) { setIsPdfCleanupMode(false); Alert.alert('No se pudo descargar y abrir el PDF', error?.message || 'Revisa la conexion con PDF Reports.') }
-    finally { setIsGeneratingPdf(false) }
+      Alert.alert('PDF descargado', 'El PDF se ha descargado.')
+      setIsSelectingProperties(false)
+      setIsPdfCleanupMode(false)
+    } catch (error: any) {
+      setIsPdfCleanupMode(false)
+      Alert.alert('No se pudo descargar y abrir el PDF', error?.message || 'Revisa la conexion con PDF Reports.')
+    } finally {
+      setIsGeneratingPdf(false)
+    }
   }, [authToken, currentUser?.agentPresentationKey, isGeneratingPdf, listingFilter, pdfAgentName, selectedPropertyIds])
 
-  return { 
+  const handleGenerateSelectedPdf = useCallback(async () => {
+    if (selectedPropertyIds.length === 1) {
+      await handleGenerateSinglePdf(selectedPropertyIds[0])
+      return
+    }
+
+    await handleGeneratePdf()
+  }, [handleGeneratePdf, handleGenerateSinglePdf, selectedPropertyIds])
+
+  return {
     operationMode, 
     canvasWidth: Math.min(width, 440), 
     filteredListings, 
@@ -290,6 +313,7 @@ export function usePropertiesScreen() {
     activePropertyId,
     handlePropertyPress,
     handleGenerateSinglePdf,
+    handleGenerateSelectedPdf,
     openPdfOptions, 
     handleToggleSelectionMode, 
     handleGeneratePdf }

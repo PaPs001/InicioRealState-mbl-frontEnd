@@ -610,6 +610,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
+  notionIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    backgroundColor: '#191919',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notionIconText: {
+    color: '#ffffff',
+    fontSize: 12,
+    lineHeight: 14,
+    fontWeight: '800',
+  },
   dateSelectButton: {
     minHeight: 43,
     borderRadius: 12,
