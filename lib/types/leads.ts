@@ -10,6 +10,7 @@ export type LeadSearchIntent = 'sale' | 'rent'
 
 export interface PropertyLead {
   id: string
+  leadNotionId?: string
   propertyId: string
   agentId: string
   advisorId?: string
