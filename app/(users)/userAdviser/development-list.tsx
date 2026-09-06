@@ -1,4 +1,1 @@
-export {
-    DevelopmentListScreen as default
-} from "@/modules/users/properties/screens/developmentsListScreen"
-
+export { DevelopmentListScreen as default } from "@/modules/users/properties/screens/DevelopmentsScreens/developmentsListScreen";
