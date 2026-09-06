@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
         height: 90,
     },
     imagesCountOverlay:{
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.45)',

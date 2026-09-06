@@ -25,11 +25,6 @@ function decodeBase64(value: string): string | null {
     if (typeof globalThis.atob === 'function') {
       return globalThis.atob(value)
     }
-
-    if (typeof Buffer !== 'undefined') {
-      return Buffer.from(value, 'base64').toString('utf-8')
-    }
-
     return null
   } catch {
     return null
