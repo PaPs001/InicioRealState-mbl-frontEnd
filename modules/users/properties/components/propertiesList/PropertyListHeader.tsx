@@ -45,12 +45,12 @@ export const PropertyListHeader = ({ controller }: { controller: PropertiesContr
                 activeColor={generalColors.saleColor}
                 onPress={() => setListingFilter("sale")}
               />
-              <FilterChip
+              {/*<FilterChip
                 label="Desarrollos"
                 active={listingFilter === "developments"}
                 activeColor={generalColors.development}
                 onPress={() => setListingFilter("developments")}
-              />
+              />*/}
             </View>
           ) : null}
 

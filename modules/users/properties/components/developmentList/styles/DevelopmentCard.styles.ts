@@ -11,7 +11,8 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
     flexDirection: 'row',
     overflow: 'hidden',
-    gap: 4
+    gap: 4,
+    marginBottom: 10,
   },
   imageContainer:{
     flex: 1,
@@ -24,6 +25,9 @@ export const styles = StyleSheet.create({
   },
   informationContainer:{
     flex: 1,
+    paddingVertical: 5,
+    paddingHorizontal: 7,
+    gap: 5,
   },
   zoneContainer:{
     flexDirection: 'row',
@@ -60,7 +64,8 @@ export const styles = StyleSheet.create({
   extraInformationContainer:{
     flexDirection: 'row',
     alignItems: 'center',
-    
+    gap: 4,
+    marginTop: 7
   },
   footerInformationContainer:{
     flexDirection: 'row',
@@ -70,9 +75,11 @@ export const styles = StyleSheet.create({
     flex: 1,
     gap: 5,
     paddingVertical: 5,
-    paddingHorizontal: 7
+    paddingHorizontal: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   extraInformationText:{
-    fontSize: 10
+    fontSize: 9
   },
 });

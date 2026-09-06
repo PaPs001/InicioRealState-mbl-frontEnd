@@ -88,6 +88,10 @@ import PoolBigger from './amenitiesIcons/bigIcons/poolBigger.svg'
 import SnowflakeBigger from './amenitiesIcons/bigIcons/Snowflake.svg'
 import Tv from './amenitiesIcons/bigIcons/tv.svg'
 
+/// Development icons
+
+import FilterDev from './developmentScreen/Filter.svg'
+
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -156,7 +160,8 @@ export const icons = {
   PoolBigger: PoolBigger,
   SnowflakeBigger: SnowflakeBigger,
   Tv: Tv,
-  Lock: Lock
+  Lock: Lock,
+  FilterDev: FilterDev
 } as const
 
 export const images = {
@@ -269,5 +274,6 @@ export {
   Parking,
   PoolBigger,
   SnowflakeBigger,
-  Lock
+  Lock,
+  FilterDev
 }

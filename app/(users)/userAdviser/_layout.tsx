@@ -19,7 +19,6 @@ export default function AdviserLayout() {
       <Tabs.Screen name="leads-v2" options={{ title: 'Seguimiento V2', href: null }} />
       <Tabs.Screen name="leads-v2/followups" options={{ title: 'Historial V2', href: null }} />
       <Tabs.Screen name="properties-list" options={{ title: 'Listado', href: null }} />
-      <Tabs.Screen name="properties.v2" options={{ title: 'Propiedades V2', href: null }} />
       <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
       <Tabs.Screen name="settings" options={{ title: 'Configuración', href: null }} />
       <Tabs.Screen name="development-list" options={{ title: 'Desarrollos', href: null }} />
