@@ -7,6 +7,7 @@ export default function UsersLayout() {
       <Stack.Screen name="userAdviser" />
       <Stack.Screen name="registration-complete" />
       <Stack.Screen name="selected-property" />
+      <Stack.Screen name='developments'/>
     </Stack>
   )
 }
