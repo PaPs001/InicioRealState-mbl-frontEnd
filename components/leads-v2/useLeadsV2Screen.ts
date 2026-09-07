@@ -6,6 +6,7 @@ import {
   createBackendLeadV2Record,
   createBackendLeadV2Status,
   deleteBackendLeadV2Status,
+  deleteBackendLeadV2Records,
   getBackendLeadV2Records,
   getBackendLeadV2Statuses,
   setBackendLeadV2NextAction,
@@ -51,7 +52,12 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
   } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<CoordinatorLeadV2Channel>('Todos')
-  const [isAssistantOpen, setIsAssistantOpen] = useState(true)
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false)
+  const [isSelectingLeads, setIsSelectingLeads] = useState(false)
+  const [selectedDeleteIds, setSelectedDeleteIds] = useState<string[]>([])
+  const [isDeletingLeads, setIsDeletingLeads] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const deletingRef = useRef(false)
   const [selectedAgentName, setSelectedAgentName] = useState<string | null>(null)
   const [selectedLead, setSelectedLead] = useState<LeadV2ViewModel | null>(null)
   const [leadPage, setLeadPage] = useState(1)
@@ -390,7 +396,61 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
     }
   }
 
+  const startLeadSelection = () => {
+    setIsAssistantOpen(false)
+    setSelectedDeleteIds([])
+    setDeleteError(null)
+    setIsSelectingLeads(true)
+  }
+
+  const cancelLeadSelection = () => {
+    if (deletingRef.current) return
+    setIsSelectingLeads(false)
+    setSelectedDeleteIds([])
+    setDeleteError(null)
+  }
+
+  const toggleLeadSelection = (id: string) => {
+    if (deletingRef.current) return
+    setSelectedDeleteIds((current) => current.includes(id)
+      ? current.filter((leadId) => leadId !== id)
+      : current.length < 10 ? [...current, id] : current)
+  }
+
+  const submitDeleteLeads = async () => {
+    if (deletingRef.current || selectedDeleteIds.length === 0 || selectedDeleteIds.length > 10) return
+    if (!authToken) {
+      setDeleteError('No hay sesión activa para eliminar leads.')
+      return
+    }
+    deletingRef.current = true
+    setIsDeletingLeads(true)
+    setDeleteError(null)
+    try {
+      const result = await deleteBackendLeadV2Records(selectedDeleteIds, authToken)
+      const deletedIds = new Set(result.deletedLeadIds)
+      setLeads((current) => current.filter((lead) => !deletedIds.has(lead.id)))
+      const remaining = selectedDeleteIds.filter((id) => !deletedIds.has(id))
+      setSelectedDeleteIds(remaining)
+      setIsSelectingLeads(remaining.length > 0)
+      if (remaining.length > 0) setDeleteError('Algunos leads no se eliminaron. Puedes volver a intentarlo.')
+    } catch {
+      setDeleteError('No se pudieron eliminar los leads. Intenta de nuevo.')
+    } finally {
+      deletingRef.current = false
+      setIsDeletingLeads(false)
+    }
+  }
+
   return {
+    isSelectingLeads,
+    selectedDeleteIds,
+    isDeletingLeads,
+    deleteError,
+    startLeadSelection,
+    cancelLeadSelection,
+    toggleLeadSelection,
+    submitDeleteLeads,
     alerts,
     applyCustomLeadStatus,
     applyLeadNextAction,
