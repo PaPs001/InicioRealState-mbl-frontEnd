@@ -108,6 +108,8 @@ export {
   type CreateGoogleCalendarDatePayload,
   type CreateGoogleCalendarDateResponse,
   type GoogleCalendarDateLeadSummary,
+  type DuplicateCheckResult,
+  type DuplicateLeadCandidate,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarOption,
   type GoogleCalendarSyncResponse,
@@ -124,6 +126,7 @@ export {
   createBackendLeadV2Record,
   createBackendLeadV2Status,
   deleteBackendLeadV2Status,
+  deleteBackendLeadV2Records,
   getBackendLeadRecords,
   getBackendLeadV2Records,
   getBackendLeadV2Statuses,
@@ -146,6 +149,7 @@ export {
   type SetBackendLeadV2StatusPayload,
   type SetBackendLeadV2StatusResponse,
   type UpdateBackendLeadV2Payload,
+  type DeleteBackendLeadV2RecordsResult,
   type BackendLeadV2FollowingRecord,
 } from './endpoints/leads'
 

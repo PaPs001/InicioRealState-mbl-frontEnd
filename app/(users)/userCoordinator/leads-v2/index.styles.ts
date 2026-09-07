@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 11,
     //paddingTop: 42,
-    //paddingBottom: 70,
+    paddingBottom: 120,
     gap: 9
   },
   detailContainer: {

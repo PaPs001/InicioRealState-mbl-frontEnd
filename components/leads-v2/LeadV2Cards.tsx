@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View } from 'react-native'
-import { AlertTriangle, ChevronRight, Clock3, Radio, UserRound } from 'lucide-react-native'
+import { CheckSquare, Square, AlertTriangle, ChevronRight, Clock3, Radio, UserRound } from 'lucide-react-native'
 
 import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
 import type { AgentLeadGroup, LeadV2Alert, LeadV2ViewModel } from './types'
@@ -53,9 +53,18 @@ export function AgentGroupCard({ group, onPress }: { group: AgentLeadGroup; onPr
   )
 }
 
-export function PriorityLeadCard({ lead, onPress }: { lead: LeadV2ViewModel; onPress: () => void }) {
+export function PriorityLeadCard({ lead, onPress, selecting = false, selected = false, disabled = false }: {
+  lead: LeadV2ViewModel; onPress: () => void; selecting?: boolean; selected?: boolean; disabled?: boolean
+}) {
   return (
-    <TouchableOpacity style={styles.leadCard} activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity style={[styles.leadCard, selected && { borderColor: '#ba544a', backgroundColor: '#fff3f1' }, disabled && { opacity: 0.5 }]}
+      activeOpacity={0.85} onPress={onPress} disabled={disabled}
+      accessibilityRole={selecting ? 'checkbox' : 'button'} accessibilityLabel={lead.name}
+      accessibilityState={selecting ? { checked: selected, disabled } : { disabled }}>
+      {selecting ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        {selected ? <CheckSquare size={22} color="#ba544a" /> : <Square size={22} color="#555555" />}
+        <Text>{selected ? 'Seleccionado' : 'Seleccionar lead'}</Text>
+      </View> : null}
       <View style={styles.leadTopRow}>
         <Image source={{ uri: getAvatarUrl(lead.name) }} style={styles.leadAvatar} />
         <View style={styles.leadMain}>
@@ -98,10 +107,10 @@ export function PriorityLeadCard({ lead, onPress }: { lead: LeadV2ViewModel; onP
           <Text style={styles.footerLabel}>Proxima Accion</Text>
           <Text style={styles.footerValue} numberOfLines={2}>{lead.nextActionLabel}</Text>
         </View>
-        <TouchableOpacity style={styles.followButton} activeOpacity={0.85} onPress={onPress}>
+        {!selecting ? <TouchableOpacity style={styles.followButton} activeOpacity={0.85} onPress={onPress}>
           <Text style={styles.followButtonText} numberOfLines={1}>Ver seguimiento</Text>
           <ChevronRight size={12} color="#000000" />
-        </TouchableOpacity>
+        </TouchableOpacity> : null}
       </View>
     </TouchableOpacity>
   )

@@ -9,6 +9,8 @@ import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import {
   createGoogleCalendarDate,
   type CreateGoogleCalendarDatePayload,
+  type DuplicateCheckResult,
+  type DuplicateLeadCandidate,
   type SelectedGoogleCalendar,
 } from "@/lib/api";
 import type { Property, PropertyLead } from "@/lib/types";
@@ -40,6 +42,10 @@ export function useAppointmentCreateFlow({
   const { authToken, currentUser } = useSessionDomain();
   const { addAppointment } = useCalendarData();
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
+  const [duplicateCheck, setDuplicateCheck] =
+    useState<DuplicateCheckResult | null>(null);
+  const [pendingDuplicatePayload, setPendingDuplicatePayload] =
+    useState<CreateGoogleCalendarDatePayload | null>(null);
   const [form, setForm] = useState<CreateGoogleCalendarDatePayload>(() =>
     createInitialForm(currentUser?.id),
   );
@@ -75,6 +81,8 @@ export function useAppointmentCreateFlow({
 
   useEffect(() => {
     if (!visible) return;
+    setDuplicateCheck(null);
+    setPendingDuplicatePayload(null);
     const initialPropertyId =
       getPropertyId(initialProperty) || initialLead?.propertyId || null;
     setForm((current) => ({
@@ -145,6 +153,82 @@ export function useAppointmentCreateFlow({
     [calendar.changeAppointmentLeadMode],
   );
 
+  async function submitAppointment(payload: CreateGoogleCalendarDatePayload) {
+    if (!authToken) return;
+
+    setIsCreatingAppointment(true);
+    try {
+      const response = await createGoogleCalendarDate(authToken, payload);
+      setDuplicateCheck(null);
+      setPendingDuplicatePayload(null);
+      calendar.setAppointmentSelectionScreen(null);
+      addAppointment(response.date);
+      Alert.alert("Cita creada", "La cita se creo correctamente.");
+      onCreated?.();
+      onClose();
+      void Promise.all([
+        calendar.loadGoogleCalendarAppointments({ sync: true }),
+        loadLeads(),
+      ]).catch((error) => {
+        console.warn(
+          "La cita se creo, pero no se pudo refrescar la informacion:",
+          error,
+        );
+      });
+    } catch (error) {
+      const conflict = getDuplicateCheck(error);
+      if (conflict && payload.confirmDuplicate !== true) {
+        setDuplicateCheck(conflict);
+        setPendingDuplicatePayload(payload);
+        Alert.alert(
+          "Posibles coincidencias",
+          "No se creo la cita ni el lead. Puedes revisar los leads encontrados o crear uno nuevo de todos modos.",
+          [
+            {
+              text: "Omitir",
+              style: "destructive",
+              onPress: () => {
+                void submitAppointment({ ...payload, confirmDuplicate: true });
+              },
+            },
+            {
+              text: "Revisar",
+              onPress: () => calendar.setAppointmentSelectionScreen("duplicate"),
+            },
+          ],
+        );
+        return;
+      }
+
+      console.warn("No se pudo crear la cita:", error);
+      Alert.alert("Error", "No se pudo crear la cita.");
+    } finally {
+      setIsCreatingAppointment(false);
+    }
+  }
+
+  const omitDuplicateAndCreate = () => {
+    if (!pendingDuplicatePayload || isCreatingAppointment) return;
+    void submitAppointment({
+      ...pendingDuplicatePayload,
+      confirmDuplicate: true,
+    });
+  };
+
+  const useDuplicateLead = (candidate: DuplicateLeadCandidate) => {
+    if (!pendingDuplicatePayload || !candidate.id || isCreatingAppointment) {
+      return;
+    }
+
+    void submitAppointment({
+      ...pendingDuplicatePayload,
+      leadId: candidate.id,
+      lead: null,
+      createLead: false,
+      confirmDuplicate: false,
+    });
+  };
+
   const createAppointment = useCallback(async () => {
     if (!authToken || isCreatingAppointment) return;
     const appointmentType =
@@ -182,63 +266,36 @@ export function useAppointmentCreateFlow({
         "Selecciona o configura el calendario donde quieres crear la cita.",
       );
 
-    setIsCreatingAppointment(true);
-    try {
-      const base = {
-        ...form,
-        leadId: isGeneral ? null : form.leadId,
-        propertyId: isGeneral ? null : form.propertyId,
-        endDateTime: getAppointmentEndDateTime(form.startDateTime),
-        advisorId: form.advisorId || currentUser?.id || null,
-        helpedBy: isGeneral ? "" : form.helpedBy?.trim() || "",
-      };
-      const payload: CreateGoogleCalendarDatePayload =
-        !isGeneral && calendar.appointmentLeadMode === "provisional"
-          ? {
-              ...base,
-              leadId: null,
-              lead: {
-                fullName: calendar.provisionalAppointmentLead.fullName.trim(),
-                phone: calendar.provisionalAppointmentLead.phone.trim() || null,
-                email: calendar.provisionalAppointmentLead.email.trim() || null,
-              },
-            }
-          : { ...base, lead: null };
-      const response = await createGoogleCalendarDate(authToken, payload);
-      addAppointment(response.date);
-      Alert.alert(
-        "Cita creada",
-        response.leadResolution.duplicateWarning
-          ? "La cita se creo correctamente. Encontramos posibles leads existentes con ese telefono o correo."
-          : "La cita se creo correctamente.",
-      );
-      onCreated?.();
-      onClose();
-      void Promise.all([
-        calendar.loadGoogleCalendarAppointments({ sync: true }),
-        loadLeads(),
-      ]).catch((error) => {
-        console.warn(
-          "La cita se creo, pero no se pudo refrescar la informacion:",
-          error,
-        );
-      });
-    } catch (error) {
-      console.warn("No se pudo crear la cita:", error);
-      Alert.alert("Error", "No se pudo crear la cita.");
-    } finally {
-      setIsCreatingAppointment(false);
-    }
+    const base = {
+      ...form,
+      leadId: isGeneral ? null : form.leadId,
+      propertyId: isGeneral ? null : form.propertyId,
+      endDateTime: getAppointmentEndDateTime(form.startDateTime),
+      advisorId: form.advisorId || currentUser?.id || null,
+      helpedBy: isGeneral ? "" : form.helpedBy?.trim() || "",
+    };
+    const payload: CreateGoogleCalendarDatePayload =
+      !isGeneral && calendar.appointmentLeadMode === "provisional"
+        ? {
+            ...base,
+            leadId: null,
+            createLead: true,
+            confirmDuplicate: false,
+            lead: {
+              fullName: calendar.provisionalAppointmentLead.fullName.trim(),
+              phone: calendar.provisionalAppointmentLead.phone.trim() || null,
+              email: calendar.provisionalAppointmentLead.email.trim() || null,
+            },
+          }
+        : { ...base, lead: null };
+
+    await submitAppointment(payload);
   }, [
-    addAppointment,
     authToken,
     calendar,
     currentUser?.id,
     form,
     isCreatingAppointment,
-    loadLeads,
-    onClose,
-    onCreated,
   ]);
 
   return {
@@ -247,6 +304,7 @@ export function useAppointmentCreateFlow({
       appointmentLeadMode: calendar.appointmentLeadMode,
       appointmentLeadOptions,
       appointmentPropertyOptions: properties.filteredAppointmentPropertyOptions,
+      duplicateCheck,
       enabledSelectedCalendars: calendar.enabledSelectedCalendars,
       isCatalogLoading: properties.isCatalogLoading,
       isCreatingAppointment,
@@ -256,6 +314,8 @@ export function useAppointmentCreateFlow({
       isLeadsLoading,
       onClose,
       onCreateAppointment: createAppointment,
+      onOmitDuplicateAndCreate: omitDuplicateAndCreate,
+      onUseDuplicateLead: useDuplicateLead,
       onLeadModeChange: changeLeadMode,
       onSelectCalendar: selectCalendar,
       onSelectLead: selectLead,
@@ -272,6 +332,24 @@ export function useAppointmentCreateFlow({
     },
     properties,
   };
+}
+
+function getDuplicateCheck(error: unknown): DuplicateCheckResult | null {
+  if (!error || typeof error !== "object") return null;
+
+  const apiError = error as {
+    status?: unknown;
+    details?: { duplicateCheck?: unknown };
+  };
+  if (apiError.status !== 409) return null;
+
+  const duplicateCheck = apiError.details?.duplicateCheck;
+  if (!duplicateCheck || typeof duplicateCheck !== "object") return null;
+
+  const result = duplicateCheck as Partial<DuplicateCheckResult>;
+  return Array.isArray(result.candidates) && !!result.window
+    ? (result as DuplicateCheckResult)
+    : null;
 }
 
 function createInitialForm(advisorId?: string): CreateGoogleCalendarDatePayload {
