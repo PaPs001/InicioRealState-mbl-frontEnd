@@ -8,10 +8,18 @@ export interface GoogleCalendarDateTime {
   timeZone?: string
 }
 export interface GoogleCalendarDateLead {
-  leadId: string
+  leadId?: string | null
   name?: string | null
   phone?: string | null
   email?: string | null
+  deleted?: boolean
+}
+
+export interface GoogleCalendarDateLeadSnapshot {
+  fullName?: string | null
+  phone?: string | null
+  email?: string | null
+  deletedAt?: string | Date | null
 }
 
 export interface GoogleCalendarDateProperty {
@@ -51,6 +59,7 @@ export interface GoogleCalendarDate {
   googleEventId?: string | null
   googleHtmlLink?: string | null
   lead?: GoogleCalendarDateLead | null
+  leadSnapshot?: GoogleCalendarDateLeadSnapshot | null
   createdBy?: string | null
   updatedBy?: string | null
   createdByUser?: GoogleCalendarDateUser | null
@@ -82,11 +91,39 @@ export interface CreateGoogleCalendarDatePayload {
   advisorId?: string | null
   appointmentType?: string | null
   colorId?: string | null
+  createLead?: boolean
+  confirmDuplicate?: boolean
   lead?: {
     fullName: string
     phone?: string | null
     email?: string | null
   } | null
+}
+
+export interface DuplicateLeadCandidate {
+  id?: string | null
+  fullName?: string | null
+  client?: string | null
+  phone?: string | null
+  email?: string | null
+  systemStatus?: string | null
+  status?: string | null
+  createdAt?: string | Date | null
+  followUpCount: number
+  lastFollowUpAt: string | Date | null
+  nameMatch: 'exact' | 'partial'
+  phoneMatch: boolean
+  emailMatch: boolean
+  strength: 'strong' | 'possible'
+}
+
+export interface DuplicateCheckResult {
+  window: {
+    from: string | Date
+    to: string | Date
+  }
+  requiresConfirmation: boolean
+  candidates: DuplicateLeadCandidate[]
 }
 
 export type UpdateGoogleCalendarDatePayload = {
@@ -128,8 +165,6 @@ export interface CreateGoogleCalendarDateResponse {
   leadResolution: {
     mode: 'existing' | 'created' | 'none'
     provisional: boolean
-    duplicateWarning: boolean
-    possibleDuplicates: GoogleCalendarDateLeadSummary[]
   }
 }
 

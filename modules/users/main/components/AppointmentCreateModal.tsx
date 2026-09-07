@@ -1,7 +1,12 @@
 import { FlatList, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ChevronRight } from 'lucide-react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import type { CreateGoogleCalendarDatePayload, SelectedGoogleCalendar } from '@/lib/api'
+import type {
+  CreateGoogleCalendarDatePayload,
+  DuplicateCheckResult,
+  DuplicateLeadCandidate,
+  SelectedGoogleCalendar,
+} from '@/lib/api'
 import type { Property, PropertyLead } from '@/lib/types'
 
 import { FilterChip } from '@/components/FilterChip'
@@ -24,6 +29,7 @@ type AppointmentCreateModalProps = {
   appointmentLeadMode: 'existing' | 'provisional'
   appointmentLeadOptions: PropertyLead[]
   appointmentPropertyOptions: Property[]
+  duplicateCheck: DuplicateCheckResult | null
   enabledSelectedCalendars: SelectedGoogleCalendar[]
   isCatalogLoading: boolean
   isCreatingAppointment: boolean
@@ -32,11 +38,13 @@ type AppointmentCreateModalProps = {
   isLeadsLoading: boolean
   onClose: () => void
   onCreateAppointment: () => void
+  onOmitDuplicateAndCreate: () => void
+  onUseDuplicateLead: (candidate: DuplicateLeadCandidate) => void
   onLeadModeChange: (mode: 'existing' | 'provisional') => void
   onSelectCalendar: (calendar: SelectedGoogleCalendar) => void
   onSelectLead: (lead: PropertyLead) => void
   onSelectProperty: (property: Property) => void
-  onSelectionScreenChange: (screen: 'lead' | 'property' | null) => void
+  onSelectionScreenChange: (screen: 'lead' | 'property' | 'duplicate' | null) => void
   onUpdateProvisionalLead: (field: 'fullName' | 'phone' | 'email', value: string) => void
   onUpdateForm: (field: keyof CreateGoogleCalendarDatePayload, value: string) => void
   provisionalLead: {
@@ -46,7 +54,7 @@ type AppointmentCreateModalProps = {
   }
   selectedAppointmentLead?: PropertyLead
   selectedAppointmentProperty?: Property
-  selectionScreen: 'lead' | 'property' | null
+  selectionScreen: 'lead' | 'property' | 'duplicate' | null
   testAppointmentForm: CreateGoogleCalendarDatePayload
   visible: boolean
 }
@@ -55,6 +63,7 @@ export function AppointmentCreateModal({
   appointmentLeadMode,
   appointmentLeadOptions,
   appointmentPropertyOptions,
+  duplicateCheck,
   enabledSelectedCalendars,
   isCatalogLoading,
   isCreatingAppointment,
@@ -63,6 +72,8 @@ export function AppointmentCreateModal({
   isLeadsLoading,
   onClose,
   onCreateAppointment,
+  onOmitDuplicateAndCreate,
+  onUseDuplicateLead,
   onLeadModeChange,
   onSelectCalendar,
   onSelectLead,
@@ -94,6 +105,8 @@ export function AppointmentCreateModal({
       ? 'Seleccionar lead'
       : selectionScreen === 'property'
         ? 'Seleccionar propiedad'
+        : selectionScreen === 'duplicate'
+          ? 'Posibles coincidencias'
         : 'Crear cita'
   const selectedTypeCalendar = enabledSelectedCalendars.find(
     calendar => (calendar.appointmentType || '').toLowerCase() === selectedAppointmentType,
@@ -160,7 +173,30 @@ export function AppointmentCreateModal({
       closeDisabled={isCreatingAppointment}
       closeOnBackdropPress={!isCreatingAppointment}
       footer={
-        !selectionScreen ? (
+        selectionScreen === 'duplicate' ? (
+          <View style={styles.calendarButtonsSection}>
+            <TouchableOpacity
+              style={styles.calendarCloseTab}
+              onPress={() => onSelectionScreenChange(null)}
+              disabled={isCreatingAppointment}
+            >
+              <Text style={styles.calendarExitButtonText}>Editar datos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.calendarTestCreateButton,
+                { backgroundColor: activeColor },
+              ]}
+              onPress={onOmitDuplicateAndCreate}
+              activeOpacity={0.85}
+              disabled={isCreatingAppointment}
+            >
+              <Text style={styles.calendarCreateButtonText}>
+                {isCreatingAppointment ? 'Procesando...' : 'Omitir y crear nuevo'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : !selectionScreen ? (
           <View style={styles.calendarButtonsSection}>
             <TouchableOpacity
               style={styles.calendarCloseTab}
@@ -189,7 +225,46 @@ export function AppointmentCreateModal({
         ) : null
       }
     >
-      {selectionScreen === 'lead' ? (
+      {selectionScreen === 'duplicate' ? (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.appointmentModalContent}
+            >
+              <Text style={styles.calendarSettingsEmpty}>
+                Encontramos leads similares. Revisa su informacion antes de crear uno nuevo.
+              </Text>
+              <View style={styles.appointmentSelectionList}>
+                {duplicateCheck?.candidates.map(candidate => (
+                  <View key={candidate.id || `${candidate.fullName}-${candidate.createdAt}`} style={styles.appointmentSelectionRow}>
+                    <View style={styles.appointmentSelectionRowCopy}>
+                      <Text style={styles.appointmentSelectionRowTitle} numberOfLines={1}>
+                        {candidate.fullName || candidate.client || 'Lead sin nombre'}
+                      </Text>
+                      <Text style={styles.appointmentSelectionRowMeta}>
+                        {formatDuplicateContact(candidate)}
+                      </Text>
+                      <Text style={styles.appointmentSelectionRowMeta}>
+                        {formatDuplicateMatch(candidate)}
+                      </Text>
+                      {candidate.followUpCount > 0 ? (
+                        <Text style={styles.appointmentSelectionRowMeta}>
+                          {formatDuplicateFollowUps(candidate)}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.calendarPrimaryButton}
+                      onPress={() => onUseDuplicateLead(candidate)}
+                      disabled={!candidate.id || isCreatingAppointment}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.calendarPrimaryButtonText}>Usar este lead</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          ) : selectionScreen === 'lead' ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.appointmentModalContent}
@@ -440,7 +515,7 @@ export function AppointmentCreateModal({
                         onPress={() => onLeadModeChange('existing')}
                       />
                       <FilterChip
-                        label="Cliente sin registrar"
+                        label="Nuevo lead"
                         active={appointmentLeadMode === 'provisional'}
                         activeColor={activeColor}
                         onPress={() => onLeadModeChange('provisional')}
@@ -470,7 +545,7 @@ export function AppointmentCreateModal({
                     ) : (
                       <View style={styles.appointmentProvisionalFields}>
                         <View style={styles.informationSection}>
-                          <Text style={styles.informationText}>Nombre Completo del cliente</Text>
+                          <Text style={styles.informationText}>Nombre completo del lead</Text>
                           <TextInput
                             style={styles.calendarTestInput}
                             value={provisionalLead.fullName}
@@ -545,4 +620,36 @@ function formatAppointmentDateTime(value: string) {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date)
+}
+
+function formatDuplicateContact(candidate: DuplicateLeadCandidate) {
+  const details = [candidate.phone, candidate.email, candidate.systemStatus || candidate.status]
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+
+  return details.join(' · ') || 'Sin telefono ni correo registrados'
+}
+
+function formatDuplicateMatch(candidate: DuplicateLeadCandidate) {
+  const reasons = [
+    candidate.nameMatch === 'exact' ? 'Nombre exacto' : 'Nombre similar',
+    candidate.phoneMatch ? 'telefono coincide' : '',
+    candidate.emailMatch ? 'correo coincide' : '',
+  ].filter(Boolean)
+
+  return `${candidate.strength === 'strong' ? 'Coincidencia fuerte' : 'Posible coincidencia'}: ${reasons.join(', ')}`
+}
+
+function formatDuplicateFollowUps(candidate: DuplicateLeadCandidate) {
+  const count = candidate.followUpCount
+  const label = `${count} ${count === 1 ? 'seguimiento' : 'seguimientos'}`
+  if (!candidate.lastFollowUpAt) return label
+
+  const date = new Date(candidate.lastFollowUpAt)
+  if (Number.isNaN(date.getTime())) return label
+
+  return `${label} · Ultimo: ${new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)}`
 }
