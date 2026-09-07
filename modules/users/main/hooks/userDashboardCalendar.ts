@@ -15,7 +15,7 @@ type UseDashboardCalendarParams = {
   returnPath?: string;
 };
 
-export type AppointmentSelectionScreen = "lead" | "property" | null;
+export type AppointmentSelectionScreen = "lead" | "property" | "duplicate" | null;
 export type AppointmentLeadMode = "existing" | "provisional";
 
 export type ProvisionalAppointmentLead = {
