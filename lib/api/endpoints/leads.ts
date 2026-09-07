@@ -162,6 +162,13 @@ export type SetBackendLeadV2NextActionPayload = {
   nextAction: string
   nextActionAt: string
 }
+
+export type DeleteBackendLeadV2RecordsResult = {
+  deleted: true
+  deletedLeadIds: string[]
+  appointmentsUnlinked: number
+  followingsDeleted: number
+}
 export type BackendLeadV2FollowingRecord = {
   id: string
   leadId: string
@@ -433,6 +440,17 @@ export async function updateBackendLeadV2Record(
   })
 
   return mapBackendLeadToPropertyLead(lead)
+}
+
+export async function deleteBackendLeadV2Records(
+  leadIds: string[],
+  token?: string | null,
+): Promise<DeleteBackendLeadV2RecordsResult> {
+  return coreApi<DeleteBackendLeadV2RecordsResult>('/leads-v2', {
+    method: 'DELETE',
+    token: token ?? undefined,
+    body: { leadIds },
+  })
 }
 
 export async function getBackendLeadV2Statuses(

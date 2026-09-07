@@ -7,21 +7,16 @@ import {
   ChevronDown,
   ChevronUp,
   Clock3,
-  Mic,
   Plus,
-  Radio,
   Search,
 } from 'lucide-react-native'
-import { icons, logos } from '@/assets'
+import { logos } from '@/assets'
 
-// Circulo de mas opciones de Leads: oculto por solicitud.
-// import { LeadQuickActionsButton } from '@/components/leads/LeadQuickActionsButton'
 import { AlertRow, AgentGroupCard, PriorityLeadCard } from '@/components/leads-v2/LeadV2Cards'
 import { LeadCreateModal } from '@/components/leads-v2/LeadCreateModal'
 import { useLeadsV2Screen, coordinatorLeadV2Channels } from '@/components/leads-v2/useLeadsV2Screen'
-import { coordinatorLeadV2AssistantActions, type LeadV2ViewModel, type LeadsV2RouteParams } from '@/components/leads-v2/types'
+import { type LeadV2ViewModel, type LeadsV2RouteParams } from '@/components/leads-v2/types'
 import { getParamValue } from '@/components/leads-v2/lead-v2-utils'
-import { LeadDetailView } from '@/app/(users)/userCoordinator/leads-v2/leads'
 import { LeadDetailScreen } from '@/modules/users/leads/screens/leadsDetailsScreen'
 import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
 
@@ -38,6 +33,8 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
   const isAdviserRoute = mode === 'advisor'
   const selectedLeadIdParam = getParamValue(routeParams.selectedLeadId)
   const {
+    isSelectingLeads, selectedDeleteIds, isDeletingLeads, deleteError,
+    startLeadSelection, cancelLeadSelection, toggleLeadSelection, submitDeleteLeads,
     alerts,
     clearSelectedAgentGroup,
     applyCustomLeadStatus,
@@ -140,7 +137,7 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
           />
         ) : (
           <ScrollView
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, isSelectingLeads && { paddingBottom: 300 }]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
@@ -272,8 +269,12 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
                     <PriorityLeadCard
                       key={lead.id}
                       lead={lead}
+                      selecting={isSelectingLeads}
+                      selected={selectedDeleteIds.includes(lead.id)}
+                      disabled={isDeletingLeads || (isSelectingLeads && selectedDeleteIds.length >= 10 && !selectedDeleteIds.includes(lead.id))}
                       onPress={() => {
-                         setSelectedLead(lead)
+                         if (isSelectingLeads) toggleLeadSelection(lead.id)
+                         else setSelectedLead(lead)
                       }}
                     />
                   ))}
@@ -311,54 +312,36 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
         )}
 
         {!selectedLead ? <View style={styles.assistantDock}>
-          {/*{isAssistantOpen ? (
-            <View style={styles.assistantMenu}>
-              {coordinatorLeadV2AssistantActions.map((action, index) => (
-                <TouchableOpacity
-                  key={action.id}
-                  style={[
-                    styles.assistantAction,
-                    index === coordinatorLeadV2AssistantActions.length - 1 && styles.assistantActionLast,
-                  ]}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    if (action.id === 'add-lead') {
-                      openCreateLeadModal()
-                    }
-                  }}
-                >
-                  {getAssistantIcon(action.icon)}
-                  <Text style={styles.assistantActionText} numberOfLines={1}>
-                    {action.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          {isSelectingLeads ? (
+            <View style={{ backgroundColor: '#ffffff', borderRadius: 15, padding: 12, gap: 10 }}>
+              <Text accessibilityLiveRegion="polite">{selectedDeleteIds.length}/10 leads seleccionados</Text>
+              <Text style={{ fontSize: 12 }}>{selectedDeleteIds.length === 10 ? 'L?mite alcanzado. Desmarca un lead para elegir otro.' : 'Selecciona hasta 10 leads para eliminar.'}</Text>
+              {deleteError ? <Text accessibilityRole="alert" style={{ color: '#ba544a' }}>{deleteError}</Text> : null}
+              <TouchableOpacity accessibilityRole="button" disabled={isDeletingLeads || selectedDeleteIds.length === 0}
+                style={[styles.assistantButton, { flex: 0, backgroundColor: '#ba544a', opacity: isDeletingLeads || selectedDeleteIds.length === 0 ? 0.5 : 1 }]}
+                onPress={submitDeleteLeads}>
+                <Text style={styles.assistantButtonText}>{isDeletingLeads ? 'Eliminando...' : 'Eliminar leads'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" disabled={isDeletingLeads} onPress={cancelLeadSelection} style={{ padding: 10, alignItems: 'center', opacity: isDeletingLeads ? 0.5 : 1 }}>
+                <Text>Cancelar</Text>
+              </TouchableOpacity>
             </View>
-          ) : null}*/}
-          <View style={styles.assistantButtonRow}>
-            <TouchableOpacity
-              style={styles.assistantButton}
-              activeOpacity={0.85}
-              onPress={() => {
-                openCreateLeadModal()
-                //setIsAssistantOpen((current) => !current)
-              }}
-            >
-              <Text style={styles.assistantButtonText}>Agregar Lead</Text>
-              {/*{isAssistantOpen ? <ChevronDown size={16} color="#ffffff" /> : <ChevronUp size={16} color="#ffffff" />}*/}
-            </TouchableOpacity>
-            {/*
-              Circulo de mas opciones de Leads.
-              Se muestra tanto en asesor como coordinador porque esta pantalla
-              compartida alimenta /userAdviser/leads y /userCoordinator/leads.
-              <LeadQuickActionsButton
-                onCreateLead={openCreateLeadModal}
-                onOpenChange={(isOpen) => {
-                  if (isOpen) setIsAssistantOpen(false)
-                }}
-              />
-            */}
-          </View>
+          ) : <>
+            {isAssistantOpen ? <View style={styles.assistantMenu}>
+              <TouchableOpacity accessibilityRole="button" style={[styles.assistantAction, { minHeight: 44 }]} onPress={() => { setIsAssistantOpen(false); openCreateLeadModal() }}>
+                <Plus size={16} color="#0f362b" /><Text style={styles.assistantActionText}>Agregar lead</Text>
+              </TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" style={[styles.assistantAction, styles.assistantActionLast, { minHeight: 44 }]} onPress={startLeadSelection}>
+                <Text style={[styles.assistantActionText, { color: '#ba544a' }]}>Eliminar leads</Text>
+              </TouchableOpacity>
+            </View> : null}
+            <View style={styles.assistantButtonRow}>
+              <TouchableOpacity accessibilityRole="button" accessibilityState={{ expanded: isAssistantOpen }} style={styles.assistantButton} activeOpacity={0.85} onPress={() => setIsAssistantOpen((current) => !current)}>
+                <Text style={styles.assistantButtonText}>Agregar Lead</Text>
+                {isAssistantOpen ? <ChevronDown size={16} color="#ffffff" /> : <ChevronUp size={16} color="#ffffff" />}
+              </TouchableOpacity>
+            </View>
+          </>}
         </View> : null}
 
         <LeadCreateModal
@@ -382,10 +365,4 @@ export function LeadV2Screen({ mode }: LeadV2ScreenProps) {
       </View>
     </SafeAreaView>
   )
-}
-
-function getAssistantIcon(icon: 'mic' | 'wave' | 'plus') {
-  if (icon === 'wave') return <Radio size={13} color="#8d8783" />
-  if (icon === 'plus') return <Plus size={13} color="#8d8783" />
-  return <Mic size={13} color="#8d8783" />
 }
