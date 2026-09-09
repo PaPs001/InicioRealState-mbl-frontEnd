@@ -7,7 +7,7 @@ import type {
   LeadV2Metric,
   LeadV2Status,
   LeadV2ViewModel,
-} from './types'
+} from '@/modules/users/leads/types'
 
 export type LeadV2ScreenMode = 'coordinator' | 'advisor'
 

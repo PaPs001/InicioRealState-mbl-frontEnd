@@ -124,7 +124,7 @@ export const PropertiesList = () => {
         }}
       />
 
-      <BlurView intensity={45} tint="light" experimentalBlurMethod="dimezisBlurView" style={styles.priceSection}>
+      <BlurView intensity={30 } tint="light" experimentalBlurMethod="dimezisBlurView" style={styles.priceSection}>
         <PriceCard
           onDate={() => console.log('se presionó el botón de cita')}
           price={mockProperty.priceLabel}
