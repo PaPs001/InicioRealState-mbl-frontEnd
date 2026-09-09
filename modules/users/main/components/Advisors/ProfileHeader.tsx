@@ -41,7 +41,7 @@ export function ProfileHeader({
           </View>
           <View>
             <Text style={styles.greeting}>Hola, {advisorName}</Text>
-            <Text style={styles.helper}>{areaConfig.headline}</Text>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={styles.helper}>{areaConfig.headline}</Text>
           </View>
         </TouchableOpacity>
       <TouchableOpacity style={styles.notification} activeOpacity={0.85}>

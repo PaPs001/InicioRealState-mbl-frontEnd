@@ -1,6 +1,6 @@
-﻿import { LeadV2Screen } from '@/components/leads-v2/LeadV2Screen'
+﻿import { LeadsPrincipalScreen } from '@/modules/users/leads/screens/leadsPrincipalScreen'
 
 export default function CoordinatorLeadsV2Screen() {
-  return <LeadV2Screen mode="coordinator" />
+  return <LeadsPrincipalScreen mode="coordinator" />
 }
 
