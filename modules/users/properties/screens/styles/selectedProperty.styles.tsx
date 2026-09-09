@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
     color: userColors.adviser.primary
   },
   priceSection:{
-    backgroundColor: '#fdfbf93d',
+    backgroundColor: '#d4d4d4a3',
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderBottomLeftRadius: 32,

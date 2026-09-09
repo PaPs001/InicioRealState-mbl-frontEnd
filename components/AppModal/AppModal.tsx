@@ -1,6 +1,12 @@
-import type { ReactNode } from 'react'
-import type { ModalProps, ScrollViewProps, StyleProp, ViewStyle } from 'react-native'
+import type { ReactNode } from "react";
+import type {
+  ModalProps,
+  ScrollViewProps,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 import {
+  KeyboardAvoidingViewProps,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -8,50 +14,51 @@ import {
   ScrollView,
   Text,
   View,
-} from 'react-native'
-import { ChevronLeft, X } from 'lucide-react-native'
+} from "react-native";
+import { ChevronLeft, X } from "lucide-react-native";
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { styles } from './AppModal.styles'
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { styles } from "./AppModal.styles";
 
-export type AppModalSize = 'small' | 'medium' | 'large' | 'fullscreen'
+export type AppModalSize = "small" | "medium" | "large" | "fullscreen";
 
-export type AppModalPosition = 'center' | 'bottom'
+export type AppModalPosition = "center" | "bottom";
 
 type AppModalProps = {
-  visible: boolean
-  children: ReactNode
-  onClose: () => void
+  visible: boolean;
+  children: ReactNode;
+  onClose: () => void;
 
-  title?: string
-  subtitle?: string
+  title?: string;
+  subtitle?: string;
 
-  headerLeft?: ReactNode
-  headerRight?: ReactNode
-  footer?: ReactNode
+  headerLeft?: ReactNode;
+  headerRight?: ReactNode;
+  footer?: ReactNode;
 
-  onBack?: () => void
-  showCloseButton?: boolean
+  onBack?: () => void;
+  showCloseButton?: boolean;
 
-  size?: AppModalSize
-  position?: AppModalPosition
-  accentColor?: string
+  size?: AppModalSize;
+  position?: AppModalPosition;
+  accentColor?: string;
 
-  animationType?: ModalProps['animationType']
-  statusBarTranslucent?: boolean
+  animationType?: ModalProps["animationType"];
+  statusBarTranslucent?: boolean;
 
-  scrollable?: boolean
-  keyboardAvoiding?: boolean
-  keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps']
+  scrollable?: boolean;
+  keyboardAvoiding?: boolean;
+  keyboardAvoidingBehavior?: KeyboardAvoidingViewProps["behavior"];
+  keyboardShouldPersistTaps?: ScrollViewProps["keyboardShouldPersistTaps"];
 
-  closeDisabled?: boolean
-  closeOnBackdropPress?: boolean
+  closeDisabled?: boolean;
+  closeOnBackdropPress?: boolean;
 
-  containerStyle?: StyleProp<ViewStyle>
-  contentStyle?: StyleProp<ViewStyle>
-  headerStyle?: StyleProp<ViewStyle>
-  footerStyle?: StyleProp<ViewStyle>
-}
+  containerStyle?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
+  headerStyle?: StyleProp<ViewStyle>;
+  footerStyle?: StyleProp<ViewStyle>;
+};
 
 export function AppModal({
   visible,
@@ -67,16 +74,17 @@ export function AppModal({
   onBack,
   showCloseButton = false,
 
-  size = 'medium',
-  position = 'center',
-  accentColor = '#3d5a40',
+  size = "medium",
+  position = "center",
+  accentColor = "#3d5a40",
 
-  animationType = 'fade',
+  animationType = "fade",
   statusBarTranslucent = true,
 
   scrollable = false,
   keyboardAvoiding = false,
-  keyboardShouldPersistTaps = 'handled',
+  keyboardShouldPersistTaps = "handled",
+  keyboardAvoidingBehavior,
 
   closeDisabled = false,
   closeOnBackdropPress = true,
@@ -88,26 +96,27 @@ export function AppModal({
 }: AppModalProps) {
   const handleClose = () => {
     if (!closeDisabled) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
-  const inset = useSafeAreaInsets()
+  const inset = useSafeAreaInsets();
 
   const handleBackdropPress = () => {
     if (closeOnBackdropPress) {
-      handleClose()
+      handleClose();
     }
-  }
+  };
 
   const sizeStyle = {
     small: styles.containerSmall,
     medium: styles.containerMedium,
     large: styles.containerLarge,
     fullscreen: styles.containerFullscreen,
-  }[size]
+  }[size];
 
-  const positionStyle = position === 'bottom' ? styles.overlayBottom : styles.overlayCenter
+  const positionStyle =
+    position === "bottom" ? styles.overlayBottom : styles.overlayCenter;
 
   const hasHeader =
     Boolean(title) ||
@@ -115,10 +124,11 @@ export function AppModal({
     Boolean(onBack) ||
     Boolean(headerLeft) ||
     Boolean(headerRight) ||
-    showCloseButton
+    showCloseButton;
 
-  const leftContent = headerLeft ?? (
-    onBack ? (
+  const leftContent =
+    headerLeft ??
+    (onBack ? (
       <Pressable
         style={styles.headerAction}
         onPress={onBack}
@@ -127,11 +137,11 @@ export function AppModal({
       >
         <ChevronLeft size={21} color={accentColor} />
       </Pressable>
-    ) : null
-  )
+    ) : null);
 
-  const rightContent = headerRight ?? (
-    showCloseButton ? (
+  const rightContent =
+    headerRight ??
+    (showCloseButton ? (
       <Pressable
         style={styles.headerAction}
         onPress={handleClose}
@@ -141,15 +151,14 @@ export function AppModal({
       >
         <X size={20} color={accentColor} />
       </Pressable>
-    ) : null
-  )
+    ) : null);
 
   const modalContent = (
     <View
       style={[
         styles.container,
         sizeStyle,
-        position === 'bottom' && styles.bottomContainer,
+        position === "bottom" && styles.bottomContainer,
         containerStyle,
       ]}
       accessibilityViewIsModal
@@ -184,6 +193,7 @@ export function AppModal({
             style={styles.scrollView}
             contentContainerStyle={[
               styles.content,
+              styles.scrollContent,
               contentStyle,
             ]}
             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
@@ -193,22 +203,23 @@ export function AppModal({
           </ScrollView>
         </View>
       ) : (
-        <View style={[styles.content, contentStyle]}>
-          {children}
-        </View>
+        <View style={[styles.content, contentStyle]}>{children}</View>
       )}
 
       {footer ? (
-        <View style={[
-          styles.footer, ,
-          {paddingBottom: 18 + inset.bottom},
-          footerStyle
-        ]}>
+        <View
+          style={[
+            styles.footer,
+            ,
+            { paddingBottom: 18 + inset.bottom },
+            footerStyle,
+          ]}
+        >
           {footer}
         </View>
       ) : null}
     </View>
-  )
+  );
 
   return (
     <Modal
@@ -228,7 +239,11 @@ export function AppModal({
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
             style={[styles.keyboardAvoidingView, positionStyle]}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            contentContainerStyle={styles.keyboardPositionContent}
+            behavior={
+              keyboardAvoidingBehavior ??
+              (Platform.OS === "ios" ? "padding" : "height")
+            }
           >
             {modalContent}
           </KeyboardAvoidingView>
@@ -237,5 +252,5 @@ export function AppModal({
         )}
       </View>
     </Modal>
-  )
+  );
 }
