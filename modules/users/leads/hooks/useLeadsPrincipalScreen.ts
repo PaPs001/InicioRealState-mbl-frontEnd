@@ -1,3 +1,7 @@
+import { router, useLocalSearchParams } from 'expo-router'
+import type { LeadsV2RouteParams } from '@/modules/users/leads/types'
+import { getParamValue } from '../utils/leads-principal-utils'
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
@@ -24,7 +28,7 @@ import {
   type LeadPropertyOption,
   type LeadV2CreateForm,
   type LeadV2ViewModel,
-} from './types'
+} from '@/modules/users/leads/types'
 import {
   buildAgentLeadGroups,
   buildLeadV2Alerts,
@@ -33,14 +37,16 @@ import {
   formatPropertyPrice,
   mapPropertyLeadToLeadV2ViewModel,
   normalizeSearch,
-} from './lead-v2-utils'
+} from '../utils/leads-principal-utils'
 
-type UseLeadsV2ScreenParams = {
-  isAdviserRoute: boolean
-  selectedLeadIdParam: string
+type UseLeadsPrincipalScreenParams = {
+  mode: 'coordinator' | 'advisor'
 }
 
-export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLeadsV2ScreenParams) {
+export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams) {
+  const routeParams = useLocalSearchParams<LeadsV2RouteParams>()
+  const isAdviserRoute = mode === 'advisor'
+  const selectedLeadIdParam = getParamValue(routeParams.selectedLeadId)
   const { authToken } = useSessionDomain()
   const {
     availableProperties,
@@ -442,7 +448,42 @@ export function useLeadsV2Screen({ isAdviserRoute, selectedLeadIdParam }: UseLea
     }
   }
 
+  const openLeadFollowUps = (lead: LeadV2ViewModel) => {
+    const followUpsPath = isAdviserRoute
+      ? '/userAdviser/leads-v2/followups'
+      : '/userCoordinator/leads-v2/followups'
+    const returnToPath = isAdviserRoute
+      ? '/userAdviser/leads'
+      : '/userCoordinator/leads'
+
+    router.push({
+      pathname: followUpsPath,
+      params: {
+        leadId: lead.id,
+        leadName: lead.name,
+        phone: lead.phone || '',
+        returnTo: returnToPath,
+      },
+    } as never)
+  }
+
+  const closeLeadDetail = () => {
+    if (selectedLeadIdParam) {
+      setDismissedRouteLeadId(selectedLeadIdParam)
+    }
+
+    setSelectedLead(null)
+
+    if (selectedLeadIdParam) {
+      router.replace((isAdviserRoute ? '/userAdviser/leads' : '/userCoordinator/leads') as never)
+    }
+  }
+
+
   return {
+    isAdviserRoute,
+    openLeadFollowUps,
+    closeLeadDetail,
     isSelectingLeads,
     selectedDeleteIds,
     isDeletingLeads,

@@ -1,1 +1,1 @@
-export { default } from '../../userCoordinator/leads-v2/followups'
+export { default } from "@/modules/users/leads/screens/leadsFollowing";
