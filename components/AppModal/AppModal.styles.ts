@@ -1,9 +1,9 @@
-import { Platform, StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(18, 24, 21, 0.52)',
+    backgroundColor: "rgba(18, 24, 21, 0.52)",
   },
 
   backdropPressArea: {
@@ -11,33 +11,38 @@ export const styles = StyleSheet.create({
   },
 
   overlayCenter: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   overlayBottom: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    alignItems: "center",
+    justifyContent: "flex-end",
     paddingBottom: 0,
   },
 
   keyboardAvoidingView: {
     flex: 1,
-    width: '100%',
-    maxHeight: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    maxHeight: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  keyboardPositionContent: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
 
   container: {
-    width: '100%',
-    overflow: 'hidden',
+    width: "100%",
+    overflow: "hidden",
     borderRadius: 20,
-    backgroundColor: '#fffdf9',
+    backgroundColor: "#fffdf9",
 
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: "#000000",
         shadowOffset: {
           width: 0,
           height: 8,
@@ -53,23 +58,23 @@ export const styles = StyleSheet.create({
 
   containerSmall: {
     maxWidth: 380,
-    maxHeight: '70%',
+    maxHeight: "70%",
   },
 
   containerMedium: {
-    maxWidth: 440,
-    maxHeight: '82%',
+    maxWidth: 500,
+    maxHeight: "82%",
   },
 
   containerLarge: {
-    maxWidth: 560,
-    maxHeight: '92%',
+    maxWidth: 670,
+    maxHeight: "92%",
   },
 
   containerFullscreen: {
     maxWidth: 720,
-    height: '100%',
-    maxHeight: '100%',
+    height: "100%",
+    maxHeight: "100%",
     borderRadius: 0,
   },
 
@@ -81,53 +86,53 @@ export const styles = StyleSheet.create({
 
   header: {
     minHeight: 68,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e4ded5',
-    backgroundColor: '#fffdf9',
+    borderBottomColor: "#e4ded5",
+    backgroundColor: "#fffdf9",
   },
 
   headerSide: {
     width: 38,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    alignItems: "flex-start",
+    justifyContent: "center",
   },
 
   headerRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
 
   headerAction: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f2ede5',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2ede5",
   },
 
   headerCopy: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: 8,
   },
 
   title: {
-    color: '#193a31',
+    color: "#193a31",
     fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
 
   subtitle: {
     marginTop: 3,
-    color: '#697b74',
+    color: "#697b74",
     fontSize: 12,
     lineHeight: 17,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   scrollView: {
@@ -138,15 +143,17 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
 
-  content: { 
-    flexShrink: 1, 
-    minHeight: 0, 
-    padding: 18, 
-    gap: 14, 
+  content: {
+    flexShrink: 1,
+    minHeight: 0,
+    padding: 18,
+    gap: 14,
   },
 
   scrollContent: {
-    //flexGrow: 1,
+    flexGrow: 1,
+    flexShrink: 0,
+    paddingBottom: 32,
   },
 
   footer: {
@@ -154,9 +161,7 @@ export const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 18,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e4ded5',
-    backgroundColor: '#fffdf9',
+    borderTopColor: "#e4ded5",
+    backgroundColor: "#fffdf9",
   },
-
-  
-})
+});

@@ -4,27 +4,41 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { X } from "lucide-react-native";
 
 import type { FollowingImagePreview } from "./FollowingImageAttachment";
+import { ScrollView } from "react-native";
+import { useState } from "react";
 
-type Props = { image: FollowingImagePreview | null; onClose: () => void };
+type Props = {
+  image?: FollowingImagePreview | null;
+  images?: FollowingImagePreview[];
+  onClose: () => void;
+};
 
-export function FollowingImagePreviewModal({ image, onClose }: Props) {
+export function FollowingImagePreviewModal({ image, images, onClose }: Props) {
+  const galleryImages = images?.length ? images : image ? [image] : [];
+  const { height, width } = useWindowDimensions();
+  const imageWidth = width - 28;
+  const imageHeight = Math.max(height - 150, 1);
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const activeImage = galleryImages[activeIndex] || galleryImages[0]
   return (
     <Modal
       animationType="fade"
       transparent
-      visible={Boolean(image)}
+      visible={galleryImages.length > 0}
       statusBarTranslucent
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
         <View style={styles.header}>
           <Text style={styles.title} numberOfLines={1}>
-            {image?.title || "Imagen adjunta"}
+            {activeImage?.title || "Imagen adjunta"}
           </Text>
           <TouchableOpacity
             style={styles.closeButton}
@@ -36,12 +50,29 @@ export function FollowingImagePreviewModal({ image, onClose }: Props) {
             <X size={18} color="#ffffff" />
           </TouchableOpacity>
         </View>
-        {image ? (
-          <Image
-            source={{ uri: image.uri }}
-            style={styles.image}
-            resizeMode="contain"
-          />
+        {galleryImages.length > 0 ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.gallery}
+            contentContainerStyle={styles.galleryContent}
+            onMomentumScrollEnd={(event) => {
+              const nextIndex = Math.round(
+                event.nativeEvent.contentOffset.x / imageWidth,
+              )
+              setActiveIndex(nextIndex)
+            }}
+          >
+            {galleryImages.map((galleryImage, index) => (
+              <Image
+                key={`${galleryImage.uri}-${index}`}
+                source={{ uri: galleryImage.uri }}
+                style={[styles.image, { width: imageWidth, height: imageHeight }]}
+                resizeMode="contain"
+              />
+            ))}
+          </ScrollView>
         ) : null}
       </View>
     </Modal>
@@ -79,5 +110,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  image: { flex: 1, width: "100%" },
+  gallery: { flex: 1 },
+  galleryContent: { alignItems: "center" },
+  image: {},
 });

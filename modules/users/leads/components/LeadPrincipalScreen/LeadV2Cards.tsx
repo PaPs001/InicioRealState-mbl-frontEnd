@@ -1,9 +1,9 @@
 import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { CheckSquare, Square, AlertTriangle, ChevronRight, Clock3, Radio, UserRound } from 'lucide-react-native'
 
-import { styles } from '@/app/(users)/userCoordinator/leads-v2/index.styles'
-import type { AgentLeadGroup, LeadV2Alert, LeadV2ViewModel } from './types'
-import { getAvatarUrl } from './lead-v2-utils'
+import { styles } from '../styles/LeadV2Cards'
+import type { AgentLeadGroup, LeadV2Alert, LeadV2ViewModel } from '@/modules/users/leads/types'
+import { getAvatarUrl } from '@/modules/users/leads/utils/leads-principal-utils'
 
 export function AlertRow({ alert }: { alert: LeadV2Alert }) {
   return (
