@@ -69,12 +69,12 @@ export type TemporaryPdfReport = {
 }
 
 function getSafFilename(filename: string) {
-  return filename.replace(/\.pdf$/i, '')
+  return filename.replace(/\.(pdf|png)$/i, '')
 }
 
-function getCoreApiHeaders(token: string | null | undefined) {
+function getCoreApiHeaders(token: string | null | undefined, accept = 'application/pdf') {
   const headers: Record<string, string> = {
-    Accept: 'application/pdf',
+    Accept: accept,
     'Content-Type': 'application/json',
   }
 
@@ -191,7 +191,7 @@ export async function createSinglePropertyPdfUrl(
 ): Promise<TemporaryPdfReport> {
   const response = await fetchWithAuthRetry(API_URLS.CORE, SINGLE_REPORT_ENDPOINT, {
     method: 'POST',
-    headers: getCoreApiHeaders(token),
+    headers: getCoreApiHeaders(token, 'image/png'),
     token,
     body: JSON.stringify(payload),
   })
@@ -201,9 +201,11 @@ export async function createSinglePropertyPdfUrl(
   }
 
   const arrayBuffer = await response.arrayBuffer()
+  const contentType = response.headers.get('content-type') || 'image/png'
+  const extension = contentType.split(';', 1)[0].trim().toLowerCase() === 'image/png' ? 'png' : 'pdf'
   const filename = getFilenameFromContentDisposition(
     response.headers.get('content-disposition'),
-    `Propiedad_${payload.propertyId}.pdf`,
+    `Propiedad_${payload.propertyId}.${extension}`,
   )
   const localUri = `${FileSystem.documentDirectory}${filename}`
 
@@ -214,7 +216,7 @@ export async function createSinglePropertyPdfUrl(
   return {
     filename,
     byteLength: arrayBuffer.byteLength,
-    contentType: response.headers.get('content-type') || 'application/pdf',
+    contentType,
     localUri,
   }
 }
@@ -237,7 +239,7 @@ export async function createAndOpenSinglePropertyPdf(
     const savedUri = await FileSystem.StorageAccessFramework.createFileAsync(
       androidDirectoryPermissions.directoryUri,
       getSafFilename(report.filename),
-      'application/pdf',
+      report.contentType,
     )
 
     try {
@@ -256,7 +258,7 @@ export async function createAndOpenSinglePropertyPdf(
 
     report.savedUri = savedUri
     report.openUri = savedUri
-    await openPdfWithIntent(savedUri)
+    await openFileWithIntent(savedUri, report.contentType)
     return report
   }
 
@@ -302,7 +304,7 @@ export async function createAndOpenTemporaryPropertyListPdf(
 
     report.savedUri = savedUri
     report.openUri = savedUri
-    await openPdfWithIntent(savedUri)
+    await openFileWithIntent(savedUri, report.contentType)
     return report
   }
 
@@ -312,11 +314,11 @@ export async function createAndOpenTemporaryPropertyListPdf(
   return report
 }
 
-async function openPdfWithIntent(uri: string) {
+async function openFileWithIntent(uri: string, contentType: string) {
   try {
     await IntentLauncher.startActivityAsync(ANDROID_ACTION_VIEW, {
       data: uri,
-      type: 'application/pdf',
+      type: contentType,
       flags: ANDROID_FLAG_GRANT_READ_URI_PERMISSION,
     })
   } catch (error) {
