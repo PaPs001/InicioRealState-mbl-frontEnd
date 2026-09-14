@@ -17,12 +17,12 @@ import {
 } from "@/modules/users/main/utils/dashboard-formatters";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
 import { styles } from "./styles/UpdateDateModal.styles";
-
-const APPOINTMENT_TYPES: Array<{ label: string; value: AppointmentType }> = [
-  { label: "Renta", value: "renta" },
-  { label: "Venta", value: "venta" },
-  { label: "General", value: "general" },
-];
+import {
+  canSelectCalendarManually,
+  getAppointmentTypeConfig,
+  getAppointmentSubtypeOptions,
+  getPrimaryAppointmentTypeOptions,
+} from '@/lib/config/appointment-Types';
 
 type UpdateDateModalProps = {
   appointment: AppointmentPreviewItem;
@@ -88,6 +88,14 @@ export function UpdateDateModal({
 }: UpdateDateModalProps) {
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const startDateTime = form.startDateTime || appointment.startDateTime;
+  const appointmentTypeConfig = getAppointmentTypeConfig(form.appointmentType);
+  const selectedPrimaryAppointmentType = appointmentTypeConfig.parentType ?? form.appointmentType;
+  const generalSubtypeOptions = getAppointmentSubtypeOptions('general');
+  const isGeneralCategory = selectedPrimaryAppointmentType === 'general';
+  const showsRelatedInformation = appointmentTypeConfig.lead !== 'none';
+  const manuallySelectableCalendars = enabledCalendars.filter(
+    canSelectCalendarManually,
+  );
   const isCurrentUserAssigned = Boolean(
     currentUserId && form.advisorId === currentUserId,
   );
@@ -202,22 +210,14 @@ export function UpdateDateModal({
               typeSelectedDate={form.appointmentType}
             >
               <View style={styles.appointmentModeRow}>
-                {APPOINTMENT_TYPES.map((type) => {
-                  const isActive = form.appointmentType === type.value;
+                {getPrimaryAppointmentTypeOptions().map((type) => {
+                  const isActive = selectedPrimaryAppointmentType === type.value;
                   return (
                     <Pressable
                       key={type.value}
                       style={[
                         styles.appointmentModeButton,
-                        isActive &&
-                          type.value === "renta" &&
-                          styles.appointmentModeButtonRentActive,
-                        isActive &&
-                          type.value === "venta" &&
-                          styles.appointmentModeButtonSaleActive,
-                        isActive &&
-                          type.value === "general" &&
-                          styles.appointmentModeButtonGeneralActive,
+                        isActive && { backgroundColor: type.color, borderColor: type.color },
                       ]}
                       onPress={() => onSelectAppointmentType(type.value)}
                       disabled={isUpdating}
@@ -234,6 +234,35 @@ export function UpdateDateModal({
                   );
                 })}
               </View>
+              {isGeneralCategory ? (
+                <View style={styles.relatedInformationSection}>
+                  <Text style={styles.sectionTitle}>Tipo de cita general</Text>
+                  <View style={styles.appointmentModeRow}>
+                    {generalSubtypeOptions.map(type => {
+                      const isActive = form.appointmentType === type.value;
+
+                      return (
+                        <Pressable
+                          key={type.value}
+                          style={[
+                            styles.appointmentModeButton,
+                            isActive && { backgroundColor: type.color, borderColor: type.color },
+                          ]}
+                          onPress={() => onSelectAppointmentType(type.value)}
+                          disabled={isUpdating}
+                        >
+                          <Text style={[
+                            styles.appointmentModeButtonText,
+                            isActive && styles.appointmentModeButtonTextActive,
+                          ]}>
+                            {type.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ) : null}
             </EditableField>
             
             <EditableField
@@ -252,7 +281,7 @@ export function UpdateDateModal({
 
             
 
-            {form.appointmentType !== "general" ? (
+            {showsRelatedInformation ? (
               <>
                 <EditableField
                   label="Asesor encargado"
@@ -385,7 +414,7 @@ export function UpdateDateModal({
               />
             </EditableField>
 
-            {form.appointmentType === 'general' ? (
+            {appointmentTypeConfig.calendarSelection === 'manual' ? (
 
               <EditableField
                 label="Calendario"
@@ -399,13 +428,13 @@ export function UpdateDateModal({
                   <Text style={styles.calendarEmptyText}>
                     Cargando calendarios...
                   </Text>
-                ) : enabledCalendars.length === 0 ? (
+                ) : manuallySelectableCalendars.length === 0 ? (
                   <Text style={styles.calendarEmptyText}>
                     No hay calendarios habilitados.
                   </Text>
                 ) : (
                   <View style={styles.calendarOptions}>
-                    {enabledCalendars.map((calendar) => {
+                    {manuallySelectableCalendars.map((calendar) => {
                       const isActive = form.calendarId === calendar.calendarId;
                       return (
                         <Pressable
@@ -619,9 +648,7 @@ function EditableField({
       <Text style={styles.calendarLabel}>{label}</Text>
       <View style={[
           styles.originalValueContainer,
-          typeSelectedDate === "renta" && styles.rentValueContainer,
-          typeSelectedDate === "venta" && styles.saleValueContainer,
-          typeSelectedDate === "general" && styles.generalValueContainer,
+          typeSelectedDate && { backgroundColor: getAppointmentTypeConfig(typeSelectedDate).color },
         ]}
       >
         <Text
@@ -648,6 +675,7 @@ function EditableField({
 }
 
 function formatAppointmentType(value?: string | null) {
+  if (value) return getAppointmentTypeConfig(value).label;
   if (value === "renta") return "Renta";
   if (value === "venta") return "Venta";
   if (value === "general") return "General";

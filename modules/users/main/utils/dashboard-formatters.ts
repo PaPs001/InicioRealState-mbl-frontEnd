@@ -1,4 +1,4 @@
-import type { AppointmentType, GoogleCalendarDate } from "@/lib/api";
+import type { GoogleCalendarDate } from "@/lib/api";
 import type { LeadFollowUp, Property } from "@/lib/types";
 
 import type { AppointmentPreviewItem } from "@/modules/users/main/types";
@@ -77,13 +77,6 @@ export function formatCurrentDashboardDate() {
   }).format(new Date());
 }
 
-export function getDefaultAppointmentType(summary?: string): AppointmentType {
-  const value = summary?.toLowerCase() ?? "";
-  if (value.includes("renta")) return "renta";
-  if (value.includes("venta")) return "venta";
-  return "general";
-}
-
 export function getDefaultAppointmentStartDateTime() {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -97,7 +90,7 @@ export function getDefaultAppointmentEndDateTime() {
 export function getAppointmentEndDateTime(startDateTime: string) {
   const date = new Date(startDateTime);
   const startDate = Number.isNaN(date.getTime()) ? new Date() : date;
-  startDate.setHours(startDate.getHours() + 4);
+  startDate.setHours(startDate.getHours() + 2);
   return startDate.toISOString();
 }
 

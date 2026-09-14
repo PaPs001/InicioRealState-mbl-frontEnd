@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
-  type NativeSyntheticEvent,
   ScrollView,
   Text,
-  TextInput,
-  type TextInputKeyPressEventData,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -15,11 +12,14 @@ import { ArrowLeft, Mail, RefreshCcw } from 'lucide-react-native'
 
 import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
 import {
+  VerificationCodeInput,
+  type VerificationCodeInputHandle,
+} from '@/components/VerificationCodeInput'
+import {
   confirmRegisterVerificationCode,
   formatRegisterVerificationCountdown,
   getRegisterVerificationParams,
   isRegisterVerificationCodeComplete,
-  normalizeRegisterVerificationCode,
   REGISTER_VERIFICATION_CODE_LENGTH,
   REGISTER_VERIFICATION_RESEND_SECONDS,
   requestRegisterVerificationCode,
@@ -27,7 +27,7 @@ import {
 import { registerOwnerVerifyStyles } from './verify.styles'
 export default function RegisterOwnerVerifyScreen() {
   const router = useRouter()
-  const inputRefs = useRef<Array<TextInput | null>>([])
+  const codeInputRef = useRef<VerificationCodeInputHandle>(null)
   const params = useLocalSearchParams<{
     clientType?: string
     fullName?: string
@@ -40,7 +40,6 @@ export default function RegisterOwnerVerifyScreen() {
   const [showError, setShowError] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
-  const codeCharacters = Array.from({ length: REGISTER_VERIFICATION_CODE_LENGTH }, (_, index) => code[index] ?? '-')
   const isComplete = isRegisterVerificationCodeComplete(code)
 
   useEffect(() => {
@@ -54,52 +53,7 @@ export default function RegisterOwnerVerifyScreen() {
   }, [secondsLeft])
 
   const focusCodeInput = (index: number) => {
-    const safeIndex = Math.min(Math.max(index, 0), REGISTER_VERIFICATION_CODE_LENGTH - 1)
-    inputRefs.current[safeIndex]?.focus()
-  }
-
-  const handleDigitChange = (value: string, index: number) => {
-    const digits = normalizeRegisterVerificationCode(value)
-    setShowError(false)
-
-    if (!digits) {
-      const nextCharacters = codeCharacters.map((character) => (character === '-' ? '' : character))
-      nextCharacters[index] = ''
-      setCode(nextCharacters.join(''))
-      return
-    }
-
-    const nextCharacters = codeCharacters.map((character) => (character === '-' ? '' : character))
-    digits.split('').forEach((digit, offset) => {
-      const targetIndex = index + offset
-      if (targetIndex < REGISTER_VERIFICATION_CODE_LENGTH) {
-        nextCharacters[targetIndex] = digit
-      }
-    })
-
-    setCode(nextCharacters.join(''))
-
-    const nextIndex = Math.min(index + digits.length, REGISTER_VERIFICATION_CODE_LENGTH - 1)
-    if (index + digits.length < REGISTER_VERIFICATION_CODE_LENGTH) {
-      focusCodeInput(nextIndex)
-    }
-  }
-
-  const handleDigitKeyPress = (
-    event: NativeSyntheticEvent<TextInputKeyPressEventData>,
-    index: number,
-  ) => {
-    if (event.nativeEvent.key !== 'Backspace') return
-
-    if (codeCharacters[index] && codeCharacters[index] !== '-') return
-
-    const previousIndex = index - 1
-    if (previousIndex < 0) return
-
-    const nextCharacters = codeCharacters.map((character) => (character === '-' ? '' : character))
-    nextCharacters[previousIndex] = ''
-    setCode(nextCharacters.join(''))
-    focusCodeInput(previousIndex)
+    codeInputRef.current?.focus(index)
   }
 
   const handleVerify = async () => {
@@ -197,38 +151,21 @@ export default function RegisterOwnerVerifyScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={registerOwnerVerifyStyles.codeArea}
-            activeOpacity={1}
-            onPress={() => focusCodeInput(code.length)}
-          >
-            <View style={registerOwnerVerifyStyles.codeBoxes}>
-              {codeCharacters.map((character, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => {
-                    inputRefs.current[index] = ref
-                  }}
-                  style={[
-                    registerOwnerVerifyStyles.codeBox,
-                    registerOwnerVerifyStyles.codeBoxText,
-                    index === 3 && registerOwnerVerifyStyles.codeGap,
-                    index === code.length && registerOwnerVerifyStyles.codeBoxActive,
-                  ]}
-                  value={character === '-' ? '' : character}
-                  onChangeText={(value) => handleDigitChange(value, index)}
-                  onKeyPress={(event) => handleDigitKeyPress(event, index)}
-                  keyboardType="number-pad"
-                  textContentType={index === 0 ? 'oneTimeCode' : 'none'}
-                  maxLength={REGISTER_VERIFICATION_CODE_LENGTH}
-                  autoFocus={index === 0}
-                  selectTextOnFocus
-                  textAlign="center"
-                  accessibilityLabel={`Digito ${index + 1} del codigo de verificacion`}
-                />
-              ))}
-            </View>
-          </TouchableOpacity>
+          <VerificationCodeInput
+            ref={codeInputRef}
+            value={code}
+            length={REGISTER_VERIFICATION_CODE_LENGTH}
+            onChange={(value) => {
+              setCode(value)
+              setShowError(false)
+            }}
+            containerStyle={registerOwnerVerifyStyles.codeArea}
+            boxesStyle={registerOwnerVerifyStyles.codeBoxes}
+            boxStyle={registerOwnerVerifyStyles.codeBox}
+            boxTextStyle={registerOwnerVerifyStyles.codeBoxText}
+            activeBoxStyle={registerOwnerVerifyStyles.codeBoxActive}
+            gapAfterIndex={3}
+          />
 
           <View style={registerOwnerVerifyStyles.cards}>
             <View style={registerOwnerVerifyStyles.infoCard}>
