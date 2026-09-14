@@ -12,7 +12,7 @@ import {
 } from "lucide-react-native";
 
 import type { GoogleCalendarDate } from "@/lib/api";
-import { generalColors } from "@/theme";
+import { getAppointmentTypeConfig } from '@/lib/config/appointment-Types';
 
 type EventCardProps = {
   appointment: GoogleCalendarDate;
@@ -45,11 +45,6 @@ function getAppointmentSchedule(appointment: GoogleCalendarDate) {
   return `${startTime} – ${endTime}`;
 }
 
-function getAppointmentType(value?: string | null) {
-  if (!value) return "General";
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}
-
 function getAdvisorName(appointment: GoogleCalendarDate) {
   return (
     appointment.advisor?.name ||
@@ -61,18 +56,12 @@ function getAdvisorName(appointment: GoogleCalendarDate) {
 export function EventCard({ appointment, onDelete, onEdit }: EventCardProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [showInformation, setShowInformation] = useState(false);
-  const appointmentType = appointment.appointmentType?.toLowerCase();
-  const isRent = appointmentType === "renta";
-  const isSale = appointmentType === "venta";
+  const appointmentTypeConfig = getAppointmentTypeConfig(appointment.appointmentType);
   const clientName = appointment.lead?.name || "Sin cliente relacionado";
 
   return (
     <View
-      style={[
-        styles.container,
-        isRent && styles.rentContainer,
-        isSale && styles.saleContainer,
-      ]}
+      style={[styles.container, { backgroundColor: appointmentTypeConfig.color }]}
     >
       <View style={styles.mainRow}>
         <Pressable
@@ -92,7 +81,7 @@ export function EventCard({ appointment, onDelete, onEdit }: EventCardProps) {
               </Text>
             </View>
             <Text style={styles.typeText}>
-              {getAppointmentType(appointment.appointmentType)}
+              {appointmentTypeConfig.label}
             </Text>
           </View>
           <View style={styles.titleRow}>
@@ -206,15 +195,12 @@ const styles = StyleSheet.create({
     width: "100%",
     overflow: "hidden",
     borderRadius: 16,
-    backgroundColor: generalColors.general     ,
     elevation: 2,
     shadowColor: "#17251f",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 5,
   },
-  rentContainer: { backgroundColor: generalColors.rentColor },
-  saleContainer: { backgroundColor: generalColors.saleColor },
   mainRow: { flexDirection: "row", alignItems: "stretch" },
   informationContainer: {
     flex: 1,

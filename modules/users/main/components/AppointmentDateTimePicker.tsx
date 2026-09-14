@@ -26,6 +26,9 @@ type AppointmentDateTimePickerProps = {
   onChange: (value: string) => void
   onClose: () => void,
   visible: boolean
+  hourOptions?: number[]
+  minimumDateTime?: string
+  selectionLabel?: string
 }
 
 export function AppointmentDateTimePicker({
@@ -33,6 +36,9 @@ export function AppointmentDateTimePicker({
   onChange,
   onClose,
   visible,
+  hourOptions = HOUR_OPTIONS,
+  minimumDateTime,
+  selectionLabel = 'de la cita',
 }: AppointmentDateTimePickerProps) {
   const [step, setStep] = useState<'date' | 'time'>('date')
   const [hasSelectedDate, setHasSelectedDate] = useState(true)
@@ -43,8 +49,25 @@ export function AppointmentDateTimePicker({
   const [visibleMonth, setVisibleMonth] = useState(
     () => new Date(valueDate.getFullYear(), valueDate.getMonth(), 1),
   )
-  const [selectedHour, setSelectedHour] = useState(getSafeHour(valueDate.getHours()))
+  const [selectedHour, setSelectedHour] = useState(getSafeHour(valueDate.getHours(), hourOptions))
   const [selectedMinute, setSelectedMinute] = useState(roundMinute(valueDate.getMinutes()))
+
+  const minimumDate = useMemo(() => {
+    if (!minimumDateTime) return null
+
+    const date = new Date(minimumDateTime)
+    return Number.isNaN(date.getTime()) ? null : date
+  }, [minimumDateTime])
+  const isMinimumDateSelected = Boolean(
+    minimumDate && isSameDate(selectedDate, minimumDate),
+  )
+  const availableHourOptions = isMinimumDateSelected
+    ? hourOptions.filter(hour => hour >= (minimumDate as Date).getHours())
+    : hourOptions
+  const availableMinuteOptions =
+    isMinimumDateSelected && selectedHour === (minimumDate as Date).getHours()
+      ? MINUTE_OPTIONS.filter(minute => minute >= (minimumDate as Date).getMinutes())
+      : MINUTE_OPTIONS
 
   const year = visibleMonth.getFullYear()
   const month = visibleMonth.getMonth()
@@ -58,13 +81,30 @@ export function AppointmentDateTimePicker({
     const nextDate = getSafeDate(value)
     setSelectedDate(nextDate)
     setVisibleMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1))
-    setSelectedHour(getSafeHour(nextDate.getHours()))
+    setSelectedHour(getSafeHour(nextDate.getHours(), hourOptions))
     setSelectedMinute(roundMinute(nextDate.getMinutes()))
     setStep('date')
     setHasSelectedDate(true)
     setHasSelectedHour(true)
     setHasSelectedMinute(true)
-  }, [value])
+  }, [hourOptions, value])
+
+  useEffect(() => {
+    if (!minimumDate || !isSameDate(selectedDate, minimumDate)) return
+
+    const minimumHour = minimumDate.getHours()
+    const minimumMinute = minimumDate.getMinutes()
+
+    if (selectedHour < minimumHour) {
+      setSelectedHour(minimumHour)
+      setSelectedMinute(minimumMinute)
+      return
+    }
+
+    if (selectedHour === minimumHour && selectedMinute < minimumMinute) {
+      setSelectedMinute(minimumMinute)
+    }
+  }, [minimumDate, selectedDate, selectedHour, selectedMinute])
 
   function goToPreviousMonth() {
     setVisibleMonth(new Date(year, month - 1, 1))
@@ -75,14 +115,34 @@ export function AppointmentDateTimePicker({
   }
 
   function selectDate(date: Date) {
+    if (isDateBeforeMinimum(date, minimumDate)) return
+
     const nextDate = new Date(date)
-    nextDate.setHours(selectedHour, selectedMinute, 0, 0)
+    const isMinimumDate = minimumDate && isSameDate(nextDate, minimumDate)
+    const hour = isMinimumDate
+      ? Math.max(selectedHour, minimumDate.getHours())
+      : selectedHour
+    const minute =
+      isMinimumDate && hour === minimumDate.getHours()
+        ? Math.max(selectedMinute, minimumDate.getMinutes())
+        : selectedMinute
+    nextDate.setHours(hour, minute, 0, 0)
     setSelectedDate(nextDate)
+    setSelectedHour(hour)
+    setSelectedMinute(minute)
     setHasSelectedDate(true)
   }
 
   function selectHour(hour: number) {
     setSelectedHour(hour)
+    if (
+      isMinimumDateSelected &&
+      minimumDate &&
+      hour === minimumDate.getHours() &&
+      selectedMinute < minimumDate.getMinutes()
+    ) {
+      setSelectedMinute(minimumDate.getMinutes())
+    }
     setHasSelectedHour(true)
   }
 
@@ -94,18 +154,22 @@ export function AppointmentDateTimePicker({
   function confirmSelection() {
     const nextDate = new Date(selectedDate)
     nextDate.setHours(selectedHour, selectedMinute, 0, 0)
-    onChange(nextDate.toISOString())
+    onChange(
+      minimumDate && nextDate < minimumDate
+        ? minimumDate.toISOString()
+        : nextDate.toISOString(),
+    )
     onClose()
   }
 
   const pickerTitle =
     step === 'date'
-      ? 'Seleccionar fecha '
-      : 'Seleccionar hora '
+      ? `Seleccionar fecha ${selectionLabel}`
+      : `Seleccionar hora ${selectionLabel}`
   const pickerSubtitle =
     step === 'date'
-      ? 'Elige el dia de la cita  '
-      : 'Elige la hora de la cita  '
+      ? `Elige el dia ${selectionLabel}`
+      : `Elige la hora ${selectionLabel}`
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -148,18 +212,21 @@ export function AppointmentDateTimePicker({
           
                       const isSelected = isSameDate(cell.date, selectedDate)
                       const isToday = isSameDate(cell.date, new Date())
+                      const isDisabled = isDateBeforeMinimum(cell.date, minimumDate)
           
                       return (
                         <Pressable
                           key={cell.key}
                           style={styles.appointmentDatePickerDayCell}
                           onPress={() => selectDate(cell.date as Date)}
+                          disabled={isDisabled}
                         >
                           <View
                             style={[
                               styles.appointmentDatePickerDayButton,
                               isToday && styles.appointmentDatePickerTodayButton,
                               isSelected && styles.appointmentDatePickerSelectedDayButton,
+                              isDisabled && { opacity: 0.35 },
                             ]}
                           >
                             <Text
@@ -196,7 +263,7 @@ export function AppointmentDateTimePicker({
                   <View style={styles.timeSelectorContainer}>
                     <Text style={styles.appointmentDatePickerSectionTitle}>Hora</Text>
                     <WheelNumberSelector
-                      options={HOUR_OPTIONS}
+                      options={availableHourOptions}
                       value={selectedHour}
                       hasSelectedValue={hasSelectedHour}
                       onChange={selectHour}
@@ -205,7 +272,7 @@ export function AppointmentDateTimePicker({
                   <View style={styles.timeSelectorContainer}>
                     <Text style={styles.appointmentDatePickerSectionTitle}>Minutos</Text>
                     <WheelNumberSelector
-                      options={MINUTE_OPTIONS}
+                      options={availableMinuteOptions}
                       value={selectedMinute}
                       hasSelectedValue={hasSelectedMinute}
                       onChange={selectMinute}
@@ -237,8 +304,20 @@ function roundMinute(minute: number) {
   ), MINUTE_OPTIONS[0])
 }
 
-function getSafeHour(hour: number) {
-  return HOUR_OPTIONS.includes(hour) ? hour : HOUR_OPTIONS[0]
+function getSafeHour(hour: number, hourOptions: number[]) {
+  return hourOptions.includes(hour) ? hour : hourOptions[0]
+}
+
+function isDateBeforeMinimum(date: Date, minimumDate: Date | null) {
+  if (!minimumDate) return false
+
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const minimumDay = new Date(
+    minimumDate.getFullYear(),
+    minimumDate.getMonth(),
+    minimumDate.getDate(),
+  )
+  return day < minimumDay
 }
 
 function formatSelectedDate(date: Date) {

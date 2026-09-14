@@ -5,11 +5,13 @@ export function FilterChip({
   active,
   activeColor,
   onPress,
+  disabled = false,
 }: {
   label: string
   active: boolean
   activeColor?: string
   onPress: () => void
+  disabled?: boolean
 }) {
   return (
     <TouchableOpacity
@@ -17,11 +19,20 @@ export function FilterChip({
         styles.filterChip,
         active && styles.filterChipActive,
         active && activeColor ? { backgroundColor: activeColor } : null,
+        disabled && styles.filterChipDisabled,
       ]}
       activeOpacity={0.85}
       onPress={onPress}
+      disabled={disabled}
     >
-      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
+      <Text style={[
+          styles.filterChipText,
+          active && styles.filterChipTextActive,
+          disabled && styles.filterChipTextDisabled,
+        ]}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   )
 }
@@ -45,5 +56,12 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: '#ffffff',
+  },
+  filterChipDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.7,
+  },
+  filterChipTextDisabled: {
+    color: '#6B7280',
   },
 })

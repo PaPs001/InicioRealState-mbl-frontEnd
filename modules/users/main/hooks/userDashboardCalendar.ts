@@ -15,7 +15,11 @@ type UseDashboardCalendarParams = {
   returnPath?: string;
 };
 
-export type AppointmentSelectionScreen = "lead" | "property" | "duplicate" | null;
+export type AppointmentSelectionScreen =
+  | "lead"
+  | "property"
+  | "duplicate"
+  | null;
 export type AppointmentLeadMode = "existing" | "provisional";
 
 export type ProvisionalAppointmentLead = {
@@ -359,7 +363,7 @@ export function useDashboardCalendar({
     handleDeleteAppointment,
   };
 }
-
+/*
 function isAppointmentFromCurrentWeek(appointment: AppointmentPreviewItem) {
   const today = new Date();
   const startOfWeek = new Date(
@@ -376,6 +380,29 @@ function isAppointmentFromCurrentWeek(appointment: AppointmentPreviewItem) {
   return (
     appointment.sortTime !== Number.MAX_SAFE_INTEGER &&
     appointment.sortTime >= startOfWeek.getTime() &&
+    appointment.sortTime < startOfNextWeek.getTime()
+  );
+}*/
+
+function isAppointmentFromCurrentWeek(appointment: AppointmentPreviewItem) {
+  const today = new Date();
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const daysUntilNextMonday = (8 - today.getDay()) % 7 || 7
+
+  const startOfNextWeek = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + (daysUntilNextMonday),
+  );
+
+  return (
+    appointment.sortTime !== Number.MAX_SAFE_INTEGER &&
+    appointment.sortTime >= startOfToday.getTime() &&
     appointment.sortTime < startOfNextWeek.getTime()
   );
 }

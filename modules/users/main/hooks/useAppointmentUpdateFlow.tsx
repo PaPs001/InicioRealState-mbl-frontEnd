@@ -14,6 +14,13 @@ import { UpdateDateModal } from "../components/Advisors/UpdateDateModal";
 import { useDashboardLeads } from "./userDashboardLeads";
 import { useDashboardProperties } from "./userDashboardProperties";
 import type { Property, PropertyLead } from "@/lib/types";
+import {
+  canSelectCalendarManually,
+  getAppointmentTypeConfig,
+  getAppointmentSubtypeOptions,
+  isAppointmentType,
+  findCalendarForAppointmentType,
+} from '@/lib/config/appointment-Types';
 
 type SelectionScreen = "lead" | "property" | null;
 
@@ -72,11 +79,7 @@ export function useAppointmentUpdateFlow({
       title: appointment.title ?? "",
       description: appointment.description ?? "",
       location: appointment.location ?? "",
-      appointmentType:
-        appointment.appointmentType === "renta" ||
-        appointment.appointmentType === "venta"
-          ? appointment.appointmentType
-          : "general",
+      appointmentType: normalizeAppointmentType(appointment.appointmentType),
       startDateTime: appointment.startDateTime,
       endDateTime: appointment.endDateTime,
       calendarId: appointment.calendarId ?? undefined,
@@ -107,28 +110,44 @@ export function useAppointmentUpdateFlow({
 
   const selectCalendar = useCallback((calendar: SelectedGoogleCalendar) => {
     const appointmentType = normalizeAppointmentType(calendar.appointmentType);
+    const config = getAppointmentTypeConfig(appointmentType);
     setForm((current) => ({
       ...current,
       calendarId: calendar.calendarId,
       appointmentType,
       colorId: calendar.colorId ?? null,
-      ...(appointmentType === "general"
-        ? { leadId: null, propertyId: null }
-        : {}),
+      ...(config.lead === 'none' ? { leadId: null } : {}),
+      ...(config.property === 'none' ? { propertyId: null } : {}),
     }));
   }, []);
 
   const selectAppointmentType = useCallback(
     (appointmentType: AppointmentType) => {
+      const config = getAppointmentTypeConfig(appointmentType);
       const matchingCalendars = enabledCalendars.filter(
-        (calendar) => normalizeAppointmentType(calendar.appointmentType) === appointmentType,
+        (calendar) => config.calendarSelection === 'manual'
+          ? canSelectCalendarManually(calendar)
+          : normalizeAppointmentType(calendar.appointmentType) === appointmentType,
       );
       const selectedCalendar =
-        matchingCalendars.find((calendar) => calendar.calendarId === form.calendarId) ??
-        matchingCalendars.find((calendar) => calendar.primaryForCreate) ??
-        matchingCalendars[0];
+        config.calendarSelection === 'named'
+          ? findCalendarForAppointmentType(enabledCalendars, appointmentType)
+          : matchingCalendars.find((calendar) => calendar.calendarId === form.calendarId) ??
+            matchingCalendars.find((calendar) => calendar.primaryForCreate) ??
+            matchingCalendars[0];
 
       if (!selectedCalendar) {
+        if (getAppointmentSubtypeOptions(appointmentType).length > 0) {
+          setForm((current) => ({
+            ...current,
+            appointmentType,
+            calendarId: undefined,
+            ...(config.lead === 'none' ? { leadId: null } : {}),
+            ...(config.property === 'none' ? { propertyId: null } : {}),
+          }));
+          return;
+        }
+
         Alert.alert(
           "Calendario no disponible",
           `No hay un calendario habilitado para citas de tipo ${appointmentType}.`,
@@ -141,9 +160,8 @@ export function useAppointmentUpdateFlow({
         appointmentType,
         calendarId: selectedCalendar.calendarId,
         colorId: selectedCalendar.colorId ?? null,
-        ...(appointmentType === "general"
-          ? { leadId: null, propertyId: null }
-          : {}),
+        ...(config.lead === 'none' ? { leadId: null } : {}),
+        ...(config.property === 'none' ? { propertyId: null } : {}),
       }));
     },
     [enabledCalendars, form.calendarId],
@@ -329,8 +347,8 @@ export function AppointmentUpdateFlow({
 };
 
 function normalizeAppointmentType(value?: string | null): AppointmentType {
-  if (value === "renta" || value === "venta") return value;
-  return "general";
+  const normalized = value?.trim().toLowerCase();
+  return isAppointmentType(normalized) ? normalized : "general";
 }
 
 function getPropertyId(property: Property) {

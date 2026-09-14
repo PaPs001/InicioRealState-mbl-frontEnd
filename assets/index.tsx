@@ -92,6 +92,13 @@ import Tv from './amenitiesIcons/bigIcons/tv.svg'
 
 import FilterDev from './developmentScreen/Filter.svg'
 
+
+//// Main screen
+import Clock from './mainScreen/calendarSection/clock.svg'
+import MapPin from './mainScreen/calendarSection/MapPin.svg'
+import User from './mainScreen/calendarSection/User.svg'
+
+import Email from './EMAIL.svg'
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -161,7 +168,11 @@ export const icons = {
   SnowflakeBigger: SnowflakeBigger,
   Tv: Tv,
   Lock: Lock,
-  FilterDev: FilterDev
+  FilterDev: FilterDev,
+  Clock: Clock,
+  MapPin: MapPin,
+  User: User,
+  Email
 } as const
 
 export const images = {
@@ -275,5 +286,9 @@ export {
   PoolBigger,
   SnowflakeBigger,
   Lock,
-  FilterDev
+  FilterDev,
+  Clock,
+  MapPin,
+  User,
+  Email
 }
