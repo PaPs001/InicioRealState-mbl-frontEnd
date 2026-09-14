@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
 import { PrimaryButton, SecondaryButton } from '@/components/buttons'
+import { VerificationCodeInput } from '@/components/VerificationCodeInput'
 import {
   getPasswordResetErrorMessage,
   isPasswordResetCodeComplete,
@@ -85,16 +86,9 @@ export default function PasswordResetVerifyScreen() {
             </View>
 
             <View style={styles.form}>
-              <TextInput
-                style={styles.codeInput}
-                placeholder="000000"
-                placeholderTextColor="#b1aeae"
-                keyboardType="number-pad"
-                autoCapitalize="none"
-                autoCorrect={false}
-                maxLength={6}
+              <VerificationCodeInput
                 value={code}
-                onChangeText={(value) => {
+                onChange={(value) => {
                   setCode(normalizePasswordResetCode(value))
                   if (errorMessage) setErrorMessage('')
                 }}
@@ -165,19 +159,6 @@ const styles = StyleSheet.create({
     marginTop: 18,
     gap: 12,
     maxWidth: 340,
-  },
-  codeInput: {
-    color: '#000000',
-    borderRadius: 12,
-    backgroundColor: '#FCFAF8',
-    minHeight: 54,
-    width: '100%',
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E7DDCF',
-    fontSize: 24,
-    textAlign: 'center',
-    letterSpacing: 0,
   },
   messageText: {
     color: '#027A48',

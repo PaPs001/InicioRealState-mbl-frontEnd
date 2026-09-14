@@ -58,7 +58,7 @@ export function HeroCardsSection({
           />
         </>
       )}
-      {area === "coordinator" ? (
+      {/*{area === "coordinator" ? (
         <View style={styles.earningsCard}>
           <Text style={styles.earningsLabel}>OPORTUNIDAD DEL MES</Text>
           <View style={styles.earningsValueRow}>
@@ -74,7 +74,7 @@ export function HeroCardsSection({
           </View>
           <Text style={styles.earningsCaption}>Comision aprox.</Text>
         </View>
-      ) : null}
+      ) : null}*/}
     </View>
   );
 }

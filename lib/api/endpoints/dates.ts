@@ -1,6 +1,7 @@
 import { coreApi } from '../client'
+import type { AppointmentType } from '@/lib/config/appointment-Types'
 
-export type AppointmentType = 'renta' | 'venta' | 'general'
+export type { AppointmentType } from '@/lib/config/appointment-Types'
 
 export interface GoogleCalendarDateTime {
   date?: string

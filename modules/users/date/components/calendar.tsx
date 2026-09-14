@@ -8,13 +8,10 @@ import {
 
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { createCalendarCells, formatDateKey, isSameDate, MONTH_NAMES, WEEK_DAYS } from "../utils/calendarUtils";
+import { getAppointmentTypeConfig } from '@/lib/config/appointment-Types';
 
 interface CalendarProps {
-  appointmentTypesByDate?: Record<string, {
-    renta: boolean
-    venta: boolean
-    general: boolean
-  }>
+  appointmentTypesByDate?: Record<string, string[]>
   selectedDate: Date
   visibleMonth: Date
   onSelectDate?: (date: Date) => void
@@ -140,15 +137,12 @@ export function Calendar({
 
                 {appointmentTypes && (
                   <View style={styles.eventDots}>
-                    {appointmentTypes.renta && (
-                      <View style={[styles.eventDot, styles.rentEventDot]} />
-                    )}
-                    {appointmentTypes.venta && (
-                      <View style={[styles.eventDot, styles.saleEventDot]} />
-                    )}
-                    {appointmentTypes.general && (
-                      <View style={[styles.eventDot, styles.generalEventDot]} />
-                    )}
+                    {appointmentTypes.map(type => (
+                      <View
+                        key={type}
+                        style={[styles.eventDot, { backgroundColor: getAppointmentTypeConfig(type).color }]}
+                      />
+                    ))}
                   </View>
                 )}
               </View>
@@ -275,15 +269,4 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-  rentEventDot: {
-    backgroundColor: '#2E9D5B',
-  },
-
-  saleEventDot: {
-    backgroundColor: '#3478C7',
-  },
-
-  generalEventDot: {
-    backgroundColor: '#B1833A',
-  },
 })

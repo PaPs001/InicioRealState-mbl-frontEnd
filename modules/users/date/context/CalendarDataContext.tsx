@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react'
 
-import { getDefaultAppointmentType } from '@/modules/users/main/utils/dashboard-formatters'
+import { getDefaultAppointmentType } from '@/lib/config/appointment-Types'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   deleteGoogleCalendarDate,

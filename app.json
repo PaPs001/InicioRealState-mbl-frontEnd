@@ -7,7 +7,6 @@
     "icon": "./assets/iconoIRSprincipaltransparencia.png",
     "userInterfaceStyle": "automatic",
     "scheme": "inicio-real-estate",
-    
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -23,7 +22,11 @@
         "foregroundImage": "./assets/iconoIRSprincipaltransparencia.png",
         "backgroundColor": "#1e2d32"
       },
-      "package": "com.iniciorealestate.app"
+      "package": "com.iniciorealestate.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -51,6 +54,12 @@
       "eas": {
         "projectId": "00313cfd-82a3-4e8c-8732-8651cbea776b"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/00313cfd-82a3-4e8c-8732-8651cbea776b"
     }
   }
 }
