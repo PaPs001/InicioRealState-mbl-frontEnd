@@ -19,6 +19,10 @@ import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { useCalendarData } from "../context/CalendarDataContext";
 import { AppointmentUpdateFlow } from "@/modules/users/main/hooks/useAppointmentUpdateFlow";
 import { mapGoogleDateToAppointment } from "@/modules/users/main/utils/dashboard-formatters";
+import {
+  getAppointmentTypeOptions,
+  isAppointmentType,
+} from '@/lib/config/appointment-Types';
 
 const COLLAPSED_PANEL_HEIGHT = 470;
 const PANEL_EXPANDED_GAP = 0;
@@ -137,29 +141,16 @@ export default function CalendarScreen() {
 
   const appointmentTypesByDate = useMemo(
     () =>
-      appointments.reduce<
-        Record<
-          string,
-          {
-            renta: boolean;
-            venta: boolean;
-            general: boolean;
-          }
-        >
-      >((result, appointment) => {
+      appointments.reduce<Record<string, string[]>>((result, appointment) => {
         const dateKey = getAppointmentDateKey(appointment);
         if (!dateKey) return result;
 
-        const types = result[dateKey] ?? {
-          renta: false,
-          venta: false,
-          general: false,
-        };
-        const appointmentType = appointment.appointmentType?.toLowerCase();
+        const appointmentType = appointment.appointmentType?.trim().toLowerCase();
+        const types = result[dateKey] ?? [];
 
-        if (appointmentType === "renta") types.renta = true;
-        if (appointmentType === "venta") types.venta = true;
-        if (appointmentType === "general") types.general = true;
+        if (appointmentType && isAppointmentType(appointmentType) && !types.includes(appointmentType)) {
+          types.push(appointmentType);
+        }
 
         result[dateKey] = types;
         return result;
@@ -224,12 +215,17 @@ export default function CalendarScreen() {
     ? appointmentsForCurrentMode
     : appointmentsForCurrentMode.slice(0, 9);
 
-  const rentCount = appointmentsForCurrentMode.filter(
-    (appointment) => appointment.appointmentType?.toLowerCase() === "renta",
-  ).length;
-  const saleCount = appointmentsForCurrentMode.filter(
-    (appointment) => appointment.appointmentType?.toLowerCase() === "venta",
-  ).length;
+  const appointmentCountByType = useMemo(
+    () => Object.fromEntries(
+      getAppointmentTypeOptions().map(type => [
+        type.value,
+        appointmentsForCurrentMode.filter(
+          appointment => appointment.appointmentType?.trim().toLowerCase() === type.value,
+        ).length,
+      ]),
+    ),
+    [appointmentsForCurrentMode],
+  );
 
   const handleDeleteAppointment = (appointment: GoogleCalendarDate) => {
     const dateId = appointment._id;
@@ -301,24 +297,23 @@ export default function CalendarScreen() {
                 <View style={styles.dragIndicator} />
               </View>
               <View style={styles.countButtonRow}>
-                <View style={styles.countSale}>
-                  <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    style={styles.eventText}
+                {getAppointmentTypeOptions().map(type => (
+                  <View
+                    key={type.value}
+                    style={[styles.countSale, { backgroundColor: type.color }]}
                   >
-                    {formatAppointmentCount(saleCount, "venta")}
-                  </Text>
-                </View>
-                <View style={styles.countRent}>
-                  <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    style={styles.eventText}
-                  >
-                    {formatAppointmentCount(rentCount, "renta")}
-                  </Text>
-                </View>
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      style={styles.eventText}
+                    >
+                      {formatAppointmentCount(
+                        appointmentCountByType[type.value] ?? 0,
+                        type.label.toLowerCase(),
+                      )}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
           </GestureDetector>

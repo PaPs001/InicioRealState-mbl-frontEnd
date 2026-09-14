@@ -19,6 +19,11 @@ import { useCalendarData } from "@/modules/users/date/context/CalendarDataContex
 import { useDashboardCalendar } from "./userDashboardCalendar";
 import { useDashboardLeads } from "./userDashboardLeads";
 import { useDashboardProperties } from "./userDashboardProperties";
+import {
+  findCalendarForAppointmentType,
+  getAppointmentTypeConfig,
+  isAppointmentType,
+} from '@/lib/config/appointment-Types';
 
 type Params = {
   capabilities?: AppCapabilities;
@@ -119,7 +124,6 @@ export function useAppointmentCreateFlow({
     setForm((current) => ({
       ...current,
       calendarId: selected.calendarId,
-      appointmentType: selected.appointmentType ?? current.appointmentType,
       colorId: selected.colorId ?? current.colorId,
     }));
   }, []);
@@ -231,13 +235,36 @@ export function useAppointmentCreateFlow({
 
   const createAppointment = useCallback(async () => {
     if (!authToken || isCreatingAppointment) return;
-    const appointmentType =
-      form.appointmentType?.trim().toLowerCase() || "general";
-    const isGeneral = appointmentType === "general";
-    if (!form.title.trim() || !form.startDateTime.trim())
-      return Alert.alert("Faltan datos", "Titulo e inicio son obligatorios.");
+    const normalizedAppointmentType = form.appointmentType?.trim().toLowerCase();
+    const appointmentType = isAppointmentType(normalizedAppointmentType)
+      ? normalizedAppointmentType
+      : undefined;
+    const appointmentTypeConfig = getAppointmentTypeConfig(appointmentType);
+    const acceptsLead = appointmentTypeConfig.lead !== 'none';
+    const acceptsProperty = appointmentTypeConfig.property !== 'none';
     if (
-      !isGeneral &&
+      !form.title.trim() ||
+      !form.startDateTime.trim() ||
+      !form.endDateTime.trim()
+    )
+      return Alert.alert(
+        "Faltan datos",
+        "Titulo, inicio y terminacion son obligatorios.",
+      );
+
+    const startDateTime = new Date(form.startDateTime);
+    const endDateTime = new Date(form.endDateTime);
+    if (
+      Number.isNaN(startDateTime.getTime()) ||
+      Number.isNaN(endDateTime.getTime()) ||
+      endDateTime <= startDateTime
+    )
+      return Alert.alert(
+        "Hora de terminacion invalida",
+        "La cita debe terminar despues de la hora de inicio.",
+      );
+    if (
+      appointmentTypeConfig.lead === 'required' &&
       calendar.appointmentLeadMode === "existing" &&
       !form.leadId
     )
@@ -246,7 +273,7 @@ export function useAppointmentCreateFlow({
         "Selecciona el lead al que se le agendara la cita.",
       );
     if (
-      !isGeneral &&
+      appointmentTypeConfig.lead === 'required' &&
       calendar.appointmentLeadMode === "provisional" &&
       !calendar.provisionalAppointmentLead.fullName.trim()
     )
@@ -255,11 +282,12 @@ export function useAppointmentCreateFlow({
         "Escribe el nombre del lead provisional para crear la cita.",
       );
     const canResolveCalendarByType =
-      ["renta", "venta"].includes(appointmentType) &&
-      calendar.enabledSelectedCalendars.some(
-        (item) =>
-          item.appointmentType?.trim().toLowerCase() === appointmentType,
-      );
+      appointmentTypeConfig.calendarSelection !== 'manual' &&
+      appointmentType !== undefined &&
+      Boolean(findCalendarForAppointmentType(
+        calendar.enabledSelectedCalendars,
+        appointmentType,
+      ));
     if (!form.calendarId && !canResolveCalendarByType)
       return Alert.alert(
         "Falta calendario",
@@ -268,14 +296,13 @@ export function useAppointmentCreateFlow({
 
     const base = {
       ...form,
-      leadId: isGeneral ? null : form.leadId,
-      propertyId: isGeneral ? null : form.propertyId,
-      endDateTime: getAppointmentEndDateTime(form.startDateTime),
+      leadId: acceptsLead ? form.leadId : null,
+      propertyId: acceptsProperty ? form.propertyId : null,
       advisorId: form.advisorId || currentUser?.id || null,
-      helpedBy: isGeneral ? "" : form.helpedBy?.trim() || "",
+      helpedBy: acceptsLead ? form.helpedBy?.trim() || "" : "",
     };
     const payload: CreateGoogleCalendarDatePayload =
-      !isGeneral && calendar.appointmentLeadMode === "provisional"
+      acceptsLead && calendar.appointmentLeadMode === "provisional"
         ? {
             ...base,
             leadId: null,

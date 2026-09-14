@@ -23,7 +23,7 @@ import {
 import { icons } from "@/assets";
 import { checkEmailExists } from "@/lib/api";
 import { generalColors, textColor } from "@/theme";
-import { Mail, MailCheck, MailMinus, MailQuestion } from "lucide-react-native";
+import { ArrowBigLeftIcon, ArrowRight, ArrowRightLeft, Mail, MailCheck, MailMinus, MailQuestion } from "lucide-react-native";
 export default function PasswordResetMailScreen() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,19 +70,19 @@ export default function PasswordResetMailScreen() {
           </View>
           <View style={styles.principalIconContainer}>
             <View style={styles.iconContainer}>
-              <MailIcon />
+              <icons.Email />
             </View>
           </View>
           <View style={styles.content}>
             <Text style={styles.title}>¿Contraseña Perdida?</Text>
             <Text style={styles.subTitle}>
-              Ingresa el correo de tu cuenta, y nosotros te enviaremos un codigo
-              de verificacion.
+              No te preocupes, ingresa el correo de tu cuenta y te enviaremos un
+              codigo de verificacion para que puedas restablecer tu contraseña
             </Text>
 
             <View style={styles.form}>
               <View style={styles.emailInput}>
-                <Mail strokeWidth={1} />
+                <Mail strokeWidth={2} />
                 <TextInput
                   style={{
                     flex: 1,
@@ -110,16 +110,66 @@ export default function PasswordResetMailScreen() {
                   {errorMessage}
                 </Text>
               ) : null}
-            </View>
-            <Pressable onPress={handleSubmit} style={styles.buttonContent}>
-              <Text
-                adjustsFontSizeToFit
-                numberOfLines={1}
-                style={styles.buttonText}
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "#f5eee0c1",
+                  borderRadius: 12,
+                  width: '100%',
+                  overflow: 'hidden',
+                }}
               >
-                Continuar
-              </Text>
-            </Pressable>
+                <View style={{
+                  justifyContent: 'center',
+                  width: 30,
+                   height: 30,
+                   borderRadius: 999,
+                   borderWidth: 2,
+                   borderColor: '#bca587',
+                   alignItems: 'center',
+                   paddingVertical: 5,
+                   paddingHorizontal: 5,
+
+                }}>
+                  <Text
+                  style={{
+                    textAlign: 'center'
+                  }}
+                  >i</Text>
+                </View>
+                <Text style={{
+                  flex: 1,
+                  fontSize: 13,
+                  flexShrink: 1,
+
+                }}
+                numberOfLines={3}
+                
+                >
+                  Revisa tu bandeja de entrada y tambien tu carpeta de spam.
+                </Text>
+              </View>
+              <Pressable onPress={handleSubmit} style={[styles.buttonContent,{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+
+              }]}>
+                <Text
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={styles.buttonText}
+                >
+                  Continuar
+                </Text>
+                <ArrowRight color={generalColors.white}/>
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -151,7 +201,7 @@ const styles = StyleSheet.create({
     height: 35,
     justifyContent: "center",
   },
-  iconContainer:{
+  iconContainer: {
     flex: 1,
   },
   principalIconContainer: {
@@ -172,13 +222,16 @@ const styles = StyleSheet.create({
   },
   content: {},
   title: {
-    fontSize: 25,
+    fontSize: 28,
     color: textColor.accentGolden,
+    textAlign: "center",
+    paddingBottom: 10,
   },
   subTitle: {
-    fontSize: 15,
+    fontSize: 13,
     color: textColor.softText,
     fontWeight: "400",
+    textAlign: "center",
   },
   form: {
     marginTop: 18,
@@ -212,12 +265,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     height: 45,
     backgroundColor: textColor.accentGolden,
+    gap: 10,
+    width: '100%'
   },
   buttonText: {
-    flexGrow: 1,
-    flexShrink: 1,
     fontSize: 14,
-    flex: 1,
     color: generalColors.white,
   },
 });

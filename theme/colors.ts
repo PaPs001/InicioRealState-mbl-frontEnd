@@ -19,7 +19,9 @@ export const generalColors = {
   saleColor: '#2d5f6b',
   rentColor: '#3d5f42',
   general: '#643012',
-  development: '#643012'
+  development: '#643012',
+  openHouse: '#4b2276',
+  signature: '#BD7600'
 }
 
 export const textColor ={
@@ -103,5 +105,4 @@ export const statusColors = {
 
 export const borderColor = {
   borderSoft: '#969696',
-  
 }

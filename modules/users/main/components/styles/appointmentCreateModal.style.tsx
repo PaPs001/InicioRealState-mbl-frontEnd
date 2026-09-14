@@ -120,6 +120,13 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 10,
   },
+  calendarTypeWarning: {
+    color: '#9A6700',
+    fontSize: 11,
+    lineHeight: 15,
+    textAlign: 'center',
+    paddingHorizontal: 6,
+  },
   calendarList: {
     gap: 6,
   },
@@ -215,6 +222,12 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 5,
+  },
+  appointmentDurationText: {
+    color: '#7e8b86',
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'center',
   },
   relatedLeadSection:{
     gap: 3
@@ -567,7 +580,8 @@ export const styles = StyleSheet.create({
   },
   calendarButtonText:{
     color: generalColors.white,
-    fontSize: 12
+    fontSize: 12,
+    flex: 1,
   },
   selectedDateTimeText: {
     color: '#3d5a40',

@@ -1,5 +1,11 @@
 import { View, StyleSheet } from "react-native";
-import Svg, { Circle, Path, Rect, SvgProps } from "react-native-svg";
+import Svg, {
+  Circle,
+  Path,
+  Rect,
+  SvgProps,
+  Text as SvgText,
+} from "react-native-svg";
 
 type MailIconProps = {
   size?: number;
@@ -67,6 +73,20 @@ export function MailIcon({
       >
         <Path
           d={`
+              M 23 23
+              L 50 50
+            `}
+          stroke={"#e2bd6c"}
+          strokeWidth={2}
+        />
+        <Circle
+          cy={svgCenterY - 20}
+          cx={svgCenterX}
+          r={VIEWBOX_SIZE / 2 - 20}
+          fill={"#f1e7d6d4"}
+        />
+        <Path
+          d={`
             M ${envelopeLeft + 10} ${envelopeY + 10}
             Q 65 93 68 85
             L ${envelopeCenterX - 6} ${backFlapTopY}
@@ -83,7 +103,7 @@ export function MailIcon({
           width={100}
           height={100}
           x={size / 2 - 100 / 2}
-          y={size / 2 - 130 / 2}
+          y={size / 2 - 150 / 2}
           rx={4}
           ry={4}
           fill={"#FFFDF6"}
@@ -135,10 +155,23 @@ export function MailIcon({
           strokeLinejoin="round"
           strokeWidth={2.5}
         />
+        <Circle
+          cx={size / 2 + envelopeLeft - 10}
+          cy={envelopeY + 10}
+          r={25}
+          fill={"#c49a56"}
+        />
+        <SvgText
+          x={size / 2 + envelopeLeft - 10}
+          y={envelopeY + 20}
+          fill={"#faf8f4"}
+          fontSize={30}
+          fontWeight={"700"}
+          textAnchor="middle"
+        >
+          {symbol}
+        </SvgText>
       </Svg>
     </View>
   );
 }
-
-
-
