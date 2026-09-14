@@ -9,7 +9,8 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -21,7 +22,9 @@
       },
       "ios": {
         "autoIncrement": true
-      }
+      },
+      "channel": "preview",
+      "environment": "preview"
     },
     "production": {
       "env": {
@@ -32,7 +35,8 @@
       },
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {

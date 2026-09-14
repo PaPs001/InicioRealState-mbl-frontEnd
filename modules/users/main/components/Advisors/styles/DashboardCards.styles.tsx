@@ -9,9 +9,9 @@ const numberFont = Platform.select({
 
 export const styles = StyleSheet.create({
   container: {
-    paddingLeft: 15,
-    paddingRight: 10,
-    paddingVertical: 10,
+    //paddingLeft: 10,
+    //paddingRight: 8,
+    //paddingVertical: 10,
     minHeight: 65,
     borderRadius: 12,
   },
@@ -40,46 +40,52 @@ export const styles = StyleSheet.create({
     lineHeight: 10,
     textAlign: "center",
   },
-  appointmentCardRent: {
-    backgroundColor: generalColors.rentColor,
-  },
-  appointmentCardSale: {
-    backgroundColor: generalColors.saleColor,
-  },
-  appointmentCardGeneral: {
-    backgroundColor: generalColors.general,
-  },
   appointmentTitle: {
-    color: "#d4b66f",
+    color: generalColors.white,
     fontSize: 12,
     fontWeight: "700",
   },
   dayPill: {
-    alignSelf: "center",
-    minHeight: 16,
-    borderRadius: 4,
-    backgroundColor: "#d4b66f",
+    minHeight: 27,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 6,
+    backgroundColor: "#fbfbf9",
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
-    paddingHorizontal: 5,
+    paddingHorizontal: 8,
+    position: "absolute",
+    top: 1,
+    right: 1.5,
+    left: 0,
   },
   appointmentDay: {
     color: "#ffffff",
     fontSize: 8,
     fontWeight: "700",
+    flex: 1,
   },
   appointmentTime: {
-    color: "#d4b66f",
+    color: "#fff",
     fontSize: 10,
     marginTop: 2,
     textAlign: "center",
   },
+  dateDurationContainer:{
+    flexDirection: 'row',
+    gap: 3,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: generalColors.white,
+    borderRadius: 12,
+    height: 12,
+  },
   adviserInformationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 16,
+    gap: 8,
+    paddingLeft: 5,
   },
   circularIconAdviser: {
     borderRadius: 9999,
@@ -163,13 +169,18 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    width: "100%",
   },
 
   detailLabel: {
-    width: 85,
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  detailCopy: {
+    flex: 1,
+    minWidth: 0,
   },
 
   headerRow: {
@@ -214,10 +225,26 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
     color: "#d4b66f",
   },
-  detailText: {
-    fontSize: 8,
+  titleDetailText: {
+    fontSize: 9,
     flexShrink: 1,
     color: generalColors.white,
+    fontWeight: "600",
+    flex: 1,
+  },
+  subtitleDetailText: {
+    fontSize: 10,
+    color: generalColors.white,
+  },
+  titleAdviserText: {
+    fontSize: 8,
+    color: generalColors.white,
+    fontWeight: "600",
+  },
+  adviserNameText: {
+    fontSize: 7,
+    color: generalColors.white,
+    fontWeight: "800",
   },
 
   rightDivider: {
@@ -225,9 +252,18 @@ export const styles = StyleSheet.create({
     height: 1,
     width: "92%",
     alignSelf: "center",
-    marginVertical: 4,
+    marginVertical: 5,
+    marginRight: 7,
     borderRadius: 12,
     borderColor: "#d8c596",
+  },
+  verticalDivider: {
+    position: "absolute",
+    left: 0,
+    top: 33,
+    height: "65%",
+    width: 1,
+    backgroundColor: "#d8c596",
   },
   appointmentContent: {
     flexDirection: "row",
@@ -236,44 +272,34 @@ export const styles = StyleSheet.create({
     flex: 1.9,
     paddingRight: 10,
     gap: 6,
+    paddingLeft: 10,
+    paddingVertical: 10,
   },
-  appoinmentTitleRow:{
-    flexDirection: 'row',
-    alignItems: 'center',
+  appoinmentTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 7,
   },
-  appointmentTypeIcon:{
-     
-  },
-  appointmentTextRow:{
+  appointmentTypeIcon: {},
+  appointmentTextRow: {
     gap: 3,
   },
-  appointmentTypeText:{
-    fontSize: 9,
-    lineHeight: 12,
-    color: generalColors.white
+  appointmentTypeText: {
+    fontSize: 12,
+    lineHeight: 14,
+    color: generalColors.white,
   },
   appointmentTypeRent: {
     backgroundColor: generalColors.rentColor,
-    borderColor: '#fff',
+    borderColor: "#fff",
     borderWidth: 0.5,
   },
-  appointmentTypeSale:{
+  appointmentTypeSale: {
     backgroundColor: generalColors.saleColor,
-    borderColor: '#fff',
+    borderColor: "#fff",
     borderWidth: 0.5,
   },
-  appointmentTypeGeneral:{
-    borderRadius: 8,
-    backgroundColor: 'rgb(73, 4, 4)',
-    paddingVertical: 3,
-    paddingHorizontal: 12,
-    width: 90,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: '#fff',
-    borderWidth: 0.5,
-  },
+  appointmentTypeGeneral: {},
   googleCalendarEmptyState: {
     flex: 1,
     justifyContent: "center",
@@ -287,45 +313,37 @@ export const styles = StyleSheet.create({
 
   rightSection: {
     flex: 1,
-    borderLeftWidth: 1,
-    borderLeftColor: "#d8c596",
     paddingLeft: 8,
-    justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: "center",
+    paddingBottom: 10,
   },
 
-
-
-  contentDirection:{
-    justifyContent: 'center',
+  contentDirection: {
+    justifyContent: "center",
     flex: 1,
-    gap: 5
+    gap: 5,
   },
 
-
-  selectionButtons:{
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#00000095',
+  selectionButtons: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#00000095",
     borderRadius: 12,
     gap: 19,
   },
-  button:{
+  button: {
     height: 50,
     width: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 99,
-    flexDirection: 'row',
-    backgroundColor:'#fff'
+    flexDirection: "row",
+    backgroundColor: "#fff",
   },
-  editionButton:{
-    
-  },
-  deleteButton:{
-  },
+  editionButton: {},
+  deleteButton: {},
 });
