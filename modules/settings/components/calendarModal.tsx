@@ -1,7 +1,11 @@
 import { Pressable, Text, View } from 'react-native'
 
 import { AppModal } from '@/components/AppModal'
-import { getDefaultAppointmentType } from '@/modules/users/main/utils/dashboard-formatters'
+import {
+  getCalendarAssignableAppointmentTypeOptions,
+  getDefaultAppointmentType,
+  getAppointmentTypeConfig,
+} from '@/lib/config/appointment-Types'
 import type { GoogleCalendarOption, SelectedGoogleCalendar } from '@/lib/api'
 
 import { styles } from './styles/CalendarSection.style'
@@ -38,6 +42,7 @@ export function CalendarModal({
   onAssignCalendarType
 }: CalendarModalProps) {
   const isBusy = isCalendarSettingsLoading || isSavingCalendarSelection
+  const calendarTypeOptions = getCalendarAssignableAppointmentTypeOptions()
 
   return (
     <AppModal
@@ -95,8 +100,6 @@ export function CalendarModal({
               item => item.calendarId === calendar.calendarId,
             )
             const isEnabled = selection?.enabled === true
-            const isRent = selection?.appointmentType === 'renta'
-            const isSale = selection?.appointmentType === 'venta'
 
             return (
               <>
@@ -126,48 +129,37 @@ export function CalendarModal({
                       {calendar.summary || 'Calendario sin nombre'}
                     </Text>
                     <Text style={styles.calendarOptionMeta} numberOfLines={1}>
-                      {selection?.appointmentType ||
-                        getDefaultAppointmentType(calendar.summary)}
+                      {getAppointmentTypeConfig(
+                        selection?.appointmentType || getDefaultAppointmentType(calendar.summary),
+                      ).label}
                     </Text>
                   </View>
 
                   <View style={styles.actionButtonsSection}>
-                    <Pressable
-                      disabled={isBusy}
-                      style={[
-                        styles.calendarToggle,
-                        isRent && styles.calendarToggleActiveRent,
-                      ]}
-                      onPress={() => onAssignCalendarType(calendar, 'renta')}
-                    >
-                      <Text
-                        style={[
-                          styles.calendarToggleText,
-                          isRent && styles.calendarToggleTextActive,
-                        ]}
-                      >
-                        {isRent ? 'Renta' : 'Renta'}
-                      </Text>
-                      
-                    </Pressable>
-                    <Pressable
-                      disabled={isBusy}
-                      style={[
-                        styles.calendarToggle,
-                        isSale && styles.calendarToggleActiveSale,
-                      ]}
-                      onPress={() => onAssignCalendarType(calendar, 'venta')}
-                    >
-                      <Text
-                        style={[
-                          styles.calendarToggleText,
-                          isSale && styles.calendarToggleTextActive,
-                        ]}
-                      >
-                        {isSale ? 'Venta' : 'Venta'}
-                      </Text>
-                      
-                    </Pressable>
+                    {calendarTypeOptions.map(type => {
+                      const isActive = selection?.appointmentType === type.value
+
+                      return (
+                        <Pressable
+                          key={type.value}
+                          disabled={isBusy}
+                          style={[
+                            styles.calendarToggle,
+                            isActive && { backgroundColor: type.color, borderColor: type.color },
+                          ]}
+                          onPress={() => onAssignCalendarType(calendar, type.value)}
+                        >
+                          <Text
+                            style={[
+                              styles.calendarToggleText,
+                              isActive && styles.calendarToggleTextActive,
+                            ]}
+                          >
+                            {type.label}
+                          </Text>
+                        </Pressable>
+                      )
+                    })}
                   </View>
                 </View>
 
