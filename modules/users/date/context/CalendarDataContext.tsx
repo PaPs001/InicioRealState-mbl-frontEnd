@@ -121,6 +121,7 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       const dates = await getGoogleCalendarDates(authToken, {
         sync: options.sync,
       })
+      console.log('[GET citas] respuesta:', JSON.stringify(dates, null, 2));
       setAppointments(dates)
       return dates
     } catch (error) {

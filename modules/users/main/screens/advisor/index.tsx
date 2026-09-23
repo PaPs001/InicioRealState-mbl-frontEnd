@@ -196,18 +196,21 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           closeAppointmentInformation={closeAppointmentInformation}
           handleDeleteAppointment={handleDeleteAppointment}
         />
-
-        <LeadsSection
-          isLeadsLoading={isLeadsLoading}
-          leadSummary={leadSummary}
-          onViewMore={() =>
-            router.push(`${areaConfig.basePath}/leads` as never)
-          }
-          onViewDetail={() =>
-            router.push(`${areaConfig.basePath}/leads` as never)
-          }
-          styles={styles}
-        />
+        {/** 
+         * 
+         <LeadsSection
+           isLeadsLoading={isLeadsLoading}
+           leadSummary={leadSummary}
+           onViewMore={() =>
+             router.push(`${areaConfig.basePath}/leads` as never)
+           }
+           onViewDetail={() =>
+             router.push(`${areaConfig.basePath}/leads` as never)
+           }
+           styles={styles}
+         />
+         * 
+        */}
       </ScrollView>
       {selectedAppointment ? (
         <AppointmentUpdateFlow

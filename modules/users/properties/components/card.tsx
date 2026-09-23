@@ -190,7 +190,7 @@ export default function CoordinatorPropertiesListScreen() {
     catalogProperties,
     hasLoadedCatalog,
     isCatalogLoading,
-    newLoadCatalogProperties,
+    loadCatalogProperties,
   } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [isMapMode, setIsMapMode] = useState(false)
@@ -214,9 +214,9 @@ export default function CoordinatorPropertiesListScreen() {
 
   useEffect(() => {
     if (!hasLoadedCatalog && !isCatalogLoading) {
-      newLoadCatalogProperties()
+      loadCatalogProperties()
     }
-  }, [hasLoadedCatalog, isCatalogLoading, newLoadCatalogProperties])
+  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   const listings = useMemo(() => {
     const source = (catalogProperties.length > 0 ? catalogProperties : availableProperties)

@@ -6,32 +6,20 @@ export function usePropertyDomain(): PropertyDomain {
     userProperties,
     availableProperties,
     catalogProperties,
-    agentCatalogProperties,
-    agentCatalogRawData,
     isCatalogLoading,
-    isAgentCatalogLoading,
     hasLoadedCatalog,
-    hasLoadedAgentCatalog,
-    newLoadCatalogProperties,
     getPropertyById,
     loadCatalogProperties,
-    loadAgentCatalogProperties,
   } = useAuth()
 
   return {
     userProperties,
     availableProperties,
     catalogProperties,
-    agentCatalogProperties,
-    agentCatalogRawData,
     isCatalogLoading,
-    isAgentCatalogLoading,
     hasLoadedCatalog,
-    hasLoadedAgentCatalog,
-    newLoadCatalogProperties,
     getPropertyById,
     loadCatalogProperties,
-    loadAgentCatalogProperties,
   }
 }
 

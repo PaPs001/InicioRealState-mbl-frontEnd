@@ -34,6 +34,7 @@ export type AppointmentPreviewItem = {
   sortTime: number;
   description?: string;
   timeZone?: string | null;
+  subtypeCalendar: string | null;
 };
 
 export type DashboardTone = "neutral" | "warning" | "danger" | "success";

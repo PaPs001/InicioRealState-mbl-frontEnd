@@ -16,12 +16,17 @@ export const generalColors = {
   error: '#b42318',
   greenTitle: '#3D5A40',
   backgroundSections: '#FFFDFC',
+
+
   saleColor: '#2d5f6b',
   rentColor: '#3d5f42',
   general: '#643012',
   development: '#643012',
   openHouse: '#4b2276',
-  signature: '#BD7600'
+  signature: '#BD7600',
+  openMerch: '#2d5f6b',
+  meeting: '#1E293B',
+  licences: '#8B263E'
 }
 
 export const textColor ={
