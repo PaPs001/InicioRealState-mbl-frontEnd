@@ -10,13 +10,15 @@ type HeroCardColor = {
 type HeroCardProps ={
   Summary: number,
   OnPress: () => void,
-  colors: HeroCardColor
+  colors: HeroCardColor,
+  titleLabel?: string
 }
 
 export const HeroCards = ({
   Summary,
   OnPress,
-  colors
+  colors,
+  titleLabel
 }: HeroCardProps ) => {
   return(
     <Pressable
@@ -28,7 +30,7 @@ export const HeroCards = ({
       onPress={OnPress}
     >
       <View style={styles.textContainer}>
-        <Text style={[styles.spacedLabel, { color: colors.textColor }]}>PROPIEDADES </Text>
+        <Text style={[styles.spacedLabel, { color: colors.textColor }]}>{titleLabel} </Text>
         <Text style={[styles.availableCount, { color: colors.accentColor }]}>{Summary}</Text>
         <Text style={[styles.spacedLabel, { color: colors.textColor }]}>DISPONIBLES </Text>
       </View>

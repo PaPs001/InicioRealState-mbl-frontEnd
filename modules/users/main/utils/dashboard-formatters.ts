@@ -44,7 +44,9 @@ export function mapGoogleDateToAppointment(
     status: getCalendarStatusLabel(date.status ?? undefined),
     sortTime: getCalendarSortTime(startValue),
 
-    timeZone: date.timeZone ?? null
+    timeZone: date.timeZone ?? null,
+
+    subtypeCalendar: date.subtypeCalendar ?? null,
   };
 }
 

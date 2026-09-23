@@ -1,49 +1,6 @@
-/**
- * Endpoints del catalogo de propiedades
- */
+import { coreApi } from '../client'
+import type { Property, PropertyCatalogItemResponse } from '@/lib/types/property'
 
-import { notificationsApi, coreApi } from '../client'
-import type { Property } from '@/lib/types'
-
-export interface PropertyCatalogItemResponse {
-  _id: string
-  address: string
-  banner: boolean
-  bed: string | null
-  editedPhotos: string | null
-  googleDriveImages: string | null
-  id: string
-  isALand: boolean | string | number | null
-  isLand?: boolean | string | number | null
-  list: 'sale' | 'rent' | string
-  locationUrl: string | null
-  maxPrice: number | null
-  minPrice: number | null
-  name: string
-  offer: boolean
-  originalPhotos: string | null
-  owner: string | null
-  parking: string | null
-  priceData: string | null
-  priceSpecial: number | null
-  propertyAmenities: string | null
-  propertyArea: string | null
-  propertyDescription: string | null
-  propertyDimensions: string | null
-  propertyInformation: string | null
-  propertyPayment: string | null
-  propertyType?: string | null
-  propertyView: string | null
-  pool?: boolean | null
-  residentialDevelopment?: string | null
-  security24_7?: boolean | null
-  solarPanel?: string | null
-  status: string | null
-  urlImage: string | null
-  virtualRoute?: string | null
-  wc: string | null
-  zonaText: string | null
-}
 
 function normalizeValueToText(value: unknown): string | undefined {
   if (typeof value === 'string') return value
@@ -225,21 +182,7 @@ export function mapApiPropertyToProperty(item: PropertyCatalogItemResponse): Pro
   }
 }
 
-export async function getCatalogRentProperties(): Promise<Property[]> {
-  try {
-    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
-      method: 'POST',
-      body: { list: 'rent' }
-    })
 
-    return data
-      .filter(item => (item.status || '').toLowerCase().includes('disponible'))
-      .map(mapApiPropertyToProperty)
-  } catch (error) {
-    console.error('Error al obtener catalogo:', error)
-    throw error
-  }
-}
 
 export async function getCatalogPropertiesCoreAPI(token?: string): Promise<Property[]>{
   try {
@@ -248,108 +191,11 @@ export async function getCatalogPropertiesCoreAPI(token?: string): Promise<Prope
       token,
     })
     return data
+      .filter(item => item.list === 'rent' || item.list === 'sale')
       .filter(isAvailableProperty)
       .map(mapApiPropertyToProperty)
   } catch (error) {
     console.error('Error al obtener catalogo:', error)
-    throw error
-  }
-}
-
-export async function getCatalogSaleProperties(): Promise<Property[]> {
-  try {
-    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
-      method: 'POST',
-      body: { list: 'sale' }
-    })
-
-    return data
-      .filter(item => (item.status || '').toLowerCase().includes('disponible'))
-      .map(mapApiPropertyToProperty)
-  } catch (error) {
-    console.error('Error al obtener catalogo de venta:', error)
-    throw error
-  }
-}
-
-export async function getAllCatalogProperties(): Promise<Property[]> {
-  try {
-    const [rentProperties, saleProperties] = await Promise.all([
-      getCatalogRentProperties(),
-      getCatalogSaleProperties()
-    ])
-    return [...rentProperties, ...saleProperties]
-  } catch (error) {
-    console.error('Error al obtener todas las propiedades:', error)
-    throw error
-  }
-}
-
-export const AGENT_VISIBLE_STATUSES = [
-  'apartada',
-  'disponible', 
-  'edición inicio',
-  'alquilada inicio',
-  'en proceso',
-  'alquilada externo'
-]
-
-export async function getAgentCatalogRentProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
-  try {
-    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
-      method: 'POST',
-      body: { list: 'rent' }
-    })
-
-    const filteredData = data.filter(item => {
-      const status = (item.status || '').toLowerCase()
-      return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
-    })
-
-    return {
-      properties: filteredData.map(mapApiPropertyToProperty),
-      rawData: filteredData
-    }
-  } catch (error) {
-    console.error('Error al obtener catalogo de asesores (renta):', error)
-    throw error
-  }
-}
-
-export async function getAgentCatalogSaleProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
-  try {
-    const data = await notificationsApi<PropertyCatalogItemResponse[]>('/properties/list', {
-      method: 'POST',
-      body: { list: 'sale' }
-    })
-
-    const filteredData = data.filter(item => {
-      const status = (item.status || '').toLowerCase()
-      return AGENT_VISIBLE_STATUSES.some(s => status.includes(s.toLowerCase()))
-    })
-
-    return {
-      properties: filteredData.map(mapApiPropertyToProperty),
-      rawData: filteredData
-    }
-  } catch (error) {
-    console.error('Error al obtener catalogo de asesores (venta):', error)
-    throw error
-  }
-}
-
-export async function getAllAgentCatalogProperties(): Promise<{ properties: Property[], rawData: PropertyCatalogItemResponse[] }> {
-  try {
-    const [rentResult, saleResult] = await Promise.all([
-      getAgentCatalogRentProperties(),
-      getAgentCatalogSaleProperties()
-    ])
-    return {
-      properties: [...rentResult.properties, ...saleResult.properties],
-      rawData: [...rentResult.rawData, ...saleResult.rawData]
-    }
-  } catch (error) {
-    console.error('Error al obtener catalogo completo de asesores:', error)
     throw error
   }
 }

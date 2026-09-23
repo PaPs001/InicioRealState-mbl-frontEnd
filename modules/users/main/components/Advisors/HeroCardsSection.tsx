@@ -33,7 +33,6 @@ export function HeroCardsSection({
     operationMode === "sale"
       ? saleSummary.opportunityAmount
       : rentSummary.opportunityAmount;
-
   return (
     <View style={styles.heroCards}>
       {operationMode === "both" ? (
@@ -42,11 +41,13 @@ export function HeroCardsSection({
             Summary={rentSummary.propertyCount}
             OnPress={onOpenRent}
             colors={heroColors.rent}
+            titleLabel={"RENTAS"}
           />
           <HeroCards
             Summary={saleSummary.propertyCount}
             OnPress={onOpenSale}
             colors={heroColors.sale}
+            titleLabel="MERCADO ABIERTO"
           />
         </>
       ) : (
@@ -55,6 +56,9 @@ export function HeroCardsSection({
             OnPress={operationMode === "sale" ? onOpenSale : onOpenRent}
             Summary={activeHeroSummary}
             colors={activeHeroColors}
+            titleLabel={
+              operationMode === "sale" ? "MERCADO ABIERTO" : "RENTAS"
+            }
           />
         </>
       )}

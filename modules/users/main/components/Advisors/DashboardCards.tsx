@@ -111,6 +111,12 @@ export function AppointmentCard({
 
     return `${hours}:${String(remainingMinutes).padStart(2, "0")} h`;
   }
+
+  const subdivision = appointmentTypeConfig.subdivisionTypes?.find(
+    option => option.value === appointment.subtypeCalendar,
+  );
+
+  const appointmentColor = subdivision?.color ?? appointmentTypeConfig.color;
   return (
     <View>
       <Pressable
@@ -118,7 +124,7 @@ export function AppointmentCard({
         style={[
           styles.container,
           {
-            backgroundColor: appointmentTypeConfig.color,
+            backgroundColor: appointmentColor,
           },
         ]}
       >
@@ -191,7 +197,7 @@ export function AppointmentCard({
             ) : (
               <>
                 <View style={styles.contentDirection}>
-                  {hasText(appointment.property) ? (
+                  {/*{hasText(appointment.property) ? (
                     <View style={styles.detailRow}>
                       <View style={styles.detailLabel}>
                         <icons.BuildingApartment
@@ -212,7 +218,7 @@ export function AppointmentCard({
                         {appointment.property}
                       </Text>
                     </View>
-                  ) : null}
+                  ) : null}*/}
 
                   {hasText(appointment.client) ? (
                     <View style={styles.detailRow}>

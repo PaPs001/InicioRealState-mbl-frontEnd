@@ -209,12 +209,12 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   }, [authToken, isAdviserRoute, loadCustomLeadStatuses])
 
   useEffect(() => {
-    if (hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
+    if (!authToken || hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
 
     hasRequestedInitialCatalogRef.current = true
     console.info('[LeadsV2][initial-load]', { service: 'catalog-properties' })
     loadCatalogProperties()
-  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
+  }, [authToken, hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   useEffect(() => {
     if (!selectedLeadIdParam) {

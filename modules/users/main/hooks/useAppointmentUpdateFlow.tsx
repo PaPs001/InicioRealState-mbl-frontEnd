@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
+import { createBackendLeadV2Record, getBackendLeadRecords } from "@/lib/api/endpoints/leads";
+import { findLeadDuplicates } from "../utils/lead-duplicates";
 
 import type {
   AppointmentType,
+  DuplicateLeadCandidate,
   SelectedGoogleCalendar,
   UpdateGoogleCalendarDatePayload,
 } from "@/lib/api";
@@ -22,7 +25,7 @@ import {
   findCalendarForAppointmentType,
 } from '@/lib/config/appointment-Types';
 
-type SelectionScreen = "lead" | "property" | null;
+type SelectionScreen = "lead" | "property" | "duplicate" | null;
 
 type Params = {
   appointment: AppointmentPreviewItem;
@@ -45,6 +48,10 @@ export function useAppointmentUpdateFlow({
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [form, setForm] = useState<UpdateGoogleCalendarDatePayload>({});
+  const [leadMode, setLeadMode] = useState<"existing" | "provisional">("existing");
+  const [newLead, setNewLead] = useState({ fullName: "", phone: "", email: "" });
+  const [createdLead, setCreatedLead] = useState<PropertyLead | null>(null);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateLeadCandidate[]>([]);
   const enabledCalendars = useMemo(
     () => selectedCalendars.filter((calendar) => calendar.enabled !== false),
     [selectedCalendars],
@@ -62,8 +69,9 @@ export function useAppointmentUpdateFlow({
 
   const [selectionScreen, setSelectionScreen] = useState<SelectionScreen>(null);
   const selectedLead = useMemo(
-    () => appointmentLeadOptions.find((lead) => lead.id === form.leadId),
-    [appointmentLeadOptions, form.leadId],
+    () => appointmentLeadOptions.find((lead) => lead.id === form.leadId) ??
+      (createdLead && createdLead.id === form.leadId ? createdLead : undefined),
+    [appointmentLeadOptions, form.leadId, createdLead],
   );
   const selectedProperty = useMemo(
     () =>
@@ -80,6 +88,7 @@ export function useAppointmentUpdateFlow({
       description: appointment.description ?? "",
       location: appointment.location ?? "",
       appointmentType: normalizeAppointmentType(appointment.appointmentType),
+      subtypeCalendar: appointment.subtypeCalendar ?? null,
       startDateTime: appointment.startDateTime,
       endDateTime: appointment.endDateTime,
       calendarId: appointment.calendarId ?? undefined,
@@ -91,6 +100,10 @@ export function useAppointmentUpdateFlow({
       timeZone: appointment.timeZone ?? "America/Mexico_City",
     });
     setSelectionScreen(null);
+    setLeadMode("existing");
+    setNewLead({ fullName: "", phone: "", email: "" });
+    setCreatedLead(null);
+    setDuplicateCandidates([]);
   }, [appointment, visible]);
 
   useEffect(() => {
@@ -115,6 +128,7 @@ export function useAppointmentUpdateFlow({
       ...current,
       calendarId: calendar.calendarId,
       appointmentType,
+      subtypeCalendar: current.appointmentType === appointmentType ? current.subtypeCalendar : null,
       colorId: calendar.colorId ?? null,
       ...(config.lead === 'none' ? { leadId: null } : {}),
       ...(config.property === 'none' ? { propertyId: null } : {}),
@@ -142,6 +156,7 @@ export function useAppointmentUpdateFlow({
             ...current,
             appointmentType,
             calendarId: undefined,
+            subtypeCalendar: current.appointmentType === appointmentType ? current.subtypeCalendar : null,
             ...(config.lead === 'none' ? { leadId: null } : {}),
             ...(config.property === 'none' ? { propertyId: null } : {}),
           }));
@@ -159,6 +174,7 @@ export function useAppointmentUpdateFlow({
         ...current,
         appointmentType,
         calendarId: selectedCalendar.calendarId,
+        subtypeCalendar: current.appointmentType === appointmentType ? current.subtypeCalendar : null,
         colorId: selectedCalendar.colorId ?? null,
         ...(config.lead === 'none' ? { leadId: null } : {}),
         ...(config.property === 'none' ? { propertyId: null } : {}),
@@ -221,7 +237,7 @@ export function useAppointmentUpdateFlow({
     }));
   }, [currentUser?.id]);
 
-  const submitUpdate = useCallback(async () => {
+  const submitUpdate = useCallback(async (resolution?: { omit?: boolean; lead?: DuplicateLeadCandidate }) => {
     if (!appointment.id) {
       console.warn("[AppointmentUpdateFlow] No se puede actualizar: falta appointment.id", {
         appointment,
@@ -252,8 +268,27 @@ export function useAppointmentUpdateFlow({
       return;
     }
 
+    const start = new Date(form.startDateTime).getTime();
+    const end = new Date(form.endDateTime ?? "").getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      Alert.alert("Fecha inválida", "La terminación debe ser posterior al inicio.");
+      return;
+    }
+    const config = getAppointmentTypeConfig(form.appointmentType);
+    const shouldCreateLead = config.lead !== "none" && leadMode === "provisional" && !resolution?.lead;
+    if (shouldCreateLead && !newLead.fullName.trim()) {
+      Alert.alert("Falta nombre", "Escribe el nombre completo del nuevo lead.");
+      return;
+    }
+    if (config.lead === "required" && !shouldCreateLead && !form.leadId && !resolution?.lead?.id) {
+      Alert.alert("Falta lead", "Selecciona un lead registrado o registra uno nuevo.");
+      return;
+    }
+    if (!authToken) return;
+
     setIsUpdating(true);
-    let stage: "patch" | "reload" = "patch";
+    let stage: "lead" | "patch" | "reload" = "patch";
+    let leadWasCreated = false;
 
     try {
       console.info("[AppointmentUpdateFlow] Enviando actualización", {
@@ -261,7 +296,42 @@ export function useAppointmentUpdateFlow({
         payload: form,
       });
 
-      await updateAppointment(appointment.id, form);
+      const payload = { ...form };
+      if (resolution?.lead?.id) {
+        payload.leadId = resolution.lead.id;
+        setForm(current => ({ ...current, leadId: resolution.lead!.id }));
+        setLeadMode("existing");
+        setSelectionScreen(null);
+      }
+      if (shouldCreateLead) {
+        stage = "lead";
+        if (!resolution?.omit) {
+          const leads = await getBackendLeadRecords(authToken, { includeFollowUps: true });
+          const candidates = findLeadDuplicates(leads, newLead);
+          if (candidates.length) {
+            setDuplicateCandidates(candidates);
+            setSelectionScreen("duplicate");
+            return;
+          }
+        }
+        const lead = await createBackendLeadV2Record({
+          fullName: newLead.fullName.trim(),
+          phone: newLead.phone.trim() || undefined,
+          email: newLead.email.trim() || undefined,
+          propertyOfInterestId: form.propertyId || undefined,
+          operation: form.appointmentType,
+        }, authToken);
+        if (!lead.id) throw new Error("El servidor no devolvió el identificador del lead.");
+        payload.leadId = lead.id;
+        setCreatedLead(lead);
+        setForm(current => ({ ...current, leadId: lead.id }));
+        setLeadMode("existing");
+        setNewLead({ fullName: "", phone: "", email: "" });
+        leadWasCreated = true;
+        setSelectionScreen(null);
+      }
+      stage = "patch";
+      await updateAppointment(appointment.id, payload);
 
       console.info("[AppointmentUpdateFlow] PATCH completado; recargando citas", {
         dateId: appointment.id,
@@ -286,7 +356,13 @@ export function useAppointmentUpdateFlow({
         error,
       });
 
-      Alert.alert("Error", "No se pudieron guardar los cambios.");
+      Alert.alert("Error", stage === "reload"
+        ? "La cita se guardó, pero no se pudo refrescar el calendario."
+        : leadWasCreated
+          ? "El lead se registró y quedó seleccionado, pero no se pudo actualizar la cita. Puedes reintentar guardar."
+          : stage === "lead"
+            ? "No se pudo registrar el lead. La cita no se modificó."
+            : "No se pudieron guardar los cambios.");
     } finally {
       setIsUpdating(false);
     }
@@ -297,6 +373,9 @@ export function useAppointmentUpdateFlow({
     loadAppointments,
     onClose,
     updateAppointment,
+    authToken,
+    leadMode,
+    newLead,
   ]);
 
   return {
@@ -310,6 +389,16 @@ export function useAppointmentUpdateFlow({
       appointmentLeadOptions,
       appointmentPropertyOptions: properties.filteredAppointmentPropertyOptions,
       selectedLead,
+      leadMode,
+      newLead,
+      duplicateCandidates,
+      onOmitDuplicateAndCreate: () => { void submitUpdate({ omit: true }); },
+      onUseDuplicateLead: (lead: DuplicateLeadCandidate) => {
+        if (lead.id) void submitUpdate({ lead });
+      },
+      onLeadModeChange: setLeadMode,
+      onNewLeadChange: (field: "fullName" | "phone" | "email", value: string) =>
+        setNewLead(current => ({ ...current, [field]: value })),
       selectedProperty,
       currentUserId: currentUser?.id,
       currentUserName: currentUser?.name,
@@ -317,7 +406,7 @@ export function useAppointmentUpdateFlow({
       isLeadsLoading,
       isPropertiesLoading: properties.isCatalogLoading,
       onClose,
-      onSubmit: submitUpdate,
+      onSubmit: () => { void submitUpdate(); },
       onUpdateField: updateField,
       onSelectCalendar: selectCalendar,
       onSelectAppointmentType: selectAppointmentType,
