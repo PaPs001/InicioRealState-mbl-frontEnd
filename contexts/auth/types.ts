@@ -1,4 +1,3 @@
-import type { PropertyCatalogItemResponse } from '@/lib/api/endpoints/catalog'
 import type { BackendUser } from '@/lib/services/auth-session'
 import type { Appointment, Notification, Property, PropertyLead, User } from '@/lib/types'
 
@@ -23,19 +22,13 @@ export interface AuthContextType {
   userProperties: Property[]
   availableProperties: Property[]
   catalogProperties: Property[]
-  agentCatalogProperties: Property[]
-  agentCatalogRawData: PropertyCatalogItemResponse[]
   isCatalogLoading: boolean
-  isAgentCatalogLoading: boolean
   hasLoadedCatalog: boolean
-  hasLoadedAgentCatalog: boolean
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
-  newLoadCatalogProperties: () => Promise<void>
   getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: () => Promise<void>
-  loadAgentCatalogProperties: () => Promise<void>
   markNotificationAsRead: (id: string) => void
   markAllUserNotificationsAsRead: () => void
   unreadNotificationsCount: number
@@ -67,16 +60,10 @@ export type PropertyDomain = Pick<
   | 'userProperties'
   | 'availableProperties'
   | 'catalogProperties'
-  | 'agentCatalogProperties'
-  | 'agentCatalogRawData'
   | 'isCatalogLoading'
-  | 'isAgentCatalogLoading'
   | 'hasLoadedCatalog'
-  | 'hasLoadedAgentCatalog'
-  | 'newLoadCatalogProperties'
   | 'getPropertyById'
   | 'loadCatalogProperties'
-  | 'loadAgentCatalogProperties'
 >
 
 export type ActivityDomain = Pick<

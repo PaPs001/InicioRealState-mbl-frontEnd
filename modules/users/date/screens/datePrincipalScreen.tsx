@@ -1,4 +1,4 @@
-import { Alert, View, ScrollView, Text } from "react-native";
+import { Alert, View, ScrollView, Text, Pressable } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -9,21 +9,29 @@ import Animated, {
   useSharedValue,
   withSpring,
   runOnJS,
+  cancelAnimation,
+  Easing,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
 import { Calendar } from "../components/calendar";
 import { EventCard } from "../components/eventsCard";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import type { GoogleCalendarDate } from "@/lib/api";
 import { styles } from "./datePrincipalScreen.styles";
 import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { useCalendarData } from "../context/CalendarDataContext";
+import { useOperationMode } from "@/modules/settings";
 import { AppointmentUpdateFlow } from "@/modules/users/main/hooks/useAppointmentUpdateFlow";
 import { mapGoogleDateToAppointment } from "@/modules/users/main/utils/dashboard-formatters";
 import {
   getAppointmentTypeOptions,
   isAppointmentType,
-} from '@/lib/config/appointment-Types';
-
+} from "@/lib/config/appointment-Types";
+import { icons } from "@/assets";
+import { router } from "expo-router";
 const COLLAPSED_PANEL_HEIGHT = 470;
 const PANEL_EXPANDED_GAP = 0;
 
@@ -68,12 +76,34 @@ function formatAppointmentCount(count: number, type: string) {
 }
 
 export default function CalendarScreen() {
+  const { capabilities } = useOperationMode();
+  const enabledAppointmentTypes = useMemo(
+    () =>
+      getAppointmentTypeOptions().filter((type) => {
+        const operation = type.parentType ?? type.value;
+        if (operation === "renta") return capabilities.canViewRentals;
+        if (operation === "venta") return capabilities.canViewSales;
+        return true;
+      }),
+    [capabilities.canViewRentals, capabilities.canViewSales],
+  );
   const {
     appointments,
     appointmentsError: loadError,
     isAppointmentsLoading: isLoading,
     deleteAppointment,
   } = useCalendarData();
+  const filteredAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) => {
+        const type = appointment.appointmentType?.trim().toLowerCase();
+        return (
+          !isAppointmentType(type) ||
+          enabledAppointmentTypes.some((option) => option.value === type)
+        );
+      }),
+    [appointments, enabledAppointmentTypes],
+  );
   const [screenHeight, setScreenHeight] = useState(0);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [visibleMonth, setVisibleMonth] = useState(
@@ -141,27 +171,36 @@ export default function CalendarScreen() {
 
   const appointmentTypesByDate = useMemo(
     () =>
-      appointments.reduce<Record<string, string[]>>((result, appointment) => {
-        const dateKey = getAppointmentDateKey(appointment);
-        if (!dateKey) return result;
+      filteredAppointments.reduce<Record<string, string[]>>(
+        (result, appointment) => {
+          const dateKey = getAppointmentDateKey(appointment);
+          if (!dateKey) return result;
 
-        const appointmentType = appointment.appointmentType?.trim().toLowerCase();
-        const types = result[dateKey] ?? [];
+          const appointmentType = appointment.appointmentType
+            ?.trim()
+            .toLowerCase();
+          const types = result[dateKey] ?? [];
 
-        if (appointmentType && isAppointmentType(appointmentType) && !types.includes(appointmentType)) {
-          types.push(appointmentType);
-        }
+          if (
+            appointmentType &&
+            isAppointmentType(appointmentType) &&
+            !types.includes(appointmentType)
+          ) {
+            types.push(appointmentType);
+          }
 
-        result[dateKey] = types;
-        return result;
-      }, {}),
-    [appointments],
+          result[dateKey] = types;
+          return result;
+        },
+        {},
+      ),
+    [filteredAppointments],
   );
 
   const selectedDateKey = formatDateKey(selectedDate);
   const selectedAppointments = useMemo(
     () =>
-      appointments
+      filteredAppointments
         .filter(
           (appointment) =>
             getAppointmentDateKey(appointment) === selectedDateKey,
@@ -169,20 +208,20 @@ export default function CalendarScreen() {
         .sort((first, second) =>
           (first.startDateTime ?? "").localeCompare(second.startDateTime ?? ""),
         ),
-    [appointments, selectedDateKey],
+    [filteredAppointments, selectedDateKey],
   );
 
   const visibleMonthKey = getMonthKey(visibleMonth);
   const monthAppointments = useMemo(
     () =>
-      appointments
+      filteredAppointments
         .filter((appointment) =>
           getAppointmentDateKey(appointment)?.startsWith(visibleMonthKey),
         )
         .sort((first, second) =>
           (first.startDateTime ?? "").localeCompare(second.startDateTime ?? ""),
         ),
-    [appointments, visibleMonthKey],
+    [filteredAppointments, visibleMonthKey],
   );
 
   const monthAppointmentGroups = useMemo(() => {
@@ -216,15 +255,17 @@ export default function CalendarScreen() {
     : appointmentsForCurrentMode.slice(0, 9);
 
   const appointmentCountByType = useMemo(
-    () => Object.fromEntries(
-      getAppointmentTypeOptions().map(type => [
-        type.value,
-        appointmentsForCurrentMode.filter(
-          appointment => appointment.appointmentType?.trim().toLowerCase() === type.value,
-        ).length,
-      ]),
-    ),
-    [appointmentsForCurrentMode],
+    () =>
+      Object.fromEntries(
+        enabledAppointmentTypes.map((type) => [
+          type.value,
+          appointmentsForCurrentMode.filter(
+            (appointment) =>
+              appointment.appointmentType?.trim().toLowerCase() === type.value,
+          ).length,
+        ]),
+      ),
+    [appointmentsForCurrentMode, enabledAppointmentTypes],
   );
 
   const handleDeleteAppointment = (appointment: GoogleCalendarDate) => {
@@ -255,13 +296,67 @@ export default function CalendarScreen() {
     );
   };
 
+  //// esto es solo una prueba
+  const [widthContainer, setWidthContainer] = useState(0);
+  const [widthColumn, setWidthColumn] = useState(0);
+  const recorrido = Math.max(0, widthColumn - widthContainer);
+
+  const needMovement = recorrido > 0;
+
+  const desplazamiento = useSharedValue(0);
+  useEffect(() => {
+    cancelAnimation(desplazamiento);
+    desplazamiento.value = 0;
+
+    if (widthContainer <= 0 || widthColumn <= 0 || recorrido === 0) return;
+
+    const velocidad = 30;
+    const duracion = (recorrido / velocidad) * 2000;
+    const opciones = {
+      duration: duracion,
+      easing: Easing.linear,
+    };
+
+    desplazamiento.value = withRepeat(
+      withSequence(
+        withDelay(2000, withTiming(-recorrido, opciones)),
+        withDelay(2000, withTiming(0, opciones)),
+      ),
+      -1,
+    );
+
+    return () => cancelAnimation(desplazamiento);
+  }, [widthContainer, widthColumn, recorrido, desplazamiento]);
+
+  const estiloMovimiento = useAnimatedStyle(() => ({
+    transform: [{ translateX: desplazamiento.value }],
+  }));
   return (
-    <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
+    <SafeAreaView
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setWidthColumn(width);
+      }}
+      style={styles.safeArea}
+      edges={["left", "right", "bottom"]}
+    >
       <View
         style={styles.screen}
         onLayout={(event) => setScreenHeight(event.nativeEvent.layout.height)}
       >
         <View style={styles.logoWrap}>
+          <View style={{
+            position: 'absolute',
+            left: 15,
+          }}>
+            <Pressable style={{
+              width: 70,
+              height: 50,
+              justifyContent: 'center',
+            }} onPress={() => router.back()}>
+              <icons.BackButton />
+            </Pressable>
+          </View>
           <LogoIRSPrincipal width={146} height={48} />
         </View>
         <View
@@ -296,24 +391,53 @@ export default function CalendarScreen() {
               <View style={styles.dragHandle}>
                 <View style={styles.dragIndicator} />
               </View>
-              <View style={styles.countButtonRow}>
-                {getAppointmentTypeOptions().map(type => (
-                  <View
-                    key={type.value}
-                    style={[styles.countSale, { backgroundColor: type.color }]}
+              <View
+                style={{ overflow: "hidden" }}
+                onLayout={(event) => {
+                  setWidthContainer(event.nativeEvent.layout.width);
+                }}
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <Animated.View
+                    onLayout={(event) => {
+                      setWidthColumn(event.nativeEvent.layout.width);
+                    }}
+                    style={[
+                      styles.countButtonRow,
+                      {
+                        flexShrink: 0,
+                        justifyContent: "flex-start",
+                        paddingHorizontal: 10,
+                      },
+                      estiloMovimiento,
+                    ]}
                   >
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      style={styles.eventText}
-                    >
-                      {formatAppointmentCount(
-                        appointmentCountByType[type.value] ?? 0,
-                        type.label.toLowerCase(),
-                      )}
-                    </Text>
-                  </View>
-                ))}
+                    {enabledAppointmentTypes
+                      .filter(
+                        (type) => (appointmentCountByType[type.value] ?? 0) > 0,
+                      )
+                      .map((type) => (
+                        <View
+                          key={type.value}
+                          style={[
+                            styles.countSale,
+                            { backgroundColor: type.color },
+                          ]}
+                        >
+                          <Text
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            style={styles.eventText}
+                          >
+                            {formatAppointmentCount(
+                              appointmentCountByType[type.value] ?? 0,
+                              type.label.toLowerCase(),
+                            )}
+                          </Text>
+                        </View>
+                      ))}
+                  </Animated.View>
+                </View>
               </View>
             </View>
           </GestureDetector>

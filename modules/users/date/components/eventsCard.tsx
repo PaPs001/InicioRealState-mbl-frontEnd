@@ -57,11 +57,15 @@ export function EventCard({ appointment, onDelete, onEdit }: EventCardProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [showInformation, setShowInformation] = useState(false);
   const appointmentTypeConfig = getAppointmentTypeConfig(appointment.appointmentType);
+  const subdivision = appointmentTypeConfig.subdivisionTypes?.find(
+    option => option.value === appointment.subtypeCalendar,
+  );
+  const appointmentColor = subdivision?.color ?? appointmentTypeConfig.color;
   const clientName = appointment.lead?.name || "Sin cliente relacionado";
 
   return (
     <View
-      style={[styles.container, { backgroundColor: appointmentTypeConfig.color }]}
+      style={[styles.container, { backgroundColor: appointmentColor }]}
     >
       <View style={styles.mainRow}>
         <Pressable
