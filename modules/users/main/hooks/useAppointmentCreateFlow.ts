@@ -23,7 +23,7 @@ import {
   findCalendarForAppointmentType,
   getAppointmentTypeConfig,
   isAppointmentType,
-} from '@/lib/config/appointment-Types';
+} from "@/lib/config/appointment-Types";
 
 type Params = {
   capabilities?: AppCapabilities;
@@ -47,6 +47,7 @@ export function useAppointmentCreateFlow({
   const { authToken, currentUser } = useSessionDomain();
   const { addAppointment } = useCalendarData();
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
+  const [advisorMode, setAdvisorMode] = useState<"self" | "external">("self");
   const [duplicateCheck, setDuplicateCheck] =
     useState<DuplicateCheckResult | null>(null);
   const [pendingDuplicatePayload, setPendingDuplicatePayload] =
@@ -86,6 +87,7 @@ export function useAppointmentCreateFlow({
 
   useEffect(() => {
     if (!visible) return;
+    setAdvisorMode("self");
     setDuplicateCheck(null);
     setPendingDuplicatePayload(null);
     const initialPropertyId =
@@ -115,7 +117,7 @@ export function useAppointmentCreateFlow({
   ]);
 
   const updateForm = useCallback(
-    (field: keyof CreateGoogleCalendarDatePayload, value: string) => {
+    (field: keyof CreateGoogleCalendarDatePayload, value: string | null) => {
       setForm((current) => ({ ...current, [field]: value }));
     },
     [],
@@ -197,7 +199,8 @@ export function useAppointmentCreateFlow({
             },
             {
               text: "Revisar",
-              onPress: () => calendar.setAppointmentSelectionScreen("duplicate"),
+              onPress: () =>
+                calendar.setAppointmentSelectionScreen("duplicate"),
             },
           ],
         );
@@ -235,13 +238,20 @@ export function useAppointmentCreateFlow({
 
   const createAppointment = useCallback(async () => {
     if (!authToken || isCreatingAppointment) return;
-    const normalizedAppointmentType = form.appointmentType?.trim().toLowerCase();
+    const normalizedAppointmentType = form.appointmentType
+      ?.trim()
+      .toLowerCase();
     const appointmentType = isAppointmentType(normalizedAppointmentType)
       ? normalizedAppointmentType
       : undefined;
     const appointmentTypeConfig = getAppointmentTypeConfig(appointmentType);
-    const acceptsLead = appointmentTypeConfig.lead !== 'none';
-    const acceptsProperty = appointmentTypeConfig.property !== 'none';
+
+    const subdivision = appointmentTypeConfig.subdivisionTypes?.find(
+      (option) => option.value === form.subtypeCalendar,
+    );
+    const effectiveConfig = subdivision ?? appointmentTypeConfig;
+    const acceptsLead = effectiveConfig.lead !== "none";
+    const acceptsProperty = effectiveConfig.property !== "none";
     if (
       !form.title.trim() ||
       !form.startDateTime.trim() ||
@@ -263,8 +273,16 @@ export function useAppointmentCreateFlow({
         "Hora de terminacion invalida",
         "La cita debe terminar despues de la hora de inicio.",
       );
+
+      ///// mira mano esto es para crear una cita venta obligando a seleccionar el tipo de cita ventaa (desarrollo o mercado abierto)
+    if (appointmentTypeConfig.hasSubdivision && !subdivision) {
+      return Alert.alert(
+        "Falta tipo de venta",
+        "Selecciona mercado abierto o desarrollos.",
+      );
+    }
     if (
-      appointmentTypeConfig.lead === 'required' &&
+      effectiveConfig.lead === "required" &&
       calendar.appointmentLeadMode === "existing" &&
       !form.leadId
     )
@@ -273,7 +291,7 @@ export function useAppointmentCreateFlow({
         "Selecciona el lead al que se le agendara la cita.",
       );
     if (
-      appointmentTypeConfig.lead === 'required' &&
+      effectiveConfig.lead === "required" &&
       calendar.appointmentLeadMode === "provisional" &&
       !calendar.provisionalAppointmentLead.fullName.trim()
     )
@@ -282,24 +300,31 @@ export function useAppointmentCreateFlow({
         "Escribe el nombre del lead provisional para crear la cita.",
       );
     const canResolveCalendarByType =
-      appointmentTypeConfig.calendarSelection !== 'manual' &&
+      appointmentTypeConfig.calendarSelection !== "manual" &&
       appointmentType !== undefined &&
-      Boolean(findCalendarForAppointmentType(
-        calendar.enabledSelectedCalendars,
-        appointmentType,
-      ));
+      Boolean(
+        findCalendarForAppointmentType(
+          calendar.enabledSelectedCalendars,
+          appointmentType,
+        ),
+      );
     if (!form.calendarId && !canResolveCalendarByType)
       return Alert.alert(
         "Falta calendario",
         "Selecciona o configura el calendario donde quieres crear la cita.",
       );
 
+    const useExternalAdvisor = advisorMode === "external";
+    if (useExternalAdvisor && !form.externalAdvisorName?.trim()) {
+      return Alert.alert("Falta asesor", "Escribe el nombre del asesor encargado.");
+    }
     const base = {
       ...form,
       leadId: acceptsLead ? form.leadId : null,
       propertyId: acceptsProperty ? form.propertyId : null,
-      advisorId: form.advisorId || currentUser?.id || null,
-      helpedBy: acceptsLead ? form.helpedBy?.trim() || "" : "",
+      advisorId: useExternalAdvisor ? null : currentUser?.id ?? null,
+      externalAdvisorName: useExternalAdvisor ? form.externalAdvisorName!.trim() : null,
+      helpedBy: form.helpedBy?.trim() || "",
     };
     const payload: CreateGoogleCalendarDatePayload =
       acceptsLead && calendar.appointmentLeadMode === "provisional"
@@ -317,17 +342,17 @@ export function useAppointmentCreateFlow({
         : { ...base, lead: null };
 
     await submitAppointment(payload);
-  }, [
-    authToken,
-    calendar,
-    currentUser?.id,
-    form,
-    isCreatingAppointment,
-  ]);
+  }, [authToken, calendar, currentUser?.id, form, isCreatingAppointment, advisorMode]);
 
   return {
     calendar,
     modalProps: {
+      advisorMode,
+      currentUserName: currentUser?.name,
+      onAdvisorModeChange: (mode: "self" | "external") => {
+        setAdvisorMode(mode);
+        setForm(current => ({ ...current, advisorId: mode === "self" ? currentUser?.id ?? null : null, externalAdvisorName: mode === "self" ? null : current.externalAdvisorName ?? "" }));
+      },
       appointmentLeadMode: calendar.appointmentLeadMode,
       appointmentLeadOptions,
       appointmentPropertyOptions: properties.filteredAppointmentPropertyOptions,
@@ -379,7 +404,9 @@ function getDuplicateCheck(error: unknown): DuplicateCheckResult | null {
     : null;
 }
 
-function createInitialForm(advisorId?: string): CreateGoogleCalendarDatePayload {
+function createInitialForm(
+  advisorId?: string,
+): CreateGoogleCalendarDatePayload {
   const startDateTime = getDefaultAppointmentStartDateTime();
   return {
     title: "",
@@ -388,6 +415,7 @@ function createInitialForm(advisorId?: string): CreateGoogleCalendarDatePayload 
     timeZone: "America/Mexico_City",
     helpedBy: "",
     advisorId: advisorId || null,
+    subtypeCalendar: null,
   };
 }
 

@@ -13,6 +13,8 @@ import ProfileIconMobile from './profileIconMobile.svg'
 import RegistryIconMobile from './RegistryIconMobile.svg'
 import TextoLogoInicio from './TextoLogoInicio.svg'
 import LogoIRSBlanco from './logoIRSBlanco.svg'
+import LogoInicioSale from './selectedProperties/logoInicioSale.svg'
+import LogoInicioRent from './selectedProperties/logoInicioRent.svg'
 
 import BackButton from './properties/backButton.svg'
 import ArrowDown from './properties/arrowDown.svg'
@@ -105,7 +107,9 @@ export const logos = {
   irsPrincipal: LogoIRSPrincipal,
   navBarPrincipal: LogoNavBarPrincipal,
   textoInicio: TextoLogoInicio,
-  irsBlanco: LogoIRSBlanco
+  irsBlanco: LogoIRSBlanco,
+  logoMiniRent: LogoInicioRent,
+  logoMiniSale: LogoInicioSale,
 } as const
 
 export const icons = {
@@ -290,5 +294,6 @@ export {
   Clock,
   MapPin,
   User,
-  Email
+  Email,
+  
 }

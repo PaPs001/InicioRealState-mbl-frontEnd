@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import type { Property } from '@/lib/types'
 import { getPropertyDisplayName } from '@/modules/users/main/utils/dashboard-formatters'
@@ -83,6 +84,7 @@ function getSaleSummary(properties: Property[]): PropertySummary {
 }
 
 export function useDashboardProperties(appointmentType?: AppointmentPropertyType) {
+  const { authToken } = useSessionDomain()
   const {
     availableProperties,
     catalogProperties,
@@ -93,12 +95,12 @@ export function useDashboardProperties(appointmentType?: AppointmentPropertyType
   const hasRequestedInitialCatalogRef = useRef(false)
 
   useEffect(() => {
-    if (hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
+    if (!authToken || hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
 
     hasRequestedInitialCatalogRef.current = true
     console.info('[DashboardProperties][initial-load]', { service: 'catalog-properties' })
     void loadCatalogProperties()
-  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
+  }, [authToken, hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   const dashboardProperties = useMemo(
     () => getDashboardPropertySource(catalogProperties, availableProperties),

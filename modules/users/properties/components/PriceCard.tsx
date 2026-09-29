@@ -5,9 +5,9 @@ import { deleteMXNWord } from "@/modules/users/main/utils/dashboard-formatters";
 
 type PriceCardProps = {
   onDate: () => void;
-  price: string;
-  operation: string;
-  hasMantain: boolean;
+  price: string | null | undefined;
+  operation?: string;
+  hasMantain?: boolean;
 };
 export const PriceCard = ({
   onDate,
@@ -15,7 +15,7 @@ export const PriceCard = ({
   operation,
   hasMantain,
 }: PriceCardProps) => {
-  const isRent = operation.trim().toLowerCase() === "renta";
+  const isRent = operation?.trim().toLowerCase() === "rent";
 
   return (
     <View style={styles.priceCardContainer}>
@@ -32,7 +32,16 @@ export const PriceCard = ({
             </Text>
           </View>
         ) : (
-          <Text style={styles.priceCardText}>{deleteMXNWord(price)}</Text>
+          <View style={styles.textContainer}>
+            <Text style={styles.priceCardText}>{deleteMXNWord(price)}</Text>
+            <Text
+              style={styles.textCard}
+              //adjustsFontSizeToFit
+              numberOfLines={1}
+            >
+              MXN
+            </Text>
+          </View>
         )}
         {hasMantain ? (
           <Text
