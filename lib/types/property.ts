@@ -88,9 +88,15 @@ export interface PropertyCatalogItemResponse {
   zonaText: string | null;
 }
 
+export type AmenitiesEstructure = { 
+  name: string;
+  color: string
+}
+
 export interface selectedPropertyBackendData extends PropertyCatalogItemResponse {
-  propertyDescription: string | null;
-  propertyTitle: string | null;
+  titleApp: string | null;
+  description: string | null;
+  amenities: AmenitiesEstructure[] | null
 }
 
 export interface PropertyEarnings {

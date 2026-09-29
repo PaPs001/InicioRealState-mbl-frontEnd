@@ -71,14 +71,6 @@ function RootNavigator() {
 */
   useEffect(() => {
     const tokenPreview = authToken ? `${authToken.slice(0, 12)}...` : 'SIN_TOKEN'
-    console.log('[auth][route]', {
-      pathname,
-      userId: currentUser?.id ?? null,
-      investment: currentUser?.investment ?? null,
-      tenant: currentUser?.tenant ?? null,
-      token: tokenPreview,
-      hasToken: !!authToken,
-    })
   }, [pathname, authToken, currentUser?.id, currentUser?.investment, currentUser?.tenant])
 
   useEffect(() => {

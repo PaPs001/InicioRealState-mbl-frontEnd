@@ -248,7 +248,6 @@ export function getGoogleCalendarDates(token?: string | null, filters: GoogleCal
 
 export function createGoogleCalendarDate(token: string | null | undefined, payload: CreateGoogleCalendarDatePayload) {
   // TEMP: revisar los datos enviados al crear una cita.
-  console.log('[Crear cita] POST /dates/dates payload:', JSON.stringify(payload, null, 2))
   return coreApi<CreateGoogleCalendarDateResponse>('/dates/dates', {
     method: 'POST',
     token: token ?? undefined,

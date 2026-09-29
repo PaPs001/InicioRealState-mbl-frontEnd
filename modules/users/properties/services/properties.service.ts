@@ -30,7 +30,7 @@ export async function getAvailableModuleProperties(token?: string | null): Promi
 
 export async function getSelectedProperty( propertyId: string, token?: string | null): Promise<selectedPropertyBackendData>{
   const data = await coreApi<selectedPropertyBackendData>(`${SELECTED_PROPERTY}${encodeURIComponent(propertyId)}`, {
-    method: 'POST',
+    method: 'GET',
     token: token ?? undefined,
   })
 

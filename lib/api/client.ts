@@ -287,32 +287,6 @@ async function apiClientRequest<T>(
 
   const requestHeaders = buildRequestHeaders(token)
 
-  if (shouldLogAuthDebug(path)) {
-    debugLog?.({
-      level: 'info',
-      message: 'La app va a llamar al backend de autenticacion.',
-      details: {
-        method,
-        path,
-        baseUrl,
-        finalUrl: `${baseUrl}${path}`,
-        hasToken: !!token,
-        hasNgrokBypass: requestHeaders['ngrok-skip-browser-warning'] === 'true',
-        bodyKeys: body && typeof body === 'object' ? Object.keys(body as Record<string, unknown>) : [],
-      },
-    })
-    console.info('[API][auth] request', {
-      method,
-      path,
-      baseUrl,
-      finalUrl: `${baseUrl}${path}`,
-      hasToken: !!token,
-      tokenPreview: previewToken(token),
-      hasNgrokBypass: requestHeaders['ngrok-skip-browser-warning'] === 'true',
-      bodyKeys: body && typeof body === 'object' ? Object.keys(body as Record<string, unknown>) : [],
-    })
-  }
-
   let response: Response
   try {
     response = await fetch(`${baseUrl}${path}`, {
@@ -335,43 +309,6 @@ async function apiClientRequest<T>(
       })
     }
     throw error
-  }
-
-  if (shouldLogAuthDebug(path)) {
-    debugLog?.({
-      level: response.ok ? 'success' : 'warning',
-      message: response.ok
-        ? 'El backend respondio a la solicitud de login.'
-        : 'El backend respondio, pero rechazo la solicitud de login.',
-      details: {
-        method,
-        path,
-        baseUrl,
-        finalUrl: `${baseUrl}${path}`,
-        status: response.status,
-        ok: response.ok,
-        contentType: response.headers.get('content-type'),
-      },
-    })
-    console.info('[API][auth] response', {
-      method,
-      path,
-      baseUrl,
-      finalUrl: `${baseUrl}${path}`,
-      status: response.status,
-      ok: response.ok,
-      contentType: response.headers.get('content-type'),
-    })
-  }
-
-  if (shouldLogApiDebug(path)) {
-    console.info('[API][dates] response', {
-      method,
-      path,
-      baseUrl,
-      status: response.status,
-      ok: response.ok,
-    })
   }
 
   if (!response.ok) {
