@@ -10,6 +10,7 @@ import { generalColors } from '@/theme'
 import { ExportPdfPanel } from '../components/propertiesList/PropertyExportPanel'
 import { PropertyPdfLoadingScreen } from '../components/propertiesList/PropertyPdfLoadingScreen'
 import { PropertyPdfOptionsModal } from '../components/propertiesList/PropertyPdfOptionsModal'
+import { useSelectedProperty } from '../hooks/useSelectedProperty'
 
 
 export const PropertiesListScreen = () => {
@@ -30,6 +31,7 @@ export const PropertiesListScreen = () => {
       isSelected={selectedPropertyIds.includes(item.id)}
       isSelecting={isSelectingProperties}
       onToggleSelection={togglePropertySelection}
+      onPress={() => controller.handlePropertyPress(item.id)}
     />
   )
 

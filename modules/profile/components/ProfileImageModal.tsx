@@ -52,7 +52,7 @@ export function ProfileImageModal({
         </Pressable>
       ) : null}
       <Pressable disabled={isSaving} onPress={onClose} style={styles.cancelButton}>
-        <Text style={styles.cancelButtonText}>Cancelar</Text>
+        <Text style={styles.cancelButtonText}>Cancelar </Text>
       </Pressable>
     </AppModal>
   )

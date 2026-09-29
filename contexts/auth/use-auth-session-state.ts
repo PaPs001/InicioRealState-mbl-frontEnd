@@ -41,15 +41,6 @@ export function useAuthSessionState(): AuthSessionState {
     token: string | null,
     nextRefreshToken: string | null = null,
   ) => {
-    console.info('[auth][set-session] start', {
-      hasUser: !!user,
-      inputUserKeys: user ? Object.keys(user) : [],
-      hasToken: !!token,
-      hasRefreshToken: !!nextRefreshToken,
-      tokenPreview: previewToken(token),
-      refreshTokenPreview: previewToken(nextRefreshToken),
-      agentpresentation: user?.agentpresentation
-    })
 
     const rawPresentation = Boolean(
       user?.agentpresentation ??
@@ -77,19 +68,6 @@ export function useAuthSessionState(): AuthSessionState {
     setAuthToken(token)
     setRefreshToken(nextRefreshToken)
     await persistAuthSession(normalizedSessionUser, token, nextRefreshToken)
-
-    console.log('[auth][session-stored]', {
-      sessionUserId: sessionUser?.id ?? null,
-      sessionEmail: sessionUser?.email ?? null,
-      sessionSystemRole: sessionUser?.systemRole ?? null,
-      investment: sessionUser?.investment ?? null,
-      tenant: sessionUser?.tenant ?? null,
-      resolvedUserId: sessionUser?.id ?? null,
-      hasToken: !!token,
-      hasRefreshToken: !!nextRefreshToken,
-      tokenPreview: previewToken(token),
-      refreshTokenPreview: previewToken(nextRefreshToken),
-    })
   }, [])
 
   const initializeSession = useCallback(async () => {
@@ -101,11 +79,6 @@ export function useAuthSessionState(): AuthSessionState {
       setAuthToken(persistedSession.token)
       setRefreshToken(persistedSession.refreshToken)
 
-      console.info('[auth][session-init] persisted session hydrated', {
-        hasUser: !!sessionUser,
-        hasToken: !!persistedSession.token,
-        hasRefreshToken: !!persistedSession.refreshToken,
-      })
     } catch (error) {
       console.error('[auth][session-init] failed', error)
     } finally {

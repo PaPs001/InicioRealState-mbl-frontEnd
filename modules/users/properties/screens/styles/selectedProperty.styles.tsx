@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingTop: 5,
-    gap: 10
+    gap: 10,
   },
   propertyListContent: {
     paddingBottom: 92,
@@ -18,132 +18,138 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
   },
-  operationContainer:{
-    flexDirection: 'row',
+  operationContainer: {
+    flexDirection: "row",
     gap: 6,
-    alignContent: 'center',
-    alignItems: 'center',
-
+    alignContent: "center",
+    alignItems: "center",
   },
-  operationIcon:{
+  operationIcon: {
     borderRadius: 999,
-    backgroundColor: userColors.adviser.primary,
-    height: 35,
-    width: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 3
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 3,
   },
-  operationText:{
+  operationText: {
     fontSize: 12,
     //color: textColor.softText,
-
   },
-  propertyTitle:{
+  propertyTitle: {
     fontSize: 30,
     flexShrink: 1,
     lineHeight: 35,
   },
-  propertyInformation:{
-    gap: 6
+  propertyInformation: {
+    gap: 6,
   },
-  propertyAddressView:{
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  propertyAddress:{
-    flexDirection: 'row',
-    alignItems: 'center',
+  propertyAddressView: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
-
+    paddingRight: 5,
   },
-  addressText:{
+  propertyAddress: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  addressText: {
+    flex: 1,
     fontSize: 13,
-    color: textColor.softText
+    color: textColor.softText,
   },
-  propertyView:{
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  propertyView: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 5,
     paddingVertical: 3,
     paddingHorizontal: 9,
     borderRadius: 12,
-    backgroundColor: '#6bdfff7a'
+    backgroundColor: "#6bdfff7a",
+    width: 95,
+    flexShrink: 0,
   },
-  viewText:{
-    fontSize: 8,
-    fontWeight: '500'
+  viewText: {
+    fontSize: 7,
+    fontWeight: "500",
   },
 
-
-  propertyFeaturesContainer:{
+  propertyFeaturesContainer: {
     borderRadius: 12,
     borderWidth: 1,
-    flexDirection: 'row',
-    backgroundColor: '#FDFBF9',
-    borderColor: '#00000055',
+    flexDirection: "row",
+    backgroundColor: "#FDFBF9",
+    borderColor: "#00000055",
     flex: 1,
     paddingVertical: 9,
     paddingHorizontal: 17,
-    gap: 10
-  },
-  propertyMetricContainer:{
-    alignItems: 'center',
+    gap: 10,
     justifyContent: 'center',
+
   },
-  propertyMetricHead:{
-    flexDirection: 'row',
+  extrasTtitleContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
-    justifyContent: 'center'
+    flex: 1,
   },
-  metricNumber:{
+  propertyMetricContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  propertyMetricHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    justifyContent: "center",
+  },
+  metricNumber: {
     fontSize: 18,
-    color: userColors.adviser.primaryDark
+    color: userColors.adviser.primaryDark,
   },
-  metricText:{
+  metricText: {
     fontSize: 12,
-    color: textColor.softText
+    color: textColor.softText,
   },
-  moreFeaturesContainer:{
-    flexDirection: 'row',
+  moreFeaturesContainer: {
+    flexDirection: "row",
     gap: 5,
   },
-  moreFeaturesText:{
+  moreFeaturesText: {
     flexShrink: 1,
-    fontSize: 12
+    fontSize: 12,
   },
 
-  detailsContainer:{
+  detailsContainer: {
     gap: 5,
   },
-  detailsTitle:{
+  detailsTitle: {
     fontSize: 15,
     color: userColors.adviser.primary,
   },
-  detailsInformation:{
+  detailsInformation: {
     fontSize: 13,
     color: textColor.softText,
     flexShrink: 1,
-    lineHeight: 15
+    lineHeight: 15,
   },
-  sectionContainer:{
-    gap: 12
+  sectionContainer: {
+    gap: 12,
   },
-  sectionTitle:{
+  sectionTitle: {
     fontSize: 18,
-    color: userColors.adviser.primary
+    color: userColors.adviser.primary,
   },
-  priceSection:{
-    backgroundColor: '#d4d4d4a3',
+  priceSection: {
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    overflow: 'hidden',
+    overflow: "hidden",
 
-    position: 'absolute',
+    position: "absolute",
     left: 22,
     right: 22,
     bottom: 16,
@@ -153,13 +159,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
 
-  mapTextAdviseContainer:{
-    flexDirection: 'row',
+  mapTextAdviseContainer: {
+    flexDirection: "row",
     gap: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  mapText:{
+  mapText: {
     fontSize: 12,
     color: textColor.softText,
-  }
-})
+  },
+});

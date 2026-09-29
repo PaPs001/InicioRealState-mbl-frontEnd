@@ -190,7 +190,7 @@ export default function CoordinatorPropertiesListScreen() {
     catalogProperties,
     hasLoadedCatalog,
     isCatalogLoading,
-    newLoadCatalogProperties,
+    loadCatalogProperties,
   } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [isMapMode, setIsMapMode] = useState(false)
@@ -214,9 +214,9 @@ export default function CoordinatorPropertiesListScreen() {
 
   useEffect(() => {
     if (!hasLoadedCatalog && !isCatalogLoading) {
-      newLoadCatalogProperties()
+      loadCatalogProperties()
     }
-  }, [hasLoadedCatalog, isCatalogLoading, newLoadCatalogProperties])
+  }, [hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   const listings = useMemo(() => {
     const source = (catalogProperties.length > 0 ? catalogProperties : availableProperties)
@@ -434,21 +434,7 @@ export default function CoordinatorPropertiesListScreen() {
         design: 'modern',
       } as const
 
-      console.log('Payload PDF coordinador:', pdfPayload)
-
-      const report = await createAndOpenTemporaryPropertyListPdf(authToken, pdfPayload)
-
-      console.log('PDF temporal descargado y abierto correctamente:', {
-        filename: report.filename,
-        byteLength: report.byteLength,
-        contentType: report.contentType,
-        expiresAt: report.expiresAt,
-        url: report.url,
-        localUri: report.localUri,
-        savedUri: report.savedUri,
-        openUri: report.openUri,
-        payload: pdfPayload,
-      })
+      await createAndOpenTemporaryPropertyListPdf(authToken, pdfPayload)
 
       Alert.alert('PDF descargado', 'El PDF se ha descargado.')
       setIsSelectingProperties(false)

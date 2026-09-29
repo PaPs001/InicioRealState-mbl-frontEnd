@@ -170,7 +170,6 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     if (loadedTokenRef.current === authToken) return
     loadedTokenRef.current = authToken
 
-    console.info('[CalendarDataProvider][initial-load]')
     void Promise.all([
       loadAppointments().catch(error => {
         console.warn('No se pudieron cargar las citas:', error)
@@ -313,12 +312,6 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
         console.warn('[CalendarDataContext][update] No hay una sesión activa', { dateId })
         throw new Error('No hay una sesion activa')
       }
-
-      console.info('[CalendarDataContext][update] Iniciando PATCH', {
-        dateId,
-        payload,
-      })
-
       let updatedAppointment
       try {
         updatedAppointment = await updateGoogleCalendarDate(
@@ -333,14 +326,6 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
         })
         throw error
       }
-
-      console.info('[CalendarDataContext][update] PATCH exitoso', {
-        requestedDateId: dateId,
-        returnedDateId: updatedAppointment._id,
-        status: updatedAppointment.status,
-        syncStatus: updatedAppointment.syncStatus,
-        googleCalendarId: updatedAppointment.googleCalendarId,
-      })
 
       setAppointments(current => current.map(appointment => appointment._id === dateId ?
         updatedAppointment 

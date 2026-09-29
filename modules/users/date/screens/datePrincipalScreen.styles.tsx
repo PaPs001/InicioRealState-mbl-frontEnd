@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
   logoWrap: {
     alignItems: 'center',
     marginBottom: 12,
+    justifyContent: 'center',
   },
   eventCardsContainer: {
     position: 'absolute',
@@ -20,7 +21,6 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 45,
     borderColor: generalColors.border,
     borderWidth: 1,
-    paddingHorizontal: 10,
     overflow: 'hidden',
     zIndex: 1,
   },
@@ -65,6 +65,7 @@ export const styles = StyleSheet.create({
     gap: 18,
     paddingBottom: 20,
     paddingTop: 5,
+    paddingHorizontal: 10
   },
   appointmentGroup: {
     gap: 8,

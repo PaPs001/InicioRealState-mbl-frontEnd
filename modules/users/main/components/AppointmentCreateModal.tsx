@@ -1,3 +1,4 @@
+import { AppointmentDuplicateScreen } from "./AppointmentDuplicateScreen";
 import {
   FlatList,
   Pressable,
@@ -36,8 +37,12 @@ import {
   isAppointmentType,
   type AppointmentType,
 } from "@/lib/config/appointment-Types";
+import { Filter } from "react-native-svg";
 
 type AppointmentCreateModalProps = {
+  advisorMode: "self" | "external";
+  currentUserName?: string;
+  onAdvisorModeChange: (mode: "self" | "external") => void;
   appointmentLeadMode: "existing" | "provisional";
   appointmentLeadOptions: PropertyLead[];
   appointmentPropertyOptions: Property[];
@@ -65,7 +70,7 @@ type AppointmentCreateModalProps = {
   ) => void;
   onUpdateForm: (
     field: keyof CreateGoogleCalendarDatePayload,
-    value: string,
+    value: string | null,
   ) => void;
   provisionalLead: {
     fullName: string;
@@ -82,6 +87,9 @@ type AppointmentCreateModalProps = {
 const END_HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
 export function AppointmentCreateModal({
+  advisorMode,
+  currentUserName,
+  onAdvisorModeChange,
   appointmentLeadMode,
   appointmentLeadOptions,
   appointmentPropertyOptions,
@@ -114,8 +122,7 @@ export function AppointmentCreateModal({
   const [isEndDateTimePickerVisible, setIsEndDateTimePickerVisible] =
     useState(false);
   const [hasConfirmedDateTime, setHasConfirmedDateTime] = useState(false);
-  const [hasConfirmedEndDateTime, setHasConfirmedEndDateTime] =
-    useState(false);
+  const [hasConfirmedEndDateTime, setHasConfirmedEndDateTime] = useState(false);
   const [descriptionInputHeight, setDescriptionInputHeight] = useState(80);
   const normalizedAppointmentType = testAppointmentForm.appointmentType
     ?.trim()
@@ -128,6 +135,10 @@ export function AppointmentCreateModal({
   const appointmentTypeConfig = getAppointmentTypeConfig(
     selectedAppointmentType,
   );
+  const subdivision = appointmentTypeConfig.subdivisionTypes?.find(
+    (option) => option.value === testAppointmentForm.subtypeCalendar,
+  );
+  const effectiveConfig = subdivision ?? appointmentTypeConfig;
   const selectedPrimaryAppointmentType =
     appointmentTypeConfig.parentType ?? selectedAppointmentType;
   const generalSubtypeOptions = getAppointmentSubtypeOptions("general");
@@ -136,8 +147,8 @@ export function AppointmentCreateModal({
       !findCalendarForAppointmentType(enabledSelectedCalendars, type.value),
   );
   const isGeneralCategory = selectedPrimaryAppointmentType === "general";
-  const showsRelatedInformation = appointmentTypeConfig.lead !== "none";
-  const activeColor = appointmentTypeConfig.color;
+  const showsRelatedInformation = effectiveConfig.lead !== "none";
+  const activeColor = effectiveConfig.color;
 
   const modalTitle =
     selectionScreen === "lead"
@@ -169,19 +180,18 @@ export function AppointmentCreateModal({
     }
 
     onUpdateForm("appointmentType", appointmentType);
+    onUpdateForm("subtypeCalendar", null);
     onUpdateForm("leadId", "");
     onUpdateForm("propertyId", "");
     onSelectionScreenChange(null);
 
     const config = getAppointmentTypeConfig(appointmentType);
+
     if (config.lead === "none") {
       onUpdateForm("leadId", "");
     }
     if (config.property === "none") {
       onUpdateForm("propertyId", "");
-    }
-    if (config.lead === "none") {
-      onUpdateForm("helpedBy", "");
     }
 
     if (config.calendarSelection === "manual") {
@@ -201,6 +211,27 @@ export function AppointmentCreateModal({
     }
   };
 
+  function getPrimaryChipColor(type: AppointmentType): string {
+    const config = getAppointmentTypeConfig(type)
+    if(type !== selectedPrimaryAppointmentType){
+      return config.color
+    }
+
+    if(config.hasSubdivision){
+      return subdivision?.color ?? "#7d7d7d"
+    }
+
+    if(type === "general"){
+      return selectedAppointmentType !== "general" ? appointmentTypeConfig.color : "#7d7d7d"
+    }
+
+    return config.color
+  }
+
+  const selectionColor = getPrimaryChipColor(selectedPrimaryAppointmentType)
+
+  const selectionTextColor =
+  selectionColor === "#ffffff" ? "#0c6740" : "#ffffff";
   return (
     <AppModal
       visible={visible}
@@ -261,7 +292,7 @@ export function AppointmentCreateModal({
             <TouchableOpacity
               style={[
                 styles.calendarTestCreateButton,
-                { backgroundColor: activeColor },
+                { backgroundColor: selectionColor },
               ]}
               onPress={onCreateAppointment}
               activeOpacity={0.85}
@@ -276,57 +307,7 @@ export function AppointmentCreateModal({
       }
     >
       {selectionScreen === "duplicate" ? (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.appointmentModalContent}
-        >
-          <Text style={styles.calendarSettingsEmpty}>
-            Encontramos leads similares. Revisa su informacion antes de crear
-            uno nuevo.
-          </Text>
-          <View style={styles.appointmentSelectionList}>
-            {duplicateCheck?.candidates.map((candidate) => (
-              <View
-                key={
-                  candidate.id || `${candidate.fullName}-${candidate.createdAt}`
-                }
-                style={styles.appointmentSelectionRow}
-              >
-                <View style={styles.appointmentSelectionRowCopy}>
-                  <Text
-                    style={styles.appointmentSelectionRowTitle}
-                    numberOfLines={1}
-                  >
-                    {candidate.fullName ||
-                      candidate.client ||
-                      "Lead sin nombre"}
-                  </Text>
-                  <Text style={styles.appointmentSelectionRowMeta}>
-                    {formatDuplicateContact(candidate)}
-                  </Text>
-                  <Text style={styles.appointmentSelectionRowMeta}>
-                    {formatDuplicateMatch(candidate)}
-                  </Text>
-                  {candidate.followUpCount > 0 ? (
-                    <Text style={styles.appointmentSelectionRowMeta}>
-                      {formatDuplicateFollowUps(candidate)}
-                    </Text>
-                  ) : null}
-                </View>
-                <TouchableOpacity
-                  style={styles.calendarPrimaryButton}
-                  onPress={() => onUseDuplicateLead(candidate)}
-                  disabled={!candidate.id || isCreatingAppointment}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.calendarPrimaryButtonText}>
-                    Usar este lead
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
+        <AppointmentDuplicateScreen candidates={duplicateCheck?.candidates ?? []} isProcessing={isCreatingAppointment} onUseDuplicateLead={onUseDuplicateLead} />
       ) : selectionScreen === "lead" ? (
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -470,14 +451,41 @@ export function AppointmentCreateModal({
                 <FilterChip
                   key={type.value}
                   label={
-                    type.value === "general" ? "Cita" : `Cita ${type.label}`
+                    type.value === "general" ? "Otras Citas" : `Cita ${type.label}`
                   }
                   active={selectedPrimaryAppointmentType === type.value}
-                  activeColor={type.color}
+                  activeColor={getPrimaryChipColor(type.value)}
                   onPress={() => selectAppointmentType(type.value)}
                 />
               ))}
             </View>
+            {appointmentTypeConfig.hasSubdivision && (
+              <View style={styles.relatedLeadSection}>
+                <Text style={styles.calendarLabel}>Tipo de venta</Text>
+                <View style={styles.appointmentModeRow}>
+                  {appointmentTypeConfig.subdivisionTypes?.map(
+                    (subdivision) => (
+                      <FilterChip
+                        key={subdivision.value}
+                        label={subdivision.label}
+                        active={
+                          testAppointmentForm.subtypeCalendar ===
+                          subdivision.value
+                        }
+                        activeColor={subdivision.color}
+                        disabled={!selectedTypeCalendar || isCreatingAppointment}
+                        onPress={() =>
+                          onUpdateForm(
+                            "subtypeCalendar",
+                            subdivision.value,
+                          )
+                        }
+                      />
+                    ),
+                  )}
+                </View>
+              </View>
+            )}
             {isGeneralCategory ? (
               <View style={styles.relatedLeadSection}>
                 <Text style={styles.calendarLabel}>Tipo de cita general</Text>
@@ -571,10 +579,45 @@ export function AppointmentCreateModal({
               ” antes de crear esta cita.
             </Text>
           )}
+            <View>
+              <Text style={styles.calendarLabel}>Asesor encargado</Text>
+              <View style={styles.appointmentModeRow}>
+                <FilterChip
+                  label="Soy yo"
+                  active={advisorMode === "self"}
+                  activeColor={selectionColor}
+                  disabled={isCreatingAppointment}
+                  onPress={() => onAdvisorModeChange("self")}
+                />
+                <FilterChip
+                  label="Otro asesor"
+                  active={advisorMode === "external"}
+                  activeColor={selectionColor}
+                  disabled={isCreatingAppointment}
+                  onPress={() => onAdvisorModeChange("external")}
+                />
+              </View>
+              {advisorMode === "self" ? (
+                <Text style={styles.calendarSelectedNoticeMeta}>
+                  {currentUserName || "Usuario actual"}
+                </Text>
+              ) : (
+                <TextInput
+                  style={styles.calendarTestInput}
+                  value={testAppointmentForm.externalAdvisorName ?? ""}
+                  onChangeText={value => onUpdateForm("externalAdvisorName", value)}
+                  editable={!isCreatingAppointment}
+                  placeholder="Nombre del asesor encargado"
+                  placeholderTextColor="#8d8d8d"
+                  autoCapitalize="words"
+                />
+              )}
+            </View>
           <View>
             <Text style={styles.calendarLabel}>Titulo de la cita</Text>
             <TextInput
               style={styles.calendarTestInput}
+              value={testAppointmentForm.title}
               onChangeText={(value) => onUpdateForm("title", value)}
               placeholder="Titulo de la cita"
               placeholderTextColor="#8d8d8d"
@@ -583,7 +626,7 @@ export function AppointmentCreateModal({
           <View style={styles.calendarContainer}>
             <Text style={styles.calendarLabel}>Fecha y Hora de la cita</Text>
             <Pressable
-              style={[styles.calendarButton, { backgroundColor: activeColor }]}
+              style={[styles.calendarButton, { backgroundColor: selectionColor }]}
               onPress={() => setIsDateTimePickerVisible(true)}
             >
               <Text style={styles.calendarButtonText}>
@@ -616,15 +659,19 @@ export function AppointmentCreateModal({
             ) : null}
           </View>
           <View style={styles.calendarContainer}>
-            <Text style={styles.calendarLabel}>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={styles.calendarLabel}>
               Fecha y hora de terminacion
             </Text>
             <Pressable
-              style={[styles.calendarButton, { backgroundColor: activeColor }]}
+              style={[styles.calendarButton, { backgroundColor: selectionColor }]}
               onPress={() => setIsEndDateTimePickerVisible(true)}
             >
-              <Text style={styles.calendarButtonText} numberOfLines={1} adjustsFontSizeToFit>
-                Escoger fecha y hora de terminacion 
+              <Text
+                style={styles.calendarButtonText}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                Escoger fecha y hora de terminacion
               </Text>
             </Pressable>
             {hasConfirmedEndDateTime ? (
@@ -633,7 +680,8 @@ export function AppointmentCreateModal({
               </Text>
             ) : null}
             <Text style={styles.appointmentDurationText}>
-              Duracion: {formatAppointmentDuration(
+              Duracion:{" "}
+              {formatAppointmentDuration(
                 testAppointmentForm.startDateTime,
                 testAppointmentForm.endDateTime,
               )}
@@ -657,9 +705,19 @@ export function AppointmentCreateModal({
             <Text style={styles.calendarLabel}>Ubicacion de la cita</Text>
             <TextInput
               style={styles.calendarTestInput}
-              //value={testAppointmentForm.location ?? ''}
+              value={testAppointmentForm.location ?? ""}
               onChangeText={(value) => onUpdateForm("location", value)}
               placeholder="Ubicacion de encuentro con el cliente"
+              placeholderTextColor="#8d8d8d"
+            />
+          </View>
+          <View>
+            <Text style={styles.calendarLabel}>Persona de apoyo</Text>
+            <TextInput
+              style={styles.calendarTestInput}
+              value={testAppointmentForm.helpedBy ?? ""}
+              onChangeText={(value) => onUpdateForm("helpedBy", value)}
+              placeholder="Nombre de la persona de apoyo"
               placeholderTextColor="#8d8d8d"
             />
           </View>
@@ -672,7 +730,7 @@ export function AppointmentCreateModal({
                   styles.descriptionInput,
                   { height: descriptionInputHeight },
                 ]}
-                //value={testAppointmentForm.description ?? ''}
+                value={testAppointmentForm.description ?? ""}
                 onChangeText={(value) => onUpdateForm("description", value)}
                 onContentSizeChange={(event) => {
                   setDescriptionInputHeight(
@@ -688,29 +746,19 @@ export function AppointmentCreateModal({
             </View>
           ) : (
             <>
-              <View>
-                <Text style={styles.calendarLabel}>Persona de apoyo</Text>
-                <TextInput
-                  style={styles.calendarTestInput}
-                  value={testAppointmentForm.helpedBy ?? ""}
-                  onChangeText={(value) => onUpdateForm("helpedBy", value)}
-                  placeholder="Nombre de la persona de apoyo"
-                  placeholderTextColor="#8d8d8d"
-                />
-              </View>
               <View style={styles.relatedLeadSection}>
                 <Text style={styles.calendarLabel}>Lead relacionado</Text>
                 <View style={styles.appointmentModeRow}>
                   <FilterChip
                     label="Lead Existente"
                     active={appointmentLeadMode === "existing"}
-                    activeColor={activeColor}
+                    activeColor={selectionColor}
                     onPress={() => onLeadModeChange("existing")}
                   />
                   <FilterChip
                     label="Nuevo lead"
                     active={appointmentLeadMode === "provisional"}
-                    activeColor={activeColor}
+                    activeColor={selectionColor}
                     onPress={() => onLeadModeChange("provisional")}
                   />
                 </View>
@@ -882,42 +930,4 @@ function formatAppointmentDuration(startDateTime: string, endDateTime: string) {
   const hours = Math.floor(durationMinutes / 60);
   const minutes = durationMinutes % 60;
   return `${hours}:${String(minutes).padStart(2, "0")} h`;
-}
-
-function formatDuplicateContact(candidate: DuplicateLeadCandidate) {
-  const details = [
-    candidate.phone,
-    candidate.email,
-    candidate.systemStatus || candidate.status,
-  ].filter(
-    (value): value is string =>
-      typeof value === "string" && value.trim().length > 0,
-  );
-
-  return details.join(" · ") || "Sin telefono ni correo registrados";
-}
-
-function formatDuplicateMatch(candidate: DuplicateLeadCandidate) {
-  const reasons = [
-    candidate.nameMatch === "exact" ? "Nombre exacto" : "Nombre similar",
-    candidate.phoneMatch ? "telefono coincide" : "",
-    candidate.emailMatch ? "correo coincide" : "",
-  ].filter(Boolean);
-
-  return `${candidate.strength === "strong" ? "Coincidencia fuerte" : "Posible coincidencia"}: ${reasons.join(", ")}`;
-}
-
-function formatDuplicateFollowUps(candidate: DuplicateLeadCandidate) {
-  const count = candidate.followUpCount;
-  const label = `${count} ${count === 1 ? "seguimiento" : "seguimientos"}`;
-  if (!candidate.lastFollowUpAt) return label;
-
-  const date = new Date(candidate.lastFollowUpAt);
-  if (Number.isNaN(date.getTime())) return label;
-
-  return `${label} · Ultimo: ${new Intl.DateTimeFormat("es-MX", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date)}`;
 }
