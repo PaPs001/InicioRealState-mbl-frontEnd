@@ -44,7 +44,9 @@ export function mapGoogleDateToAppointment(
     status: getCalendarStatusLabel(date.status ?? undefined),
     sortTime: getCalendarSortTime(startValue),
 
-    timeZone: date.timeZone ?? null
+    timeZone: date.timeZone ?? null,
+
+    subtypeCalendar: date.subtypeCalendar ?? null,
   };
 }
 
@@ -220,13 +222,13 @@ export function openPhoneCall(phone: string) {
   Linking.openURL(`tel:${digits}`).catch(() => undefined);
 }
 
-export function capitalizeFirstLetter(text: string) {
-  const normalizedText = text.trim().toLowerCase();
-  if (!text) return "";
+export function capitalizeFirstLetter(text?: string | null | undefined) {
+  const normalizedText = text?.trim().toLowerCase();
+  if (!normalizedText) return "";
   return normalizedText.charAt(0).toUpperCase() + normalizedText.slice(1);
 }
 
-export function deleteMXNWord(text: string) {
-  const normalizedText = text.trim().toLowerCase();
-  return normalizedText.replace("mxn", "");
+export function deleteMXNWord(text: string | null | undefined) {
+  const normalizedText = text?.trim().toLowerCase();
+  return normalizedText?.replace("mxn", "");
 }

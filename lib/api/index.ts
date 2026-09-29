@@ -9,7 +9,7 @@
  * const result = await api.auth.registerUser({ ... })
  * 
  * // Catalog
- * const properties = await api.catalog.getCatalogRentProperties()
+ * const properties = await api.catalog.getCatalogPropertiesCoreAPI(token)
  * 
  * // User Properties
  * await api.properties.createUserProperty(payload, token)
@@ -25,7 +25,6 @@ import * as dates from './endpoints/dates'
 import * as leads from './endpoints/leads'
 import * as mail from './endpoints/mail'
 import * as pdfReports from './endpoints/pdfReports'
-import * as portfolio from './endpoints/portfolio'
 import * as properties from './endpoints/properties'
 
 export const api = {
@@ -37,7 +36,6 @@ export const api = {
   leads,
   mail,
   pdfReports,
-  portfolio,
   properties,
 } as const
 
@@ -82,12 +80,11 @@ export {
 } from './endpoints/auth'
 
 export {
-  getCatalogRentProperties,
-  getCatalogSaleProperties,
-  getAllCatalogProperties,
+  getCatalogPropertiesCoreAPI,
   mapApiPropertyToProperty,
-  type PropertyCatalogItemResponse,
 } from './endpoints/catalog'
+
+export type { PropertyCatalogItemResponse } from '@/lib/types/property'
 
 export {
   createGoogleCalendarDate,
@@ -175,13 +172,6 @@ export {
   type PdfReportDesign,
   type PdfReportList,
 } from './endpoints/pdfReports'
-
-export {
-  getPortfolioAgentRecord,
-  getPortfolioOwnerProperties,
-  getPortfolioPropertyEarningsRecord,
-  getPortfolioPropertyRecord,
-} from './endpoints/portfolio'
 
 export {
   createUserProperty,

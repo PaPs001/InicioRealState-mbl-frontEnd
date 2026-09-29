@@ -98,7 +98,7 @@ export function AppointmentsSection({
         <TouchableOpacity
           style={styles.centerButton}
           activeOpacity={0.85}
-          onPress={onAddAppointment}
+          onPress={onAddAppointment} 
         >
           <icons.WhiteCalendar />
           <Text style={styles.centerButtonText}>Agregar cita</Text>

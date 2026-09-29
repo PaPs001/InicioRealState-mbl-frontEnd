@@ -144,18 +144,11 @@ export async function createTemporaryPropertyListPdfUrl(
   payload: GeneratePropertyListPdfPayload,
 ): Promise<TemporaryPdfReport> {
   const endpoint = DIRECT_REPORT_ENDPOINT
-  const finalUrl = `${API_URLS.CORE}${endpoint}`
-
-  console.log('Solicitando PDF directo:', {
-    endpoint,
-    finalUrl,
-    hasToken: !!token,
-    payload,
-  })
+  const headers = getCoreApiHeaders(token)
 
   const response = await fetchWithAuthRetry(API_URLS.CORE, endpoint, {
     method: 'POST',
-    headers: getCoreApiHeaders(token),
+    headers,
     token,
     body: JSON.stringify(payload),
   })

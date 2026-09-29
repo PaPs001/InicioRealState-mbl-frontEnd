@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDay: {
     color: "#ffffff",
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "700",
     flex: 1,
   },
@@ -237,14 +237,14 @@ export const styles = StyleSheet.create({
     color: generalColors.white,
   },
   titleAdviserText: {
-    fontSize: 8,
+    fontSize: 11,
     color: generalColors.white,
     fontWeight: "600",
   },
   adviserNameText: {
-    fontSize: 7,
+    fontSize: 12,
     color: generalColors.white,
-    fontWeight: "800",
+    fontWeight: "700",
   },
 
   rightDivider: {
@@ -269,7 +269,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
   },
   leftSection: {
-    flex: 1.9,
+    flex: 1.5,
     paddingRight: 10,
     gap: 6,
     paddingLeft: 10,

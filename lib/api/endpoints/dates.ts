@@ -1,6 +1,6 @@
 import { coreApi } from '../client'
 import type { AppointmentType } from '@/lib/config/appointment-Types'
-
+import type { AppointmentSubdivision } from '@/lib/config/appointment-Types'
 export type { AppointmentType } from '@/lib/config/appointment-Types'
 
 export interface GoogleCalendarDateTime {
@@ -65,6 +65,7 @@ export interface GoogleCalendarDate {
   updatedBy?: string | null
   createdByUser?: GoogleCalendarDateUser | null
   updatedByUser?: GoogleCalendarDateUser | null
+  subtypeCalendar?: string | null
 }
 
 export interface GoogleCalendarDateFilters {
@@ -79,6 +80,7 @@ export interface GoogleCalendarDateFilters {
 }
 
 export interface CreateGoogleCalendarDatePayload {
+  externalAdvisorName?: string | null
   title: string
   startDateTime: string
   endDateTime: string
@@ -99,6 +101,7 @@ export interface CreateGoogleCalendarDatePayload {
     phone?: string | null
     email?: string | null
   } | null
+  subtypeCalendar?: AppointmentSubdivision | null
 }
 
 export interface DuplicateLeadCandidate {
@@ -128,6 +131,7 @@ export interface DuplicateCheckResult {
 }
 
 export type UpdateGoogleCalendarDatePayload = {
+  subtypeCalendar?: string | null
   title?: string,
   description?: string,
   location?: string | null,
@@ -243,6 +247,7 @@ export function getGoogleCalendarDates(token?: string | null, filters: GoogleCal
 }
 
 export function createGoogleCalendarDate(token: string | null | undefined, payload: CreateGoogleCalendarDatePayload) {
+  // TEMP: revisar los datos enviados al crear una cita.
   return coreApi<CreateGoogleCalendarDateResponse>('/dates/dates', {
     method: 'POST',
     token: token ?? undefined,

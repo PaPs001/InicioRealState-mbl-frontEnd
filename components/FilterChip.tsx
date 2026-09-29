@@ -25,10 +25,11 @@ export function FilterChip({
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[
+      <Text numberOfLines={2} adjustsFontSizeToFit style={[
           styles.filterChipText,
           active && styles.filterChipTextActive,
           disabled && styles.filterChipTextDisabled,
+          
         ]}
       >
         {label}
@@ -43,8 +44,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     height: 30,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 7,
   },
   filterChipActive: {
     backgroundColor: '#0c6740',
@@ -53,6 +54,7 @@ const styles = StyleSheet.create({
     color: '#0c6740',
     fontSize: 12,
     fontWeight: '600',
+    textAlign: 'center'
   },
   filterChipTextActive: {
     color: '#ffffff',
