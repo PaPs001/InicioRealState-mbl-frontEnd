@@ -30,7 +30,7 @@ export const HeroCards = ({
       onPress={OnPress}
     >
       <View style={styles.textContainer}>
-        <Text style={[styles.spacedLabel, { color: colors.textColor }]}>{titleLabel} </Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.spacedLabel, { color: colors.textColor }]}>{titleLabel}</Text>
         <Text style={[styles.availableCount, { color: colors.accentColor }]}>{Summary}</Text>
         <Text style={[styles.spacedLabel, { color: colors.textColor }]}>DISPONIBLES </Text>
       </View>

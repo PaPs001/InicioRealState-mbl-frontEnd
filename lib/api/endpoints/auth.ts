@@ -480,16 +480,12 @@ export async function registerUser(
       aboutUser: data.aboutUser,
     };
 
-    console.log("[auth][register] payload", payload);
-
     const result = await coreApi<RegisterApiPayload>("/auth/register", {
       method: "POST",
       body: payload,
     });
 
     const user = extractRegisteredUser(result);
-
-    console.log("[auth][register] response", result);
 
     return {
       success: true,
@@ -514,7 +510,7 @@ export async function loginUser(
     if (!data.email || !data.password) {
       debugLog?.({
         level: "warning",
-        message: "No se envio el login porque faltan email o contrasena.",
+        message: "No se envio el login porque faltan email o contraseña.",
         details: {
           hasEmail: !!data.email,
           hasPassword: !!data.password,
@@ -539,7 +535,7 @@ export async function loginUser(
     debugLog?.({
       level: "info",
       message:
-        "Credenciales listas para enviar. La contrasena no se muestra, solo su longitud.",
+        "Credenciales listas para enviar. La contraseña no se muestra, solo su longitud.",
       details: {
         email: payload.email,
         passwordLength: payload.password.length,

@@ -9,6 +9,7 @@ import { styles } from './styles/ImagesRoulette.style';
 
 import { capitalizeFirstLetter } from '@/modules/users/main/utils/dashboard-formatters';
 import { icons } from '@/assets';
+import { removeEmojis } from '@/lib/utils';
 
 const IMAGE_WIDTH = 90
 const IMAGES_GAP = 6
@@ -20,7 +21,7 @@ type ImagesRoulleteProps = {
   onFavorite: () => void,
   onShare: () => void,
   onOpenGallery: () => void,
-  status: string
+  status?: string | null | undefined
 }
 
 export const ImagesRoulette = ({
@@ -64,7 +65,7 @@ export const ImagesRoulette = ({
               adjustsFontSizeToFit
               style={styles.statusText}
             >
-              {capitalizeFirstLetter(status)}
+              {capitalizeFirstLetter(removeEmojis(status))}
             </Text>
           </View>
         </View>

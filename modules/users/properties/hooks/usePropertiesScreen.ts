@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, InteractionManager, useWindowDimensions } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   createAndOpenSinglePropertyPdf,
   createAndOpenTemporaryPropertyListPdf,
@@ -10,6 +10,7 @@ import type { ListingProperty, Property } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useOperationMode } from "@/modules/settings";
+import { getSelectedProperty } from "../services/properties.service";
 
 export type ListingFilter = "all" | "rent" | "sale" | "developments";
 export type FurnishingFilter = "all" | "furnished" | "unfurnished";
@@ -320,10 +321,12 @@ export function usePropertiesScreen() {
     () => setIsSelectingProperties((value) => !value),
     [],
   );
-  const handlePropertyPress = useCallback(
-    (propertyId: string) => setActivePropertyId(propertyId),
-    [],
-  );
+  const handlePropertyPress = (propertyId: string) => {
+    router.push({
+      pathname: "/selected-property",
+      params: { propertyId },
+    });
+  };
 
   const handleGenerateSinglePdf = useCallback(
     async (propertyId?: string | null) => {
