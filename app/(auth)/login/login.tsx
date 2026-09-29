@@ -112,21 +112,6 @@ export default function LoginNewScreen() {
       })
       await setAuthSession(user, token, refreshToken)
       const destination = getUserHomeRoute(user)
-      addLoginLog({
-        level: 'success',
-        message: 'Sesion guardada correctamente. La app va a navegar al home del usuario.',
-        details: {
-          destination,
-        },
-      })
-      console.info('[auth][login-new][navigation]', {
-        userId: user.id,
-        email: user.email,
-        systemRole: user.systemRole,
-        investment: user.investment,
-        tenant: user.tenant,
-        destination,
-      })
       router.replace(destination)
     } catch (error) {
       console.error('Error al iniciar sesion', error)
