@@ -143,6 +143,15 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 Abrir nuevo listado
               </Text>
             </Pressable>
+            <Pressable 
+              onPress={() => {
+                router.push('/(users)/userAdviser/lead-tracking')
+              }}
+              style={styles.propertyShortcutButton}>
+              <Text style={styles.propertyShortcutButtonText}>
+                Abrir nueva pantalla de seguimiento de leads
+              </Text>
+            </Pressable>
           </View>
         ) : null}
         <View style={styles.topRow}>
