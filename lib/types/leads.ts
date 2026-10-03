@@ -2,8 +2,8 @@
  * Tipos de Leads y Agentes
  */
 
-export type LeadStatus = 'nuevo' | 'contactado' | 'cita_agendada' | 'visitado' | 'negociando' | 'cerrado' | 'descartado'
-export type LeadV2SystemStatus = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'provisional' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
+// El backend permite estados personalizados; conservar su texto original.
+export type LeadStatus = string
 export type LeadV2StatusSource = 'advisor' | 'coordinator' | 'system' | 'notion' | 'manychat'
 export type LeadContactType = 'call' | 'whatsapp' | 'email' | 'visit' | 'meeting'
 export type LeadSearchIntent = 'sale' | 'rent'
@@ -19,8 +19,6 @@ export interface PropertyLead {
   phone: string
   email?: string
   status: LeadStatus
-  advisorStatus?: string
-  systemStatus?: LeadV2SystemStatus
   statusSource?: LeadV2StatusSource
   statusReason?: string
   statusUntil?: string

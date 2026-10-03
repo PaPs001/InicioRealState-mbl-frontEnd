@@ -1,8 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import {
-  Bell,
   CalendarDays,
-  ChevronRight,
   Edit,
   Hourglass,
   HourglassIcon,
@@ -12,21 +10,12 @@ import {
 import { styles } from "./styles/DashboardCards.styles";
 import type {
   AppointmentPreviewItem,
-  DashboardLeadAlert,
-  DashboardMetric,
   DashboardPriority,
 } from "@/modules/users/main/types";
 import { icons } from "@/assets";
 import { generalColors, textColor } from "@/theme";
 import { capitalizeWords } from "@/lib/utils";
 import { getAppointmentTypeConfig } from "@/lib/config/appointment-Types";
-
-const toneColors = {
-  neutral: { background: "#ffffff", border: "#e4e4e4", text: "#2a2d31" },
-  success: { background: "#e5f8e9", border: "#b5dfbd", text: "#2c7a3f" },
-  warning: { background: "#ecdab5", border: "#d8bd85", text: "#c27a20" },
-  danger: { background: "#ffe1dd", border: "#ffc5bc", text: "#f05a64" },
-} as const;
 
 export function PriorityCard({
   priority,
@@ -387,43 +376,4 @@ export function AppointmentCard({
 
 function hasText(value?: string | null): value is string {
   return typeof value === "string" && value.trim().length > 0;
-}
-
-export function LeadMetricCard({ metric }: { metric: DashboardMetric }) {
-  const tone = toneColors[metric.tone];
-
-  return (
-    <View
-      style={[
-        styles.metricCard,
-        { backgroundColor: tone.background, borderColor: tone.border },
-      ]}
-    >
-      <Text style={[styles.metricValue, { color: tone.text }]}>
-        {metric.value}
-      </Text>
-      <Text style={styles.metricLabel}>{metric.label}</Text>
-    </View>
-  );
-}
-
-export function FunnelMetric({ metric }: { metric: DashboardMetric }) {
-  return (
-    <View style={styles.funnelItem}>
-      <Text style={styles.funnelValue}>{metric.value}</Text>
-      <Text style={styles.funnelLabel}>{metric.label}</Text>
-    </View>
-  );
-}
-
-export function LeadAlertRow({ alert }: { alert: DashboardLeadAlert }) {
-  return (
-    <View style={styles.alertRow}>
-      <Bell size={15} color="#e95454" />
-      <Text style={styles.alertText} numberOfLines={1}>
-        {alert.message}
-      </Text>
-      <ChevronRight size={14} color="#2a2d31" />
-    </View>
-  );
 }

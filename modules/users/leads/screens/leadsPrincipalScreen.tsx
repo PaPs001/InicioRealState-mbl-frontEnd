@@ -201,7 +201,11 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
             </View>
 
             {isAdviserRoute || selectedAgentGroup ? (
-              <View style={styles.filterRow}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterRow}
+              >
                 {coordinatorLeadV2Channels.map((channel) => {
                   const isActive = selectedChannel === channel;
                   return (
@@ -231,7 +235,7 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
                     </TouchableOpacity>
                   );
                 })}
-              </View>
+              </ScrollView>
             ) : null}
 
             <Text style={styles.sectionTitle}>Alertas</Text>

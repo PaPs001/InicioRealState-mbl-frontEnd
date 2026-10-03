@@ -1,5 +1,5 @@
 import type { GoogleCalendarDate } from "@/lib/api";
-import type { LeadFollowUp, Property } from "@/lib/types";
+import type { Property } from "@/lib/types";
 
 import type { AppointmentPreviewItem } from "@/modules/users/main/types";
 import { Linking } from "react-native";
@@ -106,21 +106,6 @@ export function getPropertyDisplayName(property?: Property | null) {
     property._id ||
     "Propiedad"
   );
-}
-
-export function hasUpcomingFollowUpDate(followUp: LeadFollowUp) {
-  const date = new Date(getFollowUpDate(followUp));
-  return !Number.isNaN(date.getTime()) && date >= new Date();
-}
-
-export function isOverdueFollowUp(followUp: LeadFollowUp) {
-  if (!followUp.nextActionDate) return false;
-  const date = new Date(followUp.nextActionDate);
-  return !Number.isNaN(date.getTime()) && date < new Date();
-}
-
-function getFollowUpDate(followUp: LeadFollowUp) {
-  return followUp.nextActionDate || followUp.date;
 }
 
 function formatCalendarDay(value?: string) {

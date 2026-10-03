@@ -47,6 +47,7 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   const routeParams = useLocalSearchParams<LeadsV2RouteParams>()
   const isAdviserRoute = mode === 'advisor'
   const selectedLeadIdParam = getParamValue(routeParams.selectedLeadId)
+  const trackingOpenedAt = getParamValue(routeParams.trackingOpenedAt)
   const { authToken } = useSessionDomain()
   const {
     availableProperties,
@@ -182,7 +183,9 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
     setErrorMessage(null)
     try {
       const records = await getBackendLeadV2Records(authToken)
-      setLeads(records.map(mapLeadRecord))
+      const mappedRecords = records.map(mapLeadRecord)
+      setLeads(mappedRecords)
+      return mappedRecords
     } catch (error) {
       console.warn('No se pudieron cargar los leads v2:', error)
       setErrorMessage('No se pudieron cargar los leads')
@@ -193,12 +196,25 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   }, [authToken, mapLeadRecord])
 
   useEffect(() => {
-    if (!authToken || hasLoadedInitialLeadsRef.current) return
+    if (!authToken || trackingOpenedAt || hasLoadedInitialLeadsRef.current) return
 
     hasLoadedInitialLeadsRef.current = true
     console.info('[LeadsV2][initial-load]', { service: 'leads' })
     loadLeads()
-  }, [authToken, loadLeads])
+  }, [authToken, loadLeads, trackingOpenedAt])
+
+  useEffect(() => {
+    if (!authToken || !trackingOpenedAt) return
+    hasLoadedInitialLeadsRef.current = true
+    setDismissedRouteLeadId(null)
+    setSelectedLead(null)
+    setLeads([])
+    let active = true
+    void loadLeads().then(records => {
+      if (active) setSelectedLead(records?.find(lead => lead.id === selectedLeadIdParam) ?? null)
+    })
+    return () => { active = false }
+  }, [authToken, loadLeads, selectedLeadIdParam, trackingOpenedAt])
 
   useEffect(() => {
     if (!authToken || !isAdviserRoute || hasLoadedInitialStatusesRef.current) return
@@ -385,10 +401,11 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
         fullName: createLeadForm.fullName,
         phone: createLeadForm.phone,
         email: createLeadForm.email,
+        status: createLeadForm.status,
         propertyOfInterestId: createLeadForm.propertyOfInterestId,
         lastContactDate: createLeadForm.lastContactDate || undefined,
         estimatedBudget: createLeadForm.estimatedBudget ? Number.parseInt(createLeadForm.estimatedBudget, 10) : undefined,
-        origin: createLeadForm.origin || 'app',
+        origin: createLeadForm.origin,
         operation: createLeadForm.operation,
       }, authToken)
       setIsCreateLeadModalOpen(false)
@@ -450,10 +467,10 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
 
   const openLeadFollowUps = (lead: LeadV2ViewModel) => {
     const followUpsPath = isAdviserRoute
-      ? '/userAdviser/leads-v2/followups'
+      ? '/userAdviser/lead-tracking/followups'
       : '/userCoordinator/leads-v2/followups'
     const returnToPath = isAdviserRoute
-      ? '/userAdviser/leads'
+      ? '/userAdviser/lead-tracking/detail'
       : '/userCoordinator/leads'
 
     router.push({
@@ -463,11 +480,22 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
         leadName: lead.name,
         phone: lead.phone || '',
         returnTo: returnToPath,
+        ...(isAdviserRoute ? {
+          status: getParamValue(routeParams.status),
+          origin: getParamValue(routeParams.origin),
+          selectedLeadId: lead.id,
+          trackingOpenedAt,
+        } : {}),
       },
     } as never)
   }
 
   const closeLeadDetail = () => {
+    if (isAdviserRoute && trackingOpenedAt && router.canGoBack()) {
+      router.back()
+      return
+    }
+
     if (selectedLeadIdParam) {
       setDismissedRouteLeadId(selectedLeadIdParam)
     }
