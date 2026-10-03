@@ -43,7 +43,6 @@ import {
 } from "@/modules/users/leads/components/FollowingImageAttachment";
 import { FollowingImagePreviewModal } from "@/modules/users/leads/components/FollowingImagePreviewModal";
 import { CreateLeadFollowingModal } from "@/modules/users/leads/components/CreateLeadFollowingModal";
-import { mockFollowings } from "../mockFollowings";
 import { buttonColor } from "@/theme";
 type LeadFollowUpHistoryParams = {
   leadId?: string;
@@ -122,10 +121,8 @@ export default function LeadFollowUpScreen() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      /// estos es para activar la consulta real de datos reales para produccion
       const records = await getBackendLeadV2Followings(leadId, authToken);
-      setFollowings(records)
-      //setFollowings(mockFollowings);
+      setFollowings(records);
     } catch (error) {
       console.warn("No se pudieron cargar los seguimientos v2:", error);
       setErrorMessage("No se pudieron cargar los seguimientos");
@@ -147,8 +144,12 @@ export default function LeadFollowUpScreen() {
   }, [authToken, leadId, loadFollowings]);
 
   const goBackToLeadDetail = () => {
+    if (pathname.startsWith('/userAdviser/lead-tracking/')) {
+      router.back();
+      return;
+    }
     const fallbackPath = pathname.startsWith("/userAdviser")
-      ? "/userAdviser/leads"
+      ? "/userAdviser/lead-detail"
       : "/userCoordinator/leads";
 
     router.replace({

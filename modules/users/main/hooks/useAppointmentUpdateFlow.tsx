@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { createBackendLeadV2Record, getBackendLeadRecords } from "@/lib/api/endpoints/leads";
+import {
+  createBackendLeadV2Record,
+  getBackendLeadV2Followings,
+  getBackendLeadV2Records,
+} from "@/lib/api/endpoints/leads";
 import { findLeadDuplicates } from "../utils/lead-duplicates";
 
 import type {
@@ -306,10 +310,23 @@ export function useAppointmentUpdateFlow({
       if (shouldCreateLead) {
         stage = "lead";
         if (!resolution?.omit) {
-          const leads = await getBackendLeadRecords(authToken, { includeFollowUps: true });
+          const leads = await getBackendLeadV2Records(authToken);
           const candidates = findLeadDuplicates(leads, newLead);
           if (candidates.length) {
-            setDuplicateCandidates(candidates);
+            const candidatesWithFollowings = await Promise.all(candidates.map(async (candidate) => {
+              if (!candidate.id) throw new Error("El lead coincidente no tiene identificador.");
+              const followings = await getBackendLeadV2Followings(candidate.id, authToken);
+              const dates = followings
+                .map((following) => following.createdAt)
+                .filter((date): date is string => typeof date === "string" && Number.isFinite(Date.parse(date)))
+                .sort((a, b) => Date.parse(b) - Date.parse(a));
+              return {
+                ...candidate,
+                followUpCount: followings.length,
+                lastFollowUpAt: dates[0] ?? null,
+              };
+            }));
+            setDuplicateCandidates(candidatesWithFollowings);
             setSelectionScreen("duplicate");
             return;
           }

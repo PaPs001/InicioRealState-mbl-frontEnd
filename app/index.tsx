@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
-import { View, StyleSheet } from 'react-native'
+import AppLoadingScreen from '@/components/animations/AppLoadingScreen'
 import { useRouter } from 'expo-router'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
-import { clientThemes } from '@/lib/theme'
-import LogoGris from '@/assets/LogoInicioSVGris.svg'
-import { Animated } from 'react-native'
+
+
+
 
 export default function Index() {
   const {
@@ -15,26 +15,6 @@ export default function Index() {
     isAdmin,
   } = useSessionDomain()
   const router = useRouter()
-  const pulseAnim = new Animated.Value(1)
-
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    )
-    pulse.start()
-    return () => pulse.stop()
-  }, [])
 
   useEffect(() => {
     if (!isLoading) {
@@ -52,21 +32,5 @@ export default function Index() {
     }
   }, [isAdmin, isAgent, isCoordinator, isLoading, isLoggedIn, router])
 
-  const theme = clientThemes.investor
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <LogoGris width={200} height={70} />
-      </Animated.View>
-    </View>
-  )
+  return <AppLoadingScreen />
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-})
