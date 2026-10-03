@@ -1,13 +1,14 @@
-import type { LeadStatus, LeadV2SystemStatus, Property, PropertyLead } from '@/lib/types'
+import type { LeadStatus, Property, PropertyLead } from '@/lib/types'
 import type {
   AgentLeadGroup,
-  CoordinatorLeadV2Channel,
   LeadPropertyOption,
   LeadV2Alert,
   LeadV2Metric,
-  LeadV2Status,
   LeadV2ViewModel,
 } from '@/modules/users/leads/types'
+
+import { isClosedLeadStatus, isLeadStatus } from '../constants/lead-tracking-statuses'
+import { getLeadOrigin, type LeadOrigin } from '../constants/lead-origins'
 
 export type LeadV2ScreenMode = 'coordinator' | 'advisor'
 
@@ -51,15 +52,9 @@ export function formatPropertyPrice(property: LeadPropertyOption) {
 
 export function mapPropertyLeadToLeadV2ViewModel(
   lead: PropertyLead,
-  mode: LeadV2ScreenMode,
+  _mode: LeadV2ScreenMode,
   propertyName?: string,
 ): LeadV2ViewModel {
-  const advisorStatus = lead.advisorStatus || lead.status
-  const systemStatus = lead.systemStatus
-  const visibleStatus = mode === 'coordinator'
-    ? mapSystemStatusToLeadV2Status(systemStatus)
-    : mapLeadStatusToLeadV2Status(lead.status)
-
   return {
     id: lead.id,
     rawLead: lead,
@@ -70,48 +65,15 @@ export function mapPropertyLeadToLeadV2ViewModel(
     email: lead.email,
     source: lead.source || 'Backend',
     channel: getLeadChannel(lead),
-    status: visibleStatus,
-    advisorStatus,
-    statusLabel: mode === 'coordinator' ? formatLeadStatus(visibleStatus) : formatAdvisorStatus(advisorStatus),
-    systemStatus,
+    status: lead.status,
+    statusLabel: formatLeadStatus(lead.status),
     lastContactLabel: getLastContactLabel(lead),
     nextActionLabel: lead.nextAction || lead.notes || 'Sin accion definida',
   }
 }
 
-export function getLeadChannel(lead: PropertyLead): CoordinatorLeadV2Channel {
-  const source = `${lead.source ?? ''} ${lead.contactType ?? ''}`.toLowerCase()
-  if (source.includes('manychat')) return 'Manychat'
-  if (source.includes('google')) return 'Google Ads'
-  if (source.includes('meta') || source.includes('facebook') || source.includes('instagram')) return 'Meta'
-  if (source.includes('whatsapp') || source.includes('wa')) return 'Whatsapp'
-  return 'Whatsapp'
-}
-
-export function mapLeadStatusToLeadV2Status(status: LeadStatus): LeadV2Status {
-  if (status === 'cerrado') return 'lead_ganador'
-  if (status === 'descartado') return 'lead_perdido'
-  if (status === 'cita_agendada' || status === 'visitado') return 'con_cita'
-  if (status === 'contactado' || status === 'negociando') return 'seguimiento'
-  return 'nuevo'
-}
-
-export function formatAdvisorStatus(status?: string) {
-  if (!status) return 'Sin estado'
-
-  const mappedStatus = backendAdvisorStatusLabels[status]
-  if (mappedStatus) return mappedStatus
-
-  return status
-    .split(/[_-]+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
-
-export function mapSystemStatusToLeadV2Status(status?: LeadV2SystemStatus): LeadV2Status {
-  if (!status) return 'nuevo'
-  return status
+export function getLeadChannel(lead: PropertyLead): LeadOrigin | null {
+  return getLeadOrigin(lead.source)
 }
 
 export function getLastContactLabel(lead: PropertyLead) {
@@ -140,7 +102,7 @@ export function buildAgentLeadGroups(leads: LeadV2ViewModel[]): AgentLeadGroup[]
 
   return Array.from(groups.entries())
     .map(([name, agentLeads]) => {
-      const active = agentLeads.filter((lead) => !isTerminalLeadStatus(lead.status))
+      const active = agentLeads.filter((lead) => !isClosedLeadStatus(lead.status))
       const pending = active.filter((lead) => lead.nextActionLabel !== 'Sin accion definida')
 
       return {
@@ -148,7 +110,7 @@ export function buildAgentLeadGroups(leads: LeadV2ViewModel[]): AgentLeadGroup[]
         name,
         leads: agentLeads,
         active: active.length,
-        followings: active.filter((lead) => lead.status === 'seguimiento').length,
+        followings: active.filter((lead) => isLeadStatus(lead.status, 'EN SEGUIMIENTO', 'seguimiento', 'negociando', 'negotiation')).length,
         pending: pending.length,
       }
     })
@@ -159,10 +121,10 @@ export function buildAgentLeadGroups(leads: LeadV2ViewModel[]): AgentLeadGroup[]
 }
 
 export function buildLeadV2Metrics(leads: LeadV2ViewModel[]): LeadV2Metric[] {
-  const activeLeads = leads.filter((lead) => !isTerminalLeadStatus(lead.status))
-  const inProgressLeads = activeLeads.filter((lead) => lead.status === 'seguimiento')
-  const appointmentLeads = activeLeads.filter((lead) => lead.status === 'con_cita')
-  const coldLeads = activeLeads.filter((lead) => lead.status === 'frio' || lead.status === 'congelado' || lead.status === 'lead_muerto')
+  const activeLeads = leads.filter((lead) => !isClosedLeadStatus(lead.status))
+  const inProgressLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'EN SEGUIMIENTO', 'seguimiento', 'negociando', 'negotiation'))
+  const appointmentLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'con_cita', 'cita_agendada', 'visitado', 'visitScheduled'))
+  const coldLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'SIN RESPUESTA', 'frio', 'congelado', 'lead_muerto'))
 
   return [
     { id: 'active-leads', label: 'Leads Activos', value: activeLeads.length, color: '#0d4f3f' },
@@ -173,10 +135,10 @@ export function buildLeadV2Metrics(leads: LeadV2ViewModel[]): LeadV2Metric[] {
 }
 
 export function buildLeadV2Alerts(leads: LeadV2ViewModel[]): LeadV2Alert[] {
-  const activeLeads = leads.filter((lead) => !isTerminalLeadStatus(lead.status))
-  const coldLeads = activeLeads.filter((lead) => lead.status === 'frio')
-  const frozenLeads = activeLeads.filter((lead) => lead.status === 'congelado')
-  const deadLeads = activeLeads.filter((lead) => lead.status === 'lead_muerto')
+  const activeLeads = leads.filter((lead) => !isClosedLeadStatus(lead.status))
+  const coldLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'frio'))
+  const frozenLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'congelado'))
+  const deadLeads = activeLeads.filter((lead) => isLeadStatus(lead.status, 'lead_muerto'))
   const withoutAdvisor = activeLeads.filter((lead) => lead.agentName === 'Sin asesor')
 
   return [
@@ -191,35 +153,6 @@ export function getAvatarUrl(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EDE7DC&color=0F362B&size=128&bold=true`
 }
 
-const backendAdvisorStatusLabels: Record<string, string> = {
-  nuevo: 'Nuevo',
-  contactado: 'Contactado',
-  cita_agendada: 'Cita agendada',
-  visitado: 'Visitado',
-  negociando: 'Negociando',
-  cerrado: 'Cerrado',
-  descartado: 'Descartado',
-}
-
-export function formatLeadStatus(status: LeadV2Status) {
-  const labels: Record<LeadV2Status, string> = {
-    nuevo: 'Nuevo',
-    seguimiento: 'Seguimiento',
-    frio: 'Frio',
-    congelado: 'Congelado',
-    en_espera: 'En espera',
-    con_cita: 'Con cita',
-    provisional: 'Provisional',
-    lead_muerto: 'Muerto',
-    lead_ganador: 'Ganado',
-    lead_perdido: 'Perdido',
-    spam: 'Spam',
-    duplicado: 'Duplicado',
-  }
-
-  return labels[status] ?? status
-}
-
-function isTerminalLeadStatus(status: LeadV2Status) {
-  return status === 'lead_ganador' || status === 'lead_perdido' || status === 'spam' || status === 'duplicado'
+export function formatLeadStatus(status: LeadStatus) {
+  return status || 'Sin estado'
 }

@@ -19,6 +19,7 @@ import type {
 import type { Property, PropertyLead } from "@/lib/types";
 
 import { FilterChip } from "@/components/FilterChip";
+import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import {
   getAppointmentEndDateTime,
   getPropertyDisplayName,
@@ -65,7 +66,7 @@ type AppointmentCreateModalProps = {
     screen: "lead" | "property" | "duplicate" | null,
   ) => void;
   onUpdateProvisionalLead: (
-    field: "fullName" | "phone" | "email",
+    field: "fullName" | "phone" | "email" | "status",
     value: string,
   ) => void;
   onUpdateForm: (
@@ -76,6 +77,7 @@ type AppointmentCreateModalProps = {
     fullName: string;
     phone: string;
     email: string;
+    status: LeadTrackingStatus;
   };
   selectedAppointmentLead?: PropertyLead;
   selectedAppointmentProperty?: Property;
@@ -124,6 +126,7 @@ export function AppointmentCreateModal({
   const [hasConfirmedDateTime, setHasConfirmedDateTime] = useState(false);
   const [hasConfirmedEndDateTime, setHasConfirmedEndDateTime] = useState(false);
   const [descriptionInputHeight, setDescriptionInputHeight] = useState(80);
+  const [isLeadStatusSelectorOpen, setIsLeadStatusSelectorOpen] = useState(false);
   const normalizedAppointmentType = testAppointmentForm.appointmentType
     ?.trim()
     .toLowerCase();
@@ -792,6 +795,38 @@ export function AppointmentCreateModal({
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.appointmentProvisionalFields}>
+                    <View style={styles.informationSection}>
+                      <Text style={styles.informationText}>Estatus del lead</Text>
+                      <TouchableOpacity
+                        style={styles.appointmentPickerButton}
+                        activeOpacity={0.85}
+                        disabled={isCreatingAppointment}
+                        accessibilityRole="button"
+                        accessibilityLabel="Seleccionar estatus del lead"
+                        accessibilityState={{ expanded: isLeadStatusSelectorOpen }}
+                        onPress={() => setIsLeadStatusSelectorOpen((open) => !open)}
+                      >
+                        <Text style={styles.appointmentPickerTitle}>{provisionalLead.status}</Text>
+                        <ChevronRight size={17} color="#3d5a40" />
+                      </TouchableOpacity>
+                      {isLeadStatusSelectorOpen ? LEAD_TRACKING_STATUSES.map((status) => (
+                        <TouchableOpacity
+                          key={status}
+                          style={styles.appointmentPickerButton}
+                          activeOpacity={0.85}
+                          disabled={isCreatingAppointment}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected: provisionalLead.status === status }}
+                          onPress={() => {
+                            onUpdateProvisionalLead("status", status);
+                            setIsLeadStatusSelectorOpen(false);
+                          }}
+                        >
+                          <Text style={styles.appointmentPickerTitle}>{status}</Text>
+                          {provisionalLead.status === status ? <Text style={styles.appointmentPickerMeta}>Seleccionado</Text> : null}
+                        </TouchableOpacity>
+                      )) : null}
+                    </View>
                     <View style={styles.informationSection}>
                       <Text style={styles.informationText}>
                         Nombre completo del lead

@@ -15,7 +15,14 @@ export default function AdviserLayout() {
         }}
       >
         <Tabs.Screen name="index" options={{ title: "Inicio" }} />
-        <Tabs.Screen name="leads" options={{ title: "Seguimiento" }} />
+        <Tabs.Screen
+          name="leads"
+          options={{ title: "Seguimiento legacy", href: null }}
+        />
+        <Tabs.Screen
+          name="lead-detail"
+          options={{ title: "Detalle del lead", href: null }}
+        />
         <Tabs.Screen
           name="leads-v2"
           options={{ title: "Seguimiento V2", href: null }}
@@ -40,7 +47,13 @@ export default function AdviserLayout() {
         <Tabs.Screen
           name="lead-tracking"
           options={{
-            title: "Seguimiento de leads",
+            title: "Seguimiento",
+          }}
+        />
+        <Tabs.Screen
+          name="LeadsTrackingSelectingScreen"
+          options={{
+            title: "Seleccion de seguimiento",
             href: null,
           }}
         />

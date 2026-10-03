@@ -60,7 +60,7 @@ function formatDuplicateContact(candidate: DuplicateLeadCandidate) {
   const details = [
     candidate.phone,
     candidate.email,
-    candidate.systemStatus || candidate.status,
+    candidate.status,
   ].filter(
     (value): value is string =>
       typeof value === "string" && value.trim().length > 0,

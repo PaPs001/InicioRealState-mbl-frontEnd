@@ -28,14 +28,8 @@ import {
 } from "@/modules/users/leads/types";
 import { formatPropertyPrice } from "@/modules/users/leads/utils/leads-principal-utils";
 import { AppModal } from "@/components/AppModal";
-const leadOriginOptions = [
-  "ManyChat",
-  "Meta",
-  "Google Ads",
-  "Referido",
-  "Monday",
-  "Página Web",
-] as const;
+import { LEAD_TRACKING_STATUSES } from "@/modules/users/leads/constants/lead-tracking-statuses";
+import { LEAD_ORIGINS } from "@/modules/users/leads/constants/lead-origins";
 const leadOperationOptions = [
   { label: "Renta", value: "renta" },
   { label: "Venta", value: "venta" },
@@ -131,6 +125,12 @@ export function LeadCreateModal({
               value={form.fullName}
               onChangeText={(value) => onUpdateField("fullName", value)}
             />
+            <LeadOptionField
+              label="Estatus del lead"
+              options={LEAD_TRACKING_STATUSES.map((status) => ({ label: status, value: status }))}
+              selectedValue={form.status}
+              onSelect={(value) => onUpdateField("status", value)}
+            />
             <LeadFormField
               label="Telefono"
               placeholder="Numero de telefono"
@@ -166,7 +166,7 @@ export function LeadCreateModal({
             />
             <LeadOptionField
               label="Origen"
-              options={leadOriginOptions.map((option) => ({
+              options={LEAD_ORIGINS.map((option) => ({
                 label: option,
                 value: option,
               }))}

@@ -9,12 +9,14 @@ import {
   View,
   Image,
 } from "react-native";
-import { getInitials } from "@/modules/users/main/utils/dashboard-formatters";
+import { leadTrackingStatusCards } from "../constants/lead-tracking-layout";
+import { isLeadStatus } from "../constants/lead-tracking-statuses";
 
 import { useHideBottomNav } from "@/lib/navigation/bottom-nav-visibility";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 
 import type { PropertyLead } from "@/lib/types";
+import { formatLeadStatus } from "../utils/leads-principal-utils";
 import { styles } from "./styles/LeadsDetailsScreen";
 import { BackendLeadV2FollowingRecord } from "@/lib/api";
 import { isFollowingImageAttachment } from "@/modules/users/leads/hooks/useFollowingAttachmentImage";
@@ -111,15 +113,12 @@ export function LeadDetailScreen({
 
   const propertyName =
     getPropertyName(lead.propertyId) || "Sin propiedad asignada";
+  const statusCard = leadTrackingStatusCards.find(card => isLeadStatus(lead.status, card.title));
+  const statusBackground = statusCard?.color ?? "#fa7878";
+  const statusAccent = statusCard?.iconFill ?? statusCard?.iconColor ?? statusCard?.countColor ?? "#b12d2d";
   const nextAction =
     lead.nextAction || lead.notes || "Definir siguiente accion";
   const advisorName = lead.assignedAgentName || "Sin asesor";
-  const advisorStatusLabel = formatAdvisorStatus(
-    lead.advisorStatus || lead.status,
-  );
-  const systemStatusLabel = formatSystemStatus(lead.systemStatus);
-  const primaryStatusLabel =
-    mode === "coordinator" ? systemStatusLabel : advisorStatusLabel;
   const canManageCustomStatus =
     mode === "advisor" && Boolean(onApplyCustomStatus);
   const canManageNextAction = mode === "advisor" && Boolean(onApplyNextAction);
@@ -127,9 +126,9 @@ export function LeadDetailScreen({
     const statuses = new Set(
       customLeadStatuses.map((status) => status.trim()).filter(Boolean),
     );
-    if (lead.advisorStatus) statuses.add(lead.advisorStatus);
+    if (lead.status) statuses.add(lead.status);
     return Array.from(statuses);
-  }, [customLeadStatuses, lead.advisorStatus]);
+  }, [customLeadStatuses, lead.status]);
 
   const applyCustomStatus = async (status: string) => {
     const normalizedStatus = status.trim();
@@ -196,7 +195,7 @@ export function LeadDetailScreen({
   }, [followings]);
 
   return (
-    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
+    <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -215,17 +214,13 @@ export function LeadDetailScreen({
         <View style={styles.rowBlock}>
           <View style={styles.informationContainer}>
             <View style={styles.headerInformationContainer}>
-              <View style={styles.profileAvatarContainer}>
-                {lead.imageUri ? (
+              <View style={[styles.profileAvatarContainer, { backgroundColor: statusBackground }]}>
+                {lead.imageUri && (
                   <Image
                     source={{ uri: lead.imageUri }}
                     resizeMode="cover"
                     style={styles.imageLead}
                   />
-                ) : (
-                  <Text style={styles.avatarText}>
-                    {getInitials(lead.name)}
-                  </Text>
                 )}
               </View>
               <View style={styles.dataLeadContainer}>
@@ -237,9 +232,11 @@ export function LeadDetailScreen({
                   {lead.name}
                 </Text>
                 <Text style={styles.placeLead}>{propertyName}</Text>
-                <View style={styles.statusBar}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>{lead.systemStatus} </Text>
+                <View style={[styles.statusBar, { backgroundColor: statusBackground, borderColor: statusCard?.countColor ?? statusAccent }]}>
+                  <View style={[styles.statusDot, { backgroundColor: statusAccent }]} />
+                  <Text style={styles.statusText}>
+                    {formatLeadStatus(lead.status)}{" "}
+                  </Text>
                 </View>
                 <View style={styles.typeLeadContainer}>
                   <View style={styles.typeLead}>
@@ -552,42 +549,6 @@ export function LeadDetailScreen({
 }
 
 // funciones de apoyo (utils) que apoyan a que algunas funcionalidades esten completas tales como normalizacion de estatus de leads, formateo de fecha, formateo de numero de telefono y apoyo para enviar al whatssap, son funcionales y con uso constante por lo que por ahora se mantiene hasta moverlos a sus espacios especificos
-
-function formatSystemStatus(status?: PropertyLead["systemStatus"]) {
-  const labels: Record<string, string> = {
-    nuevo: "Nuevo",
-    seguimiento: "Seguimiento",
-    frio: "Frio",
-    congelado: "Congelado",
-    en_espera: "En espera",
-    con_cita: "Con cita",
-    lead_muerto: "Muerto",
-    lead_ganador: "Ganado",
-    lead_perdido: "Perdido",
-    spam: "Spam",
-    duplicado: "Duplicado",
-  };
-
-  return status ? (labels[status] ?? status) : "Nuevo";
-}
-function formatAdvisorStatus(status?: string) {
-  if (!status) return "Sin estado";
-  return formatLeadStatus(status as PropertyLead["status"]) || status;
-}
-
-function formatLeadStatus(status: PropertyLead["status"]) {
-  const labels: Record<PropertyLead["status"], string> = {
-    nuevo: "Nuevo",
-    contactado: "Contactado",
-    cita_agendada: "Cita agendada",
-    visitado: "Visitado",
-    negociando: "En seguimiento",
-    cerrado: "Cerrado",
-    descartado: "Descartado",
-  };
-
-  return labels[status] ?? status;
-}
 
 function formatLeadSource(source?: string) {
   if (!source) return "Sin origen";

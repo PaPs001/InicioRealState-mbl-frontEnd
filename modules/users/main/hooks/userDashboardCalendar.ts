@@ -7,6 +7,7 @@ import type { AppointmentPreviewItem } from "@/modules/users/main/types";
 import { mapGoogleDateToAppointment } from "@/modules/users/main/utils/dashboard-formatters";
 import { disconnectGoogleCalendar, getGoogleCalendarAuthUrl } from "@/lib/api";
 import type { AppCapabilities } from "@/modules/settings";
+import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
 
 type UseDashboardCalendarParams = {
@@ -26,6 +27,7 @@ export type ProvisionalAppointmentLead = {
   fullName: string;
   phone: string;
   email: string;
+  status: LeadTrackingStatus;
 };
 
 const DEFAULT_CALENDAR_MESSAGE =
@@ -113,6 +115,7 @@ export function useDashboardCalendar({
       fullName: "",
       phone: "",
       email: "",
+      status: "LEAD NUEVO",
     });
   const calendarAppointments = useMemo(
     () =>
@@ -276,6 +279,7 @@ export function useDashboardCalendar({
 
   const updateProvisionalAppointmentLead = useCallback(
     (field: keyof ProvisionalAppointmentLead, value: string) => {
+      if (field === "status" && !(LEAD_TRACKING_STATUSES as readonly string[]).includes(value)) return;
       setProvisionalAppointmentLead((currentLead) => ({
         ...currentLead,
         [field]: value,

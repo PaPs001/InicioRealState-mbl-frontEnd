@@ -119,7 +119,7 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   filterChip: {
-    flex: 1,
+    flexShrink: 0,
     minWidth: 0,
     height: 28,
     borderRadius: 14,

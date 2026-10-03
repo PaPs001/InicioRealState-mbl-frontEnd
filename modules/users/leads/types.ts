@@ -1,8 +1,8 @@
-import type { LeadV2SystemStatus, Property, PropertyLead } from '@/lib/types'
+import type { LeadStatus, Property, PropertyLead } from '@/lib/types'
+import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from './constants/lead-tracking-statuses'
+import { LEAD_ORIGINS, type LeadOrigin } from './constants/lead-origins'
 
 export const LEADS_PAGE_SIZE = 20
-
-export type LeadV2Status = 'nuevo' | 'seguimiento' | 'frio' | 'congelado' | 'en_espera' | 'con_cita' | 'provisional' | 'lead_muerto' | 'lead_ganador' | 'lead_perdido' | 'spam' | 'duplicado'
 
 export type LeadV2ViewModel = {
   id: string
@@ -13,12 +13,9 @@ export type LeadV2ViewModel = {
   phone?: string
   email?: string
   source: string
-  channel: CoordinatorLeadV2Channel
-  status: LeadV2Status
-  advisorStatus: string
+  channel: LeadOrigin | null
+  status: LeadStatus
   statusLabel: string
-  advisorStatusLabel?: string
-  systemStatus?: LeadV2SystemStatus
   lastContactLabel: string
   nextActionLabel: string
 }
@@ -49,10 +46,11 @@ export type LeadV2CreateForm = {
   fullName: string
   phone: string
   email: string
+  status: LeadTrackingStatus
   propertyOfInterestId: string
   lastContactDate: string
   estimatedBudget: string
-  origin: string
+  origin: LeadOrigin | ''
   operation: string
 }
 
@@ -65,7 +63,9 @@ export function isLeadV2CreateFormValid(form: LeadV2CreateForm) {
     form.estimatedBudget,
     form.origin,
     form.operation,
-  ].every((value) => value.trim().length > 0)
+  ].every((value) => value.trim().length > 0) &&
+    (LEAD_TRACKING_STATUSES as readonly string[]).includes(form.status) &&
+    (LEAD_ORIGINS as readonly string[]).includes(form.origin)
 }
 
 export type LeadPropertyOption = {
@@ -79,15 +79,15 @@ export type LeadPropertyOption = {
 }
 
 export type LeadsV2RouteParams = {
+  status?: string | string[]
+  origin?: string | string[]
+  trackingOpenedAt?: string | string[]
   selectedLeadId?: string | string[]
 }
 
 export const coordinatorLeadV2Channels = [
   'Todos',
-  'Manychat',
-  'Meta',
-  'Google Ads',
-  'Whatsapp',
+  ...LEAD_ORIGINS,
 ] as const
 
 export type CoordinatorLeadV2Channel = typeof coordinatorLeadV2Channels[number]
@@ -102,6 +102,7 @@ export const emptyLeadV2CreateForm: LeadV2CreateForm = {
   fullName: '',
   phone: '',
   email: '',
+  status: 'LEAD NUEVO',
   propertyOfInterestId: '',
   lastContactDate: '',
   estimatedBudget: '',

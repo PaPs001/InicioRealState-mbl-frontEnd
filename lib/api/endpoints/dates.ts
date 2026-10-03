@@ -1,6 +1,7 @@
 import { coreApi } from '../client'
 import type { AppointmentType } from '@/lib/config/appointment-Types'
 import type { AppointmentSubdivision } from '@/lib/config/appointment-Types'
+import type { LeadTrackingStatus } from '@/modules/users/leads/constants/lead-tracking-statuses'
 export type { AppointmentType } from '@/lib/config/appointment-Types'
 
 export interface GoogleCalendarDateTime {
@@ -100,6 +101,7 @@ export interface CreateGoogleCalendarDatePayload {
     fullName: string
     phone?: string | null
     email?: string | null
+    status: LeadTrackingStatus
   } | null
   subtypeCalendar?: AppointmentSubdivision | null
 }

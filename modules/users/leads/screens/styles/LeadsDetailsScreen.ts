@@ -79,13 +79,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#e5e7eb",
+    overflow: "hidden",
   },
   imageLead: {
     width: "100%",
     height: "100%",
-  },
-  avatarText: {
-    fontSize: 22,
   },
   dataLeadContainer: {
     gap: 3,
@@ -112,7 +110,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 7,
     paddingVertical: 4,
-    width: 120,
   },
   statusDot: {
     borderRadius: 99,
