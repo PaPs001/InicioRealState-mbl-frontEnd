@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router'
 import type { LeadsV2RouteParams } from '@/modules/users/leads/types'
 import { getParamValue } from '../utils/leads-principal-utils'
+import { useLeadTrackingRoutes } from './useLeadTrackingRoutes'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -41,12 +42,16 @@ import {
 
 type UseLeadsPrincipalScreenParams = {
   mode: 'coordinator' | 'advisor'
+  trackingFlow?: boolean
 }
 
-export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams) {
+export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeadsPrincipalScreenParams) {
+  const trackingRoutes = useLeadTrackingRoutes()
+  const canManageLead = mode === 'advisor' || trackingFlow
   const routeParams = useLocalSearchParams<LeadsV2RouteParams>()
   const isAdviserRoute = mode === 'advisor'
   const selectedLeadIdParam = getParamValue(routeParams.selectedLeadId)
+  const trackingOpenedAt = getParamValue(routeParams.trackingOpenedAt)
   const { authToken } = useSessionDomain()
   const {
     availableProperties,
@@ -154,7 +159,7 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   }, [mapLeadRecord])
 
   const loadCustomLeadStatuses = useCallback(async () => {
-    if (!authToken || !isAdviserRoute) {
+    if (!authToken || !canManageLead) {
       setCustomLeadStatuses([])
       setIsLoadingCustomLeadStatuses(false)
       return
@@ -170,7 +175,7 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
     } finally {
       setIsLoadingCustomLeadStatuses(false)
     }
-  }, [authToken, isAdviserRoute])
+  }, [authToken, canManageLead])
   const loadLeads = useCallback(async () => {
     if (!authToken) {
       setLeads([])
@@ -182,7 +187,9 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
     setErrorMessage(null)
     try {
       const records = await getBackendLeadV2Records(authToken)
-      setLeads(records.map(mapLeadRecord))
+      const mappedRecords = records.map(mapLeadRecord)
+      setLeads(mappedRecords)
+      return mappedRecords
     } catch (error) {
       console.warn('No se pudieron cargar los leads v2:', error)
       setErrorMessage('No se pudieron cargar los leads')
@@ -193,20 +200,33 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   }, [authToken, mapLeadRecord])
 
   useEffect(() => {
-    if (!authToken || hasLoadedInitialLeadsRef.current) return
+    if (!authToken || trackingOpenedAt || hasLoadedInitialLeadsRef.current) return
 
     hasLoadedInitialLeadsRef.current = true
     console.info('[LeadsV2][initial-load]', { service: 'leads' })
     loadLeads()
-  }, [authToken, loadLeads])
+  }, [authToken, loadLeads, trackingOpenedAt])
 
   useEffect(() => {
-    if (!authToken || !isAdviserRoute || hasLoadedInitialStatusesRef.current) return
+    if (!authToken || !trackingOpenedAt) return
+    hasLoadedInitialLeadsRef.current = true
+    setDismissedRouteLeadId(null)
+    setSelectedLead(null)
+    setLeads([])
+    let active = true
+    void loadLeads().then(records => {
+      if (active) setSelectedLead(records?.find(lead => lead.id === selectedLeadIdParam) ?? null)
+    })
+    return () => { active = false }
+  }, [authToken, loadLeads, selectedLeadIdParam, trackingOpenedAt])
+
+  useEffect(() => {
+    if (!authToken || !canManageLead || hasLoadedInitialStatusesRef.current) return
 
     hasLoadedInitialStatusesRef.current = true
     console.info('[LeadsV2][initial-load]', { service: 'custom-statuses' })
     loadCustomLeadStatuses()
-  }, [authToken, isAdviserRoute, loadCustomLeadStatuses])
+  }, [authToken, canManageLead, loadCustomLeadStatuses])
 
   useEffect(() => {
     if (!authToken || hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
@@ -385,10 +405,11 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
         fullName: createLeadForm.fullName,
         phone: createLeadForm.phone,
         email: createLeadForm.email,
+        status: createLeadForm.status,
         propertyOfInterestId: createLeadForm.propertyOfInterestId,
         lastContactDate: createLeadForm.lastContactDate || undefined,
         estimatedBudget: createLeadForm.estimatedBudget ? Number.parseInt(createLeadForm.estimatedBudget, 10) : undefined,
-        origin: createLeadForm.origin || 'app',
+        origin: createLeadForm.origin,
         operation: createLeadForm.operation,
       }, authToken)
       setIsCreateLeadModalOpen(false)
@@ -449,11 +470,11 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
   }
 
   const openLeadFollowUps = (lead: LeadV2ViewModel) => {
-    const followUpsPath = isAdviserRoute
-      ? '/userAdviser/leads-v2/followups'
+    const followUpsPath = trackingFlow ? trackingRoutes.followups : isAdviserRoute
+      ? '/userAdviser/lead-tracking/followups'
       : '/userCoordinator/leads-v2/followups'
-    const returnToPath = isAdviserRoute
-      ? '/userAdviser/leads'
+    const returnToPath = trackingFlow ? trackingRoutes.detail : isAdviserRoute
+      ? '/userAdviser/lead-tracking/detail'
       : '/userCoordinator/leads'
 
     router.push({
@@ -463,11 +484,23 @@ export function useLeadsPrincipalScreen({ mode }: UseLeadsPrincipalScreenParams)
         leadName: lead.name,
         phone: lead.phone || '',
         returnTo: returnToPath,
+        ...(isAdviserRoute || trackingFlow ? {
+          status: getParamValue(routeParams.status),
+          origin: getParamValue(routeParams.origin),
+          operation: getParamValue(routeParams.operation),
+          selectedLeadId: lead.id,
+          trackingOpenedAt,
+        } : {}),
       },
     } as never)
   }
 
   const closeLeadDetail = () => {
+    if (isAdviserRoute && trackingOpenedAt && router.canGoBack()) {
+      router.back()
+      return
+    }
+
     if (selectedLeadIdParam) {
       setDismissedRouteLeadId(selectedLeadIdParam)
     }

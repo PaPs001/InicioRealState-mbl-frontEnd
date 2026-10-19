@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import {StyleSheet} from 'react-native';
 import { generalColors, textColor, userColors, borderColor, statusColors, fontSize } from '@/theme';
 export const styles = StyleSheet.create({
@@ -70,7 +71,7 @@ export const styles = StyleSheet.create({
   },
   avatarText:{
     color: '#1e2d32',
-    fontSize: 24,
+    fontSize: textSize.headingLarge,
     fontWeight: '700',
   },
   userinformationContainer:{
@@ -88,13 +89,13 @@ export const styles = StyleSheet.create({
 
   },
   userName:{
-    fontSize: 25,
+    fontSize: appFontScale[25],
     fontWeight: '700',
     color: '#1e2d32',
     flexShrink: 1
   },
   adviserText:{
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexShrink: 1,
     flexWrap: 'wrap',
     color: textColor.accentGolden
@@ -141,7 +142,7 @@ export const styles = StyleSheet.create({
   },
   editText:{
     color: textColor.accentGolden,
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexShrink: 1,
     
   },
@@ -160,30 +161,30 @@ export const styles = StyleSheet.create({
   },
   title: {
     color: '#1e2d32',
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: appFontScale[28],
+    lineHeight: platformLineHeight(34),
     fontWeight: '700',
   },
   intro: {
     color: '#6b7280',
     marginTop: 8,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
   },
   section: {
     marginTop: 32,
   },
   sectionTitle: {
     color: userColors.coordinator.primary,
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(24),
     fontWeight: '600',
   },
   sectionDescription: {
     color: '#6b7280',
     marginTop: 4,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
   },
   rowOptions:{
     flexDirection: 'row',
@@ -210,6 +211,6 @@ export const styles = StyleSheet.create({
   },
   logOutText:{
     color: statusColors.danger,
-    fontSize: 12,
+    fontSize: textSize.caption,
   },
 })

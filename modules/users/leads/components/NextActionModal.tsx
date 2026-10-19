@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import {X} from 'lucide-react-native'
 import {
   KeyboardAvoidingView,
@@ -161,15 +162,15 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#193A31',
-    fontSize: 18,
-    lineHeight: 23,
+    fontSize: textSize.titleSmall,
+    lineHeight: platformLineHeight(23),
     fontWeight: '700',
   },
   subtitle: {
     marginTop: 3,
     color: '#697B74',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
   },
   closeButton: {
     width: 36,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#193A31',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '600',
   },
   input: {
@@ -200,8 +201,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     color: '#193A31',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
   },
   actionInput: {
     minHeight: 82,
@@ -212,8 +213,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#FDECEC',
     color: '#A33232',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
   },
   actions: {
     flexDirection: 'row',
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#193A31',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '600',
   },
   submitButton: {
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
   },
 })

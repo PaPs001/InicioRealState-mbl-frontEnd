@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -6,13 +7,13 @@ export const styles = StyleSheet.create({
     borderColor: '#d1d8d5',
     borderRadius: 8,
     color: '#1e2d32',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   error: {
     color: '#b42318',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     marginTop: 10,
   },
   footer: {

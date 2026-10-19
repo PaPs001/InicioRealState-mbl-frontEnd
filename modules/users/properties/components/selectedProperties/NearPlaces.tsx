@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { textColor } from "@/theme";
 import { StyleSheet, View, Text,  } from "react-native";
 
@@ -49,10 +50,10 @@ const styles = StyleSheet.create({
         paddingHorizontal:12,
     },
     placesDistanceText:{
-        fontSize: 16,
+        fontSize: textSize.subtitle,
     },
     placesNameText:{
-        fontSize: 10,
+        fontSize: textSize.captionSmall,
         color: textColor.softText
     }
 })

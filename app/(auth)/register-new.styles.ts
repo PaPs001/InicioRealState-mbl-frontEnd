@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -32,9 +33,9 @@ export const registerNewStyles = StyleSheet.create({
   title: {
     color: '#214c31',
     fontFamily: serifFont,
-    fontSize: 31,
+    fontSize: appFontScale[31],
     fontWeight: '400',
-    lineHeight: 42,
+    lineHeight: platformLineHeight(42),
     textAlign: 'center',
     letterSpacing: 0,
   },
@@ -42,8 +43,8 @@ export const registerNewStyles = StyleSheet.create({
     width: 300,
     marginTop: 8,
     color: '#737373',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.6,
     textAlign: 'center',
   },
@@ -81,16 +82,16 @@ export const registerNewStyles = StyleSheet.create({
   optionTitle: {
     color: '#B88E4C',
     fontFamily: 'Cormorant',
-    fontSize: 25,
+    fontSize: appFontScale[25],
     fontWeight: '400',
-    lineHeight: 34,
+    lineHeight: platformLineHeight(34),
     letterSpacing: 0,
   },
   optionDescription: {
     marginTop: 2,
     color: '#737373',
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.8,
   },
   optionImage: {

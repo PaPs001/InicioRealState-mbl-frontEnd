@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native"
 import { generalColors, textColor, userColors, borderColor } from "@/theme"
 export const styles = StyleSheet.create({
@@ -38,7 +39,7 @@ export const styles = StyleSheet.create({
   },
   avatarText:{
     color: '#1e2d32',
-    fontSize: 24,
+    fontSize: textSize.headingLarge,
     fontWeight: '700',
   },
   userinformationContainer:{
@@ -56,13 +57,13 @@ export const styles = StyleSheet.create({
 
   },
   userName:{
-    fontSize: 25,
+    fontSize: appFontScale[25],
     fontWeight: '700',
     color: '#1e2d32',
     flexShrink: 1
   },
   adviserText:{
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexShrink: 1,
     flexWrap: 'wrap',
     color: textColor.accentGolden
@@ -114,7 +115,7 @@ export const styles = StyleSheet.create({
   },
   editText:{
     color: textColor.accentGolden,
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexShrink: 1,
     marginBottom: 5,
   },
@@ -131,7 +132,7 @@ export const styles = StyleSheet.create({
   },
   notionButtonText: {
     color: userColors.coordinator.primary,
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '700',
   },
   optionsSection:{
@@ -150,8 +151,8 @@ export const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: userColors.coordinator.primary,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(24),
     fontWeight: '700',
   },
   options: {
@@ -160,14 +161,14 @@ export const styles = StyleSheet.create({
   },
   title: {
     color: '#1e2d32',
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: appFontScale[28],
+    lineHeight: platformLineHeight(34),
     fontWeight: '700',
   },
   intro: {
     color: '#6b7280',
     marginTop: 8,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
   },
 })

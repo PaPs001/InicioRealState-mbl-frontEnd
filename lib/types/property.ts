@@ -88,15 +88,45 @@ export interface PropertyCatalogItemResponse {
   zonaText: string | null;
 }
 
-export type AmenitiesEstructure = { 
+export type AmenitiesEstructure = {
   name: string;
-  color: string
+  color: string;
+};
+
+export interface PropertyRoomImageResponse {
+  _id?: string;
+  name_image: string;
+  fileId: string;
+  key?: string | null;
+  mediumKey?: string | null;
+  largeKey?: string | null;
+}
+
+export interface PropertyRoomResponse {
+  _id?: string;
+  name_room: string;
+  idFolder: string;
+  images?: PropertyRoomImageResponse[] | null;
+}
+
+export interface LocationsData {
+  latitude: number;
+  longitude: number;
+}
+
+export interface GeoData {
+  place: string | null;
+  placeId: string | null;
+  locations: LocationsData;
+  formatAddress: string | null;
 }
 
 export interface selectedPropertyBackendData extends PropertyCatalogItemResponse {
   titleApp: string | null;
   description: string | null;
-  amenities: AmenitiesEstructure[] | null
+  amenities: AmenitiesEstructure[] | null;
+  rooms?: PropertyRoomResponse[] | null;
+  geoData: GeoData;
 }
 
 export interface PropertyEarnings {

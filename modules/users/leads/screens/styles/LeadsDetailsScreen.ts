@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { colors } from "@/lib/theme";
 import { generalColors, textColor, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
@@ -31,14 +32,14 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {},
   title: {
-    fontSize: 22,
-    lineHeight: 25,
+    fontSize: textSize.heading,
+    lineHeight: platformLineHeight(25),
     fontWeight: "700",
   },
   subtitle: {
     color: "#717171",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
   },
   detailScreen: {
     flex: 1,
@@ -79,24 +80,22 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#e5e7eb",
+    overflow: "hidden",
   },
   imageLead: {
     width: "100%",
     height: "100%",
   },
-  avatarText: {
-    fontSize: 22,
-  },
   dataLeadContainer: {
     gap: 3,
   },
   nameLead: {
-    fontSize: 17,
+    fontSize: textSize.subtitleLarge,
     fontWeight: "500",
-    lineHeight: 22,
+    lineHeight: platformLineHeight(22),
   },
   placeLead: {
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     fontWeight: "600",
     color: textColor.accentGolden,
     //fontStyle: 'italic',
@@ -112,7 +111,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 7,
     paddingVertical: 4,
-    width: 120,
   },
   statusDot: {
     borderRadius: 99,
@@ -121,7 +119,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#454A36",
   },
   statusText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
 
   typeLeadContainer: {
@@ -136,7 +134,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sourceText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   /// estilos de primer bloque
   tableInformation: {
@@ -169,7 +167,7 @@ export const styles = StyleSheet.create({
     borderLeftWidth: 0.5,
   },
   informationText: {
-    fontSize: 9,
+    fontSize: textSize.micro,
   },
   informationTextRight: {
     textAlign: "right",
@@ -205,19 +203,19 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   actionTitle: {
-    fontSize: 17,
-    lineHeight: 19,
+    fontSize: textSize.subtitleLarge,
+    lineHeight: platformLineHeight(19),
     fontWeight: "700",
   },
   actionDateText: {
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(14),
     color: textColor.accentGolden,
     fontWeight: "600",
   },
   actionAdvisorText: {
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(12),
     color: textColor.softText,
   },
 
@@ -233,8 +231,8 @@ export const styles = StyleSheet.create({
     gap: 3,
   },
   optionText: {
-    fontSize: 10,
-    lineHeight: 17,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(17),
     textAlign: "center",
   },
   contentButtons: {
@@ -284,7 +282,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   iaAnnotationText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     flexShrink: 1,
   },
   recommendationTextContainer: {
@@ -292,11 +290,11 @@ export const styles = StyleSheet.create({
     minWidth: 0,
   },
   recommendationTitle: {
-    fontSize: 14,
+    fontSize: textSize.body,
     flexShrink: 1,
   },
   recommendationSubtitle: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexShrink: 1,
   },
 
@@ -308,7 +306,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   invalidInformationText: {
-    fontSize: 17,
+    fontSize: textSize.subtitleLarge,
   },
 
   ///
@@ -362,22 +360,22 @@ export const styles = StyleSheet.create({
     minWidth: 0,
   },
   timelineDate: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "600",
     flexShrink: 1,
   },
   timelineType: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "600",
     flexShrink: 1,
   },
   timelineTime: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   timelineDescription: {
     marginTop: 3,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     flexShrink: 1,
   },
   attachmentList: {
@@ -430,8 +428,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   buttonText: {
-    fontSize: 10,
-    lineHeight: 17,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(17),
   },
   whiteColor: {
     color: "#f9f9f9",

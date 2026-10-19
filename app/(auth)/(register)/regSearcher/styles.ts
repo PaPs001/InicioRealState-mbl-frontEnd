@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -84,9 +85,9 @@ export const registerOwnerStyles = StyleSheet.create({
   title: {
     color: '#1b382c',
     fontFamily: serifFont,
-    fontSize: 36,
+    fontSize: appFontScale[36],
     fontWeight: '400',
-    lineHeight: 36,
+    lineHeight: platformLineHeight(36),
     textAlign: 'center',
   },
   copyGroup: {
@@ -97,8 +98,8 @@ export const registerOwnerStyles = StyleSheet.create({
   },
   description: {
     color: '#5c5e5d',
-    fontSize: 14,
-    lineHeight: 16,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(16),
     letterSpacing: 0.98,
     textAlign: 'center',
   },
@@ -139,14 +140,14 @@ export const registerOwnerStyles = StyleSheet.create({
   exclusiveTitle: {
     color: '#01402f',
     fontFamily: serifFont,
-    fontSize: 24,
+    fontSize: textSize.headingLarge,
     fontWeight: '400',
-    lineHeight: 25,
+    lineHeight: platformLineHeight(25),
   },
   exclusiveText: {
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     letterSpacing: 0.52,
   },
   actions: {
@@ -168,8 +169,8 @@ export const registerOwnerStyles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#ffffff',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
   },
   secondaryButton: {
     width: '100%',
@@ -181,8 +182,8 @@ export const registerOwnerStyles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#013f2f',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
     textAlign: 'center',
   },
 })

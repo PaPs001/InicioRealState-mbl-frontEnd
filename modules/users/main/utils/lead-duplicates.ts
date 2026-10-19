@@ -17,7 +17,7 @@ export function findLeadDuplicates(leads: PropertyLead[], input: { fullName: str
     if (!similar && !phoneMatch && !emailMatch) return [];
     const dates = (lead.followUps ?? []).map(item => item.date).filter(date => Number.isFinite(Date.parse(date))).sort((a, b) => Date.parse(b) - Date.parse(a));
     return [{ id: lead.id, fullName: lead.name, phone: lead.phone, email: lead.email,
-      status: lead.status, systemStatus: lead.systemStatus, createdAt: lead.createdDate,
+      status: lead.status, createdAt: lead.createdDate,
       followUpCount: lead.followUps?.length ?? 0, lastFollowUpAt: dates[0] ?? null,
       nameMatch: exact ? "exact" as const : "partial" as const, phoneMatch, emailMatch,
       strength: exact || phoneMatch || emailMatch ? "strong" as const : "possible" as const }];

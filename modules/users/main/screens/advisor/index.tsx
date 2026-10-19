@@ -17,7 +17,6 @@ import { useOperationMode, useDashboardAreaConfig } from "@/modules/settings";
 
 import {
   useDashboardCalendar,
-  useDashboardLeads,
   useDashboardProfile,
   useDashboardProperties,
 } from "../../hooks";
@@ -26,7 +25,6 @@ import {
   ProfileHeader,
   HeroCardsSection,
   AppointmentsSection,
-  LeadsSection,
 } from "../../components/Advisors";
 import { AppointmentUpdateFlow } from "../../hooks/useAppointmentUpdateFlow";
 
@@ -49,7 +47,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
     useDashboardProfile({ fallbackName: areaConfig.fallbackName });
   const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] =
     useState(false);
-  const { isLeadsLoading, leadSummary } = useDashboardLeads({ authToken });
 
   const { rentSummary, saleSummary } = useDashboardProperties();
 
@@ -143,6 +140,22 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
                 Abrir nuevo listado
               </Text>
             </Pressable>
+            <Pressable 
+              onPress={() => {
+                router.push('/(users)/userAdviser/lead-tracking')
+              }}
+              style={styles.propertyShortcutButton}>
+              <Text style={styles.propertyShortcutButtonText}>
+                Abrir nueva pantalla de seguimiento de leads
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.propertyShortcutButton}
+              onPress={() => {
+              router.push('/(users)/userAdviser/LeadsTrackingSelectingScreen')
+            }}>
+              <Text style={styles.propertyShortcutButtonText}>Abrir pantalla de seleccion de led</Text>
+            </Pressable>
           </View>
         ) : null}
         <View style={styles.topRow}>
@@ -196,21 +209,6 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           closeAppointmentInformation={closeAppointmentInformation}
           handleDeleteAppointment={handleDeleteAppointment}
         />
-        {/** 
-         * 
-         <LeadsSection
-           isLeadsLoading={isLeadsLoading}
-           leadSummary={leadSummary}
-           onViewMore={() =>
-             router.push(`${areaConfig.basePath}/leads` as never)
-           }
-           onViewDetail={() =>
-             router.push(`${areaConfig.basePath}/leads` as never)
-           }
-           styles={styles}
-         />
-         * 
-        */}
       </ScrollView>
       {selectedAppointment ? (
         <AppointmentUpdateFlow
