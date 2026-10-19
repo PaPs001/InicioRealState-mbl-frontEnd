@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { TouchableOpacity, StyleSheet, Text } from "react-native"
 
 export function FilterChip({
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     color: '#0c6740',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '600',
     textAlign: 'center'
   },

@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import {
   Image,
   Modal,
@@ -98,8 +99,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: "#ffffff",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(18),
     fontWeight: "700",
   },
   closeButton: {

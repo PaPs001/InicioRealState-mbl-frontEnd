@@ -1,3 +1,5 @@
+import { getGoogleCalendarAuthError } from './google-calendar-errors'
+
 const DEFAULT_CORE_API_URL = 'https://core-api-smoky-ten.vercel.app'
 
 export const API_URLS = {
@@ -47,10 +49,100 @@ const shouldLogApiDebug = (path: string) =>
   path.startsWith('/dates/') || path.includes('/dates/')
 
 const shouldLogAuthDebug = (path: string) =>
-  path.startsWith('/auth/') || path === '/users/me'
+  path.startsWith('/auth/') || path === '/users/me' ||
+  path === '/mail/send-email' || path === '/mail/verify-code'
+
+export function sanitizeAuthLog(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizeAuthLog)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+      key,
+      /password|passwd|token|secret|authorization|cookie|^code$|otp|verificationcode/i.test(key)
+        ? '[OCULTO]'
+        : sanitizeAuthLog(item),
+    ]))
+  }
+  return value
+}
+
+// Read a clone so diagnostics never consume the response used by the app.
+async function fetchWithAuthDiagnostics(
+  baseUrl: string,
+  path: string,
+  init: RequestInit,
+  debugLog?: (entry: ApiDebugLogEntry) => void,
+): Promise<Response> {
+  if (!shouldLogAuthDebug(path)) return fetch(`${baseUrl}${path}`, init)
+
+  const startedAt = Date.now()
+  const context = { method: init.method, baseUrl, path, finalUrl: `${baseUrl}${path}` }
+  console.info('[API][auth][request]', {
+    ...context,
+    body: typeof init.body === 'string' ? sanitizeAuthLog(JSON.parse(init.body)) : undefined,
+    hasAuthorization: !!(init.headers as Record<string, string>)?.Authorization,
+  })
+  debugLog?.({
+    level: 'info',
+    message: 'Peticion al backend: URL real y datos enviados (secretos ocultos).',
+    details: { ...context, body: typeof init.body === 'string' ? sanitizeAuthLog(JSON.parse(init.body)) : undefined },
+  })
+  try {
+    const response = await fetch(`${baseUrl}${path}`, init)
+    let payload: unknown
+    try {
+      payload = sanitizeAuthLog(await response.clone().json())
+    } catch {
+      payload = '[Respuesta vacia o no JSON; contenido omitido]'
+      debugLog?.({
+        level: 'warning',
+        message: 'El servidor no devolvio JSON valido. Puede ser una respuesta vacia, HTML de un proxy o un endpoint incorrecto; la app espera JSON.',
+        details: { ...context, status: response.status, contentType: response.headers.get('content-type') },
+      })
+    }
+    const details = {
+      ...context,
+      responseUrl: response.url || context.finalUrl,
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      contentType: response.headers.get('content-type'),
+      requestId: response.headers.get('x-request-id'),
+      durationMs: Date.now() - startedAt,
+      body: payload,
+    }
+    if (response.ok) console.info('[API][auth][response]', details)
+    else console.warn('[API][auth][response]', details)
+    debugLog?.({
+      level: response.ok ? 'success' : 'error',
+      message: response.ok
+        ? 'El servidor respondio exitosamente. Sigue validar que el contenido sirva para crear la sesion.'
+        : response.status >= 500
+          ? 'Fallo del servidor o infraestructura (HTTP 5xx). Revisa los logs del backend con esta URL y hora.'
+          : response.status === 401 || response.status === 403
+            ? 'El servidor rechazo la autenticacion o el acceso. Revisa credenciales y el mensaje recibido; esto no demuestra un fallo de la app.'
+            : response.status === 404
+              ? 'Ruta no encontrada. Revisa que la URL configurada y el endpoint coincidan con el backend desplegado.'
+              : 'El servidor rechazo la peticion. Compara los datos enviados con el mensaje y las validaciones del backend.',
+      details,
+    })
+    return response
+  } catch (error) {
+    debugLog?.({
+      level: 'error',
+      message: 'No se pudo completar la conexion o lectura de la respuesta. Sin respuesta HTTP no se puede culpar al backend: revisa internet, DNS, TLS, URL y disponibilidad (CORS si es web).',
+      details: { ...context, durationMs: Date.now() - startedAt, reason: error instanceof Error ? error.message : String(error) },
+    })
+    console.error('[API][auth][network-error]', {
+      ...context,
+      durationMs: Date.now() - startedAt,
+      message: error instanceof Error ? error.message : String(error),
+    })
+    throw error
+  }
+}
 
 const previewToken = (token?: string) =>
-  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : 'SIN_TOKEN'
+  token ? '[OCULTO]' : 'SIN_TOKEN'
 
 type AuthTokenRefreshHandler = () => Promise<string | null>
 
@@ -152,6 +244,33 @@ function logRequestMonitor(
   }
 }
 
+// Google OAuth failures must not rotate the app session and restart its effects.
+async function isGoogleCalendarAuthFailure(response: Response, baseUrl: string, path: string, method: HttpMethod) {
+  if (response.ok || baseUrl !== API_URLS.CORE || !path.startsWith('/dates/')) return false
+  let payload: unknown
+  try {
+    payload = await response.clone().json()
+  } catch {
+    return false
+  }
+  const code = getGoogleCalendarAuthError(payload)
+  if (!code) return false
+  console.info('[Google Calendar][oauth-rejected]', {
+    timestamp: new Date().toISOString(),
+    method,
+    path,
+    baseUrl,
+    status: response.status,
+    googleError: code,
+    requestId: response.headers.get('x-request-id'),
+    appSessionRefreshSkipped: true,
+    diagnostic: code === 'unauthorized_client' || code === 'invalid_client'
+      ? 'El backend reporta un rechazo del cliente OAuth. Revisar en el backend las credenciales desplegadas y el cliente que emitio el refresh token; esta respuesta no identifica la causa exacta.'
+      : 'Google rechazo la autorizacion guardada. Revisar los logs OAuth del backend; puede requerir reconexion.',
+  })
+  return true
+}
+
 export async function fetchWithAuthRetry(
   baseUrl: string,
   path: string,
@@ -180,7 +299,9 @@ export async function fetchWithAuthRetry(
     body,
   })
 
+  const googleAuthFailure = await isGoogleCalendarAuthFailure(response, baseUrl, path, method)
   const canRefreshAuth =
+    !googleAuthFailure &&
     response.status === 401 &&
     !!token &&
     baseUrl === API_URLS.CORE &&
@@ -289,11 +410,11 @@ async function apiClientRequest<T>(
 
   let response: Response
   try {
-    response = await fetch(`${baseUrl}${path}`, {
+    response = await fetchWithAuthDiagnostics(baseUrl, path, {
       method,
       headers: requestHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-    })
+    }, debugLog)
   } catch (error) {
     if (shouldLogAuthDebug(path)) {
       debugLog?.({
@@ -312,7 +433,9 @@ async function apiClientRequest<T>(
   }
 
   if (!response.ok) {
+    const googleAuthFailure = await isGoogleCalendarAuthFailure(response, baseUrl, path, method)
     const canRefreshAuth =
+      !googleAuthFailure &&
       response.status === 401 &&
       !!token &&
       baseUrl === API_URLS.CORE &&
@@ -329,11 +452,11 @@ async function apiClientRequest<T>(
       const refreshedToken = await refreshAuthTokenOnce(token)
 
       if (refreshedToken) {
-        const retryResponse = await fetch(`${baseUrl}${path}`, {
+        const retryResponse = await fetchWithAuthDiagnostics(baseUrl, path, {
           method,
           headers: buildRequestHeaders(refreshedToken),
           body: body !== undefined ? JSON.stringify(body) : undefined,
-        })
+        }, debugLog)
 
         console.info('[API][auth-refresh] retry response', {
           method,
@@ -353,7 +476,7 @@ async function apiClientRequest<T>(
 
     let details: unknown
     try {
-      details = await response.clone().json()
+      details = sanitizeAuthLog(await response.clone().json())
     } catch {
       details = undefined
     }

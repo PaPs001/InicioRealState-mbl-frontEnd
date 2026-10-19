@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import {
   ScrollView,
   Text,
@@ -201,7 +202,11 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
             </View>
 
             {isAdviserRoute || selectedAgentGroup ? (
-              <View style={styles.filterRow}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterRow}
+              >
                 {coordinatorLeadV2Channels.map((channel) => {
                   const isActive = selectedChannel === channel;
                   return (
@@ -231,7 +236,7 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
                     </TouchableOpacity>
                   );
                 })}
-              </View>
+              </ScrollView>
             ) : null}
 
             <Text style={styles.sectionTitle}>Alertas</Text>
@@ -376,7 +381,7 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
                 <Text accessibilityLiveRegion="polite">
                   {selectedDeleteIds.length}/10 leads seleccionados
                 </Text>
-                <Text style={{ fontSize: 12 }}>
+                <Text style={{ fontSize: textSize.caption }}>
                   {selectedDeleteIds.length === 10
                     ? "L?mite alcanzado. Desmarca un lead para elegir otro."
                     : "Selecciona hasta 10 leads para eliminar."}

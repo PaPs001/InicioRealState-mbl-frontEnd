@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { generalColors } from "@/theme";
 import { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
@@ -144,14 +145,14 @@ const styles = StyleSheet.create({
   title: {
     marginLeft: 46,
     color: "#3D5A40",
-    fontSize: 23,
-    lineHeight: 25,
+    fontSize: appFontScale[23],
+    lineHeight: platformLineHeight(25),
     fontWeight: "500",
   },
   subtitle: {
     marginLeft: 46,
     color: "#afafaf",
-    fontSize: 16,
+    fontSize: textSize.subtitle,
   },
   filterButtonsContainer:{
     marginTop: 22,
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: '#19191f',
-    fontSize: 12,
+    fontSize: textSize.caption,
     padding: 0
   },
 
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   toggleText: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 11,
+    fontSize: textSize.label,
     textAlign: 'center',
   },
   filterBadge: {
@@ -224,8 +225,8 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     color: '#ffffff',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
   },
   //// filterChip
 
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     color: "#0c6740",
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "600",
   },
   filterChipTextActive: {

@@ -1,5 +1,5 @@
-import { images } from "@/assets";
-import { View, Modal, Text, Image, Pressable, StyleSheet } from "react-native";
+import { View, Modal, Image, Pressable, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { icons } from "@/assets";
 type ImagePreviewModalProps = {
   image: string;
@@ -10,34 +10,39 @@ export const ImagePreviewModal = ({
   image,
   onClose,
 }: ImagePreviewModalProps) => {
+  const insets = useSafeAreaInsets();
   return (
-    <Modal style={styles.container}>
+    <Modal onRequestClose={onClose} animationType="fade">
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <Pressable 
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar imagen"
         style={styles.exitButton}
         onPress={onClose}>
         <icons.BackButton />
       </Pressable>
       <Image
-        style={{
-          marginTop: 30,
-          width: "100%",
-          height: "100%",
-          borderRadius: 15,
-        }}
-        resizeMode='cover'
+        style={styles.image}
+        resizeMode='contain'
         source={{ uri: image }}
       />
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
-    paddingBottom: 170,
+    flex: 1,
+    backgroundColor: "#ffffff",
     paddingHorizontal: 15,
   },
+  image: {
+    flex: 1,
+    width: "100%",
+  },
   exitButton:{
+    alignSelf: "flex-start",
     paddingHorizontal: 15,
     paddingVertical: 10
   }

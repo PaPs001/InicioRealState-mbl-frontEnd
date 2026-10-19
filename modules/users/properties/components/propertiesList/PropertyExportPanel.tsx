@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
 
@@ -38,7 +39,7 @@ export const ExportPdfPanel = ({ controller }: { controller: PropertiesControlle
         >
           <Text style={styles.exportButtonSecondaryText}>
             {isGeneratingPdf ? "Generando..." : "Generar"}
-            {"\n"}PDF propiedad
+            {"\n"} imagen de la propiedad
           </Text>
         </Pressable>
       )}
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     right: 14,
     bottom: 84,
     width: 120,
-    height: 152,
+    height: 170,
     borderRadius: 13,
     backgroundColor: "rgba(254,254,254,0.86)",
     borderWidth: 0.5,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   },
   exportButtonSecondary: {
     width: 102,
-    height: 45,
+    height: 65,
     borderRadius: 9.5,
     backgroundColor: "rgba(254,254,254,0.76)",
     borderWidth: 0.5,
@@ -98,15 +99,15 @@ const styles = StyleSheet.create({
   },
   exportButtonSecondaryText: {
     color: "#0c6740",
-    fontSize: 13,
-    lineHeight: 15,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(15),
     textAlign: "center",
     fontWeight: "500",
   },
   exportButtonPrimary: {
     marginTop: 6,
     width: 102,
-    height: 45,
+    height: 50,
     borderRadius: 9.5,
     backgroundColor: "#0c6740",
     borderWidth: 0.5,
@@ -120,20 +121,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   exportButtonPrimaryWithSingleAction: {
-    marginTop: 0,
   },
   exportButtonPrimaryText: {
     color: "#ffffff",
-    fontSize: 13,
-    lineHeight: 15,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(15),
     textAlign: "center",
     fontWeight: "500",
   },
   exportHint: {
     marginTop: 8,
     color: "#929594",
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
     textAlign: "center",
   },
   mapFloatingButton: {
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   mapFloatingButtonText: {
     color: "#ffffff",
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(22),
     fontWeight: "500",
   },
 });

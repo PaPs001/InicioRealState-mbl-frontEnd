@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { generalColors, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -8,6 +9,9 @@ export const styles = StyleSheet.create({
     principalImage:{
         width: '100%',
         height: 270,
+    },
+    emptyImagesText: {
+        fontSize: textSize.body,
     },
     scrollImagesContainer:{
         width: '100%',
@@ -41,7 +45,7 @@ export const styles = StyleSheet.create({
     },
     imagesCountText:{
         color: generalColors.white,
-        fontSize: 13,
+        fontSize: textSize.bodySmall,
         fontWeight: '700',
     },
     buttonsContainer:{
@@ -83,7 +87,7 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     statusText:{
-        fontSize: 10,
+        fontSize: textSize.captionSmall,
         color: generalColors.white,
     }
 })

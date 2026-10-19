@@ -1,14 +1,10 @@
 import type {
   LeadFollowUp,
+  LeadSearchIntent,
   LeadV2StatusSource,
-  LeadV2SystemStatus,
   PropertyLead,
-  User,
 } from "@/lib/types";
 import { API_URLS, coreApi, fetchWithAuthRetry } from "../client";
-
-const createdLeadsStore = new Map<string, PropertyLead>();
-const followUpsStore = new Map<string, LeadFollowUp[]>();
 
 type BackendLead = {
   _id?: string;
@@ -33,7 +29,7 @@ type BackendLead = {
   campaign?: string | null;
   adsCampain?: string | null;
   typeOfOperation?: "FOR RENT" | "FOR SALE" | string | null;
-  operation?: string | null;
+  operation?: LeadSearchIntent;
   leadOrigin?: string | null;
   origin?: string | null;
   propertyOfInterestId?: string | null;
@@ -107,35 +103,11 @@ type BackendLeadV2Following = {
   updatedAt?: string | Date | null;
 };
 
-type GetBackendLeadRecordsOptions = {
-  includeFollowUps?: boolean;
-};
-
-export type CreateBackendLeadFollowUpPayload = {
-  id: string;
-  numberOfollow: string;
-  clientId: string;
-  contactDate: string;
-  contactType: "call" | "whatsapp" | "app" | "page" | "email";
-  contactResult:
-    | "noAnswer"
-    | "contactMade"
-    | "appointmentScheduled"
-    | "informationRequested"
-    | "followUpInTwoWeeks"
-    | "reserved"
-    | "signed"
-    | "notInterested"
-    | "documentSent";
-  contactSummary: string;
-  nextContact: string;
-  nextAction: string;
-};
-
 export type CreateBackendLeadV2Payload = {
   fullName?: string;
   phone?: string;
   email?: string;
+  status?: string;
   propertyOfInterestId?: string;
   lastContactDate?: string;
   estimatedBudget?: number;
@@ -145,6 +117,8 @@ export type CreateBackendLeadV2Payload = {
 };
 
 export type UpdateBackendLeadV2Payload = Partial<{
+  estimatedBudget: number | null;
+  lastContactDate: string | null;
   fullName: string;
   phone: string;
   email: string;
@@ -216,43 +190,6 @@ export type CreateBackendLeadV2FollowingPayload = {
   } | null;
 };
 
-const backendStatusToLeadStatus: Record<string, PropertyLead["status"]> = {
-  new: "nuevo",
-  nuevo: "nuevo",
-  contacted: "contactado",
-  contactado: "contactado",
-  qualified: "contactado",
-  visitScheduled: "cita_agendada",
-  citascheduled: "cita_agendada",
-  citaagendada: "cita_agendada",
-  "cita agendada": "cita_agendada",
-  negotiation: "negociando",
-  negociando: "negociando",
-  reserved: "negociando",
-  won: "cerrado",
-  cerrado: "cerrado",
-  lost: "descartado",
-  descartado: "descartado",
-  duplicate: "descartado",
-  disqualified: "descartado",
-  spam: "descartado",
-};
-
-const validSystemStatuses = new Set<LeadV2SystemStatus>([
-  "nuevo",
-  "seguimiento",
-  "frio",
-  "congelado",
-  "en_espera",
-  "con_cita",
-  "provisional",
-  "lead_muerto",
-  "lead_ganador",
-  "lead_perdido",
-  "spam",
-  "duplicado",
-]);
-
 const EMPTY_LEAD_NAME = "Lead sin nombre";
 
 function normalizeDate(value?: string | Date | null) {
@@ -296,35 +233,6 @@ function getBackendLeadName(lead: BackendLead) {
   if (phone) return `Lead ${phone}`;
 
   return EMPTY_LEAD_NAME;
-}
-
-function getBackendLeadStatus(value?: string | null): PropertyLead["status"] {
-  const normalizedStatus = normalizeTextValue(value);
-  const statusKey = normalizedStatus
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[_-]+/g, " ");
-
-  return (
-    backendStatusToLeadStatus[statusKey] ??
-    backendStatusToLeadStatus[normalizedStatus] ??
-    "nuevo"
-  );
-}
-
-function getBackendLeadSystemStatus(
-  value?: string | null,
-): LeadV2SystemStatus | undefined {
-  const normalizedStatus = normalizeTextValue(value)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[ -]+/g, "_");
-
-  return validSystemStatuses.has(normalizedStatus as LeadV2SystemStatus)
-    ? (normalizedStatus as LeadV2SystemStatus)
-    : undefined;
 }
 
 function normalizeOptionalDate(value?: string | Date | null) {
@@ -384,6 +292,7 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
   const advisorId = getBackendAdvisorId(lead);
   const campaign = getFirstMeaningfulValue(lead.campaign, lead.adsCampain);
   const budget = getFirstMeaningfulValue(
+    lead.estimatedBudget,
     lead.maximumBudget,
     lead.maximunBudget,
     lead.maxinumBudget,
@@ -411,10 +320,10 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
     assignedAgentName: getBackendAdvisorName(lead),
     name: getBackendLeadName(lead),
     phone: lead.phone || "",
+    estimatedBudget: lead.estimatedBudget == null || lead.estimatedBudget === "" ? undefined : Number(lead.estimatedBudget),
+    operation: lead.operation,
     email: lead.email || undefined,
-    status: getBackendLeadStatus(lead.status),
-    advisorStatus: normalizeTextValue(lead.status) || undefined,
-    systemStatus: getBackendLeadSystemStatus(lead.systemStatus),
+    status: normalizeTextValue(lead.status),
     statusSource: lead.statusSource || undefined,
     statusReason: lead.statusReason || undefined,
     statusUntil: normalizeOptionalDate(lead.statusUntil),
@@ -468,18 +377,6 @@ export function mapBackendFollowUpToLeadFollowUp(
       : undefined,
   };
 }
-export async function getBackendLeadRecords(
-  token?: string | null,
-  options: GetBackendLeadRecordsOptions = {},
-): Promise<PropertyLead[]> {
-  const query = options.includeFollowUps ? "?includeFollowUps=true" : "";
-  const leads = await coreApi<BackendLead[]>(`/leads/lead${query}`, {
-    token: token ?? undefined,
-  });
-
-  return leads.map(mapBackendLeadToPropertyLead);
-}
-
 export async function getBackendLeadV2Records(
   token?: string | null,
 ): Promise<PropertyLead[]> {
@@ -693,20 +590,6 @@ export async function createBackendLeadV2Following(
   );
 }
 
-export async function getBackendLeadFollowUps(
-  leadId: string,
-  token?: string | null,
-): Promise<LeadFollowUp[]> {
-  const followUps = await coreApi<BackendFollowUp[]>(
-    `/leads/lead/${leadId}/getFollows`,
-    {
-      token: token ?? undefined,
-    },
-  );
-
-  return followUps.map(mapBackendFollowUpToLeadFollowUp);
-}
-
 function mapBackendLeadV2Following(
   following: BackendLeadV2Following,
 ): BackendLeadV2FollowingRecord {
@@ -726,72 +609,4 @@ function mapBackendLeadV2Following(
       ? normalizeDate(following.updatedAt)
       : undefined,
   };
-}
-
-export async function createBackendLeadFollowUp(
-  leadId: string,
-  payload: CreateBackendLeadFollowUpPayload,
-  token?: string | null,
-): Promise<LeadFollowUp> {
-  const followUp = await coreApi<BackendFollowUp>(
-    `/leads/lead/${leadId}/followup`,
-    {
-      method: "POST",
-      token: token ?? undefined,
-      body: payload,
-    },
-  );
-
-  return mapBackendFollowUpToLeadFollowUp(followUp);
-}
-
-function applyLeadOverlays(lead: PropertyLead): PropertyLead {
-  return {
-    ...lead,
-    followUps: followUpsStore.get(lead.id) ?? lead.followUps ?? [],
-  };
-}
-
-export function getLeadRecords(baseLeads: PropertyLead[] = []): PropertyLead[] {
-  const createdLeads = Array.from(createdLeadsStore.values());
-  const createdIds = new Set(createdLeads.map((lead) => lead.id));
-
-  return [
-    ...createdLeads.map(applyLeadOverlays),
-    ...baseLeads
-      .filter((lead) => !createdIds.has(lead.id))
-      .map(applyLeadOverlays),
-  ];
-}
-
-export function getLeadAgents(): User[] {
-  return [];
-}
-
-export function getLeadAgentById(agentId?: string | null): User | null {
-  if (!agentId) {
-    return null;
-  }
-
-  return null;
-}
-
-export function createLeadRecord(lead: PropertyLead) {
-  createdLeadsStore.set(lead.id, lead);
-  return lead;
-}
-
-export function getLeadRecordById(id: string, baseLeads: PropertyLead[] = []) {
-  return getLeadRecords(baseLeads).find((lead) => lead.id === id);
-}
-
-export function saveLeadFollowUps(leadId: string, followUps: LeadFollowUp[]) {
-  followUpsStore.set(leadId, followUps);
-
-  const createdLead = createdLeadsStore.get(leadId);
-  if (createdLead) {
-    createdLeadsStore.set(leadId, { ...createdLead, followUps });
-  }
-
-  return followUps;
 }

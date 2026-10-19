@@ -13,12 +13,13 @@ import {
   type DuplicateLeadCandidate,
   type SelectedGoogleCalendar,
 } from "@/lib/api";
-import type { Property, PropertyLead } from "@/lib/types";
+import type { LeadSearchIntent, Property, PropertyLead } from "@/lib/types";
 import type { AppCapabilities } from "@/modules/settings";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
 import { useDashboardCalendar } from "./userDashboardCalendar";
 import { useDashboardLeads } from "./userDashboardLeads";
 import { useDashboardProperties } from "./userDashboardProperties";
+import { LEAD_TRACKING_STATUSES } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import {
   findCalendarForAppointmentType,
   getAppointmentTypeConfig,
@@ -106,6 +107,7 @@ export function useAppointmentCreateFlow({
         null,
     }));
     calendar.changeAppointmentLeadMode("existing");
+    calendar.updateProvisionalAppointmentLead("status", "LEAD NUEVO");
     calendar.setAppointmentSelectionScreen(null);
     void calendar.loadGoogleCalendarSettings();
   }, [
@@ -163,6 +165,7 @@ export function useAppointmentCreateFlow({
     if (!authToken) return;
 
     setIsCreatingAppointment(true);
+    
     try {
       const response = await createGoogleCalendarDate(authToken, payload);
       setDuplicateCheck(null);
@@ -245,6 +248,12 @@ export function useAppointmentCreateFlow({
       ? normalizedAppointmentType
       : undefined;
     const appointmentTypeConfig = getAppointmentTypeConfig(appointmentType);
+    const leadOperation: LeadSearchIntent =
+      appointmentType === "renta"
+        ? "rent"
+        : appointmentType === "venta"
+          ? "sale"
+          : calendar.provisionalAppointmentLead.operation;
 
     const subdivision = appointmentTypeConfig.subdivisionTypes?.find(
       (option) => option.value === form.subtypeCalendar,
@@ -281,6 +290,7 @@ export function useAppointmentCreateFlow({
         "Selecciona mercado abierto o desarrollos.",
       );
     }
+
     if (
       effectiveConfig.lead === "required" &&
       calendar.appointmentLeadMode === "existing" &&
@@ -290,6 +300,7 @@ export function useAppointmentCreateFlow({
         "Falta lead",
         "Selecciona el lead al que se le agendara la cita.",
       );
+
     if (
       effectiveConfig.lead === "required" &&
       calendar.appointmentLeadMode === "provisional" &&
@@ -299,6 +310,11 @@ export function useAppointmentCreateFlow({
         "Falta nombre",
         "Escribe el nombre del lead provisional para crear la cita.",
       );
+
+    if (acceptsLead && calendar.appointmentLeadMode === "provisional" &&
+      !(LEAD_TRACKING_STATUSES as readonly string[]).includes(calendar.provisionalAppointmentLead.status)) {
+      return Alert.alert("Falta estatus", "Selecciona un estatus valido para el nuevo lead.");
+    }
     const canResolveCalendarByType =
       appointmentTypeConfig.calendarSelection !== "manual" &&
       appointmentType !== undefined &&
@@ -308,6 +324,7 @@ export function useAppointmentCreateFlow({
           appointmentType,
         ),
       );
+
     if (!form.calendarId && !canResolveCalendarByType)
       return Alert.alert(
         "Falta calendario",
@@ -337,6 +354,8 @@ export function useAppointmentCreateFlow({
               fullName: calendar.provisionalAppointmentLead.fullName.trim(),
               phone: calendar.provisionalAppointmentLead.phone.trim() || null,
               email: calendar.provisionalAppointmentLead.email.trim() || null,
+              status: calendar.provisionalAppointmentLead.status,
+              operation: leadOperation,
             },
           }
         : { ...base, lead: null };

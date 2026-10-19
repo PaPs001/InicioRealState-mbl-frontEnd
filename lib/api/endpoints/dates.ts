@@ -1,332 +1,359 @@
-import { coreApi } from '../client'
-import type { AppointmentType } from '@/lib/config/appointment-Types'
-import type { AppointmentSubdivision } from '@/lib/config/appointment-Types'
-export type { AppointmentType } from '@/lib/config/appointment-Types'
+import { coreApi } from "../client";
+import type { LeadSearchIntent } from "@/lib/types";
+import type { AppointmentType } from "@/lib/config/appointment-Types";
+import type { AppointmentSubdivision } from "@/lib/config/appointment-Types";
+import type { LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
+export type { AppointmentType } from "@/lib/config/appointment-Types";
 
 export interface GoogleCalendarDateTime {
-  date?: string
-  dateTime?: string
-  timeZone?: string
+  date?: string;
+  dateTime?: string;
+  timeZone?: string;
 }
 export interface GoogleCalendarDateLead {
-  leadId?: string | null
-  name?: string | null
-  phone?: string | null
-  email?: string | null
-  deleted?: boolean
+  leadId?: string | null;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  deleted?: boolean;
 }
 
 export interface GoogleCalendarDateLeadSnapshot {
-  fullName?: string | null
-  phone?: string | null
-  email?: string | null
-  deletedAt?: string | Date | null
+  fullName?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  deletedAt?: string | Date | null;
 }
 
 export interface GoogleCalendarDateProperty {
-  propertyId: string
-  name?: string | null
-  location?: string | null
-  price?: string | null
+  propertyId: string;
+  name?: string | null;
+  location?: string | null;
+  price?: string | null;
 }
 
 export interface GoogleCalendarDateUser {
-  userId: string
-  name?: string | null
-  phone?: string | null
-  email?: string | null
+  userId: string;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
 }
 
 export interface GoogleCalendarDate {
-  _id?: string
-  title?: string | null
-  description?: string | null
-  location?: string | null
-  helpedBy?: string | null
-  externalAdvisorName?: string | null
-  appointmentType?: string | null
-  leadId?: string | null
-  propertyId?: string | null
-  advisorId?: string | null
-  property?: GoogleCalendarDateProperty | null
-  advisor?: GoogleCalendarDateUser | null
-  startDateTime?: string | null
-  endDateTime?: string | null
-  timeZone?: string | null
-  status?: string | null
-  source?: string | null
-  syncStatus?: string | null
-  googleCalendarId?: string | null
-  googleEventId?: string | null
-  googleHtmlLink?: string | null
-  lead?: GoogleCalendarDateLead | null
-  leadSnapshot?: GoogleCalendarDateLeadSnapshot | null
-  createdBy?: string | null
-  updatedBy?: string | null
-  createdByUser?: GoogleCalendarDateUser | null
-  updatedByUser?: GoogleCalendarDateUser | null
-  subtypeCalendar?: string | null
+  _id?: string;
+  title?: string | null;
+  description?: string | null;
+  location?: string | null;
+  helpedBy?: string | null;
+  externalAdvisorName?: string | null;
+  appointmentType?: string | null;
+  leadId?: string | null;
+  propertyId?: string | null;
+  advisorId?: string | null;
+  property?: GoogleCalendarDateProperty | null;
+  advisor?: GoogleCalendarDateUser | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  timeZone?: string | null;
+  status?: string | null;
+  source?: string | null;
+  syncStatus?: string | null;
+  googleCalendarId?: string | null;
+  googleEventId?: string | null;
+  googleHtmlLink?: string | null;
+  lead?: GoogleCalendarDateLead | null;
+  leadSnapshot?: GoogleCalendarDateLeadSnapshot | null;
+  createdBy?: string | null;
+  updatedBy?: string | null;
+  createdByUser?: GoogleCalendarDateUser | null;
+  updatedByUser?: GoogleCalendarDateUser | null;
+  subtypeCalendar?: string | null;
 }
 
 export interface GoogleCalendarDateFilters {
-  startDateTime?: string
-  endDateTime?: string
-  appointmentType?: string
-  advisorId?: string
-  leadId?: string
-  propertyId?: string
-  status?: string
-  sync?: boolean
+  startDateTime?: string;
+  endDateTime?: string;
+  appointmentType?: string;
+  advisorId?: string;
+  leadId?: string;
+  propertyId?: string;
+  status?: string;
+  sync?: boolean;
 }
 
 export interface CreateGoogleCalendarDatePayload {
-  externalAdvisorName?: string | null
-  title: string
-  startDateTime: string
-  endDateTime: string
-  description?: string | null
-  location?: string | null
-  timeZone?: string | null
-  calendarId?: string | null
-  helpedBy?: string | null
-  leadId?: string | null
-  propertyId?: string | null
-  advisorId?: string | null
-  appointmentType?: string | null
-  colorId?: string | null
-  createLead?: boolean
-  confirmDuplicate?: boolean
+  externalAdvisorName?: string | null;
+  title: string;
+  startDateTime: string;
+  endDateTime: string;
+  description?: string | null;
+  location?: string | null;
+  timeZone?: string | null;
+  calendarId?: string | null;
+  helpedBy?: string | null;
+  leadId?: string | null;
+  propertyId?: string | null;
+  advisorId?: string | null;
+  appointmentType?: string | null;
+  colorId?: string | null;
+  createLead?: boolean;
+  confirmDuplicate?: boolean;
   lead?: {
-    fullName: string
-    phone?: string | null
-    email?: string | null
-  } | null
-  subtypeCalendar?: AppointmentSubdivision | null
+    fullName: string;
+    phone?: string | null;
+    email?: string | null;
+    status: LeadTrackingStatus;
+    operation: LeadSearchIntent;
+  } | null;
+  subtypeCalendar?: AppointmentSubdivision | null;
 }
 
 export interface DuplicateLeadCandidate {
-  id?: string | null
-  fullName?: string | null
-  client?: string | null
-  phone?: string | null
-  email?: string | null
-  systemStatus?: string | null
-  status?: string | null
-  createdAt?: string | Date | null
-  followUpCount: number
-  lastFollowUpAt: string | Date | null
-  nameMatch: 'exact' | 'partial'
-  phoneMatch: boolean
-  emailMatch: boolean
-  strength: 'strong' | 'possible'
+  id?: string | null;
+  fullName?: string | null;
+  client?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  systemStatus?: string | null;
+  status?: string | null;
+  createdAt?: string | Date | null;
+  followUpCount: number;
+  lastFollowUpAt: string | Date | null;
+  nameMatch: "exact" | "partial";
+  phoneMatch: boolean;
+  emailMatch: boolean;
+  strength: "strong" | "possible";
 }
 
 export interface DuplicateCheckResult {
   window: {
-    from: string | Date
-    to: string | Date
-  }
-  requiresConfirmation: boolean
-  candidates: DuplicateLeadCandidate[]
+    from: string | Date;
+    to: string | Date;
+  };
+  requiresConfirmation: boolean;
+  candidates: DuplicateLeadCandidate[];
 }
 
 export type UpdateGoogleCalendarDatePayload = {
-  subtypeCalendar?: string | null
-  title?: string,
-  description?: string,
-  location?: string | null,
-  startDateTime?: string,
-  endDateTime?: string,
-  timeZone?: string,
-  appointmentType?: AppointmentType,
-  calendarId?: string,
-  colorId?: string | null
-  leadId?: string | null
-  propertyId?: string | null
-  advisorId?: string | null
-  externalAdvisorName?: string | null
-  helpedBy?: string | null
-}
+  subtypeCalendar?: string | null;
+  title?: string;
+  description?: string;
+  location?: string | null;
+  startDateTime?: string;
+  endDateTime?: string;
+  timeZone?: string;
+  appointmentType?: AppointmentType;
+  calendarId?: string;
+  colorId?: string | null;
+  leadId?: string | null;
+  propertyId?: string | null;
+  advisorId?: string | null;
+  externalAdvisorName?: string | null;
+  helpedBy?: string | null;
+};
 
 export interface GoogleCalendarDateLeadSummary {
-  _id?: string
-  id?: string | null
-  fullName?: string | null
-  client?: string | null
-  name?: string | null
-  phone?: string | null
-  email?: string | null
-  agentId?: string | null
-  propertyOfInterestId?: string | null
-  systemStatus?: string | null
-  status?: string | null
-  createdAt?: string | Date | null
-  updatedAt?: string | Date | null
+  _id?: string;
+  id?: string | null;
+  fullName?: string | null;
+  client?: string | null;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  agentId?: string | null;
+  propertyOfInterestId?: string | null;
+  systemStatus?: string | null;
+  status?: string | null;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
 }
 
 export interface CreateGoogleCalendarDateResponse {
-  date: GoogleCalendarDate
-  lead: GoogleCalendarDateLeadSummary | null
+  date: GoogleCalendarDate;
+  lead: GoogleCalendarDateLeadSummary | null;
   leadResolution: {
-    mode: 'existing' | 'created' | 'none'
-    provisional: boolean
-  }
+    mode: "existing" | "created" | "none";
+    provisional: boolean;
+  };
 }
 
 export interface GoogleCalendarOption {
-  calendarId?: string
-  summary?: string
-  accessRole?: string
-  backgroundColor?: string
-  primary?: boolean
+  calendarId?: string;
+  summary?: string;
+  accessRole?: string;
+  backgroundColor?: string;
+  primary?: boolean;
 }
 
 export interface SelectedGoogleCalendar {
-  calendarId: string
-  summary?: string
-  enabled?: boolean
-  appointmentType?: AppointmentType
-  colorId?: string | null
-  primaryForCreate?: boolean
+  calendarId: string;
+  summary?: string;
+  enabled?: boolean;
+  appointmentType?: AppointmentType;
+  colorId?: string | null;
+  primaryForCreate?: boolean;
 }
 
 export interface GoogleTask {
-  id?: string
-  title?: string
-  notes?: string
-  status?: string
-  due?: string
-  completed?: string
-  updated?: string
+  id?: string;
+  title?: string;
+  notes?: string;
+  status?: string;
+  due?: string;
+  completed?: string;
+  updated?: string;
 }
 
 export interface GoogleTaskList {
-  id?: string
-  title?: string
-  tasks?: GoogleTask[]
+  id?: string;
+  title?: string;
+  tasks?: GoogleTask[];
 }
 
 export interface GoogleCalendarAuthUrlResponse {
-  url: string
+  url: string;
 }
 
 export interface GoogleCalendarDisconnectResponse {
-  disconnected: boolean
+  disconnected: boolean;
 }
 
 export interface GoogleCalendarSyncResponse {
-  calendarsProcessed: number
-  created: number
-  updated: number
-  conflicts: number
-  skipped: number
+  calendarsProcessed: number;
+  created: number;
+  updated: number;
+  conflicts: number;
+  skipped: number;
 }
 
 export interface GoogleCalendarConnectionStatus {
-  status: 'connected' | 'disconnected' | 'requires_reconnect'
-  connected: boolean
-  selectedCalendarsCount: number
-  enabledCalendarsCount: number
+  status: "connected" | "disconnected" | "requires_reconnect";
+  connected: boolean;
+  selectedCalendarsCount: number;
+  enabledCalendarsCount: number;
 }
 
 function buildQuery(params: object) {
-  const query = Object.entries(params as Record<string, string | boolean | undefined>)
+  const query = Object.entries(
+    params as Record<string, string | boolean | undefined>,
+  )
     .filter(([, value]) => value !== undefined)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-    .join('&')
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+    )
+    .join("&");
 
-  return query ? `?${query}` : ''
+  return query ? `?${query}` : "";
 }
 
-export function getGoogleCalendarDates(token?: string | null, filters: GoogleCalendarDateFilters = {}) {
-  const query = buildQuery(filters)
+export function getGoogleCalendarDates(
+  token?: string | null,
+  filters: GoogleCalendarDateFilters = {},
+) {
+  const query = buildQuery(filters);
 
   return coreApi<GoogleCalendarDate[]>(`/dates/dates${query}`, {
     token: token ?? undefined,
-  })
+  });
 }
 
-export function createGoogleCalendarDate(token: string | null | undefined, payload: CreateGoogleCalendarDatePayload) {
+export function createGoogleCalendarDate(
+  token: string | null | undefined,
+  payload: CreateGoogleCalendarDatePayload,
+) {
   // TEMP: revisar los datos enviados al crear una cita.
-  return coreApi<CreateGoogleCalendarDateResponse>('/dates/dates', {
-    method: 'POST',
+  return coreApi<CreateGoogleCalendarDateResponse>("/dates/dates", {
+    method: "POST",
     token: token ?? undefined,
     body: payload,
-  })
+  });
 }
 
-export function deleteGoogleCalendarDate(token: string | null | undefined, dateId: string) {
-  return coreApi<GoogleCalendarDate>(`/dates/dates/${encodeURIComponent(dateId)}`, {
-    method: 'DELETE',
-    token: token ?? undefined,
-  })
+export function deleteGoogleCalendarDate(
+  token: string | null | undefined,
+  dateId: string,
+) {
+  return coreApi<GoogleCalendarDate>(
+    `/dates/dates/${encodeURIComponent(dateId)}`,
+    {
+      method: "DELETE",
+      token: token ?? undefined,
+    },
+  );
 }
 
 export function updateGoogleCalendarDate(
   token: string | null | undefined,
   dateId: string,
-  payload: UpdateGoogleCalendarDatePayload
+  payload: UpdateGoogleCalendarDatePayload,
 ) {
   return coreApi<GoogleCalendarDate>(
     `/dates/dates/${encodeURIComponent(dateId)}`,
     {
-      method: 'PATCH',
+      method: "PATCH",
       token: token ?? undefined,
-      body: payload
-    }
-  )
+      body: payload,
+    },
+  );
 }
 
 export function getGoogleCalendars(token?: string | null) {
-  return coreApi<GoogleCalendarOption[]>('/dates/google/calendars', {
+  return coreApi<GoogleCalendarOption[]>("/dates/google/calendars", {
     token: token ?? undefined,
-  })
+  });
 }
 
 export function getSelectedGoogleCalendars(token?: string | null) {
-  return coreApi<SelectedGoogleCalendar[]>('/dates/google/selected-calendars', {
+  return coreApi<SelectedGoogleCalendar[]>("/dates/google/selected-calendars", {
     token: token ?? undefined,
-  })
+  });
 }
 
-export function saveSelectedGoogleCalendars(token: string | null | undefined, calendars: SelectedGoogleCalendar[]) {
-  return coreApi<SelectedGoogleCalendar[]>('/dates/google/selected-calendars', {
-    method: 'PUT',
+export function saveSelectedGoogleCalendars(
+  token: string | null | undefined,
+  calendars: SelectedGoogleCalendar[],
+) {
+  return coreApi<SelectedGoogleCalendar[]>("/dates/google/selected-calendars", {
+    method: "PUT",
     token: token ?? undefined,
     body: { calendars },
-  })
+  });
 }
 
 export function syncGoogleCalendars(token?: string | null) {
-  return coreApi<GoogleCalendarSyncResponse>('/dates/google/sync', {
-    method: 'POST',
+  return coreApi<GoogleCalendarSyncResponse>("/dates/google/sync", {
+    method: "POST",
     token: token ?? undefined,
-  })
+  });
 }
 
 export function getGoogleCalendarConnectionStatus(token?: string | null) {
-  return coreApi<GoogleCalendarConnectionStatus>('/dates/auth/google/status', {
+  return coreApi<GoogleCalendarConnectionStatus>("/dates/auth/google/status", {
     token: token ?? undefined,
-  })
+  });
 }
 
 export function getGoogleCalendarTasks(token?: string | null) {
-  return coreApi<GoogleTaskList[]>('/dates/tasks', {
+  return coreApi<GoogleTaskList[]>("/dates/tasks", {
     token: token ?? undefined,
-  })
+  });
 }
 
 export function disconnectGoogleCalendar(token?: string | null) {
-  return coreApi<GoogleCalendarDisconnectResponse>('/dates/auth/google', {
-    method: 'DELETE',
+  return coreApi<GoogleCalendarDisconnectResponse>("/dates/auth/google", {
+    method: "DELETE",
     token: token ?? undefined,
-  })
+  });
 }
 
-export function getGoogleCalendarAuthUrl(token?: string | null, returnTo?: string) {
-  const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''
+export function getGoogleCalendarAuthUrl(
+  token?: string | null,
+  returnTo?: string,
+) {
+  const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
 
   return coreApi<GoogleCalendarAuthUrlResponse>(`/dates/auth/google${query}`, {
     token: token ?? undefined,
-  })
+  });
 }

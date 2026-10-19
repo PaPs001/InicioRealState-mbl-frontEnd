@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import type { ReactNode } from "react";
 import {
   Modal,
@@ -150,15 +151,15 @@ const styles = StyleSheet.create({
   },
   pdfOptionsTitle: {
     color: "#0c6740",
-    fontSize: 18,
-    lineHeight: 23,
+    fontSize: textSize.titleSmall,
+    lineHeight: platformLineHeight(23),
     fontWeight: "600",
   },
   pdfOptionsMeta: {
     marginTop: 2,
     color: "#717171",
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
   },
   pdfOptionsScroll: { 
     paddingBottom: 2 
@@ -168,8 +169,8 @@ const styles = StyleSheet.create({
   },
   pdfFieldLabel: {
     color: "#3D5A40",
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     fontWeight: "600",
   },
   pdfChipWrap: { 
@@ -194,8 +195,8 @@ const styles = StyleSheet.create({
   },
   pdfChipText: {
     color: "#505050",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     fontWeight: "500",
   },
   pdfChipTextActive: { 
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
   },
   pdfCancelButtonText: { 
     color: "#505050", 
-    fontSize: 12, 
+    fontSize: textSize.caption, 
     fontWeight: "600" 
   },
   pdfGenerateButton: {
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
   },
   pdfGenerateButtonText: { 
     color: "#ffffff", 
-    fontSize: 12, 
+    fontSize: textSize.caption, 
     fontWeight: "600"
   },
 });

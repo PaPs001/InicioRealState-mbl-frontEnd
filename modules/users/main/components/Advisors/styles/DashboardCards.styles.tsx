@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from "react-native";
 import { borderColor, generalColors } from "@/theme";
 
@@ -28,21 +29,21 @@ export const styles = StyleSheet.create({
   priorityValue: {
     color: "#ffffff",
     fontFamily: numberFont,
-    fontSize: 27,
-    lineHeight: 29,
+    fontSize: appFontScale[27],
+    lineHeight: platformLineHeight(29),
   },
   priorityValueGold: {
     color: "#d4b66f",
   },
   priorityLabel: {
     color: "#ffffff",
-    fontSize: 10,
-    lineHeight: 10,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(10),
     textAlign: "center",
   },
   appointmentTitle: {
     color: generalColors.white,
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "700",
   },
   dayPill: {
@@ -61,13 +62,13 @@ export const styles = StyleSheet.create({
   },
   appointmentDay: {
     color: "#ffffff",
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: "700",
     flex: 1,
   },
   appointmentTime: {
     color: "#fff",
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     marginTop: 2,
     textAlign: "center",
   },
@@ -122,14 +123,14 @@ export const styles = StyleSheet.create({
   metricValue: {
     color: "#2a2d31",
     fontFamily: numberFont,
-    fontSize: 28,
-    lineHeight: 32,
+    fontSize: appFontScale[28],
+    lineHeight: platformLineHeight(32),
   },
   metricLabel: {
     color: "#7b8780",
-    fontSize: 9,
+    fontSize: textSize.micro,
     textAlign: "center",
-    lineHeight: 11,
+    lineHeight: platformLineHeight(11),
   },
   funnelItem: {
     flex: 1,
@@ -139,13 +140,13 @@ export const styles = StyleSheet.create({
   funnelValue: {
     color: "#2a2d31",
     fontFamily: numberFont,
-    fontSize: 20,
+    fontSize: textSize.title,
   },
   funnelLabel: {
     color: "#7b8780",
-    fontSize: 8,
+    fontSize: textSize.tiny,
     textAlign: "center",
-    lineHeight: 10,
+    lineHeight: platformLineHeight(10),
   },
   alertRow: {
     height: 36,
@@ -162,7 +163,7 @@ export const styles = StyleSheet.create({
   alertText: {
     flex: 1,
     color: "#4d4747",
-    fontSize: 12,
+    fontSize: textSize.caption,
   },
 
   detailRow: {
@@ -221,28 +222,28 @@ export const styles = StyleSheet.create({
   },
 
   detailTitle: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     flexShrink: 1,
     color: "#d4b66f",
   },
   titleDetailText: {
-    fontSize: 9,
+    fontSize: textSize.micro,
     flexShrink: 1,
     color: generalColors.white,
     fontWeight: "600",
     flex: 1,
   },
   subtitleDetailText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     color: generalColors.white,
   },
   titleAdviserText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     color: generalColors.white,
     fontWeight: "600",
   },
   adviserNameText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     color: generalColors.white,
     fontWeight: "700",
   },
@@ -285,8 +286,8 @@ export const styles = StyleSheet.create({
     gap: 3,
   },
   appointmentTypeText: {
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(14),
     color: generalColors.white,
   },
   appointmentTypeRent: {
@@ -307,8 +308,8 @@ export const styles = StyleSheet.create({
 
   googleCalendarEmptyText: {
     color: generalColors.white,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(14),
   },
 
   rightSection: {

@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -54,9 +55,9 @@ export const registerOwnerAccessStyles = StyleSheet.create({
   },
   progressLabel: {
     color: '#e4ac73',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: platformLineHeight(17),
   },
   progressTrack: {
     flex: 1,
@@ -78,16 +79,16 @@ export const registerOwnerAccessStyles = StyleSheet.create({
     width: '100%',
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 40,
+    fontSize: textSize.display,
     fontWeight: '700',
-    lineHeight: 50,
+    lineHeight: platformLineHeight(50),
   },
   subtitle: {
     width: '100%',
     marginTop: 4,
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.65,
     paddingRight: 24,
   },
@@ -118,7 +119,7 @@ export const registerOwnerAccessStyles = StyleSheet.create({
     height: 54,
     paddingVertical: 0,
     color: '#1e2d29',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '600',
   },
   passwordInput: {
@@ -146,16 +147,16 @@ export const registerOwnerAccessStyles = StyleSheet.create({
   infoText: {
     flex: 1,
     color: '#1e2d29',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
-    lineHeight: 19,
+    lineHeight: platformLineHeight(19),
   },
   errorText: {
     width: 341,
     marginTop: -22,
     color: '#b42318',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: 'center',
   },
   continueButton: {
@@ -174,8 +175,8 @@ export const registerOwnerAccessStyles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#ffffff',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
     textAlign: 'center',
   },
   continueButtonIcon: {

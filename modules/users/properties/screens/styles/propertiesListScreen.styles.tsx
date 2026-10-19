@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -20,15 +21,15 @@ export const styles = StyleSheet.create({
   title: {
     marginTop: 16,
     color: '#3D5A40',
-    fontSize: 26,
-    lineHeight: 31,
+    fontSize: appFontScale[26],
+    lineHeight: platformLineHeight(31),
     fontWeight: '600',
   },
   subtitle: {
     marginTop: 4,
     color: '#717171',
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(19),
   },
   options: {
     marginTop: 30,
@@ -65,14 +66,14 @@ export const styles = StyleSheet.create({
   },
   optionTitle: {
     color: '#0c6740',
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(21),
     fontWeight: '600',
   },
   optionDescription: {
     marginTop: 3,
     color: '#717171',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
   },
 })

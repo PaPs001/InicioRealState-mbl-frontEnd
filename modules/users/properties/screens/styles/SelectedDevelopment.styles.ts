@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { generalColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -182,50 +183,50 @@ export const styles = StyleSheet.create({
 
   //// textos
   titleDevelopment: {
-    fontSize: 40,
+    fontSize: textSize.display,
     color: generalColors.black,
     fontWeight: "900",
     flexShrink: 1,
   },
   titleSections: {
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     color: generalColors.development,
   },
   ubicationText: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: "600",
   },
   descriptionText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     textAlign: "left",
   },
   galleryText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   nameModelText: {
-    fontSize: 11,
+    fontSize: textSize.label,
   },
   priceModelText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   typeText:{
-    fontSize: 8,
+    fontSize: textSize.tiny,
   },
   amenitieText:{
-    fontSize: 9,
+    fontSize: textSize.micro,
     textAlign: 'center',
   },
   contentText:{
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   contentNumberText:{
-    fontSize: 12
+    fontSize: textSize.caption
   },
   addedText:{
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: generalColors.development,
   },
   amenitieObjectText:{
-    fontSize: 10
+    fontSize: textSize.captionSmall
   },
 });

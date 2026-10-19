@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import {
   Modal,
   Text,
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersButtonText: {
     color: "#505050",
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "600",
   },
   closeFiltersButton: {
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   },
   closeFiltersButtonText: {
     color: "#ffffff",
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "700",
   },
   filterScrollOptions: {},
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "#969696",
     color: "#19191f",
-    fontSize: 12,
+    fontSize: textSize.caption,
     paddingHorizontal: 10,
   },
   filterPriceRow: {
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
   },
   applyFiltersButtonText: {
     color: "#ffffff",
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "600",
   },
 
@@ -408,8 +409,8 @@ const styles = StyleSheet.create({
   },
   filterValueChipText: {
     color: "#505050",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     fontWeight: "500",
   },
   filterValueChipTextActive: {
@@ -455,8 +456,8 @@ const styles = StyleSheet.create({
   },
   sortOptionText: {
     color: '#505050',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
     fontWeight: '600',
     textAlign: 'center',
   },

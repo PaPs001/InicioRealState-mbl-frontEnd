@@ -25,7 +25,7 @@ export async function signInWithCredentials(
   if (!token || !user) {
     debugLog?.({
       level: 'error',
-      message: 'El login termino sin una sesion usable para guardar en el telefono.',
+      message: 'El login termino sin una sesion usable. Si hubo HTTP 2xx, el contrato recibido no coincide con lo que espera el frontend (token y usuario); compara ambos antes de atribuir el error.',
       details: {
         success: loginResponse.success,
         message: loginResponse.message,
@@ -47,7 +47,7 @@ export async function signInWithCredentials(
       role: user.systemRole,
       investment: user.investment,
       tenant: user.tenant,
-      tokenPreview: token.slice(0, 12),
+      hasToken: !!token,
       hasRefreshToken: !!refreshToken,
     },
   })
@@ -55,7 +55,7 @@ export async function signInWithCredentials(
   console.info('[auth][login-session][frontend]', {
     emailAttempt: email.trim().toLowerCase(),
     user,
-    tokenPreview: token.slice(0, 16),
+    hasToken: !!token,
     hasRefreshToken: !!refreshToken,
   })
 

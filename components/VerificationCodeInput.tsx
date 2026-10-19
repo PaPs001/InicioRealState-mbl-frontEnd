@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import {
   forwardRef,
   useImperativeHandle,
@@ -166,9 +167,9 @@ const styles = StyleSheet.create({
   },
   boxText: {
     color: '#697b74',
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     fontWeight: '600',
-    lineHeight: 23,
+    lineHeight: platformLineHeight(23),
   },
   activeBox: {
     borderColor: '#c2824b',

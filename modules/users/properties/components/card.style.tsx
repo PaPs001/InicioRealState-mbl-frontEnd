@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -15,16 +16,16 @@ export const styles = StyleSheet.create({
   pdfWorkTitle: {
     marginTop: 18,
     color: '#0c6740',
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: textSize.titleSmall,
+    lineHeight: platformLineHeight(24),
     fontWeight: '600',
     textAlign: 'center',
   },
   pdfWorkText: {
     marginTop: 8,
     color: '#717171',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     textAlign: 'center',
   },
   listContent: {
@@ -52,8 +53,8 @@ export const styles = StyleSheet.create({
     left: 63,
     top: 32,
     color: '#3D5A40',
-    fontSize: 23,
-    lineHeight: 25,
+    fontSize: appFontScale[23],
+    lineHeight: platformLineHeight(25),
     fontWeight: '500',
   },
   subtitle: {
@@ -61,7 +62,7 @@ export const styles = StyleSheet.create({
     left: 63,
     top: 57,
     color: '#afafaf',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
   },
   exportPanel: {
     position: 'absolute',
@@ -94,8 +95,8 @@ export const styles = StyleSheet.create({
   },
   exportButtonSecondaryText: {
     color: '#0c6740',
-    fontSize: 13,
-    lineHeight: 15,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(15),
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -117,16 +118,16 @@ export const styles = StyleSheet.create({
   },
   exportButtonPrimaryText: {
     color: '#ffffff',
-    fontSize: 13,
-    lineHeight: 15,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(15),
     textAlign: 'center',
     fontWeight: '500',
   },
   exportHint: {
     marginTop: 8,
     color: '#929594',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
     textAlign: 'center',
   },
   mapFloatingButton: {
@@ -152,8 +153,8 @@ export const styles = StyleSheet.create({
   },
   mapFloatingButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(22),
     fontWeight: '500',
   },
   controlsBlock: {
@@ -187,7 +188,7 @@ export const styles = StyleSheet.create({
   },
   filterChipText: {
     color: '#0c6740',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '600',
   },
   filterChipTextActive: {
@@ -209,7 +210,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: '#19191f',
-    fontSize: 12,
+    fontSize: textSize.caption,
     padding: 0,
   },
   controlsRow: {
@@ -233,7 +234,7 @@ export const styles = StyleSheet.create({
   toggleText: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 11,
+    fontSize: textSize.label,
     textAlign: 'center',
   },
   filterBadge: {
@@ -246,8 +247,8 @@ export const styles = StyleSheet.create({
   },
   filterBadgeText: {
     color: '#ffffff',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
   },
   listSeparator: {
     height: 8,
@@ -315,7 +316,7 @@ export const styles = StyleSheet.create({
   },
   clearFiltersButtonText: {
     color: '#505050',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
   },
   closeFiltersButton: {
@@ -329,20 +330,20 @@ export const styles = StyleSheet.create({
   },
   closeFiltersButtonText: {
     color: '#ffffff',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   pdfOptionsTitle: {
     color: '#0c6740',
-    fontSize: 18,
-    lineHeight: 23,
+    fontSize: textSize.titleSmall,
+    lineHeight: platformLineHeight(23),
     fontWeight: '600',
   },
   pdfOptionsMeta: {
     marginTop: 2,
     color: '#717171',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
   },
   pdfOptionsScroll: {
     paddingBottom: 2,
@@ -352,8 +353,8 @@ export const styles = StyleSheet.create({
   },
   pdfFieldLabel: {
     color: '#3D5A40',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     fontWeight: '600',
   },
   pdfChipWrap: {
@@ -378,8 +379,8 @@ export const styles = StyleSheet.create({
   },
   pdfChipText: {
     color: '#505050',
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     fontWeight: '500',
   },
   pdfChipTextActive: {
@@ -392,7 +393,7 @@ export const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#969696',
     color: '#19191f',
-    fontSize: 12,
+    fontSize: textSize.caption,
     paddingHorizontal: 10,
   },
   filterTextInput: {
@@ -402,7 +403,7 @@ export const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#969696',
     color: '#19191f',
-    fontSize: 12,
+    fontSize: textSize.caption,
     paddingHorizontal: 10,
   },
   filterPriceRow: {
@@ -440,8 +441,8 @@ export const styles = StyleSheet.create({
   },
   filterValueChipText: {
     color: '#505050',
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     fontWeight: '500',
   },
   filterValueChipTextActive: {
@@ -457,7 +458,7 @@ export const styles = StyleSheet.create({
   },
   applyFiltersButtonText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '600',
   },
   sortOptionsList: {
@@ -480,8 +481,8 @@ export const styles = StyleSheet.create({
   },
   sortOptionText: {
     color: '#505050',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -504,7 +505,7 @@ export const styles = StyleSheet.create({
   },
   pdfCancelButtonText: {
     color: '#505050',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '600',
   },
   pdfGenerateButton: {
@@ -517,7 +518,7 @@ export const styles = StyleSheet.create({
   },
   pdfGenerateButtonText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '600',
   },
   propertyCard: {
@@ -574,7 +575,7 @@ export const styles = StyleSheet.create({
   locationPillText: {
     flexShrink: 1,
     color: '#505050',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   availablePill: {
@@ -590,7 +591,7 @@ export const styles = StyleSheet.create({
   },
   availablePillText: {
     color: '#ffffff',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   selectionPill: {
@@ -612,7 +613,7 @@ export const styles = StyleSheet.create({
   },
   selectionPillText: {
     color: '#0c6740',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   selectionPillTextActive: {
@@ -627,15 +628,15 @@ export const styles = StyleSheet.create({
   },
   propertyTitle: {
     color: '#0c6740',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(16),
     fontWeight: '500',
   },
   propertyCode: {
     marginTop: 2,
     color: '#929594',
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(12),
   },
   priceRow: {
     marginTop: 5,
@@ -645,13 +646,13 @@ export const styles = StyleSheet.create({
   },
   price: {
     color: '#0c6740',
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(18),
     fontWeight: '400',
   },
   priceMeta: {
     color: '#c59b55',
-    fontSize: 9.5,
+    fontSize: appFontScale[9.5],
     marginBottom: 1,
   },
   rawDataBlock: {
@@ -660,8 +661,8 @@ export const styles = StyleSheet.create({
   },
   rawInfoText: {
     color: '#5f6462',
-    fontSize: 7,
-    lineHeight: 9,
+    fontSize: appFontScale[7],
+    lineHeight: platformLineHeight(9),
   },
   rawInfoLabel: {
     color: '#0c6740',
@@ -689,12 +690,12 @@ export const styles = StyleSheet.create({
   featureValue: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: '400',
   },
   featureLabel: {
     color: '#929594',
-    fontSize: 7,
+    fontSize: appFontScale[7],
   },
   featureDivider: {
     width: 0.5,
@@ -717,8 +718,8 @@ export const styles = StyleSheet.create({
   },
   amenityText: {
     color: '#929594',
-    fontSize: 6.5,
-    lineHeight: 8,
+    fontSize: appFontScale[6.5],
+    lineHeight: platformLineHeight(8),
     textAlign: 'center',
   },
   detailTagsRow: {
@@ -748,7 +749,7 @@ export const styles = StyleSheet.create({
   detailTagText: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 7,
+    fontSize: appFontScale[7],
   },
   detailTagTextWarm: {
     color: '#bd7600',
@@ -763,7 +764,7 @@ export const styles = StyleSheet.create({
   },
   detailLink: {
     color: '#0c6740',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '500',
   },
 })

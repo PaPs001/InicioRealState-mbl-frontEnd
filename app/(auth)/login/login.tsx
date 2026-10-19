@@ -17,7 +17,7 @@ import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 
 import { PasswordTextInput } from '@/app/(auth)/shared/PasswordTextInput'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
-import { API_BUILD_CONFIG, API_URLS, type ApiDebugLogEntry } from '@/lib/api/client'
+import { API_BUILD_CONFIG, API_URLS, sanitizeAuthLog, type ApiDebugLogEntry } from '@/lib/api/client'
 import { signInWithCredentials } from '@/lib/services/login-session'
 import { loginNewStyles } from './login.styles'
 
@@ -37,7 +37,7 @@ const createVisibleLoginLog = (entry: ApiDebugLogEntry): VisibleLoginLog => ({
 function formatLogDetails(details?: Record<string, unknown>) {
   if (!details) return null
 
-  return JSON.stringify(details, null, 2)
+  return JSON.stringify(sanitizeAuthLog(details), null, 2)
 }
 
 function getLogLevelStyle(level: ApiDebugLogEntry['level']) {
@@ -74,11 +74,13 @@ export default function LoginNewScreen() {
   const router = useRouter()
 
   const addLoginLog = (entry: ApiDebugLogEntry) => {
-    setLoginLogs((currentLogs) => [...currentLogs.slice(-11), createVisibleLoginLog(entry)])
+    setLoginLogs((currentLogs) => [...currentLogs.slice(-99), createVisibleLoginLog(entry)])
   }
 
   const handleLogin = async () => {
     if (isSubmitting) return
+    let stage: 'authentication' | 'storage' | 'navigation' = 'authentication'
+    const startedAt = Date.now()
 
     try {
       setIsSubmitting(true)
@@ -110,15 +112,29 @@ export default function LoginNewScreen() {
           hasRefreshToken: !!refreshToken,
         },
       })
+      stage = 'storage'
       await setAuthSession(user, token, refreshToken)
+      addLoginLog({ level: 'success', message: 'Frontend: usuario y sesion guardados correctamente en el telefono.' })
+      stage = 'navigation'
       const destination = getUserHomeRoute(user)
+      addLoginLog({
+        level: 'info',
+        message: 'Frontend: enviando al usuario a la pantalla correspondiente a su rol.',
+        details: { destination, systemRole: user.systemRole, roles: user.roles, durationMs: Date.now() - startedAt },
+      })
       router.replace(destination)
     } catch (error) {
       console.error('Error al iniciar sesion', error)
       addLoginLog({
         level: 'error',
-        message: 'El intento de login fallo antes de navegar. Este mensaje indica el punto final visible para depurar.',
+        message: stage === 'storage'
+          ? 'Fallo del frontend al guardar la sesion. El backend ya devolvio token y usuario; revisa almacenamiento y estado local.'
+          : stage === 'navigation'
+            ? 'Fallo del frontend al resolver o abrir la ruta. La autenticacion y el guardado local ya terminaron.'
+            : 'Fallo durante la autenticacion. Revisa arriba la respuesta HTTP, los errores de conexion y la comparacion del contrato para identificar el origen.',
         details: {
+          stage,
+          durationMs: Date.now() - startedAt,
           message: error instanceof Error ? error.message : 'No se pudo iniciar sesion',
           errorType: error instanceof Error ? error.name : typeof error,
         },
@@ -146,7 +162,7 @@ export default function LoginNewScreen() {
             <ImageBackground source={heroImage} style={loginNewStyles.heroImage} imageStyle={loginNewStyles.heroImageContent}>
               <TouchableOpacity
                 style={loginNewStyles.brandArc}
-                //onPress={() => setIsDebugPanelVisible((isVisible) => !isVisible)}
+                onPress={() => setIsDebugPanelVisible((isVisible) => !isVisible)}
                 activeOpacity={0.92}
                 accessibilityRole="button"
                 accessibilityLabel="Mostrar diagnostico de inicio de sesion"
@@ -240,6 +256,7 @@ export default function LoginNewScreen() {
             {isDebugPanelVisible ? (
               <View style={loginNewStyles.debugPanel}>
                 <Text style={loginNewStyles.debugTitle}>Diagnostico de inicio de sesion</Text>
+                <Text style={loginNewStyles.debugLogMessage}>Toca el logo otra vez para ocultar. Los registros se conservan aunque el panel este cerrado y se reinician en cada intento.</Text>
                 {loginLogs.map((log) => {
                   const details = formatLogDetails(log.details)
 
@@ -252,7 +269,7 @@ export default function LoginNewScreen() {
                         <Text style={loginNewStyles.debugLogTime}>{log.time}</Text>
                       </View>
                       <Text style={loginNewStyles.debugLogMessage}>{log.message}</Text>
-                      {details ? <Text style={loginNewStyles.debugLogDetails}>{details}</Text> : null}
+                      {details ? <Text selectable style={loginNewStyles.debugLogDetails}>{details}</Text> : null}
                     </View>
                   )
                 })}

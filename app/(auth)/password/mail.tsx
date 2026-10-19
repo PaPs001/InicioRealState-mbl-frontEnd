@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -144,7 +145,7 @@ export default function PasswordResetMailScreen() {
                 </View>
                 <Text style={{
                   flex: 1,
-                  fontSize: 13,
+                  fontSize: textSize.bodySmall,
                   flexShrink: 1,
 
                 }}
@@ -222,13 +223,13 @@ const styles = StyleSheet.create({
   },
   content: {},
   title: {
-    fontSize: 28,
+    fontSize: appFontScale[28],
     color: textColor.accentGolden,
     textAlign: "center",
     paddingBottom: 10,
   },
   subTitle: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: textColor.softText,
     fontWeight: "400",
     textAlign: "center",
@@ -255,8 +256,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#B42318",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     flex: 1,
   },
   buttonContent: {
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: textSize.body,
     color: generalColors.white,
   },
 });
