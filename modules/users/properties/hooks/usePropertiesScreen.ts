@@ -341,6 +341,8 @@ export function usePropertiesScreen() {
         await createAndOpenSinglePropertyPdf(authToken, {
           design: "modern",
           propertyId: resolvedPropertyId,
+          list: listingFilter === "sale" ? "sale" : "rent",
+          sales: listingFilter === "sale",
         });
         Alert.alert("PDF descargado", "El PDF se ha descargado.");
       } catch (error: any) {
@@ -353,7 +355,7 @@ export function usePropertiesScreen() {
         setIsGeneratingPdf(false);
       }
     },
-    [activePropertyId, authToken, isGeneratingPdf, selectedPropertyIds],
+    [activePropertyId, authToken, isGeneratingPdf, listingFilter, selectedPropertyIds],
   );
 
   const handleGeneratePdf = useCallback(async () => {

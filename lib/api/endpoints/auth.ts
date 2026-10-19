@@ -3,6 +3,7 @@ import {
   API_URLS,
   coreApi,
   fetchWithAuthRetry,
+  sanitizeAuthLog,
   type ApiDebugLogEntry,
 } from "../client";
 import type {
@@ -295,7 +296,7 @@ function extractLoginUser(
 }
 
 const previewToken = (token?: string) =>
-  token ? `${token.slice(0, 12)}...${token.slice(-6)}` : "SIN_TOKEN";
+  token ? "[OCULTO]" : "SIN_TOKEN";
 
 function describeToken(token?: string) {
   return token
@@ -327,7 +328,7 @@ function sanitizeLoginPayload(payload: LoginApiPayload) {
       refreshToken: describeToken(payload.refreshToken),
       hasUser: !!payload.user,
       userKeys: payload.user ? Object.keys(payload.user) : [],
-      user: payload.user ?? null,
+      user: sanitizeAuthLog(payload.user ?? null),
       investment: payload.investment ?? null,
       tenant: payload.tenant ?? null,
       roles: payload.roles ?? null,
@@ -339,7 +340,7 @@ function sanitizeLoginPayload(payload: LoginApiPayload) {
           refreshToken: describeToken(payload.data.refreshToken),
           hasUser: !!payload.data.user,
           userKeys: payload.data.user ? Object.keys(payload.data.user) : [],
-          user: payload.data.user ?? null,
+          user: sanitizeAuthLog(payload.data.user ?? null),
         }
       : null,
   };

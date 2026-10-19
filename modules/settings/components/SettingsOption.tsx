@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { ComponentType, useState } from 'react'
 import { OperationMode } from '../types'
@@ -105,8 +106,8 @@ const styles = StyleSheet.create({
 
   label: {
     color: '#b88b3d',
-    fontSize: 11,
-    lineHeight: 20,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(20),
     fontWeight: '600',
     textTransform: 'uppercase',
   },

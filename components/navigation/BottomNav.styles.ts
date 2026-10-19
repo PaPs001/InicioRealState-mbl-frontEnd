@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -27,8 +28,8 @@ export const styles = StyleSheet.create({
   },
   navLabel: {
     color: '#3d3d3d',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
     marginTop: 3,
     textAlign: 'center',
   },
@@ -58,7 +59,7 @@ export const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#0b3b22',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: textSize.tiny,
+    lineHeight: platformLineHeight(10),
   },
 })

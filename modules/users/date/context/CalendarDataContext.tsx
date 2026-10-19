@@ -1,3 +1,4 @@
+import { getGoogleCalendarAuthError } from '@/lib/api/google-calendar-errors'
 import {
   createContext,
   type PropsWithChildren,
@@ -144,7 +145,7 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       const status = await getGoogleCalendarConnectionStatus(authToken)
       setConnectionStatus(status)
 
-      if (!status.connected || status.status === 'requires_reconnect') {
+      if (!status.connected) {
         setCalendars([])
         setSelectedCalendars([])
         return
@@ -156,6 +157,13 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       ])
       setCalendars(availableCalendars)
       setSelectedCalendars(savedCalendars)
+      setConnectionStatus(await getGoogleCalendarConnectionStatus(authToken))
+    } catch (error) {
+      try {
+        setConnectionStatus(await getGoogleCalendarConnectionStatus(authToken))
+      } catch {
+      }
+      throw error
     } finally {
       setIsSettingsLoading(false)
     }
@@ -168,16 +176,62 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       return
     }
     if (loadedTokenRef.current === authToken) return
-    loadedTokenRef.current = authToken
 
-    void Promise.all([
-      loadAppointments().catch(error => {
-        console.warn('No se pudieron cargar las citas:', error)
-      }),
-      loadSettings().catch(error => {
-        console.warn('No se pudieron cargar los calendarios:', error)
-      }),
-    ])
+    let cancelled = false
+    let retryTimer: ReturnType<typeof setTimeout> | undefined
+
+    const initializeCalendar = async (canRetry: boolean) => {
+      try {
+        const status = await getGoogleCalendarConnectionStatus(authToken)
+        if (cancelled) return
+        setConnectionStatus(status)
+
+        if (status.connected) {
+          await syncGoogleCalendars(authToken)
+          if (cancelled) return
+        }
+
+        await Promise.all([loadSettings(), loadAppointments()])
+        if (!cancelled) loadedTokenRef.current = authToken
+      } catch (error) {
+        if (cancelled) return
+        console.warn('No se pudo inicializar Google Calendar:', error)
+
+        const googleAuthError = getGoogleCalendarAuthError(error)
+        let requiresReconnect = googleAuthError !== null
+        try {
+          const status = await getGoogleCalendarConnectionStatus(authToken)
+          if (cancelled) return
+          setConnectionStatus(status)
+          requiresReconnect = requiresReconnect || status.status === 'requires_reconnect'
+        } catch {
+        }
+
+        await loadAppointments().catch(() => undefined)
+        if (cancelled) return
+        if (requiresReconnect) {
+          loadedTokenRef.current = authToken
+          setAppointmentsError(
+            googleAuthError === 'unauthorized_client' || googleAuthError === 'invalid_client'
+              ? 'Google rechazo la configuracion de la conexion. Revisa las credenciales OAuth del backend.'
+              : 'Vuelve a conectar Google Calendar para sincronizar las citas.',
+          )
+        } else {
+          setAppointmentsError('No se pudo sincronizar Google Calendar. Intenta cargar de nuevo.')
+          if (canRetry) {
+            retryTimer = setTimeout(() => {
+              void initializeCalendar(false)
+            }, 2000)
+          }
+        }
+      }
+    }
+
+    void initializeCalendar(true)
+    return () => {
+      cancelled = true
+      if (retryTimer) clearTimeout(retryTimer)
+    }
   }, [authToken, clearCalendarData, loadAppointments, loadSettings])
 
   const addAppointment = useCallback((appointment: GoogleCalendarDate) => {

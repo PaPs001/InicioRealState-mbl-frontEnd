@@ -12,11 +12,14 @@ import { styles } from "./styles/LeadsTrackingSelecting.Style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { logos, icons } from "@/assets";
 import { LeadCard } from "../components/leadsTracking/leadcard";
+import { LeadActionsModal } from "../components/leadsTracking/LeadActionsModal";
+import type { PropertyLead } from "@/lib/types";
 
 import { useEffect, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useLeadTrackingRecords } from "../hooks/useLeadTrackingRecords";
+import { useLeadTrackingRoutes } from "../hooks/useLeadTrackingRoutes";
 import {
   filterTrackingLeads,
   searchTrackingLeadsByName,
@@ -28,9 +31,11 @@ import { isLeadStatus } from "../constants/lead-tracking-statuses";
 const LEADS_PER_PAGE = 12;
 
 export const LeadsTrackingSelectingScreen = () => {
+  const routes = useLeadTrackingRoutes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [actionLead, setActionLead] = useState<PropertyLead | null>(null);
   const listRef = useRef<ScrollView>(null);
   const searchExpansion = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -45,6 +50,7 @@ export const LeadsTrackingSelectingScreen = () => {
   const params = useLocalSearchParams<{
     status?: string | string[];
     origin?: string | string[];
+    operation?: string | string[];
   }>();
   const status =
     (Array.isArray(params.status) ? params.status[0] : params.status) ||
@@ -64,9 +70,18 @@ export const LeadsTrackingSelectingScreen = () => {
     : params.origin;
   const [origin, setOrigin] = useState<string | undefined>(originParam);
   useEffect(() => setOrigin(originParam), [status, originParam]);
-  const matchingLeads = filterTrackingLeads(leads, status);
+
+  const operation =
+    (Array.isArray(params.operation)
+      ? params.operation[0]
+      : params.operation) || "all";
+
+  const operationRecords = leads.filter(
+    (lead) => operation === "all" || lead.operation === operation,
+  );
+  const matchingLeads = filterTrackingLeads(operationRecords, status);
   const visibleLeads = searchTrackingLeadsByName(
-    filterTrackingLeads(leads, status, origin),
+    filterTrackingLeads(matchingLeads, status, origin),
     searchQuery,
   );
   const totalPages = Math.max(
@@ -78,14 +93,14 @@ export const LeadsTrackingSelectingScreen = () => {
     (currentPage - 1) * LEADS_PER_PAGE,
     currentPage * LEADS_PER_PAGE,
   );
-  useEffect(() => setPage(1), [status, origin, searchQuery]);
+  useEffect(() => setPage(1), [status, origin, searchQuery, operation]);
   useEffect(
     () => setPage((previous) => Math.min(previous, totalPages)),
     [totalPages],
   );
   useEffect(() => {
     listRef.current?.scrollTo({ y: 0, animated: false });
-  }, [currentPage, status, origin, searchQuery]);
+  }, [currentPage, status, origin, searchQuery, operation]);
   const card = leadTrackingStatusCards.find((card) =>
     isLeadStatus(card.title, status),
   );
@@ -108,6 +123,7 @@ export const LeadsTrackingSelectingScreen = () => {
       setOrigin(undefined);
     }
   }, [isLoading, error, origin, matchingLeads]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View
@@ -124,7 +140,7 @@ export const LeadsTrackingSelectingScreen = () => {
             onPress={() =>
               router.canGoBack()
                 ? router.back()
-                : router.replace("/userAdviser/lead-tracking")
+                : router.replace(routes.index as never)
             }
           >
             <icons.BackButton />
@@ -242,17 +258,19 @@ export const LeadsTrackingSelectingScreen = () => {
             <LeadCard
               key={lead.id}
               lead={lead}
+              onOptions={() => setActionLead(lead)}
               propertyName={
                 getPropertyById(lead.propertyId)?.title ||
                 "Sin propiedad registrada"
               }
               onOpen={() =>
                 router.push({
-                  pathname: "/userAdviser/lead-tracking/detail",
+                  pathname: routes.detail,
                   params: {
                     selectedLeadId: lead.id,
                     status,
                     ...(origin ? { origin } : {}),
+                    operation,
                     trackingOpenedAt: String(Date.now()),
                   },
                 })
@@ -304,6 +322,14 @@ export const LeadsTrackingSelectingScreen = () => {
           </View>
         )}
       </ScrollView>
+      {actionLead ? (
+        <LeadActionsModal
+          key={actionLead.id}
+          lead={actionLead}
+          onClose={() => setActionLead(null)}
+          onChanged={reload}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

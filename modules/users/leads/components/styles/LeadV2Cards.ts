@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -17,8 +18,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: '#ba544a',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(16),
     fontWeight: '600',
   },
   leadCard: {
@@ -51,14 +52,14 @@ export const styles = StyleSheet.create({
   },
   leadName: {
     color: '#000000',
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(20),
     fontWeight: '700',
   },
   leadProperty: {
     color: '#af8c49',
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     fontWeight: '600',
   },
   sourceRow: {
@@ -69,8 +70,8 @@ export const styles = StyleSheet.create({
   },
   sourceText: {
     color: '#000000',
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     fontWeight: '600',
   },
   statusStack: {
@@ -108,8 +109,8 @@ export const styles = StyleSheet.create({
   },
   statusText: {
     color: '#3e534e',
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(12),
     fontWeight: '600',
   },
   leadFooter: {
@@ -133,15 +134,15 @@ export const styles = StyleSheet.create({
   },
   footerLabel: {
     color: '#000000',
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(12),
     fontWeight: '600',
   },
   footerValue: {
     marginTop: 2,
     color: '#000000',
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(12),
     fontWeight: '600',
   },
   followButton: {
@@ -157,8 +158,8 @@ export const styles = StyleSheet.create({
   },
   followButtonText: {
     color: '#000000',
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(12),
     fontWeight: '600',
   },
   notionIcon: {
@@ -171,8 +172,8 @@ export const styles = StyleSheet.create({
   },
   notionIconText: {
     color: '#ffffff',
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(14),
     fontWeight: '800',
   },
   

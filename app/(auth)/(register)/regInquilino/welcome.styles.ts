@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -48,16 +49,16 @@ export const registerOwnerWelcomeStyles = StyleSheet.create({
   title: {
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 40,
+    fontSize: textSize.display,
     fontWeight: '700',
-    lineHeight: 40,
+    lineHeight: platformLineHeight(40),
     textAlign: 'center',
   },
   subtitle: {
     width: 310,
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.65,
     textAlign: 'center',
   },
@@ -86,14 +87,14 @@ export const registerOwnerWelcomeStyles = StyleSheet.create({
   },
   featureLabel: {
     color: '#1e2d29',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
-    lineHeight: 10,
+    lineHeight: platformLineHeight(10),
     textAlign: 'center',
   },
   featureLabelSmall: {
-    fontSize: 7,
-    lineHeight: 9,
+    fontSize: appFontScale[7],
+    lineHeight: platformLineHeight(9),
   },
   imageSection: {
     width: '100%',
@@ -132,8 +133,8 @@ export const registerOwnerWelcomeStyles = StyleSheet.create({
   messageText: {
     flex: 1,
     color: '#000000',
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(21),
     letterSpacing: 0.7,
   },
   continueButton: {
@@ -150,8 +151,8 @@ export const registerOwnerWelcomeStyles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#ffffff',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
     textAlign: 'center',
   },
   continueIcon: {

@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors } from "@/theme";
 const LARGE_NUMBER_FONT = "Castoro Titling";
@@ -50,15 +51,15 @@ export const styles = StyleSheet.create({
   },
   title: {
     color: "#3d5a40",
-    fontSize: 24,
-    lineHeight: 29,
+    fontSize: textSize.headingLarge,
+    lineHeight: platformLineHeight(29),
     fontWeight: "600",
   },
   subtitle: {
     marginTop: 2,
     color: "#8d8783",
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
   },
   metricRow: {
     marginTop: 24,
@@ -85,13 +86,13 @@ export const styles = StyleSheet.create({
   metricValue: {
     color: "#000000",
     fontFamily: LARGE_NUMBER_FONT,
-    fontSize: 30,
-    lineHeight: 38,
+    fontSize: appFontScale[30],
+    lineHeight: platformLineHeight(38),
   },
   metricLabel: {
     color: "#000000",
-    fontSize: 9,
-    lineHeight: 13,
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(13),
     fontWeight: "600",
   },
   searchRow: {
@@ -110,7 +111,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: "#2c2c2c",
-    fontSize: 14,
+    fontSize: textSize.body,
     padding: 0,
   },
   filterRow: {
@@ -136,8 +137,8 @@ export const styles = StyleSheet.create({
   },
   filterText: {
     color: "#837f7c",
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(12),
     fontWeight: "500",
   },
   filterTextActive: {
@@ -147,8 +148,8 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 8,
     color: "#000000",
-    fontSize: 22,
-    lineHeight: 27,
+    fontSize: textSize.heading,
+    lineHeight: platformLineHeight(27),
     fontWeight: "600",
   },
   alertList: {
@@ -172,8 +173,8 @@ export const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: "#837f7c",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     textAlign: "center",
   },
   paginationActions: {
@@ -199,8 +200,8 @@ export const styles = StyleSheet.create({
   },
   paginationButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: "700",
   },
   paginationButtonTextDisabled: {
@@ -240,8 +241,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: "#363739",
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(16),
     fontWeight: "600",
   },
   assistantButtonRow: {
@@ -262,8 +263,8 @@ export const styles = StyleSheet.create({
   },
   assistantButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: "600",
   },
 });

@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -39,9 +40,9 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   },
   progressLabel: {
     color: '#e4ac73',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: platformLineHeight(17),
   },
   progressTrack: {
     flex: 1,
@@ -64,17 +65,17 @@ export const registerOwnerFinalStyles = StyleSheet.create({
     width: '100%',
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 32,
+    fontSize: textSize.displaySmall,
     fontWeight: '700',
-    lineHeight: 40,
+    lineHeight: platformLineHeight(40),
     textAlign: 'center',
     letterSpacing: 0.32,
   },
   subtitle: {
     width: 310,
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.65,
     textAlign: 'center',
   },
@@ -88,9 +89,9 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   },
   sectionTitle: {
     color: '#11451a',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
     letterSpacing: -0.16,
   },
   chipsRow: {
@@ -115,9 +116,9 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   },
   chipText: {
     color: '#000000',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '500',
-    lineHeight: 16,
+    lineHeight: platformLineHeight(16),
     letterSpacing: -0.13,
     textAlign: 'center',
   },
@@ -133,18 +134,18 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   notesTitle: {
     width: '100%',
     color: '#11451a',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
     letterSpacing: -0.16,
     textAlign: 'center',
   },
   notesSubtitle: {
     width: '100%',
     color: '#6c6962',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
     letterSpacing: -0.16,
   },
   notesBox: {
@@ -159,16 +160,16 @@ export const registerOwnerFinalStyles = StyleSheet.create({
     paddingBottom: 22,
     textAlignVertical: 'top',
     color: '#1e2d29',
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(19),
   },
   counter: {
     position: 'absolute',
     right: 16,
     bottom: 8,
     color: '#414040',
-    fontSize: 12,
-    lineHeight: 13,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(13),
   },
   notesBoxWrap: {
     position: 'relative',
@@ -202,14 +203,14 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   trustText: {
     flex: 1,
     color: '#000000',
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(21),
     letterSpacing: 0.7,
   },
   errorText: {
     color: '#b42318',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: 'center',
   },
   finishButton: {
@@ -229,8 +230,8 @@ export const registerOwnerFinalStyles = StyleSheet.create({
   },
   finishButtonText: {
     color: '#fdfcf8',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
     textAlign: 'center',
   },
 })

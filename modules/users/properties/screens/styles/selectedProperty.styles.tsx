@@ -1,7 +1,51 @@
+import { textSize, platformLineHeight } from "@/theme/typography";
 import { generalColors, textColor, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  propertyStateContainer: {
+    flex: 1,
+    backgroundColor: generalColors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    gap: 24,
+  },
+  propertyStateBackButton: {
+    backgroundColor: generalColors.greenTitle,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+  },
+  propertyStateBackText: {
+    color: generalColors.white,
+    fontSize: textSize.subtitle,
+    fontWeight: "600",
+  },
+  propertyStateContent: {
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+    maxWidth: 400,
+  },
+  propertyStateTitle: {
+    fontSize: textSize.title,
+    fontWeight: "600",
+    color: generalColors.title,
+    textAlign: "center",
+  },
+  propertyStateMessage: {
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(21),
+    color: generalColors.textMuted,
+    textAlign: "center",
+  },
+  propertyStateCode: {
+    fontSize: textSize.body,
+    fontWeight: "600",
+    color: generalColors.error,
+    textAlign: "center",
+  },
   safeArea: {
     flex: 1,
     backgroundColor: generalColors.background,
@@ -31,13 +75,13 @@ export const styles = StyleSheet.create({
     paddingBottom: 3,
   },
   operationText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     //color: textColor.softText,
   },
   propertyTitle: {
-    fontSize: 30,
+    fontSize: textSize.displaySmall,
     flexShrink: 1,
-    lineHeight: 35,
+    lineHeight: platformLineHeight(35),
   },
   propertyInformation: {
     gap: 6,
@@ -56,7 +100,7 @@ export const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: textColor.softText,
   },
   propertyView: {
@@ -72,7 +116,7 @@ export const styles = StyleSheet.create({
     flexShrink: 0,
   },
   viewText: {
-    fontSize: 7,
+    fontSize: textSize.tiny,
     fontWeight: "500",
   },
 
@@ -86,13 +130,15 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 17,
     gap: 10,
-    justifyContent: 'center',
-
+    justifyContent: "center",
   },
   extrasTtitleContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     flex: 1,
+  },
+  extrasTitle: {
+    fontSize: textSize.body,
   },
   propertyMetricContainer: {
     alignItems: "center",
@@ -105,44 +151,46 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   metricNumber: {
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     color: userColors.adviser.primaryDark,
   },
   metricText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     color: textColor.softText,
   },
   moreFeaturesContainer: {
     flexDirection: "row",
     gap: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
   moreFeaturesText: {
     flexShrink: 1,
-    fontSize: 12,
+    fontSize: textSize.label,
   },
 
   detailsContainer: {
     gap: 5,
   },
   detailsTitle: {
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     color: userColors.adviser.primary,
   },
   detailsInformation: {
-    fontSize: 13,
+    fontSize: textSize.body,
     color: textColor.softText,
     flexShrink: 1,
-    lineHeight: 15,
+    lineHeight: platformLineHeight(15),
   },
   sectionContainer: {
     gap: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     color: userColors.adviser.primary,
   },
   priceSection: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fffffff6",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderBottomLeftRadius: 32,
@@ -155,17 +203,78 @@ export const styles = StyleSheet.create({
     bottom: 16,
     zIndex: 10,
 
-    paddingVertical: 12,
+    paddingVertical: 17,
     paddingHorizontal: 18,
+    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.42)",
   },
 
+  mapPrincipalContainer: {
+    flexDirection: "column",
+    gap: 14,
+    alignItems: "center",
+  },
   mapTextAdviseContainer: {
     flexDirection: "row",
     gap: 5,
     alignItems: "center",
   },
   mapText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     color: textColor.softText,
+  },
+
+  mapShadowContainer: {
+    width: "100%",
+    height: 300,
+    borderRadius: 17,
+    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.42)",
+  },
+
+  mapContainer: {
+    flex: 1,
+    borderRadius: 17,
+    borderWidth: 2,
+    borderColor: "#ecebeb",
+    overflow: "hidden",
+  },
+
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+
+  markerContainer: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    paddingBottom: 10,
+  },
+  circle: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    overflow: "hidden",
+    zIndex: 2,
+    elevation: 2,
+    backgroundColor: userColors.adviser.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    width: 52,
+    height: 52,
+  },
+  triangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 11,
+    borderRightWidth: 11,
+    borderTopWidth: 16,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "#fdfdfd",
+    marginTop: -3,
   },
 });

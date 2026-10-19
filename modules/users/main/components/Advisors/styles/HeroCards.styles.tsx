@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors } from "@/theme";
 export const styles = StyleSheet.create({
@@ -9,7 +10,7 @@ export const styles = StyleSheet.create({
   },
   spacedLabel: {
     color: "#ffffff",
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "700",
     letterSpacing: 5,
     textAlign: "center",    
@@ -17,8 +18,8 @@ export const styles = StyleSheet.create({
   availableCount: {
     color: "#d4b66f",
     fontFamily: "cormorant",
-    fontSize: 45,
-    lineHeight: 60,
+    fontSize: appFontScale[45],
+    lineHeight: platformLineHeight(60),
   },
   textContainer: {
     alignItems: "center",

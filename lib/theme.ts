@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 export const colors = {
   primary: '#1e2d32',
   secondary: '#31454d',
@@ -203,39 +204,39 @@ export const spacing = {
 
 export const typography = {
   h1: {
-    fontSize: 32,
+    fontSize: textSize.displaySmall,
     fontWeight: '700' as const,
-    lineHeight: 40,
+    lineHeight: platformLineHeight(40),
   },
   h2: {
-    fontSize: 24,
+    fontSize: textSize.headingLarge,
     fontWeight: '600' as const,
-    lineHeight: 32,
+    lineHeight: platformLineHeight(32),
   },
   h3: {
-    fontSize: 20,
+    fontSize: textSize.title,
     fontWeight: '600' as const,
-    lineHeight: 28,
+    lineHeight: platformLineHeight(28),
   },
   h4: {
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     fontWeight: '600' as const,
-    lineHeight: 24,
+    lineHeight: platformLineHeight(24),
   },
   body: {
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '400' as const,
-    lineHeight: 24,
+    lineHeight: platformLineHeight(24),
   },
   bodySmall: {
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '400' as const,
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
   },
   caption: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '400' as const,
-    lineHeight: 16,
+    lineHeight: platformLineHeight(16),
   },
 }
 

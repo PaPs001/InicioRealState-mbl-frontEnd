@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { useEffect, useRef, useState } from 'react'
 import { Animated, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native'
 import { CalendarPlus, Clock3, PencilLine, Plus, Trash2 } from 'lucide-react-native'
@@ -188,8 +189,8 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     fontWeight: '700',
   },
   actionIcon: {

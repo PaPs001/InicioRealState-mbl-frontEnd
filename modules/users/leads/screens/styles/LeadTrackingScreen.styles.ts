@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize } from '@/theme/typography'
 import { generalColors, textColor } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -19,6 +20,26 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  searchButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchInput: {
+    backgroundColor: "#fff",
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 44,
+    color: "#19191f",
+    fontSize: textSize.body,
+  },
+  searchResults: {
+    gap: 12,
+  },
   titleContainer: {
     flex: 1,
   },
@@ -27,11 +48,11 @@ export const styles = StyleSheet.create({
     gap: 25,
   },
   titleText: {
-    fontSize: 20,
+    fontSize: textSize.title,
     fontWeight: "900",
   },
   subtitleText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "600",
     color: textColor.softText,
   },
@@ -56,15 +77,15 @@ export const styles = StyleSheet.create({
     padding: 16,
   },
   titleCardText: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: "#f1f0f0",
   },
   subtitleCardText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: "600",
   },
   numberCardText: {
-    fontSize: 25,
+    fontSize: appFontScale[25],
   },
   allClasificationsContainer: {
     gap: 15,
@@ -125,25 +146,25 @@ export const styles = StyleSheet.create({
   //// textos
 
   titleCardLead:{
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     fontWeight:'900',
     flexShrink: 1,
   },
   subtitleCardLead:{
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '400',
     flexWrap: 'wrap',
     flexShrink: 1
   },
   numberLeads:{
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '400'
   },
   clasificationTitleText:{
-    fontSize: 17,
+    fontSize: textSize.subtitleLarge,
   },
   timeText:{
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     color: "#AF474A",
     fontWeight: '400'
   }

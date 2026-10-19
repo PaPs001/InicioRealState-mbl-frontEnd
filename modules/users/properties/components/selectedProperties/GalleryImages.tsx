@@ -1,11 +1,12 @@
 import {
     View,
-    Text,
-    Image,
     Pressable
 } from 'react-native'
 import { styles } from './styles/GalleryImages.styles'
-import { Blocks, ReceiptRussianRuble } from 'lucide-react-native'
+import { useRef, useState } from 'react'
+import type { ViewToken, StyleProp, ImageStyle } from 'react-native'
+import { PropertyImage } from './PropertyImage'
+import { ImagePreviewModal } from '../ImagePreviewModal'
 import {FlashList} from '@shopify/flash-list'
 import { icons } from '@/assets'
 type GalleryProps = {
@@ -39,7 +40,7 @@ const galleryPatterns = [
     type: 'fourBlocksInverted',
     count: 4
   }
-] as const  
+] as const
 
 const createImageBlock = (images: string[]): GalleryBlock[] => {
     const blocks: GalleryBlock[] = []
@@ -51,7 +52,7 @@ const createImageBlock = (images: string[]): GalleryBlock[] => {
         const pattern = galleryPatterns[
             patternIndex % galleryPatterns.length
         ]
-        
+
         const blockImages = images.slice(
             imageIndex, imageIndex + pattern.count
         )
@@ -61,7 +62,7 @@ const createImageBlock = (images: string[]): GalleryBlock[] => {
             images: blockImages
         })
 
-        imageIndex += pattern.count 
+        imageIndex += pattern.count
         patternIndex++
     }
 
@@ -74,30 +75,41 @@ export const GalleryImages = ({
     onFavorite,
 }: GalleryProps) => {
     const [mainImage, ...galleryImages] = images
+    const [selectedImage, setSelectedImage] = useState<string | null>(null)
     const imageBlocks = createImageBlock(galleryImages)
+    const [visibleBlocks, setVisibleBlocks] = useState<Set<number>>(new Set())
+    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 1 }).current
+    const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+        setVisibleBlocks(new Set(viewableItems.flatMap(item => item.index === null ? [] : [item.index])))
+    }).current
 
     return(
         <View style={styles.container}>
             <FlashList
                 data={imageBlocks}
+                extraData={visibleBlocks}
+                viewabilityConfig={viewabilityConfig}
+                onViewableItemsChanged={onViewableItemsChanged}
                 ListHeaderComponent={
                     mainImage ? (
-                        <Image
-                            source={{ uri: mainImage }}
+                        <GalleryPhoto
+                            uri={mainImage}
+                            onSelect={setSelectedImage}
                             style={styles.mainImage}
-                            resizeMode='cover'
                         />
                     ): null
                 }
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                     <GalleryBlock
                         images={item.images}
                         pattern={item.pattern}
+                        enabled={visibleBlocks.has(index)}
+                        onSelect={setSelectedImage}
                     />
                 )}
                 keyExtractor={(_, index) => index.toString()}
             />
-            <Pressable 
+            <Pressable
                 onPress={onClose}
                 style={[styles.buttonOverImage, styles.backButton]}
             >
@@ -111,18 +123,28 @@ export const GalleryImages = ({
                     <icons.Heart width={25} height={25}/>
                 </Pressable>
             </View>
+            {selectedImage ? (
+                <ImagePreviewModal
+                    image={selectedImage}
+                    onClose={() => setSelectedImage(null)}
+                />
+            ) : null}
         </View>
     )
 }
 
 type GalleryBlockProps = {
     images: string[],
-    pattern: GalleryPattern
+    pattern: GalleryPattern,
+    enabled: boolean
+    onSelect: (uri: string) => void
 }
 
 const GalleryBlock = ({
     images,
-    pattern
+    pattern,
+    enabled,
+    onSelect
 }: GalleryBlockProps) => {
     const [topLeftImage, topRightImage, bottomLeftImage, bottomRightImage] = images
 
@@ -131,10 +153,11 @@ const GalleryBlock = ({
             return(
                 <View style={styles.threeColumns}>
                     {images.map((image, index) => (
-                        <Image 
+                        <GalleryPhoto
                             key={`${image}-${index}`}
-                            source={{ uri:image}}
-                            style={styles.threeColumnImage}    
+                            onSelect={onSelect}
+                            uri={image} enabled={enabled}
+                            style={styles.threeColumnImage}
                         />
                     ))}
                 </View>
@@ -143,9 +166,10 @@ const GalleryBlock = ({
             return(
                 <View style={styles.twoColumns}>
                     {images.map((image, index) => (
-                        <Image 
+                        <GalleryPhoto
                             key={`${image}-${index}`}
-                            source={{ uri:image}}
+                            onSelect={onSelect}
+                            uri={image} enabled={enabled}
                             style={styles.twoColumnImage}
                         />
                     ))}
@@ -155,12 +179,12 @@ const GalleryBlock = ({
             return(
                 <View style={styles.fourColumn}>
                     <View style={styles.leftColumn}>
-                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
-                        <Image source={{uri: bottomLeftImage}} style={styles.bottomLeftImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={topLeftImage} enabled={enabled} style={styles.topLeftImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={bottomLeftImage} enabled={enabled} style={styles.bottomLeftImage}/>
                     </View>
                     <View style={styles.rightColumn}>
-                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
-                        <Image source={{uri: bottomRightImage}} style={styles.bottomRightImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={topRightImage} enabled={enabled} style={styles.topRightImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={bottomRightImage} enabled={enabled} style={styles.bottomRightImage}/>
                     </View>
                 </View>
             )
@@ -168,15 +192,40 @@ const GalleryBlock = ({
             return(
                 <View style={styles.fourColumn}>
                     <View style={styles.rightColumn}>
-                        <Image source={{uri: topRightImage}} style={styles.topRightImage}/>
-                        <Image source={{uri: bottomRightImage}} style={styles.bottomRightImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={topRightImage} enabled={enabled} style={styles.topRightImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={bottomRightImage} enabled={enabled} style={styles.bottomRightImage}/>
                     </View>
                     <View style={styles.leftColumn}>
-                        <Image source={{uri: topLeftImage}} style={styles.topLeftImage}/>
-                        <Image source={{uri: bottomLeftImage}} style={styles.bottomLeftImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={topLeftImage} enabled={enabled} style={styles.topLeftImage}/>
+                        <GalleryPhoto onSelect={onSelect} uri={bottomLeftImage} enabled={enabled} style={styles.bottomLeftImage}/>
                     </View>
                 </View>
             )
-        
+
     }
+}
+
+function GalleryPhoto({ uri, enabled = true, style, onSelect }: {
+    uri?: string;
+    enabled?: boolean;
+    style: StyleProp<ImageStyle>;
+    onSelect: (uri: string) => void;
+}) {
+    if (!uri) return null;
+    return (
+        <Pressable
+            style={style}
+            disabled={!enabled}
+            accessibilityRole="button"
+            accessibilityLabel="Ver imagen completa"
+            onPress={() => onSelect(uri)}
+        >
+            <PropertyImage
+                uri={uri}
+                enabled={enabled}
+                resizeMode="cover"
+                style={{ width: '100%', height: '100%' }}
+            />
+        </Pressable>
+    );
 }
