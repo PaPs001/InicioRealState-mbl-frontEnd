@@ -1,5 +1,6 @@
 import type {
   LeadFollowUp,
+  LeadSearchIntent,
   LeadV2StatusSource,
   PropertyLead,
 } from "@/lib/types";
@@ -28,7 +29,7 @@ type BackendLead = {
   campaign?: string | null;
   adsCampain?: string | null;
   typeOfOperation?: "FOR RENT" | "FOR SALE" | string | null;
-  operation?: string | null;
+  operation?: LeadSearchIntent;
   leadOrigin?: string | null;
   origin?: string | null;
   propertyOfInterestId?: string | null;
@@ -116,6 +117,8 @@ export type CreateBackendLeadV2Payload = {
 };
 
 export type UpdateBackendLeadV2Payload = Partial<{
+  estimatedBudget: number | null;
+  lastContactDate: string | null;
   fullName: string;
   phone: string;
   email: string;
@@ -289,6 +292,7 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
   const advisorId = getBackendAdvisorId(lead);
   const campaign = getFirstMeaningfulValue(lead.campaign, lead.adsCampain);
   const budget = getFirstMeaningfulValue(
+    lead.estimatedBudget,
     lead.maximumBudget,
     lead.maximunBudget,
     lead.maxinumBudget,
@@ -316,6 +320,8 @@ export function mapBackendLeadToPropertyLead(lead: BackendLead): PropertyLead {
     assignedAgentName: getBackendAdvisorName(lead),
     name: getBackendLeadName(lead),
     phone: lead.phone || "",
+    estimatedBudget: lead.estimatedBudget == null || lead.estimatedBudget === "" ? undefined : Number(lead.estimatedBudget),
+    operation: lead.operation,
     email: lead.email || undefined,
     status: normalizeTextValue(lead.status),
     statusSource: lead.statusSource || undefined,

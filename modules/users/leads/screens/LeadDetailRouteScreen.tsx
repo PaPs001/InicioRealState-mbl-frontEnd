@@ -4,13 +4,15 @@ import AppLoadingScreen from "@/components/animations/AppLoadingScreen";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLeadsPrincipalScreen } from "../hooks/useLeadsPrincipalScreen";
 import { LeadDetailScreen } from "./leadsDetailsScreen";
+import { useLeadTrackingRoutes } from "../hooks/useLeadTrackingRoutes";
 
 export default function LeadDetailRouteScreen() {
-  const flow = useLeadsPrincipalScreen({ mode: "advisor" });
+  const routes = useLeadTrackingRoutes();
+  const flow = useLeadsPrincipalScreen({ mode: routes.mode, trackingFlow: true });
   const goBack = () =>
     router.canGoBack()
       ? router.back()
-      : router.replace("/userAdviser/lead-tracking");
+      : router.replace(routes.index as never);
   const lead = flow.selectedLead;
   if (!lead && flow.isLoadingLeads) return <AppLoadingScreen />;
   return (
@@ -21,7 +23,8 @@ export default function LeadDetailRouteScreen() {
       {lead ? (
         <LeadDetailScreen
           lead={lead.rawLead}
-          mode="advisor"
+          mode={routes.mode}
+          canManageLead
           getPropertyName={(id) => flow.getPropertyById(id)?.title}
           customLeadStatuses={flow.customLeadStatuses}
           isLoadingCustomLeadStatuses={flow.isLoadingCustomLeadStatuses}

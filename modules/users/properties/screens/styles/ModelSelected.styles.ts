@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize } from '@/theme/typography'
 import { generalColors, textColor } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -177,7 +178,7 @@ export const styles = StyleSheet.create({
   //&&&&/// textos
 
   titleText: {
-    fontSize: 26,
+    fontSize: appFontScale[26],
     width: "65%",
     flexShrink: 1,
     minWidth: 0,
@@ -189,47 +190,47 @@ export const styles = StyleSheet.create({
     flexBasis: "auto",
   },
   typeText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
   ubicationText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     flexGrow: 1,
   },
   titleImageText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     textAlign: "center",
   },
   contentText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     textAlign: "center",
   },
   contentNumberText: {
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: "600",
     textAlign: "center",
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: textSize.subtitleLarge,
     color: generalColors.development,
   },
   amenitieObjectText: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     flexShrink: 1,
   },
   renderTitle: {
-    fontSize: 11
+    fontSize: textSize.label
   },
   renderText: {
-    fontSize: 8,
+    fontSize: textSize.tiny,
     color: textColor.softText
   },
   availabilityTextButton: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: 'red',
 
   },
   dateTextButton: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: generalColors.white
   },
 });

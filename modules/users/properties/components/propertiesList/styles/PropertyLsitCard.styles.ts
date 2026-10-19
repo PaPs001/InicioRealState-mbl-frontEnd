@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors } from "@/theme";
 
@@ -71,7 +72,7 @@ propertyCard: {
   locationPillText: {
     flexShrink: 1,
     color: '#505050',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   availablePill: {
@@ -87,7 +88,7 @@ propertyCard: {
   },
   availablePillText: {
     color: '#ffffff',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   selectionPill: {
@@ -109,7 +110,7 @@ propertyCard: {
   },
   selectionPillText: {
     color: '#0c6740',
-    fontSize: 8,
+    fontSize: textSize.tiny,
     fontWeight: '600',
   },
   selectionPillTextActive: {
@@ -124,15 +125,15 @@ propertyCard: {
   },
   propertyTitle: {
     color: '#0c6740',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(16),
     fontWeight: '500',
   },
   propertyCode: {
     marginTop: 2,
     color: '#929594',
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(12),
   },
   priceRow: {
     marginTop: 5,
@@ -142,13 +143,13 @@ propertyCard: {
   },
   price: {
     color: '#0c6740',
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(18),
     fontWeight: '400',
   },
   priceMeta: {
     color: '#c59b55',
-    fontSize: 9.5,
+    fontSize: appFontScale[9.5],
     marginBottom: 1,
   },
   rawDataBlock: {
@@ -157,8 +158,8 @@ propertyCard: {
   },
   rawInfoText: {
     color: '#5f6462',
-    fontSize: 7,
-    lineHeight: 9,
+    fontSize: appFontScale[7],
+    lineHeight: platformLineHeight(9),
   },
   rawInfoLabel: {
     color: '#0c6740',
@@ -186,12 +187,12 @@ propertyCard: {
   featureValue: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: '400',
   },
   featureLabel: {
     color: '#929594',
-    fontSize: 7,
+    fontSize: appFontScale[7],
   },
   featureDivider: {
     width: 0.5,
@@ -207,15 +208,15 @@ propertyCard: {
     borderBottomColor: '#d8d0c5',
   },
   amenity: {
-    width: '24%',
+    width: '30%',
     minWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
   amenityText: {
     color: '#929594',
-    fontSize: 6,
-    lineHeight: 8,
+    fontSize: appFontScale[6],
+    lineHeight: platformLineHeight(8),
     textAlign: 'center',
   },
   detailTagsRow: {
@@ -245,7 +246,7 @@ propertyCard: {
   detailTagText: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: 7,
+    fontSize: appFontScale[7],
   },
   detailTagTextWarm: {
     color: '#bd7600',
@@ -281,7 +282,7 @@ propertyCard: {
     flex: 1
   },
   viewText:{
-    fontSize: 5,
+    fontSize: appFontScale[5],
     flexShrink: 1,
     color: generalColors.greenTitle
   },
@@ -294,7 +295,7 @@ propertyCard: {
   },
   detailLink: {
     color: '#0c6740',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '500',
   },
   landPropertyCar:{

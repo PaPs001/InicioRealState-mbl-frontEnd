@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image as ImageIcon } from "lucide-react-native";
 
@@ -109,8 +110,8 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: "#6f786f",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     textAlign: "center",
   },
   metadata: {
@@ -125,8 +126,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: "#19191f",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     fontWeight: "600",
   },
 });

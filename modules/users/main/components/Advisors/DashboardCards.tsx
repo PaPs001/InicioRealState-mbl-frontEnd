@@ -1,3 +1,4 @@
+import { fontScale as appFontScale } from '@/theme/typography'
 import { Pressable, Text, View } from "react-native";
 import {
   CalendarDays,
@@ -273,7 +274,7 @@ export function AppointmentCard({
               <View style={styles.dateDurationContainer}>
                 <HourglassIcon size={6}/>
                 <Text style={{
-                  fontSize: 7,
+                  fontSize: appFontScale[7],
                   color: appointmentTypeConfig.color
                 }}>{formatDuration(minutes)}</Text>
               </View>

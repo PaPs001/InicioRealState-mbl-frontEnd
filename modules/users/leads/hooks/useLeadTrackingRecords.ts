@@ -4,6 +4,8 @@ import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getBackendLeadV2Records } from '@/lib/api'
 import type { PropertyLead } from '@/lib/types'
 
+
+///// esta es la recarga de leads manito
 export function useLeadTrackingRecords() {
   const { authToken } = useSessionDomain()
   const [leads, setLeads] = useState<PropertyLead[]>([])

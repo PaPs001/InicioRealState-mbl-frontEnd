@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -189,8 +190,8 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: "row", alignItems: "center", gap: 12 },
   titleBlock: { flex: 1, minWidth: 0 },
-  title: { color: "#19191f", fontSize: 18, lineHeight: 23, fontWeight: "700" },
-  subtitle: { marginTop: 3, color: "#717171", fontSize: 12, lineHeight: 16 },
+  title: { color: "#19191f", fontSize: textSize.titleSmall, lineHeight: platformLineHeight(23), fontWeight: "700" },
+  subtitle: { marginTop: 3, color: "#717171", fontSize: textSize.caption, lineHeight: platformLineHeight(16) },
   closeButton: {
     width: 36,
     height: 36,
@@ -201,8 +202,8 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     color: "#0c6740",
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     fontWeight: "700",
     textTransform: "uppercase",
   },
@@ -213,8 +214,8 @@ const styles = StyleSheet.create({
     borderColor: "#d8d1c8",
     backgroundColor: "#fbfbfb",
     color: "#19191f",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 7,
@@ -235,15 +236,15 @@ const styles = StyleSheet.create({
   imagePickerCopy: { flex: 1, minWidth: 0 },
   imagePickerTitle: {
     color: "#19191f",
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     fontWeight: "700",
   },
   imagePickerMeta: {
     marginTop: 2,
     color: "#717171",
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
   },
   removeImage: {
     alignSelf: "flex-start",
@@ -253,11 +254,11 @@ const styles = StyleSheet.create({
   },
   removeImageText: {
     color: "#a13b2f",
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
     fontWeight: "700",
   },
-  error: { color: "#a13b2f", fontSize: 12, lineHeight: 16, marginTop: 10 },
+  error: { color: "#a13b2f", fontSize: textSize.caption, lineHeight: platformLineHeight(16), marginTop: 10 },
   saveButton: {
     height: 42,
     borderRadius: 12,
@@ -266,5 +267,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   disabled: { opacity: 0.65 },
-  saveText: { color: "#fff", fontSize: 13, lineHeight: 17, fontWeight: "700" },
+  saveText: { color: "#fff", fontSize: textSize.bodySmall, lineHeight: platformLineHeight(17), fontWeight: "700" },
 });

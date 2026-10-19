@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors, textColor, userColors } from "@/theme";
 
@@ -5,8 +6,8 @@ export const styles = StyleSheet.create({
   //Calendario
     sectionTitle: {
       color: userColors.coordinator.primary,
-      fontSize: 16,
-      lineHeight: 24,
+      fontSize: textSize.subtitle,
+      lineHeight: platformLineHeight(24),
       fontWeight: '700',
     },
     calendarSection:{
@@ -53,12 +54,12 @@ export const styles = StyleSheet.create({
     },
     outlineButtonText:{
       color: '#006b43',
-      fontSize: 12,
+      fontSize: textSize.caption,
       fontWeight: '700',
     },
     centerButtonText:{
       color: '#ffffff',
-      fontSize: 13,
+      fontSize: textSize.bodySmall,
       fontWeight: '700',
     },
     calendarOptions:{
@@ -79,12 +80,12 @@ export const styles = StyleSheet.create({
       flex: 1
     },
     titleOption:{
-      fontSize: 13,
+      fontSize: textSize.bodySmall,
       color: userColors.coordinator.primary,
       fontWeight: '700',
     },
     subtitleOption:{
-      fontSize:10,
+      fontSize:textSize.captionSmall,
       color: textColor.softText,
       flexShrink: 1,
     },
@@ -105,13 +106,13 @@ export const styles = StyleSheet.create({
     },
     calendarSmallButtonText: {
       color: '#0c6740',
-      fontSize: 12,
+      fontSize: textSize.caption,
       fontWeight: '600',
     },
     calendarSettingsEmpty: {
       color: '#737373',
-      fontSize: 11,
-      lineHeight: 15,
+      fontSize: textSize.label,
+      lineHeight: platformLineHeight(15),
       textAlign: 'center',
       paddingVertical: 10,
     },
@@ -143,7 +144,7 @@ export const styles = StyleSheet.create({
     },
     calendarToggleText: {
       color: '#737373',
-      fontSize: 9,
+      fontSize: textSize.micro,
       fontWeight: '700',
     },
     calendarToggleTextActive: {
@@ -155,12 +156,12 @@ export const styles = StyleSheet.create({
     },
     calendarOptionTitle: {
       color: '#232323',
-      fontSize: 11,
+      fontSize: textSize.label,
       fontWeight: '600',
     },
     calendarOptionMeta: {
       color: '#7e8b86',
-      fontSize: 9,
+      fontSize: textSize.micro,
       marginTop: 2,
     },
     calendarPrimaryButton: {
@@ -178,7 +179,7 @@ export const styles = StyleSheet.create({
     },
     calendarPrimaryButtonText: {
       color: '#3d5a40',
-      fontSize: 9,
+      fontSize: textSize.micro,
       fontWeight: '700',
     },
     calendarPrimaryButtonTextActive: {
@@ -201,7 +202,7 @@ export const styles = StyleSheet.create({
     },
     calendarActionButtonText: {
       color: '#ffffff',
-      fontSize: 12,
+      fontSize: textSize.caption,
       fontWeight: '700',
       textAlign: 'center',
     },

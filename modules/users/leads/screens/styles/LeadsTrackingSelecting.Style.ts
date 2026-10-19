@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize } from '@/theme/typography'
 import { generalColors, textColor, userColors } from "@/theme";
 import { Rows } from "lucide-react-native";
 import { StyleSheet } from "react-native";
@@ -21,10 +22,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: '#fff',
     color: '#233F2D',
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
   },
   paginationContainer: { gap: 12, paddingVertical: 16 },
-  paginationSummary: { textAlign: 'center', color: '#767676', fontSize: 12 },
+  paginationSummary: { textAlign: 'center', color: '#767676', fontSize: textSize.caption },
   paginationControls: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   pageButton: { backgroundColor: '#F4F1E7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12 },
   pageButtonDisabled: { opacity: 0.4 },
@@ -91,21 +92,21 @@ export const styles = StyleSheet.create({
   ////Textos
 
   titleHeader: {
-		fontSize: 27,
+		fontSize: appFontScale[27],
 		color: '#233F2D',
 
 	},
   subtitleHeader: {
-		fontSize: 13,
+		fontSize: textSize.bodySmall,
 		color: textColor.softText,
 		fontWeight: '400'
 	},
   iaHelperText: {
 		color: '#fff',
-		fontSize: 12,
+		fontSize: textSize.caption,
 	},
   filterText: {
-		fontSize: 12,
+		fontSize: textSize.caption,
 		fontWeight: '400',
 
 	},

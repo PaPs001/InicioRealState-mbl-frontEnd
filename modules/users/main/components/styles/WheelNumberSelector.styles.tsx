@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const wheelNumberSelectorStyles = StyleSheet.create({
@@ -38,7 +39,7 @@ export const wheelNumberSelectorStyles = StyleSheet.create({
   },
   optionText: {
     color: '#3d5a40',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   optionTextActive: {

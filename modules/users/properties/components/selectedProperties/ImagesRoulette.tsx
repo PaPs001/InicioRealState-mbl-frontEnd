@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { PropertyImage } from './PropertyImage'
 import {
   View,
   Text,
   Pressable,
-  Image
 } from 'react-native'
 import { styles } from './styles/ImagesRoulette.style';
 
@@ -35,6 +35,7 @@ export const ImagesRoulette = ({
   const [imagesRowWidth, setImagesRowWidth] = useState(0)
   const [firstImage,  ...otherImages] = images
   const imageCount = images.length
+  const canOpenGallery = imageCount > 1
   const availableWidth = imagesRowWidth - HORIZONTAL_PADDING * 2
 
   
@@ -53,10 +54,14 @@ export const ImagesRoulette = ({
   return(
     <View style={styles.container}>
       {firstImage ? (
-        <View 
+        <Pressable
+          disabled={!canOpenGallery}
+          onPress={canOpenGallery ? onOpenGallery : undefined}
+          accessibilityRole={canOpenGallery ? "button" : "image"}
+          accessibilityLabel={canOpenGallery ? "Abrir galería" : "Imagen de la propiedad"}
           style={styles.principalImageContainer}>
-          <Image
-            source={{ uri: firstImage }}
+          <PropertyImage
+            uri={firstImage}
             style={styles.principalImage}
           />
           <View style={styles.statusContainer}>
@@ -68,8 +73,12 @@ export const ImagesRoulette = ({
               {capitalizeFirstLetter(removeEmojis(status))}
             </Text>
           </View>
+        </Pressable>
+      ): (
+        <View style={[styles.principalImage, { alignItems: 'center', justifyContent: 'center' }]}>
+          <Text style={styles.emptyImagesText}>Sin fotos disponibles</Text>
         </View>
-      ): null}
+      )}
 
       <View
         onLayout={(event) => setImagesRowWidth(event.nativeEvent.layout.width)}
@@ -87,12 +96,12 @@ export const ImagesRoulette = ({
             onPress={isLastVisibleImage ? onOpenGallery : undefined}
             style={styles.imagesContainer}
           >
-            <Image
-              source={{ uri: image }}
+            <PropertyImage
+              uri={image}
               style={styles.imagesInScroll}
             />
 
-            {isLastVisibleImage ? (
+            {isLastVisibleImage && hiddenImagesCount > 0 ? (
               <View style={styles.imagesCountOverlay}>
                 <Text style={styles.imagesCountText}>+ {hiddenImagesCount}</Text>
               </View>

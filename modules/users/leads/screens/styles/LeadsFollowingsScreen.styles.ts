@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { generalColors, textColor, userColors } from "@/theme";
 import { Subtitles } from "lucide-react-native";
 import { StyleSheet } from "react-native";
@@ -32,13 +33,13 @@ export const styles = StyleSheet.create({
     marginTop: 22,
   },
   title: {
-    fontSize: 22,
-    lineHeight: 25,
+    fontSize: textSize.heading,
+    lineHeight: platformLineHeight(25),
     fontWeight: "700",
   },
   subtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     color: textColor.softText,
   },
   filtersContainer: {
@@ -73,7 +74,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   filterText:{
-    fontSize: 12,
+    fontSize: textSize.caption,
     textAlign: 'center',
     textAlignVertical: 'top'
 
@@ -83,7 +84,7 @@ export const styles = StyleSheet.create({
   },
 
   errorText: {
-    fontSize: 17,
+    fontSize: textSize.subtitleLarge,
     flexShrink: 1,
     minWidth: 0,
     width: "100%",
@@ -127,7 +128,7 @@ export const styles = StyleSheet.create({
     backgroundColor: userColors.adviser.primary,
   },
   buttonText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
 
   followingsContainer: {
@@ -194,16 +195,16 @@ export const styles = StyleSheet.create({
   followingText: {
     flexWrap: "wrap",
     flexShrink: 1,
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "400",
   },
   dateText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "400",
     color: userColors.adviser.primary,
   },
   timeText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "400",
     color: userColors.adviser.primary,
   },

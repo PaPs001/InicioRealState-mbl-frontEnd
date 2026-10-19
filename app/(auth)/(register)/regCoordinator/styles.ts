@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -37,8 +38,8 @@ export const registerNewStyles = StyleSheet.create({
   },
   backButtonText: {
     color: '#204c31',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
   },
   logo: {
     alignItems: 'center',
@@ -52,17 +53,17 @@ export const registerNewStyles = StyleSheet.create({
   title: {
     color: '#214c31',
     fontFamily: serifFont,
-    fontSize: 35,
+    fontSize: appFontScale[35],
     fontWeight: '400',
-    lineHeight: 42,
+    lineHeight: platformLineHeight(42),
     textAlign: 'center',
     letterSpacing: -1.6,
   },
   subtitle: {
     marginTop: 13,
     color: '#737373',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.98,
     textAlign: 'center',
   },
@@ -107,16 +108,16 @@ export const registerNewStyles = StyleSheet.create({
   optionTitle: {
     color: '#204c31',
     fontFamily: serifFont,
-    fontSize: 25,
+    fontSize: appFontScale[25],
     fontWeight: '400',
-    lineHeight: 34,
+    lineHeight: platformLineHeight(34),
     letterSpacing: -1.28,
   },
   optionDescription: {
     marginTop: 3,
     color: '#737373',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.98,
   },
   optionArrow: {

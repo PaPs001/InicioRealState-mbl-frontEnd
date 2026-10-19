@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { generalColors } from '@/theme'
 import {StyleSheet} from 'react-native'
 
@@ -77,7 +78,7 @@ export const styles = StyleSheet.create({
   },
   appointmentGroupDate: {
     color: '#474747',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '600',
   },
   appointmentGroupLine: {
@@ -104,7 +105,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   eventCardTitle:{
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     fontWeight: '500',
     flexShrink: 1
   },
@@ -114,15 +115,15 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
   todayText:{
-    fontSize: 17
+    fontSize: textSize.subtitleLarge
   },
   dateText:{
-    fontSize: 14, 
+    fontSize: textSize.body, 
     fontWeight: '600',
     color: '#474747'
   },
   dayText:{
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '600',
     color: '#474747'
   },
@@ -133,7 +134,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   eventText:{
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: generalColors.white,
     fontWeight: '500',
   },

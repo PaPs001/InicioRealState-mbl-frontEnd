@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet, View, Text, Pressable } from "react-native";
 import { icons } from "@/assets";
 import { generalColors, textColor, userColors } from "@/theme";
@@ -80,13 +81,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   priceCardText: {
+    fontSize: textSize.subtitleLarge,
     color: userColors.adviser.primary,
   },
   textCard: {
+    fontSize: textSize.body,
     color: textColor.accentGolden,
   },
   maintainText: {
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: textColor.accentGolden,
   },
   dateButton: {
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   textDateButton: {
-    fontSize: 14,
+    fontSize: textSize.body,
     color: generalColors.white,
   },
 });

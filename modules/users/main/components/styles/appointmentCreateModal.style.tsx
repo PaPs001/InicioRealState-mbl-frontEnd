@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { colors } from "@/lib/theme";
 import { fontSize, generalColors, statusColors, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
@@ -23,7 +24,7 @@ export const styles = StyleSheet.create({
   appointmentModalTitle: {
     flex: 1,
     color: '#0c6740',
-    fontSize: 20,
+    fontSize: textSize.title,
     fontWeight: '700',
   },
   appointmentModalClose: {
@@ -65,12 +66,12 @@ export const styles = StyleSheet.create({
   },
   appointmentPickerTitle: {
     color: '#3d5a40',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   appointmentPickerMeta: {
     color: '#7e8b86',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     marginTop: 2,
   },
   appointmentSelectionList: {
@@ -98,7 +99,7 @@ export const styles = StyleSheet.create({
   },
   appointmentSelectionRowTitle: {
     color: '#232323',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   appointmentSelectionRowTitleActive: {
@@ -106,8 +107,8 @@ export const styles = StyleSheet.create({
   },
   appointmentSelectionRowMeta: {
     color: '#7e8b86',
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(14),
     marginTop: 3,
   },
   appointmentSelectionRowMetaActive: {
@@ -115,15 +116,15 @@ export const styles = StyleSheet.create({
   },
    calendarSettingsEmpty: {
     color: '#737373',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     textAlign: 'center',
     paddingVertical: 10,
   },
   calendarTypeWarning: {
     color: '#9A6700',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
     textAlign: 'center',
     paddingHorizontal: 6,
   },
@@ -155,7 +156,7 @@ export const styles = StyleSheet.create({
   },
   calendarToggleText: {
     color: '#737373',
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: '700',
   },
   calendarToggleTextActive: {
@@ -167,12 +168,12 @@ export const styles = StyleSheet.create({
   },
   calendarOptionTitle: {
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
   },
   calendarOptionMeta: {
     color: '#7e8b86',
-    fontSize: 9,
+    fontSize: textSize.micro,
     marginTop: 2,
   },
   calendarPrimaryButton: {
@@ -190,7 +191,7 @@ export const styles = StyleSheet.create({
   },
   calendarPrimaryButtonText: {
     color: '#3d5a40',
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: '700',
   },
   calendarPrimaryButtonTextActive: {
@@ -213,19 +214,19 @@ export const styles = StyleSheet.create({
   },
   calendarActionButtonText: {
     color: '#ffffff',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
     textAlign: 'center',
   },
   calendarLabel: {
     color: '#3d5a40',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '700',
     marginBottom: 5,
   },
   appointmentDurationText: {
     color: '#7e8b86',
-    fontSize: 11,
+    fontSize: textSize.label,
     marginTop: 6,
     textAlign: 'center',
   },
@@ -259,7 +260,7 @@ export const styles = StyleSheet.create({
   },
   appointmentModeButtonText: {
     color: '#3d5a40',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -279,7 +280,7 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
   informationText:{
-    fontSize: 11
+    fontSize: textSize.label
   },
   calendarDestinationList: {
     flexDirection: 'row',
@@ -303,7 +304,7 @@ export const styles = StyleSheet.create({
   },
   calendarDestinationChipText: {
     color: '#3d5a40',
-    fontSize: 9,
+    fontSize: textSize.micro,
     fontWeight: '700',
   },
   calendarDestinationChipTextActive: {
@@ -322,12 +323,12 @@ export const styles = StyleSheet.create({
   },
   calendarSelectedNoticeTitle: {
     color: '#3d5a40',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   calendarSelectedNoticeMeta: {
     color: '#7e8b86',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     marginTop: 2,
   },
   calendarTestInput: {
@@ -336,7 +337,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ded6ca',
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     paddingHorizontal: 9,
     paddingVertical: 6,
     marginBottom: 6,
@@ -354,7 +355,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ded6ca',
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     paddingHorizontal: 9,
     paddingVertical: 8,
     backgroundColor: '#fffcfc',
@@ -374,7 +375,7 @@ export const styles = StyleSheet.create({
   },
   calendarPickerButtonText: {
     color: '#3d5a40',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: '700',
   },
   calendarPickerInput: {
@@ -384,7 +385,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ded6ca',
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     paddingHorizontal: 9,
     paddingVertical: 6,
     backgroundColor: '#fffcfc',
@@ -416,12 +417,12 @@ export const styles = StyleSheet.create({
   },
   calendarCreateButtonText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   calendarExitButtonText:{
     color: '#0c0c0c',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   appointmentDatePicker: {
@@ -450,12 +451,12 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerMonth: {
     color: '#19191f',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
   },
   appointmentDatePickerYear: {
     color: '#737373',
-    fontSize: 11,
+    fontSize: textSize.label,
   },
   appointmentDatePickerWeekRow: {
     flexDirection: 'row',
@@ -466,7 +467,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerWeekText: {
     color: '#737373',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: '700',
   },
   appointmentDatePickerGrid: {
@@ -496,7 +497,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerDayText: {
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
   },
   appointmentDatePickerTodayText: {
@@ -509,7 +510,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerSectionTitle: {
     color: '#3d5a40',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   appointmentDatePickerOptionRow: {
@@ -538,7 +539,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerOptionText: {
     color: '#3d5a40',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   appointmentDatePickerOptionTextActive: {
@@ -549,7 +550,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerValue: {
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
   },
   appointmentDatePickerConfirmButton: {
@@ -562,7 +563,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerConfirmText: {
     color: '#3d5a40',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   calendarContainer:{
@@ -580,12 +581,12 @@ export const styles = StyleSheet.create({
   },
   calendarButtonText:{
     color: generalColors.white,
-    fontSize: 12,
+    fontSize: textSize.caption,
     flex: 1,
   },
   selectedDateTimeText: {
     color: '#3d5a40',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '600',
     marginTop: 8,
     textAlign: 'center',

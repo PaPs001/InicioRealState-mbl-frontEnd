@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize } from '@/theme/typography'
 import { borderColor, generalColors, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -16,11 +17,11 @@ export const styles = StyleSheet.create({
     alignContent: 'center',
   },
   title:{
-    fontSize: 23,
+    fontSize: appFontScale[23],
     color: generalColors.greenTitle
   },
   subtitle:{
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     color: generalColors.textMuted
   },
   appointmentModalPanel: {
@@ -59,12 +60,12 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerMonth: {
     color: generalColors.black,
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
   },
   appointmentDatePickerYear: {
     color: generalColors.black,
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
   },
   appointmentDatePickerWeekRow: {
@@ -76,7 +77,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerWeekText: {
     color: '#737373',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: '700',
   },
   appointmentDatePickerGrid: {
@@ -106,7 +107,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerDayText: {
     color: '#232323',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '600',
   },
   appointmentDatePickerTodayText: {
@@ -129,7 +130,7 @@ export const styles = StyleSheet.create({
     backgroundColor: generalColors.backgroundSections
   },
   dateText:{
-    fontSize: 13
+    fontSize: textSize.bodySmall
   },
   appointmentDatePickerConfirmButton: {
     minHeight: 45,
@@ -141,7 +142,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerConfirmText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
   },
   timeContainer:{
@@ -155,7 +156,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerSectionTitle: {
     color: '#3d5a40',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
   },
   appointmentDatePickerOptionRow: {
@@ -179,7 +180,7 @@ export const styles = StyleSheet.create({
   },
   appointmentDatePickerValue: {
     color: '#232323',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '600',
   },
 

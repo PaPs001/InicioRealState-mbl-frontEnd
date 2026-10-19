@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors, textColor } from "@/theme";
 export const styles = StyleSheet.create({
@@ -49,7 +50,7 @@ export const styles = StyleSheet.create({
 
   searchTextInput: {
     flex: 1,
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
   },
 
   listContent: {
@@ -64,7 +65,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 60
   },
   developmentsTitle: {
-    fontSize: 24,
+    fontSize: textSize.headingLarge,
     color: generalColors.development,
   },
   headerList: {

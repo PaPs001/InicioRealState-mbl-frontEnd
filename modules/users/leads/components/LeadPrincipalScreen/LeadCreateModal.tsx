@@ -190,7 +190,7 @@ export function LeadCreateModal({
   );
 }
 
-function LeadLastContactDateField({
+export function LeadLastContactDateField({
   onChange,
   value,
 }: {
@@ -253,7 +253,7 @@ function formatLeadDate(value: string) {
   }).format(new Date(value));
 }
 
-function LeadOptionField({
+export function LeadOptionField({
   label,
   onSelect,
   options,
@@ -336,7 +336,7 @@ function PropertySelectField({
   );
 }
 
-function PropertyPickerView({
+export function PropertyPickerView({
   isLoading,
   onBack,
   onSearchChange,
@@ -478,7 +478,7 @@ function PropertyPickerCard({
   );
 }
 
-function LeadFormField({
+export function LeadFormField({
   autoCapitalize,
   keyboardType,
   label,

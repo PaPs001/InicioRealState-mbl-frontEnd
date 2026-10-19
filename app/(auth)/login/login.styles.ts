@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -66,17 +67,17 @@ export const loginNewStyles = StyleSheet.create({
     marginTop: 15,
     color: '#9D6C26',
     fontFamily: serifFont,
-    fontSize: 40,
+    fontSize: textSize.display,
     fontWeight: '400',
-    lineHeight: 42,
+    lineHeight: platformLineHeight(42),
     textAlign: 'center',
   },
   subtitle: {
     marginTop: 10,
     maxWidth: 340,
     color: '#737373',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
     letterSpacing: 1.12,
     textAlign: 'center',
   },
@@ -110,7 +111,7 @@ export const loginNewStyles = StyleSheet.create({
     minHeight: 44,
     paddingVertical: 0,
     color: '#1f2933',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     letterSpacing: 1.12,
   },
   passwordInput: {
@@ -137,8 +138,8 @@ export const loginNewStyles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
   },
   forgetPasswordContainer:{
     alignItems:'center',
@@ -157,8 +158,8 @@ export const loginNewStyles = StyleSheet.create({
   registerPrompt: {
     marginTop: 10,
     color: '#000000',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
     textAlign: 'center',
   },
   secondaryButton: {
@@ -174,8 +175,8 @@ export const loginNewStyles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#a68654',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
   },
   previewButton: {
     width: '100%',
@@ -188,23 +189,23 @@ export const loginNewStyles = StyleSheet.create({
   },
   previewButtonText: {
     color: '#1f3f2a',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
   },
   errorText: {
     marginTop: 10,
     color: '#b42318',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     textAlign: 'center',
   },
   fieldErrorText: {
     marginTop: -4,
     color: '#b42318',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: platformLineHeight(17),
     textAlign: 'left',
   },
   debugPanel: {
@@ -219,9 +220,9 @@ export const loginNewStyles = StyleSheet.create({
   },
   debugTitle: {
     color: '#1f2933',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '700',
-    lineHeight: 18,
+    lineHeight: platformLineHeight(18),
   },
   debugLogItem: {
     borderLeftWidth: 3,
@@ -239,9 +240,9 @@ export const loginNewStyles = StyleSheet.create({
     gap: 8,
   },
   debugLogLevel: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '800',
-    lineHeight: 14,
+    lineHeight: platformLineHeight(14),
   },
   debugLogLevelInfo: {
     color: '#315b7a',
@@ -258,23 +259,23 @@ export const loginNewStyles = StyleSheet.create({
   debugLogTime: {
     flexShrink: 0,
     color: '#6f6a61',
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
   },
   debugLogMessage: {
     color: '#242424',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
   },
   debugLogDetails: {
     color: '#51483d',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
   },
   legal: {
     color: '#737373',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
     letterSpacing: 1.12,
     textAlign: 'center',
   },

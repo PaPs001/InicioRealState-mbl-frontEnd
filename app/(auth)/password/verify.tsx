@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { useState } from 'react'
 import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -146,12 +147,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#9D6C26',
-    fontSize: 28,
+    fontSize: appFontScale[28],
     textAlign: 'center',
   },
   subTitle: {
     color: '#737373',
-    fontSize: 14,
+    fontSize: textSize.body,
     textAlign: 'center',
   },
   form: {
@@ -162,13 +163,13 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: '#027A48',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
   },
   errorText: {
     color: '#B42318',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
   },
   buttonContent: {
     width: '100%',

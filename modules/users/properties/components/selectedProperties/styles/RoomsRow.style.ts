@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { textColor } from "@/theme";
 import { StyleSheet } from "react-native";
 
@@ -27,14 +28,14 @@ export const styles = StyleSheet.create({
     },
     roomTitle:{
         width: '100%',
-        fontSize: 14,
-        lineHeight: 18,
+        fontSize: textSize.body,
+        lineHeight: platformLineHeight(18),
         textAlign: 'center',
         flexShrink: 1,
     },
     roomSubtitle:{
         marginTop: 3,
-        fontSize: 12,
+        fontSize: textSize.caption,
         color: textColor.softText,
         textAlign: 'center'
     },

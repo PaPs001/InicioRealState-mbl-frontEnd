@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -41,9 +42,9 @@ export const registerOwnerProfileStyles = StyleSheet.create({
   },
   progressLabel: {
     color: '#e4ac73',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: platformLineHeight(17),
   },
   progressTrack: {
     flex: 1,
@@ -66,16 +67,16 @@ export const registerOwnerProfileStyles = StyleSheet.create({
     width: '100%',
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 32,
+    fontSize: textSize.displaySmall,
     fontWeight: '700',
-    lineHeight: 40,
+    lineHeight: platformLineHeight(40),
     textAlign: 'center',
     letterSpacing: 0.32,
   },
   subtitle: {
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.65,
     textAlign: 'center',
   },
@@ -95,9 +96,9 @@ export const registerOwnerProfileStyles = StyleSheet.create({
   sectionTitle: {
     color: '#11451a',
     fontFamily: serifFont,
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: platformLineHeight(20),
   },
   grid: {
     width: '100%',
@@ -143,9 +144,9 @@ export const registerOwnerProfileStyles = StyleSheet.create({
   optionText: {
     flex: 1,
     color: '#155721',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '500',
-    lineHeight: 16,
+    lineHeight: platformLineHeight(16),
     letterSpacing: -0.13,
   },
   continueButton: {
@@ -165,8 +166,8 @@ export const registerOwnerProfileStyles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#ffffff',
-    fontSize: 15,
-    lineHeight: 16,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(16),
     textAlign: 'center',
   },
   continueIcon: {
@@ -177,8 +178,8 @@ export const registerOwnerProfileStyles = StyleSheet.create({
     width: 330,
     marginTop: 6,
     color: '#b42318',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: 'center',
   },
 })

@@ -55,6 +55,8 @@ export type GeneratePropertyListPdfPayload = {
 export type GenerateSinglePropertyPdfPayload = {
   design: 'modern'
   propertyId: string
+  list: 'sale' | 'rent'
+  sales: boolean
 }
 
 export type TemporaryPdfReport = {

@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -79,18 +80,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#315b41',
-    fontSize: 22,
+    fontSize: textSize.heading,
     fontWeight: '800',
     textAlign: 'center',
   },
   subtitle: {
     color: '#7b8780',
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     textAlign: 'center',
   },
   countdown: {
     color: '#315b41',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '700',
     marginTop: 10,
     textAlign: 'center',
