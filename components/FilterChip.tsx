@@ -1,0 +1,70 @@
+import { textSize } from '@/theme/typography'
+import { TouchableOpacity, StyleSheet, Text } from "react-native"
+
+export function FilterChip({
+  label,
+  active,
+  activeColor,
+  onPress,
+  disabled = false,
+}: {
+  label: string
+  active: boolean
+  activeColor?: string
+  onPress: () => void
+  disabled?: boolean
+}) {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.filterChip,
+        active && styles.filterChipActive,
+        active && activeColor ? { backgroundColor: activeColor } : null,
+        disabled && styles.filterChipDisabled,
+      ]}
+      activeOpacity={0.85}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text numberOfLines={2} adjustsFontSizeToFit style={[
+          styles.filterChipText,
+          active && styles.filterChipTextActive,
+          disabled && styles.filterChipTextDisabled,
+          
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  )
+}
+
+const styles = StyleSheet.create({
+  filterChip: {
+    flex: 1,
+    minWidth: 0,
+    height: 30,
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 7,
+  },
+  filterChipActive: {
+    backgroundColor: '#0c6740',
+  },
+  filterChipText: {
+    color: '#0c6740',
+    fontSize: textSize.caption,
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+  filterChipTextActive: {
+    color: '#ffffff',
+  },
+  filterChipDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.7,
+  },
+  filterChipTextDisabled: {
+    color: '#6B7280',
+  },
+})

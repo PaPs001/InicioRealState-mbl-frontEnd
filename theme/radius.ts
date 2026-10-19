@@ -1,0 +1,16 @@
+export const radius = {
+  none: 0,
+  xxs: 2,
+  xs: 4,
+  sm: 5,
+  md: 6,
+  lg: 8,
+  xl: 9,
+  xxl: 10,
+  card: 12,
+  cardLarge: 14,
+  modal: 16,
+  pill: 20,
+  round: 28,
+  full: 999,
+}

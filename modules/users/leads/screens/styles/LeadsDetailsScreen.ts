@@ -1,0 +1,441 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
+import { colors } from "@/lib/theme";
+import { generalColors, textColor, userColors } from "@/theme";
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: generalColors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    gap: 17,
+    paddingHorizontal: 11,
+  },
+  logoContainer: {
+    position: "relative",
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backButton: {
+    position: "absolute",
+    left: 0,
+    zIndex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 50,
+    height: 50,
+  },
+  headerContainer: {},
+  title: {
+    fontSize: textSize.heading,
+    lineHeight: platformLineHeight(25),
+    fontWeight: "700",
+  },
+  subtitle: {
+    color: "#717171",
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
+  },
+  detailScreen: {
+    flex: 1,
+  },
+  informationContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D4D3D3",
+    paddingHorizontal: 9,
+    paddingVertical: 12,
+    gap: 12,
+    backgroundColor: "#fff",
+
+    shadowColor: "#0000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 9,
+    elevation: 5,
+  },
+  rowBlock: {
+    gap: 8,
+    overflow: 'hidden'
+  },
+  headerInformationContainer: {
+    gap: 8,
+    flexDirection: "row",
+    flex: 1,
+    paddingRight: 100
+  },
+  profileAvatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 999,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e5e7eb",
+    overflow: "hidden",
+  },
+  imageLead: {
+    width: "100%",
+    height: "100%",
+  },
+  dataLeadContainer: {
+    gap: 3,
+  },
+  nameLead: {
+    fontSize: textSize.subtitleLarge,
+    fontWeight: "500",
+    lineHeight: platformLineHeight(22),
+  },
+  placeLead: {
+    fontSize: textSize.bodyLarge,
+    fontWeight: "600",
+    color: textColor.accentGolden,
+    //fontStyle: 'italic',
+  },
+  statusBar: {
+    flexDirection: "row",
+    borderRadius: 12,
+    borderColor: "#BDBDBD",
+    borderWidth: 0.5,
+    backgroundColor: "#EDF1E0",
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingVertical: 4,
+  },
+  statusDot: {
+    borderRadius: 99,
+    width: 12,
+    height: 12,
+    backgroundColor: "#454A36",
+  },
+  statusText: {
+    fontSize: textSize.captionSmall,
+  },
+
+  typeLeadContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  typeLead: {
+    flexDirection: "row",
+    gap: 4,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sourceText: {
+    fontSize: textSize.captionSmall,
+  },
+  /// estilos de primer bloque
+  tableInformation: {
+    paddingHorizontal: 7,
+    flexDirection: "row",
+  },
+  lineInformation: {
+    flex: 1,
+    borderTopWidth: 0.5,
+    borderLeftWidth: 0.5,
+  },
+
+  lineInformationNoBor: {
+    borderLeftWidth: 0,
+    borderTopWidth: 0.5,
+  },
+  lineInformationInterior: {
+    borderBottomWidth: 0.5,
+    minHeight: 35,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  lineInformationInteriorLast: {
+    minHeight: 35,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  lineInformationEdge: {
+    borderTopWidth: 0.5,
+    borderLeftWidth: 0.5,
+  },
+  informationText: {
+    fontSize: textSize.micro,
+  },
+  informationTextRight: {
+    textAlign: "right",
+  },
+
+  // estilos bloque 2
+  nextActionButton: {
+    borderWidth: 1,
+    borderColor: "#CED8A8",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: "#F6F7F2",
+  },
+  iconCircle: {
+    borderRadius: 999,
+    backgroundColor: userColors.adviser.primaryDark,
+    width: 60,
+    height: 60,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionTextContainer: {
+    flex: 1,
+    minWidth: 0,
+    overflow: "hidden",
+    flexDirection: "row",
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  actionTitle: {
+    fontSize: textSize.subtitleLarge,
+    lineHeight: platformLineHeight(19),
+    fontWeight: "700",
+  },
+  actionDateText: {
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(14),
+    color: textColor.accentGolden,
+    fontWeight: "600",
+  },
+  actionAdvisorText: {
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(12),
+    color: textColor.softText,
+  },
+
+  optionButton: {
+    minWidth: 100,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D4D3D3",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignContent: "center",
+    alignItems: "center",
+    gap: 3,
+  },
+  optionText: {
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(17),
+    textAlign: "center",
+  },
+  contentButtons: {
+    gap: 6,
+  },
+  headerIAInformation: {
+    flexDirection: "row",
+    gap: 10,
+    alignContent: "center",
+    alignItems: "center",
+  },
+
+  iaRecommendationsContainer: {
+    borderWidth: 1,
+    borderColor: "#D7D7D7",
+    borderRadius: 12,
+    //paddingVertical: 9,
+    //paddingHorizontal: 12,
+    marginHorizontal: 15,
+    overflow: "hidden",
+  },
+  recommendationBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+
+    minHeight: 82,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+
+    borderBottomWidth: 1,
+    borderBottomColor: "#D7D7D7",
+  },
+  recommendationBlockLast: {
+    borderBottomWidth: 0,
+  },
+  iaAnnotation: {
+    flexDirection: "row",
+    gap: 7,
+    alignContent: "center",
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: "#FDF4E9",
+    width: "100%",
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+  },
+  iaAnnotationText: {
+    fontSize: textSize.label,
+    flexShrink: 1,
+  },
+  recommendationTextContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  recommendationTitle: {
+    fontSize: textSize.body,
+    flexShrink: 1,
+  },
+  recommendationSubtitle: {
+    fontSize: textSize.caption,
+    flexShrink: 1,
+  },
+
+  //para texxtos y pantallas de error
+  invalidInformationContainer: {
+    flexDirection: "row",
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  invalidInformationText: {
+    fontSize: textSize.subtitleLarge,
+  },
+
+  ///
+
+  timelineItem: {
+    flexDirection: "row",
+    alignItems: "stretch",
+  },
+
+  timelineRail: {
+    width: 42,
+    alignItems: "center",
+    alignSelf: "stretch",
+  },
+
+  timelineDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fefc",
+    zIndex: 2,
+    borderColor: "#0f0f0f",
+    borderWidth: 1,
+  },
+
+  timelineLine: {
+    flex: 1,
+    width: 1,
+    backgroundColor: "#BDBDBD",
+
+    marginBottom: -13,
+  },
+  timelineContent: {
+    flex: 1,
+    minWidth: 0,
+    paddingBottom: 14,
+  },
+  timelineHeader: {
+    flexDirection: "row",
+    alignContent: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  timelineHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  timelineDate: {
+    fontSize: textSize.label,
+    fontWeight: "600",
+    flexShrink: 1,
+  },
+  timelineType: {
+    fontSize: textSize.label,
+    fontWeight: "600",
+    flexShrink: 1,
+  },
+  timelineTime: {
+    fontSize: textSize.captionSmall,
+  },
+  timelineDescription: {
+    marginTop: 3,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(15),
+    flexShrink: 1,
+  },
+  attachmentList: {
+    gap: 8,
+    paddingTop: 8,
+    paddingRight: 8,
+  },
+
+  bottomButtons: {
+    flexDirection: "row",
+    paddingVertical: 9,
+    paddingHorizontal: 9,
+    gap: 4,
+    borderRadius: 76,
+    borderColor: "#B9A075",
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  followingButton: {
+    flex: 1,
+    borderColor: "#01302A",
+    borderWidth: 1,
+    borderRadius: 15,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  iaButton: {
+    //flex: 1,
+    borderColor: "#DB9A28",
+    borderWidth: 1,
+    borderRadius: 15,
+    flexDirection: "row",
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    gap: 5,
+  },
+  seeFollowingsButton: {
+    flex: 1,
+    borderColor: "#417770",
+    backgroundColor: "#003129",
+    borderWidth: 1,
+    borderRadius: 15,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  buttonText: {
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(17),
+  },
+  whiteColor: {
+    color: "#f9f9f9",
+  },
+  noActionContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
