@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { getRegisterEntryRoute, registerEntryOptions, type RegisterClientType } from '@/lib/services/register-entry'
 import { registerNewStyles } from './register-new.styles'

@@ -3,9 +3,6 @@ import AppLoadingScreen from '@/components/animations/AppLoadingScreen'
 import { useRouter } from 'expo-router'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 
-
-
-
 export default function Index() {
   const {
     isLoading,

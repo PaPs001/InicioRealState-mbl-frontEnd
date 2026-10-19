@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowLeft, ArrowRight } from 'lucide-react-native'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import {
   getRegisterProfileClientType,
   getRegisterProfileParams,
@@ -20,18 +20,18 @@ import { registerOwnerProfileStyles } from './profile.styles'
 import { registerOwnerAccessStyles } from './access.styles'
 
 const iconSources: Record<string, ImageSourcePropType> = {
-  'register-owner-profile-residential.png': require('../../../assets/register-owner-profile-residential.png'),
-  'register-owner-profile-rentals.png': require('../../../assets/register-owner-profile-rentals.png'),
-  'register-owner-profile-commercial.png': require('../../../assets/register-owner-profile-commercial.png'),
-  'register-owner-profile-mixed.png': require('../../../assets/register-owner-profile-mixed.png'),
-  'register-owner-interest-manage.png': require('../../../assets/register-owner-interest-manage.png'),
-  'register-owner-interest-rentals.png': require('../../../assets/register-owner-interest-rentals.png'),
-  'register-owner-interest-wealth.png': require('../../../assets/register-owner-interest-wealth.png'),
-  'register-owner-interest-investment.png': require('../../../assets/register-owner-interest-investment.png'),
-  'register-owner-priority-cashflow.png': require('../../../assets/register-owner-priority-cashflow.png'),
-  'register-owner-priority-growth.png': require('../../../assets/register-owner-priority-growth.png'),
-  'register-owner-priority-security.png': require('../../../assets/register-owner-priority-security.png'),
-  'register-owner-priority-expansion.png': require('../../../assets/register-owner-priority-expansion.png'),
+  'register-owner-profile-residential.png': require('@/assets/register-owner-profile-residential.png'),
+  'register-owner-profile-rentals.png': require('@/assets/register-owner-profile-rentals.png'),
+  'register-owner-profile-commercial.png': require('@/assets/register-owner-profile-commercial.png'),
+  'register-owner-profile-mixed.png': require('@/assets/register-owner-profile-mixed.png'),
+  'register-owner-interest-manage.png': require('@/assets/register-owner-interest-manage.png'),
+  'register-owner-interest-rentals.png': require('@/assets/register-owner-interest-rentals.png'),
+  'register-owner-interest-wealth.png': require('@/assets/register-owner-interest-wealth.png'),
+  'register-owner-interest-investment.png': require('@/assets/register-owner-interest-investment.png'),
+  'register-owner-priority-cashflow.png': require('@/assets/register-owner-priority-cashflow.png'),
+  'register-owner-priority-growth.png': require('@/assets/register-owner-priority-growth.png'),
+  'register-owner-priority-security.png': require('@/assets/register-owner-priority-security.png'),
+  'register-owner-priority-expansion.png': require('@/assets/register-owner-priority-expansion.png'),
 }
 
 type OptionGridProps = {
