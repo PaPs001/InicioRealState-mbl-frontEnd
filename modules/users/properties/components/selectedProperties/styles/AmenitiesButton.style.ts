@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { textColor } from '@/theme'
 import {StyleSheet} from 'react-native'
 
@@ -21,7 +22,7 @@ export const styles = StyleSheet.create({
 
     },
     amenitieText:{
-        fontSize: 10,
+        fontSize: textSize.captionSmall,
         color: textColor.softText,
     }
 })

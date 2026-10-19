@@ -8,7 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app",
+        "MAPS_ANDROID_API_KEY": "AIzaSyDrJ9LDCAWneS4hJ__XuIooghe_Z-J3MU4"
       },
       "channel": "development"
     },

@@ -33,6 +33,8 @@ export interface PropertyLead {
   createdDate: string
   firstContactDate?: string
   lastContactDate?: string
+  estimatedBudget?: number
+  operation?: LeadSearchIntent
   imageUri?: string
 }
 

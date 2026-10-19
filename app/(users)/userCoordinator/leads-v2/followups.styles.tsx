@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -18,24 +19,24 @@ export const styles = StyleSheet.create({
   brandBlock: { alignItems: "center", marginTop: 12 },
   brandTitle: {
     color: "#284629",
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: appFontScale[28],
+    lineHeight: platformLineHeight(34),
     fontWeight: "500",
     letterSpacing: 6,
   },
   brandSubtitle: {
     color: "#d19a5b",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     letterSpacing: 4,
   },
   titleBlock: { marginTop: 14, paddingHorizontal: 14 },
-  title: { color: "#19191f", fontSize: 22, lineHeight: 27, fontWeight: "700" },
+  title: { color: "#19191f", fontSize: textSize.heading, lineHeight: platformLineHeight(27), fontWeight: "700" },
   subtitle: {
     marginTop: 3,
     color: "#8d8d96",
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     fontWeight: "600",
   },
   filterScroll: { flexGrow: 0, marginTop: 14 },
@@ -63,8 +64,8 @@ export const styles = StyleSheet.create({
   },
   filterText: {
     color: "#12382f",
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(17),
     fontWeight: "700",
   },
   filterTextActive: { color: "#ffffff" },
@@ -128,14 +129,14 @@ export const styles = StyleSheet.create({
   timeRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   dateText: {
     color: "#0c6740",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     fontWeight: "600",
   },
   timeText: {
     color: "#0c6740",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     fontWeight: "500",
   },
   tagPill: {
@@ -150,8 +151,8 @@ export const styles = StyleSheet.create({
   },
   tagText: {
     color: "#0c6740",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: textSize.captionSmall,
+    lineHeight: platformLineHeight(13),
     fontWeight: "600",
   },
   messageBubble: {
@@ -165,7 +166,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     marginTop: 6,
   },
-  followingText: { color: "#19191f", fontSize: 12, lineHeight: 16 },
+  followingText: { color: "#19191f", fontSize: textSize.caption, lineHeight: platformLineHeight(16) },
   attachmentGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -196,16 +197,16 @@ export const styles = StyleSheet.create({
   },
   emptyTitle: {
     color: "#19191f",
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(20),
     fontWeight: "700",
     textAlign: "center",
   },
   emptyText: {
     marginTop: 7,
     color: "#717171",
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: "center",
   },
   bottomDock: {
@@ -238,8 +239,8 @@ export const styles = StyleSheet.create({
   bottomPillDark: { backgroundColor: "#064b38", borderColor: "#064b38" },
   bottomPillText: {
     color: "#19191f",
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: textSize.micro,
+    lineHeight: platformLineHeight(12),
     fontWeight: "700",
   },
   bottomPillTextDark: { color: "#ffffff" },
@@ -255,8 +256,8 @@ export const styles = StyleSheet.create({
   },
   addActivityText: {
     color: "#ffffff",
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: "700",
   },
 });

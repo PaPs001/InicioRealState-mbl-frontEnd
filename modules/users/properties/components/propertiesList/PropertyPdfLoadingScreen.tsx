@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { useEffect } from 'react'
 import { ActivityIndicator, BackHandler, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -38,16 +39,16 @@ const styles = StyleSheet.create({
   pdfWorkTitle: {
     marginTop: 18,
     color: '#0c6740',
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: textSize.titleSmall,
+    lineHeight: platformLineHeight(24),
     fontWeight: '600',
     textAlign: 'center',
   },
   pdfWorkText: {
     marginTop: 8,
     color: '#717171',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     textAlign: 'center',
   },
 })

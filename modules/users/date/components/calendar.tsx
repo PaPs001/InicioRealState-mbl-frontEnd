@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { useMemo } from "react";
 import {
   Pressable,
@@ -176,13 +177,13 @@ const styles = StyleSheet.create({
 
   monthText: {
     color: '#19191F',
-    fontSize: 20,
+    fontSize: textSize.title,
     fontWeight: '700',
   },
 
   yearText: {
     color: '#737373',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     marginTop: 2,
   },
 
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
 
   weekDayText: {
     color: '#8A8A91',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '600',
   },
 
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
 
   dayText: {
     color: '#19191F',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '500',
   },
 

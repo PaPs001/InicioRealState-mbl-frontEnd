@@ -48,6 +48,7 @@ type LeadDetailScreenProps = {
   isLoadingCustomLeadStatuses?: boolean;
   lead: PropertyLead;
   mode?: "coordinator" | "advisor";
+  canManageLead?: boolean;
   onApplyCustomStatus?: (
     leadId: string,
     status: string,
@@ -71,6 +72,7 @@ export function LeadDetailScreen({
   isLoadingCustomLeadStatuses = false,
   lead,
   mode = "coordinator",
+  canManageLead = mode === "advisor",
   onApplyCustomStatus,
   onApplyNextAction,
   onBack,
@@ -120,8 +122,8 @@ export function LeadDetailScreen({
     lead.nextAction || lead.notes || "Definir siguiente accion";
   const advisorName = lead.assignedAgentName || "Sin asesor";
   const canManageCustomStatus =
-    mode === "advisor" && Boolean(onApplyCustomStatus);
-  const canManageNextAction = mode === "advisor" && Boolean(onApplyNextAction);
+    canManageLead && Boolean(onApplyCustomStatus);
+  const canManageNextAction = canManageLead && Boolean(onApplyNextAction);
   const visibleCustomStatuses = useMemo(() => {
     const statuses = new Set(
       customLeadStatuses.map((status) => status.trim()).filter(Boolean),

@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -122,7 +123,7 @@ export const styles = StyleSheet.create({
 
   title: {
     color: "#193a31",
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -130,8 +131,8 @@ export const styles = StyleSheet.create({
   subtitle: {
     marginTop: 3,
     color: "#697b74",
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: "center",
   },
 

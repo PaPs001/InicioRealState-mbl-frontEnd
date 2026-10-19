@@ -19,7 +19,10 @@ import type {
 import type { Property, PropertyLead } from "@/lib/types";
 
 import { FilterChip } from "@/components/FilterChip";
-import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
+import {
+  LEAD_TRACKING_STATUSES,
+  type LeadTrackingStatus,
+} from "@/modules/users/leads/constants/lead-tracking-statuses";
 import {
   getAppointmentEndDateTime,
   getPropertyDisplayName,
@@ -126,7 +129,8 @@ export function AppointmentCreateModal({
   const [hasConfirmedDateTime, setHasConfirmedDateTime] = useState(false);
   const [hasConfirmedEndDateTime, setHasConfirmedEndDateTime] = useState(false);
   const [descriptionInputHeight, setDescriptionInputHeight] = useState(80);
-  const [isLeadStatusSelectorOpen, setIsLeadStatusSelectorOpen] = useState(false);
+  const [isLeadStatusSelectorOpen, setIsLeadStatusSelectorOpen] =
+    useState(false);
   const normalizedAppointmentType = testAppointmentForm.appointmentType
     ?.trim()
     .toLowerCase();
@@ -215,26 +219,26 @@ export function AppointmentCreateModal({
   };
 
   function getPrimaryChipColor(type: AppointmentType): string {
-    const config = getAppointmentTypeConfig(type)
-    if(type !== selectedPrimaryAppointmentType){
-      return config.color
+    const config = getAppointmentTypeConfig(type);
+    if (type !== selectedPrimaryAppointmentType) {
+      return config.color;
     }
 
-    if(config.hasSubdivision){
-      return subdivision?.color ?? "#7d7d7d"
+    if (config.hasSubdivision) {
+      return subdivision?.color ?? "#7d7d7d";
     }
 
-    if(type === "general"){
-      return selectedAppointmentType !== "general" ? appointmentTypeConfig.color : "#7d7d7d"
+    if (type === "general") {
+      return selectedAppointmentType !== "general"
+        ? appointmentTypeConfig.color
+        : "#7d7d7d";
     }
 
-    return config.color
+    return config.color;
   }
 
-  const selectionColor = getPrimaryChipColor(selectedPrimaryAppointmentType)
+  const selectionColor = getPrimaryChipColor(selectedPrimaryAppointmentType);
 
-  const selectionTextColor =
-  selectionColor === "#ffffff" ? "#0c6740" : "#ffffff";
   return (
     <AppModal
       visible={visible}
@@ -310,7 +314,11 @@ export function AppointmentCreateModal({
       }
     >
       {selectionScreen === "duplicate" ? (
-        <AppointmentDuplicateScreen candidates={duplicateCheck?.candidates ?? []} isProcessing={isCreatingAppointment} onUseDuplicateLead={onUseDuplicateLead} />
+        <AppointmentDuplicateScreen
+          candidates={duplicateCheck?.candidates ?? []}
+          isProcessing={isCreatingAppointment}
+          onUseDuplicateLead={onUseDuplicateLead}
+        />
       ) : selectionScreen === "lead" ? (
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -454,7 +462,9 @@ export function AppointmentCreateModal({
                 <FilterChip
                   key={type.value}
                   label={
-                    type.value === "general" ? "Otras Citas" : `Cita ${type.label}`
+                    type.value === "general"
+                      ? "Otras Citas"
+                      : `Cita ${type.label}`
                   }
                   active={selectedPrimaryAppointmentType === type.value}
                   activeColor={getPrimaryChipColor(type.value)}
@@ -476,12 +486,11 @@ export function AppointmentCreateModal({
                           subdivision.value
                         }
                         activeColor={subdivision.color}
-                        disabled={!selectedTypeCalendar || isCreatingAppointment}
+                        disabled={
+                          !selectedTypeCalendar || isCreatingAppointment
+                        }
                         onPress={() =>
-                          onUpdateForm(
-                            "subtypeCalendar",
-                            subdivision.value,
-                          )
+                          onUpdateForm("subtypeCalendar", subdivision.value)
                         }
                       />
                     ),
@@ -582,40 +591,42 @@ export function AppointmentCreateModal({
               ” antes de crear esta cita.
             </Text>
           )}
-            <View>
-              <Text style={styles.calendarLabel}>Asesor encargado</Text>
-              <View style={styles.appointmentModeRow}>
-                <FilterChip
-                  label="Soy yo"
-                  active={advisorMode === "self"}
-                  activeColor={selectionColor}
-                  disabled={isCreatingAppointment}
-                  onPress={() => onAdvisorModeChange("self")}
-                />
-                <FilterChip
-                  label="Otro asesor"
-                  active={advisorMode === "external"}
-                  activeColor={selectionColor}
-                  disabled={isCreatingAppointment}
-                  onPress={() => onAdvisorModeChange("external")}
-                />
-              </View>
-              {advisorMode === "self" ? (
-                <Text style={styles.calendarSelectedNoticeMeta}>
-                  {currentUserName || "Usuario actual"}
-                </Text>
-              ) : (
-                <TextInput
-                  style={styles.calendarTestInput}
-                  value={testAppointmentForm.externalAdvisorName ?? ""}
-                  onChangeText={value => onUpdateForm("externalAdvisorName", value)}
-                  editable={!isCreatingAppointment}
-                  placeholder="Nombre del asesor encargado"
-                  placeholderTextColor="#8d8d8d"
-                  autoCapitalize="words"
-                />
-              )}
+          <View>
+            <Text style={styles.calendarLabel}>Asesor encargado</Text>
+            <View style={styles.appointmentModeRow}>
+              <FilterChip
+                label="Soy yo"
+                active={advisorMode === "self"}
+                activeColor={selectionColor}
+                disabled={isCreatingAppointment}
+                onPress={() => onAdvisorModeChange("self")}
+              />
+              <FilterChip
+                label="Otro asesor"
+                active={advisorMode === "external"}
+                activeColor={selectionColor}
+                disabled={isCreatingAppointment}
+                onPress={() => onAdvisorModeChange("external")}
+              />
             </View>
+            {advisorMode === "self" ? (
+              <Text style={styles.calendarSelectedNoticeMeta}>
+                {currentUserName || "Usuario actual"}
+              </Text>
+            ) : (
+              <TextInput
+                style={styles.calendarTestInput}
+                value={testAppointmentForm.externalAdvisorName ?? ""}
+                onChangeText={(value) =>
+                  onUpdateForm("externalAdvisorName", value)
+                }
+                editable={!isCreatingAppointment}
+                placeholder="Nombre del asesor encargado"
+                placeholderTextColor="#8d8d8d"
+                autoCapitalize="words"
+              />
+            )}
+          </View>
           <View>
             <Text style={styles.calendarLabel}>Titulo de la cita</Text>
             <TextInput
@@ -629,7 +640,10 @@ export function AppointmentCreateModal({
           <View style={styles.calendarContainer}>
             <Text style={styles.calendarLabel}>Fecha y Hora de la cita</Text>
             <Pressable
-              style={[styles.calendarButton, { backgroundColor: selectionColor }]}
+              style={[
+                styles.calendarButton,
+                { backgroundColor: selectionColor },
+              ]}
               onPress={() => setIsDateTimePickerVisible(true)}
             >
               <Text style={styles.calendarButtonText}>
@@ -662,11 +676,18 @@ export function AppointmentCreateModal({
             ) : null}
           </View>
           <View style={styles.calendarContainer}>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={styles.calendarLabel}>
+            <Text
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              style={styles.calendarLabel}
+            >
               Fecha y hora de terminacion
             </Text>
             <Pressable
-              style={[styles.calendarButton, { backgroundColor: selectionColor }]}
+              style={[
+                styles.calendarButton,
+                { backgroundColor: selectionColor },
+              ]}
               onPress={() => setIsEndDateTimePickerVisible(true)}
             >
               <Text
@@ -796,36 +817,54 @@ export function AppointmentCreateModal({
                 ) : (
                   <View style={styles.appointmentProvisionalFields}>
                     <View style={styles.informationSection}>
-                      <Text style={styles.informationText}>Estatus del lead</Text>
+                      <Text style={styles.informationText}>
+                        Estatus del lead
+                      </Text>
                       <TouchableOpacity
                         style={styles.appointmentPickerButton}
                         activeOpacity={0.85}
                         disabled={isCreatingAppointment}
                         accessibilityRole="button"
                         accessibilityLabel="Seleccionar estatus del lead"
-                        accessibilityState={{ expanded: isLeadStatusSelectorOpen }}
-                        onPress={() => setIsLeadStatusSelectorOpen((open) => !open)}
+                        accessibilityState={{
+                          expanded: isLeadStatusSelectorOpen,
+                        }}
+                        onPress={() =>
+                          setIsLeadStatusSelectorOpen((open) => !open)
+                        }
                       >
-                        <Text style={styles.appointmentPickerTitle}>{provisionalLead.status}</Text>
+                        <Text style={styles.appointmentPickerTitle}>
+                          {provisionalLead.status}
+                        </Text>
                         <ChevronRight size={17} color="#3d5a40" />
                       </TouchableOpacity>
-                      {isLeadStatusSelectorOpen ? LEAD_TRACKING_STATUSES.map((status) => (
-                        <TouchableOpacity
-                          key={status}
-                          style={styles.appointmentPickerButton}
-                          activeOpacity={0.85}
-                          disabled={isCreatingAppointment}
-                          accessibilityRole="radio"
-                          accessibilityState={{ selected: provisionalLead.status === status }}
-                          onPress={() => {
-                            onUpdateProvisionalLead("status", status);
-                            setIsLeadStatusSelectorOpen(false);
-                          }}
-                        >
-                          <Text style={styles.appointmentPickerTitle}>{status}</Text>
-                          {provisionalLead.status === status ? <Text style={styles.appointmentPickerMeta}>Seleccionado</Text> : null}
-                        </TouchableOpacity>
-                      )) : null}
+                      {isLeadStatusSelectorOpen
+                        ? LEAD_TRACKING_STATUSES.map((status) => (
+                            <TouchableOpacity
+                              key={status}
+                              style={styles.appointmentPickerButton}
+                              activeOpacity={0.85}
+                              disabled={isCreatingAppointment}
+                              accessibilityRole="radio"
+                              accessibilityState={{
+                                selected: provisionalLead.status === status,
+                              }}
+                              onPress={() => {
+                                onUpdateProvisionalLead("status", status);
+                                setIsLeadStatusSelectorOpen(false);
+                              }}
+                            >
+                              <Text style={styles.appointmentPickerTitle}>
+                                {status}
+                              </Text>
+                              {provisionalLead.status === status ? (
+                                <Text style={styles.appointmentPickerMeta}>
+                                  Seleccionado
+                                </Text>
+                              ) : null}
+                            </TouchableOpacity>
+                          ))
+                        : null}
                     </View>
                     <View style={styles.informationSection}>
                       <Text style={styles.informationText}>

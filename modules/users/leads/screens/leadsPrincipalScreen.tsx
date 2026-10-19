@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import {
   ScrollView,
   Text,
@@ -380,7 +381,7 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
                 <Text accessibilityLiveRegion="polite">
                   {selectedDeleteIds.length}/10 leads seleccionados
                 </Text>
-                <Text style={{ fontSize: 12 }}>
+                <Text style={{ fontSize: textSize.caption }}>
                   {selectedDeleteIds.length === 10
                     ? "L?mite alcanzado. Desmarca un lead para elegir otro."
                     : "Selecciona hasta 10 leads para eliminar."}

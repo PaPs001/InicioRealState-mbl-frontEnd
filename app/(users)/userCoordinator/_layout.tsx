@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Component, type ReactNode } from 'react'
 import { Text, View } from 'react-native'
 import { Tabs } from 'expo-router'
@@ -27,10 +28,10 @@ class CoordinatorErrorBoundary extends Component<{ children: ReactNode }, Coordi
     if (this.state.errorMessage) {
       return (
         <View style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#ffffff' }}>
-          <Text style={{ color: '#3d5a40', fontSize: 18, fontWeight: '700', marginBottom: 8 }}>
+          <Text style={{ color: '#3d5a40', fontSize: textSize.titleSmall, fontWeight: '700', marginBottom: 8 }}>
             No se pudo abrir el panel
           </Text>
-          <Text style={{ color: '#333333', fontSize: 13, lineHeight: 18 }}>
+          <Text style={{ color: '#333333', fontSize: textSize.bodySmall, lineHeight: platformLineHeight(18) }}>
             {this.state.errorMessage}
           </Text>
         </View>
@@ -57,6 +58,7 @@ export default function CoordinatorLayout() {
         <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
         <Tabs.Screen name="date" options={{ title: 'Calendario' }} />
         <Tabs.Screen name="leads" options={{ title: 'Seguimiento' }} />
+        <Tabs.Screen name="lead-tracking" options={{ title: 'Seguimiento', href: null }} />
         <Tabs.Screen name="leads-v2" options={{ title: 'Seguimiento V2', href: null }} />
         <Tabs.Screen name="leads-v2/followups" options={{ title: 'Historial V2', href: null }} />
         <Tabs.Screen name="properties-list" options={{ title: 'Listado', href: null }} />

@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { icons } from "@/assets";
 import type { PropertyLead } from "@/lib/types";
@@ -19,10 +20,12 @@ export const LeadCard = ({
   lead,
   propertyName,
   onOpen,
+  onOptions,
 }: {
   lead: PropertyLead;
   propertyName: string;
   onOpen: () => void;
+  onOptions: () => void;
 }) => {
   const classification = leadTrackingStatusCards.find((card) =>
     isLeadStatus(lead.status, card.title),
@@ -80,7 +83,19 @@ export const LeadCard = ({
               {getLeadOrigin(lead.source) || lead.source || "Sin origen"}
             </Text>
           </View>
-          <EllipsisVertical />
+          <Pressable
+            onPress={onOptions}
+            accessibilityRole="button"
+            accessibilityLabel={`Opciones de ${lead.name}`}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <EllipsisVertical />
+          </Pressable>
         </View>
       </View>
       <View style={styles.secondSectionCard}>
@@ -256,27 +271,27 @@ const styles = StyleSheet.create({
   // Textos
 
   nameLeadText: {
-    fontSize: 14,
+    fontSize: textSize.body,
     flexShrink: 1,
   },
   timeLeadText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "500",
   },
   clasificationText: {
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: "500",
   },
   downTextLeadCard: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "600",
   },
   upTextLeadCard: {
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "400",
   },
   textOptionButton: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "800",
   },
 });

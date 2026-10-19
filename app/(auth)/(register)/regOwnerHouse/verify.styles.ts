@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 
 const serifFont = Platform.select({
@@ -50,9 +51,9 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   },
   progressLabel: {
     color: '#e4ac73',
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: platformLineHeight(17),
   },
   progressTrack: {
     flex: 1,
@@ -73,15 +74,15 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   title: {
     color: '#155721',
     fontFamily: serifFont,
-    fontSize: 40,
+    fontSize: textSize.display,
     fontWeight: '700',
-    lineHeight: 50,
+    lineHeight: platformLineHeight(50),
   },
   subtitle: {
     marginTop: 4,
     color: '#000000',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(20),
     letterSpacing: 0.65,
   },
   codeArea: {
@@ -115,9 +116,9 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   },
   codeBoxText: {
     color: '#697b74',
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     fontWeight: '600',
-    lineHeight: 23,
+    lineHeight: platformLineHeight(23),
   },
   cards: {
     width: '100%',
@@ -151,9 +152,9 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   cardText: {
     flex: 1,
     color: '#3f3f3d',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '500',
-    lineHeight: 23,
+    lineHeight: platformLineHeight(23),
   },
   countdownText: {
     color: '#cfa367',
@@ -172,16 +173,16 @@ export const registerOwnerVerifyStyles = StyleSheet.create({
   },
   verifyButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: textSize.subtitle,
+    lineHeight: platformLineHeight(23),
     textAlign: 'center',
   },
   errorText: {
     width: 341,
     marginTop: -6,
     color: '#b42318',
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(17),
     textAlign: 'center',
   },
 })

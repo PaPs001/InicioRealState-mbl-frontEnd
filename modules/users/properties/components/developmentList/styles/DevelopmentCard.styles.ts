@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet } from "react-native";
 import { generalColors, textColor } from "@/theme";
 
@@ -36,29 +37,29 @@ export const styles = StyleSheet.create({
 
   },
   zoneText: {
-    fontSize: 11,
+    fontSize: textSize.label,
     color: generalColors.development,
     fontStyle: 'normal',
     fontWeight: '900',
   },
   nameText:{
-    fontSize: 18,
+    fontSize: textSize.titleSmall,
     fontWeight: '900'
   },
   locationText: {
-    fontSize: 12,
+    fontSize: textSize.caption,
     color: textColor.softText
   },
   fromText:{
-    fontSize: 12,
+    fontSize: textSize.caption,
     color: textColor.softText
   },
   priceFrom: {
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     color: generalColors.development
   },
   toText:{
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     color: textColor.softText
   },
   extraInformationContainer:{
@@ -80,6 +81,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   extraInformationText:{
-    fontSize: 9
+    fontSize: textSize.micro
   },
 });

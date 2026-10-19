@@ -9,6 +9,7 @@ import { disconnectGoogleCalendar, getGoogleCalendarAuthUrl } from "@/lib/api";
 import type { AppCapabilities } from "@/modules/settings";
 import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
+import { LeadSearchIntent } from "@/lib/types";
 
 type UseDashboardCalendarParams = {
   authToken: string | null;
@@ -28,6 +29,7 @@ export type ProvisionalAppointmentLead = {
   phone: string;
   email: string;
   status: LeadTrackingStatus;
+  operation: LeadSearchIntent;
 };
 
 const DEFAULT_CALENDAR_MESSAGE =
@@ -116,6 +118,7 @@ export function useDashboardCalendar({
       phone: "",
       email: "",
       status: "LEAD NUEVO",
+      operation: "sale",
     });
   const calendarAppointments = useMemo(
     () =>

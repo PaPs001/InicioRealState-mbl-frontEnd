@@ -44,6 +44,7 @@ import {
 import { FollowingImagePreviewModal } from "@/modules/users/leads/components/FollowingImagePreviewModal";
 import { CreateLeadFollowingModal } from "@/modules/users/leads/components/CreateLeadFollowingModal";
 import { buttonColor } from "@/theme";
+import { useLeadTrackingRoutes } from "../hooks/useLeadTrackingRoutes";
 type LeadFollowUpHistoryParams = {
   leadId?: string;
   leadName?: string;
@@ -85,6 +86,7 @@ const filters: HistoryFilter[] = [
 ];
 
 export default function LeadFollowUpScreen() {
+  const trackingRoutes = useLeadTrackingRoutes();
   useHideBottomNav();
 
   const pathname = usePathname();
@@ -144,8 +146,9 @@ export default function LeadFollowUpScreen() {
   }, [authToken, leadId, loadFollowings]);
 
   const goBackToLeadDetail = () => {
-    if (pathname.startsWith('/userAdviser/lead-tracking/')) {
-      router.back();
+    if (pathname.startsWith(`${trackingRoutes.index}/`)) {
+      if (router.canGoBack()) router.back();
+      else router.replace({ pathname: trackingRoutes.detail, params: { selectedLeadId: leadId } });
       return;
     }
     const fallbackPath = pathname.startsWith("/userAdviser")

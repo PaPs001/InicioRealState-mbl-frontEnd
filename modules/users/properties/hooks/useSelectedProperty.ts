@@ -1,4 +1,7 @@
-import { getSelectedProperty } from "../services/properties.service";
+import {
+  getCachedSelectedProperty,
+  getSelectedProperty,
+} from "../services/properties.service";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -10,33 +13,61 @@ export function useSelectedProperty(propertyId?: string) {
   const { authToken } = useAuth();
 
   const [property, setProperty] = useState<PropertyDetail | null>(null);
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsloading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    if (!propertyId || !authToken) return;
+    if (!propertyId || !authToken) {
+      setProperty(null);
+      setIsloading(false);
+      setErrorCode(!propertyId ? "PROPERTY_ID_MISSING" : "AUTH_REQUIRED");
+      setError(
+        !propertyId
+          ? "No se indicó una propiedad"
+          : "Inicia sesión para consultar la propiedad",
+      );
+      return;
+    }
 
     let active = true;
 
     async function loadProperty(id: string, token: string) {
-      setIsloading(true);
       setError(null);
-      setProperty(null);
+      setErrorCode(null);
 
       try {
-        const data = await getSelectedProperty(id, token);
+        const cached = getCachedSelectedProperty(id, token);
+        setIsloading(!cached);
+        setProperty(cached ? mapApiPropertyToDetail(cached) : null);
+        const data = await getSelectedProperty(id, token, refreshVersion > 0);
 
         if (active) setProperty(mapApiPropertyToDetail(data));
       } catch (error) {
         if (active) {
+          const failure = error && typeof error === "object" ? error : null;
+          const status = failure && "status" in failure ? failure.status : null;
+          const message = failure && "message" in failure ? failure.message : null;
+          const isNetworkError =
+            typeof message === "string" && /network|fetch|internet/i.test(message);
+          setErrorCode(
+            typeof status === "number"
+              ? `HTTP_${status}`
+              : isNetworkError ? "NETWORK_ERROR" : "PROPERTY_LOAD_FAILED",
+          );
           setError(
-            error instanceof Error
-              ? error.message
-              : "No se pudo cargar la propiedad",
+            isNetworkError
+              ? "No se pudo conectar con el servidor. Revisa tu conexión a internet."
+              : typeof message === "string" && message.trim()
+                ? message.trim().slice(0, 240)
+                : "Ocurrió un error al obtener o procesar los datos de la propiedad.",
           );
         }
       } finally {
         if (active) setIsloading(false);
+        if (active) setIsRefreshing(false);
       }
     }
 
@@ -45,11 +76,17 @@ export function useSelectedProperty(propertyId?: string) {
     return () => {
       active = false;
     };
-  }, [propertyId, authToken]);
+  }, [propertyId, authToken, refreshVersion]);
 
   return {
     property,
     isLoading,
     error,
+    errorCode,
+    isRefreshing,
+    refresh: () => {
+      setIsRefreshing(true);
+      setRefreshVersion((value) => value + 1);
+    },
   };
 }

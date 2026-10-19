@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { StyleSheet } from 'react-native'
 
 export const styles = StyleSheet.create({
@@ -14,8 +15,8 @@ export const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: '#837f7c',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(18),
     textAlign: 'center',
   },
   modalBackdrop: {
@@ -45,15 +46,15 @@ export const styles = StyleSheet.create({
   },
   modalTitle: {
     color: '#264721',
-    fontSize: 22,
-    lineHeight: 27,
+    fontSize: textSize.heading,
+    lineHeight: platformLineHeight(27),
     fontWeight: '700',
   },
   modalSubtitle: {
     marginTop: 3,
     color: '#837f7c',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
     fontWeight: '500',
   },
   modalCloseButton: {
@@ -68,8 +69,8 @@ export const styles = StyleSheet.create({
   },
   modalCloseText: {
     color: '#0f362b',
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: '700',
   },
   formField: {
@@ -78,8 +79,8 @@ export const styles = StyleSheet.create({
   formLabel: {
     marginBottom: 5,
     color: '#3d5a40',
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: '700',
   },
   formInput: {
@@ -89,7 +90,7 @@ export const styles = StyleSheet.create({
     borderColor: '#d4ccc3',
     backgroundColor: '#ffffff',
     color: '#19191f',
-    fontSize: 14,
+    fontSize: textSize.body,
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
@@ -106,7 +107,7 @@ export const styles = StyleSheet.create({
   },
   dateSelectText: {
     color: '#19191f',
-    fontSize: 14,
+    fontSize: textSize.body,
     fontWeight: '600',
   },
   dateSelectPlaceholder: {
@@ -137,8 +138,8 @@ export const styles = StyleSheet.create({
   },
   formOptionText: {
     color: '#3d3b3b',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: textSize.bodySmall,
+    lineHeight: platformLineHeight(16),
     fontWeight: '700',
   },
   formOptionTextActive: {
@@ -162,15 +163,15 @@ export const styles = StyleSheet.create({
   },
   propertySelectTitle: {
     color: '#19191f',
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(18),
     fontWeight: '700',
   },
   propertySelectMeta: {
     marginTop: 2,
     color: '#837f7c',
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: '500',
   },
   propertySearchRow: {
@@ -189,7 +190,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: '#19191f',
-    fontSize: 14,
+    fontSize: textSize.body,
     padding: 0,
   },
   propertyPickerList: {
@@ -227,8 +228,8 @@ export const styles = StyleSheet.create({
   },
   propertyPickerImageText: {
     color: '#264721',
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: appFontScale[28],
+    lineHeight: platformLineHeight(34),
     fontWeight: '800',
   },
   propertyPickerBody: {
@@ -237,15 +238,15 @@ export const styles = StyleSheet.create({
   },
   propertyPickerTitle: {
     color: '#000000',
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: textSize.bodyLarge,
+    lineHeight: platformLineHeight(19),
     fontWeight: '800',
   },
   propertyPickerAddress: {
     marginTop: 3,
     color: '#af8c49',
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: '700',
   },
   propertyPickerMetaRow: {
@@ -254,8 +255,8 @@ export const styles = StyleSheet.create({
   },
   propertyPickerPrice: {
     color: '#0f362b',
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(15),
     fontWeight: '800',
   },
   propertyPickerPill: {
@@ -275,8 +276,8 @@ export const styles = StyleSheet.create({
   },
   propertyPickerPillText: {
     color: '#0f362b',
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: textSize.label,
+    lineHeight: platformLineHeight(14),
     fontWeight: '800',
   },
   propertyPickerPillTextSelected: {
@@ -286,8 +287,8 @@ export const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 10,
     color: '#ba544a',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
     fontWeight: '600',
   },
   createLeadButton: {
@@ -304,8 +305,8 @@ export const styles = StyleSheet.create({
   },
   createLeadButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(18),
     fontWeight: '800',
   },
   

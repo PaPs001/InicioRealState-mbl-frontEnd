@@ -1,3 +1,4 @@
+import { textSize } from '@/theme/typography'
 import { StyleSheet, Text, View } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#717171',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     textAlign: 'center',
   },
 })

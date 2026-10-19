@@ -1,3 +1,4 @@
+import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
 import { Platform, StyleSheet } from 'react-native'
 import { generalColors } from '@/theme'
 const numberFont = Platform.select({
@@ -34,7 +35,7 @@ export const styles = StyleSheet.create({
   },
   propertyShortcutButtonText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   topRow: {
@@ -46,7 +47,7 @@ export const styles = StyleSheet.create({
   },
   roleLabel: {
     color: '#315b41',
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     fontWeight: '600',
     marginBottom: 6,
   },
@@ -60,7 +61,7 @@ export const styles = StyleSheet.create({
   },
   dateText: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     fontWeight: '600',
   },
   profileRow: {
@@ -93,19 +94,19 @@ export const styles = StyleSheet.create({
   },
   avatarText: {
     color: '#24442f',
-    fontSize: 16,
+    fontSize: textSize.subtitle,
     fontWeight: '800',
   },
   greeting: {
     color: '#232323',
     fontFamily: "cormorant",
-    fontSize: 25,
-    lineHeight: 30,
+    fontSize: appFontScale[25],
+    lineHeight: platformLineHeight(30),
   },
   helper: {
     color: '#8d8d8d',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: textSize.caption,
+    lineHeight: platformLineHeight(16),
   },
   notification: {
     width: 34,
@@ -138,7 +139,7 @@ export const styles = StyleSheet.create({
   },
   earningsLabel: {
     color: '#bf7634',
-    fontSize: 12,
+    fontSize: textSize.caption,
     textAlign: 'center',
     letterSpacing: 1.3,
   },
@@ -150,18 +151,18 @@ export const styles = StyleSheet.create({
   earningsValue: {
     color: '#20252b',
     fontFamily: numberFont,
-    fontSize: 39,
-    lineHeight: 43,
+    fontSize: appFontScale[39],
+    lineHeight: platformLineHeight(43),
   },
   currency: {
     color: '#20252b',
-    fontSize: 12,
+    fontSize: textSize.caption,
     marginBottom: 9,
     marginLeft: 4,
   },
   earningsCaption: {
     color: '#8a817e',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     textAlign: 'center',
     marginTop: -2,
   },
@@ -175,12 +176,12 @@ export const styles = StyleSheet.create({
   },
   sectionHeaderTitle: {
     color: '#006b43',
-    fontSize: 15,
+    fontSize: textSize.bodyLarge,
     fontWeight: '700',
   },
   sectionAction: {
     color: '#006b43',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
   panel: {
@@ -219,7 +220,7 @@ export const styles = StyleSheet.create({
   },
   centerButtonText: {
     color: '#ffffff',
-    fontSize: 13,
+    fontSize: textSize.bodySmall,
     fontWeight: '700',
   },
   appointmentActionsRow: {
@@ -231,7 +232,7 @@ export const styles = StyleSheet.create({
   },
   panelSubtitle: {
     color: '#7b8780',
-    fontSize: 10,
+    fontSize: textSize.captionSmall,
     marginBottom: 5
   },
   metricGrid: {
@@ -240,7 +241,7 @@ export const styles = StyleSheet.create({
   },
   subTitle: {
     color: '#006b43',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
     marginTop: 12,
     marginBottom: 7,
@@ -272,7 +273,7 @@ export const styles = StyleSheet.create({
   },
   outlineButtonText: {
     color: '#006b43',
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: '700',
   },
 })

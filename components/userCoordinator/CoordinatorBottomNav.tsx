@@ -22,10 +22,11 @@ const coordinatorBottomNavItems: BottomNavItem[] = [
   },
   {
     key: 'leads',
-    href: '/userCoordinator/leads',
+    href: '/userCoordinator/lead-tracking',
     icon: (color, size) => <Flag size={size} color={color} />,
     isActive: (pathname) =>
-      pathname.startsWith('/userCoordinator/leads'),
+      pathname.startsWith('/userCoordinator/leads') ||
+      pathname.startsWith('/userCoordinator/lead-tracking'),
     label: 'Seguimiento',
     size: 24,
   },

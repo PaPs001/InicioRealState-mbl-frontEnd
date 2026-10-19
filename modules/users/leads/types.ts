@@ -79,6 +79,7 @@ export type LeadPropertyOption = {
 }
 
 export type LeadsV2RouteParams = {
+  operation?: string | string[]
   status?: string | string[]
   origin?: string | string[]
   trackingOpenedAt?: string | string[]

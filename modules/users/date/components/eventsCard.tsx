@@ -1,3 +1,4 @@
+import { textSize, platformLineHeight } from '@/theme/typography'
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
@@ -219,18 +220,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     backgroundColor: "rgba(255,255,255,0.18)",
   },
-  scheduleText: { color: "#ffffff", fontSize: 11, fontWeight: "700" },
+  scheduleText: { color: "#ffffff", fontSize: textSize.label, fontWeight: "700" },
   typeText: {
     color: "rgba(255,255,255,0.82)",
-    fontSize: 12,
+    fontSize: textSize.caption,
     fontWeight: "600",
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   titleText: {
     flex: 1,
     color: "#ffffff",
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: textSize.subtitleLarge,
+    lineHeight: platformLineHeight(22),
     fontWeight: "700",
   },
   optionsButton: { width: 45, alignItems: "center", justifyContent: "center" },
@@ -254,14 +255,14 @@ const styles = StyleSheet.create({
   detailCopy: { flex: 1, gap: 2 },
   detailLabel: {
     color: "#738078",
-    fontSize: 11,
+    fontSize: textSize.label,
     fontWeight: "700",
     textTransform: "uppercase",
   },
   detailValue: {
     color: "#20352e",
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: textSize.body,
+    lineHeight: platformLineHeight(19),
     fontWeight: "600",
   },
   descriptionContainer: {
@@ -271,5 +272,5 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     backgroundColor: "#f3f0e9",
   },
-  descriptionText: { color: "#3e4c46", fontSize: 13, lineHeight: 19 },
+  descriptionText: { color: "#3e4c46", fontSize: textSize.bodySmall, lineHeight: platformLineHeight(19) },
 });
