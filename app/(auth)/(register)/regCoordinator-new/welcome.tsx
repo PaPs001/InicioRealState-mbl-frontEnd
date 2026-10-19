@@ -3,29 +3,29 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowLeft, ArrowRight } from 'lucide-react-native'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import { getRegisterWelcomeParams } from '@/lib/services/register-user-verification'
 import { registerOwnerWelcomeStyles } from './welcome.styles'
 
-const teamImage = require('../../../assets/register-owner-welcome-team.png')
-const homeIcon = require('../../../assets/register-owner-welcome-home.png')
+const teamImage = require('@/assets/register-owner-welcome-team.png')
+const homeIcon = require('@/assets/register-owner-welcome-home.png')
 
 const features = [
   {
     label: 'Confianza',
-    icon: require('../../../assets/register-owner-feature-trust.png'),
+    icon: require('@/assets/register-owner-feature-trust.png'),
   },
   {
     label: 'Patrimonio',
-    icon: require('../../../assets/register-owner-feature-wealth.png'),
+    icon: require('@/assets/register-owner-feature-wealth.png'),
   },
   {
     label: 'Gestion',
-    icon: require('../../../assets/register-owner-feature-management.png'),
+    icon: require('@/assets/register-owner-feature-management.png'),
   },
   {
     label: 'Acompañamiento',
-    icon: require('../../../assets/register-owner-feature-support.png'),
+    icon: require('@/assets/register-owner-feature-support.png'),
     small: true,
   },
 ]
