@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { View, StyleSheet, Animated, Easing } from 'react-native'
-import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import LogoGris from '@/assets/LogoInicioSVGris.svg'
 
 export type AnimatedLogoVariant =
   | 'pulse'           // Pulso suave (default)

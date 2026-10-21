@@ -508,7 +508,7 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     setSelectedLead(null)
 
     if (selectedLeadIdParam) {
-      router.replace((isAdviserRoute ? '/userAdviser/leads' : '/userCoordinator/leads') as never)
+      router.replace((isAdviserRoute ? '/userAdviser/lead-tracking' : '/userCoordinator/leads') as never)
     }
   }
 

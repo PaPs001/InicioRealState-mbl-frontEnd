@@ -25,5 +25,5 @@ export function PropertyImage({ uri, enabled = true, ...props }: Props) {
   }, [uri, enabled]);
   if (!uri || !enabled || resolved?.original !== uri)
     return <View style={props.style} />;
-  return <Image {...props} source={{ uri: uri }} />;
+  return <Image {...props} source={{ uri: resolved.local }} />;
 }

@@ -123,7 +123,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         {isPropertyShortcutVisible ? (
           <View style={styles.propertyShortcuts}>
             <Pressable
-              onPress={() => router.push("/selected-property" as never)}
+              onPress={() => router.push("/testing-selected-property" as never)}
               style={styles.propertyShortcutButton}
             >
               <Text style={styles.propertyShortcutButtonText}>
@@ -152,7 +152,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
             <Pressable
               style={styles.propertyShortcutButton}
               onPress={() => {
-              router.push('/(users)/userAdviser/LeadsTrackingSelectingScreen')
+              router.push('/(users)/userAdviser/lead-tracking/selecting')
             }}>
               <Text style={styles.propertyShortcutButtonText}>Abrir pantalla de seleccion de led</Text>
             </Pressable>

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { View, StyleSheet, Animated, Easing } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { clientThemes } from '@/lib/theme'
-import LogoGris from '@/app/assets/LogoInicioSVGris.svg'
+import LogoGris from '@/assets/LogoInicioSVGris.svg'
 
 // Colores del inversionista (negro y dorado)
 const investorColors = clientThemes.investor

@@ -93,20 +93,17 @@ export type AmenitiesEstructure = {
   color: string;
 };
 
-export interface PropertyRoomImageResponse {
-  _id?: string;
-  name_image: string;
-  fileId: string;
-  key?: string | null;
-  mediumKey?: string | null;
-  largeKey?: string | null;
-}
-
-export interface PropertyRoomResponse {
-  _id?: string;
-  name_room: string;
-  idFolder: string;
-  images?: PropertyRoomImageResponse[] | null;
+export interface PropertyImageResponse {
+  _id: string;
+  key: string;
+  url: string;
+  zone?: string | null;
+  amenitieName?: string | null;
+  contentType: string;
+  size: number;
+  originalName: string;
+  encrypted: boolean;
+  category: string;
 }
 
 export interface LocationsData {
@@ -125,7 +122,7 @@ export interface selectedPropertyBackendData extends PropertyCatalogItemResponse
   titleApp: string | null;
   description: string | null;
   amenities: AmenitiesEstructure[] | null;
-  rooms?: PropertyRoomResponse[] | null;
+  images?: PropertyImageResponse[] | null;
   geoData: GeoData;
 }
 
