@@ -1,140 +1,331 @@
-import { icons } from "@/assets"
+import { icons } from "@/assets";
 
 export const mockProperty = {
-  title: 'Casa en Montebello',
-  code: 'IRS-2048',
-  status: 'disPONIBLE',
+  title: "Casa en Montebello",
+  code: "IRS-2048",
+  status: "disPONIBLE",
   view: {
-    label: 'Vista alberca',
-    icon: icons.Pool
+    label: "Vista alberca",
+    icon: icons.Pool,
   },
-  city: 'Merida',
+  city: "Merida",
+  // Coordenadas de ejemplo para la vista de prueba.
+  location: { latitude: 20.998, longitude: -89.58 },
   moreInformation: {
-    label: 'Amueblado, A/C, Equipado',
-    icon: icons.Blend
-
+    label: "Amueblado, A/C, Equipado",
+    icon: icons.Blend,
   },
   propertyAmenities: [
-    'seguridad',
-    'alberca',
-    'areas verdes',
-    'pet Friendly',
-    'aire acondicionado',
-    'cocina equipada',
-    'wifi',
-    'gimnasio',
+    "seguridad",
+    "alberca",
+    "areas verdes",
+    "pet Friendly",
+    "aire acondicionado",
+    "cocina equipada",
+    "wifi",
+    "gimnasio",
   ],
-  address: 'Mezcalez, Bahía de Banderas',
-  priceLabel: '$4,250,000 MXN',
+  address: "Mezcalez, Bahía de Banderas",
+  priceLabel: "$4,250,000 MXN",
   maintainIncluded: true,
-  operation: 'renta',
-  type: 'Casa',
+  operation: "renta",
+  type: "Casa",
   bedrooms: 3,
   bathrooms: 3.5,
   parking: 2,
-  construction: '240 m2',
-  land: '300 m2',
+  construction: "240 m2",
+  land: "300 m2",
   description:
-    'Este moderno departamento se encuentra en el desarrollo Aracuna , una comunidad residencial con acceso controlado, alberca, áreas verdes y un enntorno familiar seguro. Cuenta con espacios amplios, excelente iluminacion natural y acabados de calidad, ideal para una estancia cómada a largo plazo, esta ubicado en el 3 pisó, con una vista directa a amenidades y una terraza muy amplia.',
-  rooms: [
-    {
-      name: 'Recamara principal',
-      features: [
-        '1 cama king size'
-      ],
-      image: 'https://picsum.photos/900/600?random=1'
-    },
-    {
-      name: 'Recamara 2',
-      features: [
-        '1 cama matrimonial'
-      ],
-      image: 'https://picsum.photos/900/600?random=1'
-    },
-    {
-      name: 'Recamara 3',
-      features: [
-        '2 camas'
-      ],
-      image: 'https://picsum.photos/900/600?random=1'
-    },
-    {
-      name: 'Sala',
-      features: [
-        'Espacio para convivir'
-      ],
-      image: 'https://picsum.photos/900/600?random=1'
-    },
-    {
-      name: 'Cocina comedor',
-      features: [
-        'Cocina Equipada'
-      ],
-      image: 'https://picsum.photos/900/600?random=1'
-    }
-  ],
+    "Este moderno departamento se encuentra en el desarrollo Aracuna , una comunidad residencial con acceso controlado, alberca, áreas verdes y un enntorno familiar seguro. Cuenta con espacios amplios, excelente iluminacion natural y acabados de calidad, ideal para una estancia cómada a largo plazo, esta ubicado en el 3 pisó, con una vista directa a amenidades y una terraza muy amplia.",
+
   images: [
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=1',
-    'https://picsum.photos/900/600?random=2',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
-    'https://picsum.photos/900/600?random=3',
+    {
+      key: "someKey",
+      url: "https://picsum.photos/900/600?random=13",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-54.jpg",
+      zone: "Habitación 1",
+      encrypted: true,
+      category: "images",
+      id: 12
+    },
+    {
+      key: "someKey",
+      url: "https://picsum.photos/900/600?random=4",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-54.jpg",
+      zone: "Habitación 2",
+      encrypted: true,
+      category: "images",
+      id: 12
+    },
+    {
+      key: "someKey",
+      url: "https://picsum.photos/900/600?random=3",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-54.jpg",
+      zone: "Baño principal",
+      encrypted: true,
+      category: "images",
+      id: 12
+    },
+    {
+      key: "someKey",
+      url: "https://picsum.photos/900/600?random=2",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-54.jpg",
+      zone: "Sala",
+      encrypted: true,
+      category: "images",
+      id: 12
+    },
+    {
+      key: "someKey14",
+      url: "https://picsum.photos/900/600?random=14",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-14.jpg",
+      zone: "Cocina",
+      encrypted: true,
+      category: "images",
+      id: 14
+    },
+    {
+      key: "someKey15",
+      url: "https://picsum.photos/900/600?random=15",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-15.jpg",
+      zone: "Comedor",
+      encrypted: true,
+      category: "images",
+      id: 15
+    },
+    {
+      key: "someKey16",
+      url: "https://picsum.photos/900/600?random=16",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-16.jpg",
+      zone: "Habitación 3",
+      encrypted: true,
+      category: "images",
+      id: 16
+    },
+    {
+      key: "someKey17",
+      url: "https://picsum.photos/900/600?random=17",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-17.jpg",
+      zone: "Baño de visitas",
+      encrypted: true,
+      category: "images",
+      id: 17
+    },
+    {
+      key: "someKey18",
+      url: "https://picsum.photos/900/600?random=18",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-18.jpg",
+      zone: "Terraza",
+      encrypted: true,
+      category: "images",
+      id: 18
+    },
+    {
+      key: "someKey19",
+      url: "https://picsum.photos/900/600?random=19",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-19.jpg",
+      zone: "Jardín",
+      encrypted: true,
+      category: "images",
+      id: 19
+    },
+    {
+      key: "someKey20",
+      url: "https://picsum.photos/900/600?random=20",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-20.jpg",
+      zone: "Alberca",
+      encrypted: true,
+      category: "images",
+      id: 20
+    },
+    {
+      key: "someKey21",
+      url: "https://picsum.photos/900/600?random=21",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-21.jpg",
+      zone: "Cochera",
+      encrypted: true,
+      category: "images",
+      id: 21
+    },
+    {
+      key: "someKey22",
+      url: "https://picsum.photos/900/600?random=22",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-22.jpg",
+      zone: "Área de lavado",
+      encrypted: true,
+      category: "images",
+      id: 22
+    },
+    {
+      key: "someKey23",
+      url: "https://picsum.photos/900/600?random=23",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-23.jpg",
+      zone: "Estudio",
+      encrypted: true,
+      category: "images",
+      id: 23
+    },
+    {
+      key: "someKey24",
+      url: "https://picsum.photos/900/600?random=24",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-24.jpg",
+      zone: "",
+      amenitieName: "Parque para perros",
+      encrypted: true,
+      category: "images",
+      id: 24
+    },
+    {
+      key: "someKey25",
+      url: "https://picsum.photos/900/600?random=25",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-25.jpg",
+      zone: "",
+      amenitieName: "Caseta de vigilancia",
+      encrypted: true,
+      category: "images",
+      id: 25
+    },
+    {
+      key: "someKey26",
+      url: "https://picsum.photos/900/600?random=26",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-26.jpg",
+      zone: "",
+      amenitieName: "Gimnasio",
+      encrypted: true,
+      category: "images",
+      id: 26
+    },
+    {
+      key: "someKey27",
+      url: "https://picsum.photos/900/600?random=27",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-27.jpg",
+      zone: "",
+      amenitieName: "Alberca comunitaria",
+      encrypted: true,
+      category: "images",
+      id: 27
+    },
+    {
+      key: "someKey28",
+      url: "https://picsum.photos/900/600?random=28",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-28.jpg",
+      zone: "",
+      amenitieName: "Área de juegos infantiles",
+      encrypted: true,
+      category: "images",
+      id: 28
+    },
+    {
+      key: "someKey29",
+      url: "https://picsum.photos/900/600?random=29",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-29.jpg",
+      zone: "",
+      amenitieName: "Cancha de tenis",
+      encrypted: true,
+      category: "images",
+      id: 29
+    },
+    {
+      key: "someKey30",
+      url: "https://picsum.photos/900/600?random=30",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-30.jpg",
+      zone: "",
+      amenitieName: "Salón de eventos",
+      encrypted: true,
+      category: "images",
+      id: 30
+    },
+    {
+      key: "someKey31",
+      url: "https://picsum.photos/900/600?random=31",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-31.jpg",
+      zone: "",
+      amenitieName: "Área de asadores",
+      encrypted: true,
+      category: "images",
+      id: 31
+    },
+    {
+      key: "someKey32",
+      url: "https://picsum.photos/900/600?random=32",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-32.jpg",
+      zone: "",
+      amenitieName: "Jardines comunes",
+      encrypted: true,
+      category: "images",
+      id: 32
+    },
+    {
+      key: "someKey33",
+      url: "https://picsum.photos/900/600?random=33",
+      contentType: "image/jpeg",
+      size: 307572,
+      originalName: "Vitania 606-33.jpg",
+      zone: "",
+      amenitieName: "Cancha de pádel",
+      encrypted: true,
+      category: "images",
+      id: 33
+    },
   ],
   nearbyPlaces: [
     {
-      name: 'playa',
-      distance: '8 min',
+      name: "playa",
+      distance: "8 min",
     },
     {
-      name: 'Supermercado',
-      distance: '10 min',
+      name: "Supermercado",
+      distance: "10 min",
     },
     {
-      name: 'Restaurante',
-      distance: '10 min',
-    }
-  ]
-}
+      name: "Restaurante",
+      distance: "10 min",
+    },
+  ],
+};
