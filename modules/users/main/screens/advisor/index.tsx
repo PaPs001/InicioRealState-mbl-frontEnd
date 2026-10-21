@@ -123,7 +123,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         {isPropertyShortcutVisible ? (
           <View style={styles.propertyShortcuts}>
             <Pressable
-              onPress={() => router.push("/selected-property" as never)}
+              onPress={() => router.push("/testing-selected-property" as never)}
               style={styles.propertyShortcutButton}
             >
               <Text style={styles.propertyShortcutButtonText}>
