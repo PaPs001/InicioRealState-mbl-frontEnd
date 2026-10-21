@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { usePathname, useRouter } from 'expo-router'
 import { ArrowLeft, ArrowRight, Info, Lock, Mail, Phone, User } from 'lucide-react-native'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import { PasswordTextInput } from '@/app/(auth)/shared/PasswordTextInput'
 import {
   getInitialRegisterAccessFormData,

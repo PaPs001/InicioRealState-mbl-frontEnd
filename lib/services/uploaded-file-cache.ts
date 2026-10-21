@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system/legacy'
 
 import { API_URLS } from '@/lib/api/client'
 
-export type UploadedFileCacheNamespace = 'profile-photos' | 'agent-presentations'
+export type UploadedFileCacheNamespace = 'profile-photos' | 'agent-presentations' | 'property-images'
 
 type CacheUploadedFileOptions = {
   storageKey: string

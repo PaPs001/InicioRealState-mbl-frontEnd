@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LogoIRSPrincipal from "@/app/assets/logoIRSprincipal.svg";
+import LogoIRSPrincipal from "@/assets/logoIRSprincipal.svg";
 import { PrimaryButton, SecondaryButton } from "@/components/buttons";
 
 import { MailIcon } from "@/testEd/EmailIcon";

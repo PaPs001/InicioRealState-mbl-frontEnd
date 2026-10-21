@@ -1,11 +1,11 @@
 import { useRef, useState, type ReactNode, type ComponentRef } from "react";
 import {
   ActivityIndicator,
-  FlatList,
+  ScrollView,
+  RefreshControl,
   Pressable,
   Text,
   View,
-  type ViewToken,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
@@ -16,18 +16,11 @@ import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
 import { ImagesRoulette } from "../components/selectedProperties/ImagesRoulette";
 import { PropertyImage } from "../components/selectedProperties/PropertyImage";
-import { RoomsRow } from "../components/selectedProperties/RoomsRow";
+import { PropertyCarousel } from "../components/selectedProperties/PropertyCarousel";
 import { PriceCard } from "../components/PriceCard";
 import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
-
-const PROPERTY_SECTIONS = [
-  "overview",
-  "amenities",
-  "rooms",
-  "location",
-] as const;
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -41,21 +34,12 @@ export const PropertiesList = () => {
     ? params.propertyId[0]
     : params.propertyId;
 
+  console.log(propertyId)
+
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
   const markerRef = useRef<ComponentRef<typeof Marker>>(null);
 
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(
-    new Set(),
-  );
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 1 }).current;
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      setVisibleSections(
-        new Set(viewableItems.map((item) => item.item as string)),
-      );
-    },
-  ).current;
   const [seeGalleryImage, setSeeGalleryImages] = useState(false);
   const operationLabel =
     property?.operationLabel.toLowerCase() === "sale"
@@ -106,13 +90,6 @@ export const PropertiesList = () => {
     );
   }
 
-  const sections = PROPERTY_SECTIONS.filter((section) => {
-    if (section === "rooms") return property.rooms.length > 0;
-    if (section === "amenities")
-      return property.amenities.length + property.otherAmenities.length > 0;
-    return true;
-  });
-
   if (seeGalleryImage && property.images.length > 1) {
     return (
       <View style={styles.safeArea}>
@@ -132,17 +109,13 @@ export const PropertiesList = () => {
 
   return (
     <View style={styles.safeArea}>
-      <FlatList
-        data={sections}
-        extraData={visibleSections}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={onViewableItemsChanged}
-        refreshing={isRefreshing}
-        onRefresh={refresh}
-        keyExtractor={(section) => section}
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.propertyListContent}
-        ListHeaderComponent={
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+        }
+      >
           <ImagesRoulette
             onBack={() => router.back()}
             onFavorite={() => console.log("favorito")}
@@ -153,10 +126,6 @@ export const PropertiesList = () => {
             images={property.previewImages}
             status={property?.status}
           />
-        }
-        renderItem={({ item: section }) => {
-          if (section === "overview") {
-            return (
               <View style={styles.container}>
                 <View style={styles.operationContainer}>
                   <View style={styles.operationIcon}>
@@ -260,11 +229,7 @@ export const PropertiesList = () => {
                   </Text>
                 </View>
               </View>
-            );
-          }
-
-          if (section === "amenities") {
-            return (
+        {property.amenities.length + property.otherAmenities.length > 0 && (
               <PropertySection title="Amenidades">
                 <Amenities
                   amenitiesData={[
@@ -273,20 +238,17 @@ export const PropertiesList = () => {
                   ]}
                 />
               </PropertySection>
-            );
-          }
-          if (section === "rooms") {
-            return (
+        )}
+        {property.rooms.length > 0 && (
               <PropertySection title="Donde vas a vivir">
-                <RoomsRow
-                  roomsData={property.rooms}
-                  enabled={visibleSections.has("rooms")}
-                />
+                <PropertyCarousel key={`rooms-${propertyId}`} items={property.rooms} />
               </PropertySection>
-            );
-          }
-          if (section === "location") {
-            return (
+        )}
+        {property.amenitiesImages.length > 0 && (
+          <PropertySection title="Amenidades">
+            <PropertyCarousel key={`amenities-${propertyId}`} items={property.amenitiesImages} />
+          </PropertySection>
+        )}
               <PropertySection title="Dónde vas a estar">
                 <View style={styles.mapPrincipalContainer}>
                   <View style={styles.mapShadowContainer}>
@@ -339,11 +301,7 @@ export const PropertiesList = () => {
                   </View>
                 </View>
               </PropertySection>
-            );
-          }
-          return null;
-        }}
-      />
+      </ScrollView>
       <BlurView
         intensity={12}
         tint="light"

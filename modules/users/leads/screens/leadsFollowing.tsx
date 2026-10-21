@@ -152,7 +152,7 @@ export default function LeadFollowUpScreen() {
       return;
     }
     const fallbackPath = pathname.startsWith("/userAdviser")
-      ? "/userAdviser/lead-detail"
+      ? "/userAdviser/lead-tracking/detail"
       : "/userCoordinator/leads";
 
     router.replace({

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowRight } from 'lucide-react-native'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { getRegistrationHomeRoute, registerUserByClientType } from '@/lib/services/registration-flows'

@@ -3,12 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ArrowRight } from 'lucide-react-native'
 
-import LogoIRSPrincipal from '@/app/assets/logoIRSprincipal.svg'
+import LogoIRSPrincipal from '@/assets/logoIRSprincipal.svg'
 import { RegistrationBackButton } from '@/components/auth/RegistrationBackButton'
 import { registerOwnerStyles } from './styles'
 
-const plantImage = require('../../../assets/register-owner-plant.png')
-const lockImage = require('../../../assets/register-owner-lock.png')
+const plantImage = require('@/assets/register-owner-plant.png')
+const lockImage = require('@/assets/register-owner-lock.png')
 
 export default function RegisterOwnerScreen() {
   const router = useRouter()

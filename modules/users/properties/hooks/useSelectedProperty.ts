@@ -3,6 +3,7 @@ import {
   getSelectedProperty,
 } from "../services/properties.service";
 import { useEffect, useState } from "react";
+import { cacheUploadedFile } from "@/lib/services/uploaded-file-cache";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   mapApiPropertyToDetail,
@@ -44,7 +45,23 @@ export function useSelectedProperty(propertyId?: string) {
         setProperty(cached ? mapApiPropertyToDetail(cached) : null);
         const data = await getSelectedProperty(id, token, refreshVersion > 0);
 
-        if (active) setProperty(mapApiPropertyToDetail(data));
+        const resolvedImages = new Map<string, string>();
+        await Promise.all((data.images ?? []).map(async (image) => {
+          if (!image.key || !image.encrypted) return;
+          try {
+            const localUri = await cacheUploadedFile({
+              storageKey: image.key,
+              token,
+              namespace: "property-images",
+              contentType: image.contentType,
+            });
+            resolvedImages.set(image.key, localUri);
+          } catch (error) {
+            console.warn("No se pudo cargar una imagen de la propiedad:", error);
+          }
+        }));
+
+        if (active) setProperty(mapApiPropertyToDetail(data, resolvedImages));
       } catch (error) {
         if (active) {
           const failure = error && typeof error === "object" ? error : null;

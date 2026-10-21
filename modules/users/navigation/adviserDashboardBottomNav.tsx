@@ -27,10 +27,7 @@ const adviserDashboardBottomNavItems: BottomNavItem[] = [
     href: '/userAdviser/lead-tracking',
     icon: (color, size) => <Lead/>,
     isActive: (pathname) =>
-      pathname.startsWith('/userAdviser/leads') ||
-      pathname.startsWith('/userAdviser/lead-tracking') ||
-      pathname === '/userAdviser/lead-detail' ||
-      pathname === '/userAdviser/LeadsTrackingSelectingScreen',
+      pathname.startsWith('/userAdviser/lead-tracking'),
     label: 'Seguimiento',
     size: 24,
   },
