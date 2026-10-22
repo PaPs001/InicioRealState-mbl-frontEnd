@@ -57,9 +57,7 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     availableProperties,
     catalogProperties,
     getPropertyById,
-    hasLoadedCatalog,
     isCatalogLoading,
-    loadCatalogProperties,
   } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<CoordinatorLeadV2Channel>('Todos')
@@ -86,7 +84,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
   const [dismissedRouteLeadId, setDismissedRouteLeadId] = useState<string | null>(null)
   const hasLoadedInitialLeadsRef = useRef(false)
   const hasLoadedInitialStatusesRef = useRef(false)
-  const hasRequestedInitialCatalogRef = useRef(false)
   const propertyOptions = useMemo(() => buildPropertyOptions(catalogProperties, availableProperties), [availableProperties, catalogProperties])
 
   const [selectedLeadFollowings, setSelectedLeadFollowings] = useState<BackendLeadV2FollowingRecord[]>([])
@@ -228,13 +225,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     loadCustomLeadStatuses()
   }, [authToken, canManageLead, loadCustomLeadStatuses])
 
-  useEffect(() => {
-    if (!authToken || hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
-
-    hasRequestedInitialCatalogRef.current = true
-    console.info('[LeadsV2][initial-load]', { service: 'catalog-properties' })
-    loadCatalogProperties()
-  }, [authToken, hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
 
   useEffect(() => {
     if (!selectedLeadIdParam) {
@@ -540,8 +530,8 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     filteredAgentGroups,
     filteredPropertyOptions,
     getPropertyById,
-    isAssistantOpen,
     isCatalogLoading,
+    isAssistantOpen,
     isCreateLeadModalOpen,
     isCreatingLead,
     isLoadingCustomLeadStatuses,

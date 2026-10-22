@@ -1,7 +1,5 @@
 import { Platform } from 'react-native'
 
-// Base sizes preserve the existing Android and web layouts.
-// Calibrate this offset after comparing the same screens on both platforms.
 export const IOS_FONT_SIZE_OFFSET = 2
 
 function platformFontSize(baseSize: number): number {

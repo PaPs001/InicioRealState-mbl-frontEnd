@@ -1,5 +1,6 @@
 import type {
   AmenitiesEstructure,
+  GeoData,
   selectedPropertyBackendData,
 } from "@/lib/types";
 
@@ -15,18 +16,6 @@ type PropertyFeature = {
   extra: string | null;
   extraName: string | null;
 };
-
-export interface LocationsData {
-  latitude: number;
-  longitude: number;
-}
-
-export interface GeoData {
-  place: string | null;
-  placeId: string | null;
-  locations: LocationsData;
-  formatAddress: string | null;
-}
 
 export interface PropertyDetail {
   title: string;

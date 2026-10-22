@@ -10,7 +10,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
 
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { icons, logos } from "@/assets";
 import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
@@ -104,8 +104,13 @@ export const PropertiesList = () => {
   }
 
 
-  const latitude = property.geoData.locations.latitude;
-  const longitude = property.geoData.locations.longitude;
+  const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
+  const hasValidCoordinates =
+    property.geoData?.locations?.type === "Point" &&
+    typeof latitude === "number" && Number.isFinite(latitude) &&
+    typeof longitude === "number" && Number.isFinite(longitude) &&
+    latitude >= -90 && latitude <= 90 &&
+    longitude >= -180 && longitude <= 180;
 
   return (
     <View style={styles.safeArea}>
@@ -253,7 +258,7 @@ export const PropertiesList = () => {
                 <View style={styles.mapPrincipalContainer}>
                   <View style={styles.mapShadowContainer}>
                     <View style={styles.mapContainer}>
-                      <MapView
+                      {hasValidCoordinates ? <MapView
                         zoomEnabled={false}
                         scrollEnabled={false}
                         rotateEnabled={false}
@@ -286,7 +291,7 @@ export const PropertiesList = () => {
                             <View style={styles.triangle} />
                           </View>
                         </Marker>
-                      </MapView>
+                      </MapView> : <Text>Ubicaci?n no disponible</Text>}
                     </View>
                   </View>
                   <View style={styles.mapTextAdviseContainer}>

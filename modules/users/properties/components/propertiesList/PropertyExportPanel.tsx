@@ -69,9 +69,6 @@ export const ExportPdfPanel = ({ controller }: { controller: PropertiesControlle
 
 const styles = StyleSheet.create({
   exportPanel: {
-    position: "absolute",
-    right: 14,
-    bottom: 84,
     width: 120,
     height: 170,
     borderRadius: 13,

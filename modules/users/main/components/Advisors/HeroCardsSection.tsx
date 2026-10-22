@@ -1,12 +1,12 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { HeroCards } from "./HeroCards";
-import { formatCurrency } from "@/lib/utils";
+// Legacy opportunity card: import { formatCurrency } from "@/lib/utils";
 
 type HeroCardsSectionProps = {
   operationMode: string;
   area: "adviser" | "coordinator";
-  rentSummary: { propertyCount: number; opportunityAmount: number };
-  saleSummary: { propertyCount: number; opportunityAmount: number };
+  rentSummary: { propertyCount: number | null; /* opportunityAmount: number; */ };
+  saleSummary: { propertyCount: number | null; /* opportunityAmount: number; */ };
   onOpenRent: () => void;
   onOpenSale: () => void;
   heroColors: any;
@@ -15,7 +15,6 @@ type HeroCardsSectionProps = {
 
 export function HeroCardsSection({
   operationMode,
-  area,
   rentSummary,
   saleSummary,
   onOpenRent,
@@ -29,10 +28,12 @@ export function HeroCardsSection({
     operationMode === "sale"
       ? saleSummary.propertyCount
       : rentSummary.propertyCount;
+  /* Legacy: opportunity amount is currently disabled.
   const activeOpportunityAmount =
     operationMode === "sale"
       ? saleSummary.opportunityAmount
       : rentSummary.opportunityAmount;
+  */
   return (
     <View style={styles.heroCards}>
       {operationMode === "both" ? (
