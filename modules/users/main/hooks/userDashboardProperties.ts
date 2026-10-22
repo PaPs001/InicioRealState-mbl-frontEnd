@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 
-import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import type { Property } from '@/lib/types'
 import { getPropertyDisplayName } from '@/modules/users/main/utils/dashboard-formatters'
 
 type AppointmentPropertyType = 'renta' | 'venta' | 'general' | string | null | undefined
 
+// Legacy: summary amounts are disabled until the opportunity feature returns.
+/*
 type PropertySummary = {
   propertyCount: number
   opportunityAmount: number
 }
+
+*/
 
 function getDashboardPropertySource(
   catalogProperties: Property[],
@@ -51,6 +54,7 @@ function buildAppointmentPropertyOptions(properties: Property[]) {
   )
 }
 
+/* Legacy: do not load the catalog to calculate dashboard amounts.
 function getRentSummary(properties: Property[]): PropertySummary {
   const rentProperties = properties.filter(
     (property) =>
@@ -83,38 +87,20 @@ function getSaleSummary(properties: Property[]): PropertySummary {
   }
 }
 
+*/
+
 export function useDashboardProperties(appointmentType?: AppointmentPropertyType) {
-  const { authToken } = useSessionDomain()
   const {
     availableProperties,
     catalogProperties,
     hasLoadedCatalog,
     isCatalogLoading,
-    loadCatalogProperties,
   } = usePropertyDomain()
-  const hasRequestedInitialCatalogRef = useRef(false)
-
-  useEffect(() => {
-    if (!authToken || hasLoadedCatalog || isCatalogLoading || hasRequestedInitialCatalogRef.current) return
-
-    hasRequestedInitialCatalogRef.current = true
-    console.info('[DashboardProperties][initial-load]', { service: 'catalog-properties' })
-    void loadCatalogProperties()
-  }, [authToken, hasLoadedCatalog, isCatalogLoading, loadCatalogProperties])
+  // Read the shared catalog; only the properties screen starts its load.
 
   const dashboardProperties = useMemo(
     () => getDashboardPropertySource(catalogProperties, availableProperties),
     [availableProperties, catalogProperties],
-  )
-
-  const rentSummary = useMemo(
-    () => getRentSummary(dashboardProperties),
-    [dashboardProperties],
-  )
-
-  const saleSummary = useMemo(
-    () => getSaleSummary(dashboardProperties),
-    [dashboardProperties],
   )
 
   const appointmentPropertyOptions = useMemo(
@@ -143,8 +129,5 @@ export function useDashboardProperties(appointmentType?: AppointmentPropertyType
     filteredAppointmentPropertyOptions,
     hasLoadedCatalog,
     isCatalogLoading,
-    loadCatalogProperties,
-    rentSummary,
-    saleSummary,
   }
 }

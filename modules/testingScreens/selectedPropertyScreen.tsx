@@ -69,7 +69,10 @@ const property: AmenitiesImages = {
     place: mockProperty.address,
     placeId: null,
     formatAddress: mockProperty.address,
-    locations: mockProperty.location,
+    locations: {
+      type: "Point",
+      coordinates: [mockProperty.location.longitude, mockProperty.location.latitude],
+    },
   },
 };
 import { generalColors } from "@/theme";
@@ -108,8 +111,13 @@ export const PropertiesList = () => {
     );
   }
 
-  const latitude = property.geoData.locations.latitude;
-  const longitude = property.geoData.locations.longitude;
+  const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
+  const hasValidCoordinates =
+    property.geoData?.locations?.type === "Point" &&
+    typeof latitude === "number" && Number.isFinite(latitude) &&
+    typeof longitude === "number" && Number.isFinite(longitude) &&
+    latitude >= -90 && latitude <= 90 &&
+    longitude >= -180 && longitude <= 180;
 
   return (
     <View style={styles.safeArea}>
@@ -254,7 +262,7 @@ export const PropertiesList = () => {
           <View style={styles.mapPrincipalContainer}>
             <View style={styles.mapShadowContainer}>
               <View style={styles.mapContainer}>
-                <MapView
+                {hasValidCoordinates ? <MapView
                   zoomEnabled={false}
                   scrollEnabled={false}
                   rotateEnabled={false}
@@ -287,7 +295,7 @@ export const PropertiesList = () => {
                       <View style={styles.triangle} />
                     </View>
                   </Marker>
-                </MapView>
+                </MapView> : <Text>Ubicaci?n no disponible</Text>}
               </View>
             </View>
             <View style={styles.mapTextAdviseContainer}>

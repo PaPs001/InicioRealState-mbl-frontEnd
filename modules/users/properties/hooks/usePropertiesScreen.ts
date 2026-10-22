@@ -83,6 +83,7 @@ function mapProperty(property: Property): ListingProperty {
     propertyType: property.type,
     googleDriveImages: property.googleDriveImages,
     locationUrl: property.locationUrl,
+    geoData: property.geoData,
     bedrooms: String(property.bedrooms ?? 0),
     bedroomsCount: property.bedrooms ?? 0,
     bathrooms: String(property.bathrooms ?? 0),
@@ -111,7 +112,7 @@ export function getSortLabel(option: SortOption) {
 
 export function usePropertiesScreen() {
   const params = useLocalSearchParams<{ type?: string }>();
-  const { authToken, currentUser, isLoading: isAuthLoading } = useAuth();
+  const { authToken, currentUser } = useAuth();
   const { operationMode } = useOperationMode();
   const { width } = useWindowDimensions();
   const domain = usePropertyDomain();
@@ -157,21 +158,14 @@ export function usePropertiesScreen() {
     [operationMode, params.type],
   );
 
-  useEffect(() => {
-    if (
-      !isAuthLoading &&
-      authToken &&
-      !domain.hasLoadedCatalog &&
-      !domain.isCatalogLoading
-    )
-      domain.loadCatalogProperties();
-  }, [
-    authToken,
-    domain.hasLoadedCatalog,
-    domain.isCatalogLoading,
-    domain.loadCatalogProperties,
-    isAuthLoading,
-  ]);
+  const findCatalogProperty = useCallback((id?: string, backendId?: string) => {
+    const matches = (property: Property) =>
+      Boolean(id && (property.id === id || property._id === id)) ||
+      Boolean(backendId && (property.id === backendId || property._id === backendId));
+    const property = domain.catalogProperties.find(matches) ??
+      domain.availableProperties.find(matches);
+    return property ? mapProperty(property) : null;
+  }, [domain.catalogProperties, domain.availableProperties]);
 
   const listings = useMemo(
     () =>
@@ -422,6 +416,7 @@ export function usePropertiesScreen() {
     operationMode,
     canvasWidth: Math.min(width, 440),
     filteredListings,
+    findCatalogProperty,
     keyExtractor,
     shouldSkipPdfAgentList: Boolean(currentUser?.agentPresentationKey),
     searchQuery,
