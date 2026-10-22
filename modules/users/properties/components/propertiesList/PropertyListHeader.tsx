@@ -1,12 +1,21 @@
-import { fontScale as appFontScale, textSize, platformLineHeight } from '@/theme/typography'
+import {
+  fontScale as appFontScale,
+  textSize,
+  platformLineHeight,
+} from "@/theme/typography";
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { generalColors } from "@/theme";
 import { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react-native";
 import { getSortLabel } from "../../hooks/usePropertiesScreen";
+import { ExportPdfPanel } from "./PropertyExportPanel";
 type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 
-export const PropertyListHeader = ({ controller }: { controller: PropertiesController }) => {
+export const PropertyListHeader = ({
+  controller,
+}: {
+  controller: PropertiesController;
+}) => {
   const {
     listingFilter,
     setListingFilter,
@@ -22,73 +31,84 @@ export const PropertyListHeader = ({ controller }: { controller: PropertiesContr
 
   return (
     <View style={[styles.listCanvas, { width: canvasWidth }]}>
+      <Text style={styles.title}>Propiedades Disponibles</Text>
+      <Text style={styles.subtitle}>
+        {operationMode === "rent"
+          ? "Inventario de renta"
+          : operationMode === "sale"
+            ? "Inventario de venta"
+            : "Inventario de renta y venta"}
+      </Text>
       <View style={styles.headerCanvas}>
-        <Text style={styles.title}>Propiedades Disponibles</Text>
-        <Text style={styles.subtitle}>
-          {operationMode === "rent"
-            ? "Inventario de renta"
-            : operationMode === "sale"
-              ? "Inventario de venta"
-              : "Inventario de renta y venta"}
-        </Text>
-        <View style={styles.filterButtonsContainer}>
-          {operationMode === "both" ? (
-            <View style={styles.filterChipContainer}>
-              <FilterChip
-                label="Renta"
-                active={listingFilter === "rent"}
-                activeColor={generalColors.rentColor}
-                onPress={() => setListingFilter("rent")}
-              />
-              <FilterChip
-                label="Venta"
-                active={listingFilter === "sale"}
-                activeColor={generalColors.saleColor}
-                onPress={() => setListingFilter("sale")}
-              />
-              {/*<FilterChip
+        <View
+          style={{
+            flex: 1,
+          }}
+        >
+          <View style={styles.filterButtonsContainer}>
+            {operationMode === "both" ? (
+              <View style={styles.filterChipContainer}>
+                <FilterChip
+                  label="Renta"
+                  active={listingFilter === "rent"}
+                  activeColor={generalColors.rentColor}
+                  onPress={() => setListingFilter("rent")}
+                />
+                <FilterChip
+                  label="Venta"
+                  active={listingFilter === "sale"}
+                  activeColor={generalColors.saleColor}
+                  onPress={() => setListingFilter("sale")}
+                />
+                {/*<FilterChip
                 label="Desarrollos"
                 active={listingFilter === "developments"}
                 activeColor={generalColors.development}
                 onPress={() => setListingFilter("developments")}
               />*/}
+              </View>
+            ) : null}
+
+            <View style={styles.textInputContainer}>
+              <Search />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Buscar por zona, nombre o ID"
+                placeholderTextColor={"#717171"}
+                style={styles.searchInput}
+              />
             </View>
-          ) : null}
 
-          <View style={styles.textInputContainer}>
-            <Search />
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Buscar por zona, nombre o ID"
-              placeholderTextColor={"#717171"}
-              style={styles.searchInput}
-            />
+            <View style={styles.controlRow}>
+              <Pressable
+                style={styles.controlButton}
+                onPress={() => setIsFiltersVisible(true)}
+              >
+                <SlidersHorizontal size={13} color={"#0c6740"} />
+                <Text style={styles.toggleText}>Filtros</Text>
+                {activeAdvancedFilterCount > 0 ? (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>
+                      {activeAdvancedFilterCount}
+                    </Text>
+                  </View>
+                ) : null}
+              </Pressable>
+              <Pressable
+                style={styles.controlButton}
+                onPress={() => setIsSortVisible(true)}
+              >
+                <Text style={styles.toggleText}>
+                  {getSortLabel(sortOption)}
+                </Text>
+                <ChevronDown size={15} color={"#0c6740"} />
+              </Pressable>
+            </View>
           </View>
-
-          <View style={styles.controlRow}>
-            <Pressable
-              style={styles.controlButton}
-              onPress={() => setIsFiltersVisible(true)}
-            >
-              <SlidersHorizontal size={13} color={'#0c6740'}/>
-              <Text style={styles.toggleText}>Filtros</Text>
-              {activeAdvancedFilterCount > 0 ? (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{activeAdvancedFilterCount}</Text>
-                </View>
-              ) : null}
-            </Pressable>
-            <Pressable
-              style={styles.controlButton}
-              onPress={() => setIsSortVisible(true)}
-            >
-              <Text style={styles.toggleText}>
-                {getSortLabel(sortOption)}
-              </Text>
-              <ChevronDown size={15} color={'#0c6740'}/>
-            </Pressable>
-          </View>
+        </View>
+        <View>
+          <ExportPdfPanel controller={controller} />
         </View>
       </View>
     </View>
@@ -129,9 +149,13 @@ const styles = StyleSheet.create({
     //backgroundColor: '#ffffff',
   },
   headerCanvas: {
-    paddingTop: 32,
     paddingHorizontal: 17,
     paddingBottom: 14,
+    flexDirection: "row",
+    gap: 7,
+    width: "100%",
+    alignItems: "flex-start",
+    justifyContent: "center",
   },
   backButton: {
     position: "absolute",
@@ -154,77 +178,76 @@ const styles = StyleSheet.create({
     color: "#afafaf",
     fontSize: textSize.subtitle,
   },
-  filterButtonsContainer:{
+  filterButtonsContainer: {
     marginTop: 22,
     gap: 11,
-
   },
-  filterChipContainer:{
-    flexDirection: 'row',
+  filterChipContainer: {
+    flexDirection: "row",
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 0.5,
-    borderColor: '#969696',
-    alignItems: 'center',
+    borderColor: "#969696",
+    alignItems: "center",
     padding: 4,
     gap: 5,
   },
-  textInputContainer:{
-    flexDirection: 'row',
-    alignItems: 'center',
+  textInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
-    width: '100%',
+    width: "100%",
     height: 43,
     borderRadius: 9.5,
-    borderColor: '#969696',
+    borderColor: "#969696",
     borderWidth: 1,
-    backgroundColor: '#FEFEFE',
-    gap: 8
+    backgroundColor: "#FEFEFE",
+    gap: 8,
   },
-  searchInput:{
+  searchInput: {
     flex: 1,
     minWidth: 0,
-    color: '#19191f',
+    color: "#19191f",
     fontSize: textSize.caption,
-    padding: 0
+    padding: 0,
   },
 
-  controlRow:{
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
+  controlRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
-  controlButton:{
+  controlButton: {
     flex: 1,
     minWidth: 0,
     height: 36,
     borderRadius: 9.5,
-    backgroundColor: '#FEFEFE',
-    borderColor: '#969696',
+    backgroundColor: "#FEFEFE",
+    borderColor: "#969696",
     borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
     paddingHorizontal: 8,
   },
   toggleText: {
     flexShrink: 1,
-    color: '#0c6740',
+    color: "#0c6740",
     fontSize: textSize.label,
-    textAlign: 'center',
+    textAlign: "center",
   },
   filterBadge: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#0c6740',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#0c6740",
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterBadgeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: textSize.tiny,
     lineHeight: platformLineHeight(10),
   },
