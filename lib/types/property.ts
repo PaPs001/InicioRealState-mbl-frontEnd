@@ -39,6 +39,7 @@ export interface Property {
   images?: string[];
   googleDriveImages?: string;
   locationUrl?: string;
+  geoData?: GeoData | null;
   ownerId?: string;
   agentId?: string;
   monthlyRent?: number;
@@ -60,6 +61,7 @@ export interface PropertyCatalogItemResponse {
   isLand?: boolean | string | number | null;
   list: "sale" | "rent" | string;
   locationUrl: string | null;
+  geoData?: GeoData | null;
   maxPrice: number | null;
   minPrice: number | null;
   name: string;
@@ -107,8 +109,9 @@ export interface PropertyImageResponse {
 }
 
 export interface LocationsData {
-  latitude: number;
-  longitude: number;
+  type: "Point";
+  /** GeoJSON order: [longitude, latitude]. */
+  coordinates: [number, number];
 }
 
 export interface GeoData {
@@ -225,6 +228,7 @@ export type ListingProperty = {
   propertyType: Property["type"];
   googleDriveImages?: string;
   locationUrl?: string;
+  geoData?: GeoData | null;
   bedrooms: string;
   bedroomsCount: number;
   bathrooms: string;
@@ -240,3 +244,17 @@ export type ListingProperty = {
   propertyDescription?: string;
   titlePropertie?: string;
 };
+
+export type PropertyMarker = Pick<
+  PropertyCatalogItemResponse,
+  | "_id"
+  | "id"
+  | "name"
+  | "priceData"
+  | "priceSpecial"
+  | "minPrice"
+  | "maxPrice"
+  | "urlImage"
+> & { geoData?: GeoData | null };
+
+export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };

@@ -18,7 +18,7 @@ import { useOperationMode, useDashboardAreaConfig } from "@/modules/settings";
 import {
   useDashboardCalendar,
   useDashboardProfile,
-  useDashboardProperties,
+  usePropertyCounts,
 } from "../../hooks";
 
 import {
@@ -48,7 +48,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
   const [isPropertyShortcutVisible, setIsPropertyShortcutVisible] =
     useState(false);
 
-  const { rentSummary, saleSummary } = useDashboardProperties();
+  const { counts, error: countsError, retry: retryCounts } = usePropertyCounts();
 
   const {
     calendarMessage,
@@ -184,13 +184,22 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
         <HeroCardsSection
           operationMode={operationMode}
           area={area}
-          rentSummary={rentSummary}
-          saleSummary={saleSummary}
+          rentSummary={{ propertyCount: counts?.rent ?? null }}
+          saleSummary={{ propertyCount: counts?.sale ?? null }}
           onOpenRent={() => openPropertiesCatalog("rent")}
           onOpenSale={() => openPropertiesCatalog("sale")}
           heroColors={heroColors}
           styles={styles}
         />
+
+        {countsError && (
+          <View accessibilityRole="alert">
+            <Text>{countsError}</Text>
+            <Pressable accessibilityRole="button" onPress={retryCounts}>
+              <Text>Reintentar conteo</Text>
+            </Pressable>
+          </View>
+        )}
 
         <AppointmentsSection
           visibleCalendarAppointments={visibleCalendarAppointments}

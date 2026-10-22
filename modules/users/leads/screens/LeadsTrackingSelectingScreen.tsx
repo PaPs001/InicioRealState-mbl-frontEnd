@@ -56,15 +56,7 @@ export const LeadsTrackingSelectingScreen = () => {
     (Array.isArray(params.status) ? params.status[0] : params.status) ||
     "LEAD NUEVO";
   const { leads, isLoading, error, reload } = useLeadTrackingRecords();
-  const {
-    getPropertyById,
-    hasLoadedCatalog,
-    isCatalogLoading,
-    loadCatalogProperties,
-  } = usePropertyDomain();
-  useEffect(() => {
-    if (!hasLoadedCatalog && !isCatalogLoading) void loadCatalogProperties();
-  }, [loadCatalogProperties, hasLoadedCatalog]);
+  const { getPropertyById } = usePropertyDomain();
   const originParam = Array.isArray(params.origin)
     ? params.origin[0]
     : params.origin;
