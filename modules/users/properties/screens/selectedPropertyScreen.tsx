@@ -34,7 +34,6 @@ export const PropertiesList = () => {
     ? params.propertyId[0]
     : params.propertyId;
 
-  console.log(propertyId)
 
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
@@ -96,8 +95,8 @@ export const PropertiesList = () => {
         <GalleryImages
           images={property.images}
           onClose={() => setSeeGalleryImages(false)}
-          onFavorite={() => console.log("favorito")}
-          onShare={() => console.log("Compartir")}
+          onFavorite={() => {}}
+          onShare={() => {}}
         />
       </View>
     );
@@ -123,8 +122,8 @@ export const PropertiesList = () => {
       >
           <ImagesRoulette
             onBack={() => router.back()}
-            onFavorite={() => console.log("favorito")}
-            onShare={() => console.log("Compartir")}
+            onFavorite={() => {}}
+            onShare={() => {}}
             onOpenGallery={() => {
               if (property.images.length > 1) setSeeGalleryImages(true);
             }}
@@ -314,7 +313,7 @@ export const PropertiesList = () => {
         style={styles.priceSection}
       >
         <PriceCard
-          onDate={() => console.log("se presionó el botón de cita")}
+          onDate={() => {}}
           price={property?.price}
           operation={property?.operationLabel}
         />
