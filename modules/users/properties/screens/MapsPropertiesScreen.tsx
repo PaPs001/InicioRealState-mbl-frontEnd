@@ -11,6 +11,7 @@ import { icons, logos } from "@/assets";
 import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../components/propertiesList/PropertyListCard";
 import { useMapProperties } from "../hooks/useMapProperties";
+import { MapLoadingIndicator } from "../components/propertiesMap/MapLoadingIndicator";
 
 const INITIAL_REGION: Region = {
   latitude: 20.6937383,
@@ -21,7 +22,7 @@ const INITIAL_REGION: Region = {
 
 export const MapsPropertiesScreen = () => {
   const controller = usePropertiesScreen();
-  const { properties, error, loadProperties } = useMapProperties();
+  const { properties, error, isLoading, loadProperties } = useMapProperties();
   const [selectedMarker, setSelectedMarker] = useState<PropertyMarker | null>(
     null,
   );
@@ -95,6 +96,7 @@ export const MapsPropertiesScreen = () => {
             );
           })}
         </MapView>
+        {(!isMapReady || isLoading) && <MapLoadingIndicator />}
         {selectedMarker && (
           <View style={styles.selectedPropertyCard}>
             <ScrollView showsVerticalScrollIndicator={false}>

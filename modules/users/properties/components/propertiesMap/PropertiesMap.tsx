@@ -8,6 +8,7 @@ import { logos } from "@/assets";
 import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../propertiesList/PropertyListCard";
 import { useMapProperties } from "../../hooks/useMapProperties";
+import { MapLoadingIndicator } from "./MapLoadingIndicator";
 
 type PropertiesMapProps = {
   controller: Pick<
@@ -23,7 +24,7 @@ export function PropertiesMap({
   initialRegion,
   onRegionChange,
 }: PropertiesMapProps) {
-  const { properties, error, loadProperties } = useMapProperties();
+  const { properties, error, isLoading, loadProperties } = useMapProperties();
   const [selectedLocationKey, setSelectedLocationKey] = useState<string | null>(
     null,
   );
@@ -127,6 +128,7 @@ export function PropertiesMap({
             );
           })}
         </MapView>
+        {(!isMapReady || isLoading) && <MapLoadingIndicator />}
         {selectedGroup && (
           <View
             style={[
