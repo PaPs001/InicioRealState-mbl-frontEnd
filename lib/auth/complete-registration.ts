@@ -19,26 +19,7 @@ export async function completeRegistrationAndLogin(
   setAuthSession: SetAuthSession
 ): Promise<CompleteRegistrationResult> {
   try {
-    console.log('[auth][complete-registration] start', {
-      email: data.email.trim().toLowerCase(),
-      roles: data.roles,
-      investment: data.investment,
-      tenant: data.tenant,
-      hasPhone: !!data.phone?.trim(),
-      passwordLength: data.password.length,
-    })
-
     const response = await registerUser(data)
-    console.log('[auth][complete-registration] register result', {
-      success: response.success,
-      message: response.message,
-      error: response.error ?? null,
-      userId: response.user?.id ?? null,
-      userEmail: response.user?.email ?? null,
-      userSystemRole: response.user?.systemRole ?? null,
-      userInvestment: response.user?.investment ?? null,
-      userTenant: response.user?.tenant ?? null,
-    })
 
     if (!response.success) {
       return {
@@ -51,13 +32,6 @@ export async function completeRegistrationAndLogin(
       email: data.email,
       password: data.password,
     })
-    console.log('[auth][complete-registration] login result', {
-      success: loginResponse.success,
-      message: loginResponse.message,
-      error: loginResponse.error ?? null,
-      hasAccessToken: !!loginResponse.accessToken,
-      hasRefreshToken: !!loginResponse.refreshToken,
-    })
 
     if (!loginResponse.success || !loginResponse.accessToken) {
       return {
@@ -68,11 +42,7 @@ export async function completeRegistrationAndLogin(
 
     const sessionUser = loginResponse.user ?? response.user ?? null
 
-    console.log('[auth][complete-registration] setAuthSession start', {
-      email: sessionUser?.email ?? response.user?.email ?? data.email.trim().toLowerCase(),
-    })
     await setAuthSession(sessionUser, loginResponse.accessToken, loginResponse.refreshToken ?? null)
-    console.log('[auth][complete-registration] setAuthSession done')
 
     return {
       success: true,

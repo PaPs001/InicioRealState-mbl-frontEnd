@@ -63,37 +63,6 @@ export function useMapProperties() {
   );
 
   useEffect(() => {
-    const groups = new Map<string, LocatedPropertyMarker[]>();
-    for (const property of properties) {
-      const key = property.geoData.locations.coordinates.join(",");
-      const group = groups.get(key) ?? [];
-      group.push(property);
-      groups.set(key, group);
-    }
-
-    const locations = [...groups.values()].map((group) => {
-      const [longitude, latitude] = group[0].geoData.locations.coordinates;
-      return {
-        longitude,
-        latitude,
-        cantidad: group.length,
-        propiedades: group.map((property) => ({
-          id: property.id,
-          _id: property._id,
-          nombre: property.name,
-        })),
-      };
-    });
-
-    console.log("[Mapa] Propiedades agrupadas por coordenadas exactas:", {
-      totalPropiedades: properties.length,
-      ubicacionesUnicas: locations.length,
-      ubicacionesCompartidas: locations.filter((location) => location.cantidad > 1),
-      ubicaciones: locations,
-    });
-  }, [properties]);
-
-  useEffect(() => {
     return () => {
       requestIdRef.current += 1;
     };

@@ -100,7 +100,7 @@ export function PropertiesMap({
                 accessibilityLabel={
                   isGroup
                     ? `${group.properties.length} propiedades en esta ubicación`
-                    : property.name
+                    : catalogProperty?.title || "Propiedad en esta ubicación"
                 }
                 coordinate={{
                   longitude: property.geoData.locations.coordinates[0],
@@ -174,7 +174,9 @@ export function PropertiesMap({
                     key={marker._id || marker.id}
                     style={styles.unavailableProperty}
                   >
-                    <Text style={styles.panelTitle}>{marker.name}</Text>
+                    <Text style={styles.panelTitle}>
+                      {`Propiedad ${marker.id || marker._id}`}
+                    </Text>
                     <Text>
                       Esta propiedad no está disponible en el catálogo cargado.
                     </Text>
