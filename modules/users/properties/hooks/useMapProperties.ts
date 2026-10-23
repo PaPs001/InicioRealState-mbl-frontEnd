@@ -28,6 +28,7 @@ export function useMapProperties() {
   const { authToken } = useAuth();
   const [properties, setProperties] = useState<LocatedPropertyMarker[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef(0);
 
   const loadProperties = useCallback(
@@ -43,6 +44,7 @@ export function useMapProperties() {
       });
 
       setError(null);
+      setIsLoading(true);
       try {
         const result = await getMapProperties(params, authToken);
 
@@ -53,6 +55,8 @@ export function useMapProperties() {
       } catch {
         if (requestId !== requestIdRef.current) return;
         setError("No se pudieron cargar las propiedades de esta zona.");
+      } finally {
+        if (requestId === requestIdRef.current) setIsLoading(false);
       }
     },
     [authToken],
@@ -95,5 +99,5 @@ export function useMapProperties() {
     };
   }, [loadProperties]);
 
-  return { properties, error, loadProperties };
+  return { properties, error, isLoading, loadProperties };
 }
