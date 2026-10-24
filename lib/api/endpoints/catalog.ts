@@ -239,6 +239,7 @@ export async function getCatalogPropertiesCoreAPI(
 export async function getMapProperties(
   params: URLSearchParams,
   token?: string,
+  signal?: AbortSignal,
 ): Promise<PropertyMarker[]> {
   try {
     const data = await coreApi<PropertyMarker[]>(
@@ -246,6 +247,7 @@ export async function getMapProperties(
       {
         method: "GET",
         token,
+        signal,
       },
     );
     return data;

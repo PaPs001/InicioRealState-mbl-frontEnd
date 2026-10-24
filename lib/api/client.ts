@@ -17,6 +17,7 @@ export const API_BUILD_CONFIG = {
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 interface ApiClientOptions {
+  signal?: AbortSignal
   method?: HttpMethod
   body?: unknown
   headers?: Record<string, string>
@@ -348,7 +349,7 @@ function getJsonRequestDedupeKey(
   options: ApiClientOptions,
 ) {
   const method = options.method ?? 'GET'
-  if (method !== 'GET' || options.body !== undefined || options.debugLog) {
+  if (method !== 'GET' || options.body !== undefined || options.debugLog || options.signal) {
     return null
   }
 
@@ -386,7 +387,7 @@ async function apiClientRequest<T>(
   path: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
-  const { method = 'GET', body, headers = {}, token, debugLog } = options
+  const { method = 'GET', body, headers = {}, token, debugLog, signal } = options
   logRequestMonitor('json', baseUrl, path, method, token)
 
   const buildRequestHeaders = (requestToken?: string | null): Record<string, string> => {
@@ -414,6 +415,7 @@ async function apiClientRequest<T>(
       method,
       headers: requestHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
     }, debugLog)
   } catch (error) {
     if (shouldLogAuthDebug(path)) {
@@ -456,6 +458,7 @@ async function apiClientRequest<T>(
           method,
           headers: buildRequestHeaders(refreshedToken),
           body: body !== undefined ? JSON.stringify(body) : undefined,
+          signal,
         }, debugLog)
 
         console.info('[API][auth-refresh] retry response', {

@@ -22,7 +22,8 @@ const INITIAL_REGION: Region = {
 
 export const MapsPropertiesScreen = () => {
   const controller = usePropertiesScreen();
-  const { properties, error, isLoading, loadProperties } = useMapProperties();
+  const { properties, error, isLoading, loadProperties, cancelPendingLoad } =
+    useMapProperties();
   const [selectedMarker, setSelectedMarker] = useState<PropertyMarker | null>(
     null,
   );
@@ -38,10 +39,11 @@ export const MapsPropertiesScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <PropertyListHeader controller={controller} />
+      <PropertyListHeader canUsePdfExporter={false} controller={controller} />
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedMarker(null)}
           initialRegion={INITIAL_REGION}
           onMapReady={() => setIsMapReady(true)}
