@@ -75,7 +75,11 @@ export const PropertiesListScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       {isMapMode ? (
         <>
-          <PropertyListHeader controller={controller} />
+          <PropertyListHeader
+            enabledFilters={false}
+            controller={controller}
+            canUsePdfExporter={false}
+          />
           <PropertiesMap
             controller={controller}
             initialRegion={mapRegion}
@@ -87,7 +91,13 @@ export const PropertiesListScreen = () => {
           data={filteredListings}
           keyExtractor={keyExtractor}
           renderItem={renderProperty}
-          ListHeaderComponent={<PropertyListHeader controller={controller} />}
+          ListHeaderComponent={
+            <PropertyListHeader
+              enabledFilters={true}
+              controller={controller}
+              canUsePdfExporter={true}
+            />
+          }
           ItemSeparatorComponent={ListSeparator}
           ListEmptyComponent={ListEmptyState}
           showsVerticalScrollIndicator={false}
@@ -131,10 +141,7 @@ function ListEmptyState() {
 export type MapsButtonProps = {
   label: string;
   icon: ReactNode;
-} & (
-  | { route: Href; onPress?: never }
-  | { route?: never; onPress: () => void }
-);
+} & ({ route: Href; onPress?: never } | { route?: never; onPress: () => void });
 export function MapsButton({ route, onPress, label, icon }: MapsButtonProps) {
   return (
     <BlurView

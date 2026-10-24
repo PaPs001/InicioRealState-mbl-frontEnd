@@ -6,6 +6,7 @@ module.exports = ({ config }) => ({
       "react-native-maps",
       {
         androidGoogleMapsApiKey: process.env.MAPS_ANDROID_API_KEY,
+        iosGoogleMapsKey: process.env.MAPS_IOS_API_KEY,
       },
     ],
   ],
