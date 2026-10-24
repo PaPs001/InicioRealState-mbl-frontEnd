@@ -24,7 +24,7 @@ export function PropertiesMap({
   initialRegion,
   onRegionChange,
 }: PropertiesMapProps) {
-  const { properties, error, isLoading, loadProperties } = useMapProperties();
+  const { properties, error, isLoading, loadProperties, cancelPendingLoad } = useMapProperties();
   const [selectedLocationKey, setSelectedLocationKey] = useState<string | null>(
     null,
   );
@@ -58,6 +58,7 @@ export function PropertiesMap({
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedLocationKey(null)}
           initialRegion={initialRegionRef.current}
           onMapReady={() => setIsMapReady(true)}
