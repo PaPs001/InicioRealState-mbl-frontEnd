@@ -1,4 +1,8 @@
-import MapView, { Marker, type Region } from "react-native-maps";
+import MapView, {
+  Marker,
+  type Region,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 import { ScrollView, Text, View } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -39,10 +43,11 @@ export const MapsPropertiesScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <PropertyListHeader canUsePdfExporter={false} controller={controller} />
+      {/*<PropertyListHeader canUsePdfExporter={false} controller={controller} />*/}
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedMarker(null)}
           initialRegion={INITIAL_REGION}

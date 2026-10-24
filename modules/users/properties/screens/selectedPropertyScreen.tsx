@@ -121,7 +121,6 @@ export const PropertiesList = () => {
   const hasMoreDescription =
     description.slice(descriptionPreview.length).trim().length > 0;
 
-  
   const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
 
   const hasValidCoordinates =
@@ -195,11 +194,21 @@ export const PropertiesList = () => {
 
           <View style={styles.propertyFeaturesContainer}>
             {property?.bedrooms.principal ? (
-              <PropertyMetric
-                icon={<icons.Bed width={25} height={25} />}
-                value={normalizeName(property?.bedrooms.principal)}
-                label="Recámaras"
-              />
+              <>
+                <PropertyMetric
+                  icon={<icons.Bed width={25} height={25} />}
+                  value={normalizeName(property?.bedrooms.principal)}
+                  label="Recámaras"
+                />
+
+                {property.bedrooms.extra ? (
+                  <PropertyMetric
+                    icon={<icons.catalogMobile width={25} height={25} />}
+                    value={normalizeName(property.bedrooms.extra)}
+                    label={normalizeName(property.bedrooms.extraName)}
+                  />
+                ) : null}
+              </>
             ) : null}
             {property?.bathrooms ? (
               <PropertyMetric
@@ -209,11 +218,13 @@ export const PropertiesList = () => {
               />
             ) : null}
             {property?.parking ? (
-              <PropertyMetric
-                icon={<icons.Car width={25} height={25} />}
-                value={property?.parking}
-                label="Parkings"
-              />
+              <>
+                <PropertyMetric
+                  icon={<icons.Car width={25} height={25} />}
+                  value={property?.parking}
+                  label="Parkings"
+                />
+              </>
             ) : null}
             {property.propertyAmenities ? (
               <View style={styles.moreFeaturesContainer}>
@@ -294,6 +305,7 @@ export const PropertiesList = () => {
               <View style={styles.mapContainer}>
                 {hasValidCoordinates ? (
                   <MapView
+                    provider={PROVIDER_GOOGLE}
                     zoomEnabled={false}
                     scrollEnabled={false}
                     rotateEnabled={false}

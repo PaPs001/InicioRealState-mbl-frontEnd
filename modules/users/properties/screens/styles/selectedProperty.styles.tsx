@@ -108,11 +108,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
-    paddingVertical: 3,
+    paddingVertical: 6,
     paddingHorizontal: 9,
     borderRadius: 12,
     backgroundColor: "#6bdfff7a",
-    width: 95,
     flexShrink: 0,
   },
   viewText: {
@@ -131,6 +130,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 17,
     gap: 10,
     justifyContent: "center",
+    overflow: 'hidden', 
   },
   extrasTtitleContainer: {
     justifyContent: "center",
