@@ -529,10 +529,6 @@ export async function loginUser(
       password: data.password,
     };
 
-    console.log("[auth][login] payload", {
-      email: payload.email,
-      passwordLength: payload.password.length,
-    });
     debugLog?.({
       level: "info",
       message:

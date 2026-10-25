@@ -179,3 +179,12 @@ export function removeEmojis(text?: string | null): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+/**
+ * Parte un texto hasta su primer punto
+ */
+
+export function cutText(text: string) {
+  const cutText = text.indexOf(".");
+  const result = cutText === -1 ? text : text.slice(0, cutText + 1);
+}

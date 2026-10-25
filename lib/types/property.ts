@@ -2,53 +2,7 @@
  * Tipos de Propiedades
  */
 
-export type PropertyType = "house" | "apartment" | "land";
-export type PropertyStatus =
-  | "owned"
-  | "for_sale"
-  | "for_rent"
-  | "rented"
-  | "available"
-  | "pending_sale"
-  | "pending_rent";
-
-export interface Property {
-  id: string;
-  _id?: string;
-  title: string;
-  address: string;
-  city: string;
-  price: number;
-  priceLabel?: string;
-  currentValue?: number;
-  type: PropertyType;
-  status: PropertyStatus;
-  listingType?: "rent" | "sale";
-  amenities: string[];
-  bedrooms?: number;
-  bathrooms?: number;
-  parking?: number;
-  view?: string;
-  isFurnished?: boolean;
-  furnishedLabel?: string;
-  solarPanelLabel?: string;
-  sqMeters: number;
-  size: number;
-  description?: string;
-  features?: string[];
-  images?: string[];
-  googleDriveImages?: string;
-  locationUrl?: string;
-  geoData?: GeoData | null;
-  ownerId?: string;
-  agentId?: string;
-  monthlyRent?: number;
-  purchasedWithUs?: boolean;
-  createdAt: string;
-  propertyDescription?: string;
-  titlePropertie?: string;
-}
-
+///// Interfaz del formato de la respuesta del servidor 
 export interface PropertyCatalogItemResponse {
   _id: string;
   address: string;
@@ -90,6 +44,128 @@ export interface PropertyCatalogItemResponse {
   zonaText: string | null;
 }
 
+/// aqui comienzan los tipos definidos para el catalogo
+export type PropertyType = "house" | "apartment" | "land";
+export type PropertyStatus =
+  | "owned"
+  | "for_sale"
+  | "for_rent"
+  | "rented"
+  | "available"
+  | "pending_sale"
+  | "pending_rent";
+
+export type TypeListProperty = "rent" | "sale";
+export type Images = {
+  key: string;
+  url: string;
+  contentType: string;
+  zone: string;
+  name: string;
+};
+
+
+//// aqui terminan los tipos
+
+
+///// aqui empiezan las interfaces
+
+export interface LocationsData {
+  type: "Point";
+  /** GeoJSON order: [longitude, latitude]. */
+  coordinates: [number, number];
+}
+export interface GeoData {
+  place: string | null;
+  placeId: string | null;
+  locations: LocationsData;
+  formatAddress: string | null;
+}
+
+export interface ListingCardProperty {
+  id: string;
+  _id: string;
+  titleListing: string;
+  address: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  parkings: number;
+  isAland: boolean | null;
+  typeListProperty: TypeListProperty;
+  propertyImage: string;
+  statusAmenitie: string;
+  statusProperty: string;
+  zone: string;
+  amenities: string[];
+  propertyView: string;
+  hasSolarPanel: boolean;
+}
+
+export interface DatePropertyCard extends Pick<
+  ListingCardProperty,
+  | "id"
+  | "_id"
+  | "titleListing"
+  | "price"
+  | "address"
+  | "propertyImage"
+  | "zone"
+  | "statusAmenitie"
+  | "statusProperty"
+> {}
+
+export interface SelectedProperty extends ListingCardProperty {
+  geoData: GeoData;
+  titleApp: string;
+  descriptionProperty: string;
+  hasMantenimiento: boolean;
+  images: Images[];
+}
+
+export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & {
+  geoData?: GeoData | null;
+};
+
+export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };
+
+export interface Property {
+  id: string;
+  _id?: string;
+  title: string;
+  address: string;
+  city: string;
+  price: number;
+  priceLabel?: string;
+  currentValue?: number;
+  type: PropertyType;
+  status: PropertyStatus;
+  listingType?: "rent" | "sale";
+  amenities: string[];
+  bedrooms?: number;
+  bathrooms?: number;
+  parking?: number;
+  view?: string;
+  isFurnished?: boolean;
+  furnishedLabel?: string;
+  solarPanelLabel?: string;
+  sqMeters: number;
+  size: number;
+  description?: string;
+  features?: string[];
+  images?: string[];
+  googleDriveImages?: string;
+  locationUrl?: string;
+  geoData?: GeoData | null;
+  ownerId?: string;
+  agentId?: string;
+  monthlyRent?: number;
+  purchasedWithUs?: boolean;
+  createdAt: string;
+  propertyDescription?: string;
+  titlePropertie?: string;
+}
+
 export type AmenitiesEstructure = {
   name: string;
   color: string;
@@ -106,19 +182,6 @@ export interface PropertyImageResponse {
   originalName: string;
   encrypted: boolean;
   category: string;
-}
-
-export interface LocationsData {
-  type: "Point";
-  /** GeoJSON order: [longitude, latitude]. */
-  coordinates: [number, number];
-}
-
-export interface GeoData {
-  place: string | null;
-  placeId: string | null;
-  locations: LocationsData;
-  formatAddress: string | null;
 }
 
 export interface selectedPropertyBackendData extends PropertyCatalogItemResponse {
@@ -245,16 +308,5 @@ export type ListingProperty = {
   titlePropertie?: string;
 };
 
-export type PropertyMarker = Pick<
-  PropertyCatalogItemResponse,
-  | "_id"
-  | "id"
-  | "name"
-  | "priceData"
-  | "priceSpecial"
-  | "minPrice"
-  | "maxPrice"
-  | "urlImage"
-> & { geoData?: GeoData | null };
 
-export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };
+//// aqui terminan las interfaces

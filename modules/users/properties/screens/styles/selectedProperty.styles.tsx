@@ -182,6 +182,21 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
     lineHeight: platformLineHeight(15),
   },
+  descriptionAction: {
+    alignSelf: "flex-start",
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  descriptionActionText: {
+    color: userColors.adviser.primary,
+    fontSize: textSize.body,
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+  descriptionModalText: {
+    lineHeight: platformLineHeight(22),
+  },
   sectionContainer: {
     gap: 12,
   },
