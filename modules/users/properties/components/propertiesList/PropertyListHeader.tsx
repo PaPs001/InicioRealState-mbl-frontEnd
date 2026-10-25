@@ -13,8 +13,10 @@ type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 
 export const PropertyListHeader = ({
   controller,
+  canUsePdfExporter,
 }: {
   controller: PropertiesController;
+  canUsePdfExporter: boolean;
 }) => {
   const {
     listingFilter,
@@ -107,9 +109,11 @@ export const PropertyListHeader = ({
             </View>
           </View>
         </View>
-        <View>
-          <ExportPdfPanel controller={controller} />
-        </View>
+        {canUsePdfExporter ? (
+          <View>
+            <ExportPdfPanel controller={controller} />
+          </View>
+        ) : null}
       </View>
     </View>
   );

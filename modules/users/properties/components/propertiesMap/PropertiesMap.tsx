@@ -8,6 +8,7 @@ import { logos } from "@/assets";
 import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../propertiesList/PropertyListCard";
 import { useMapProperties } from "../../hooks/useMapProperties";
+import { MapLoadingIndicator } from "./MapLoadingIndicator";
 
 type PropertiesMapProps = {
   controller: Pick<
@@ -23,7 +24,7 @@ export function PropertiesMap({
   initialRegion,
   onRegionChange,
 }: PropertiesMapProps) {
-  const { properties, error, loadProperties } = useMapProperties();
+  const { properties, error, isLoading, loadProperties, cancelPendingLoad } = useMapProperties();
   const [selectedLocationKey, setSelectedLocationKey] = useState<string | null>(
     null,
   );
@@ -57,6 +58,7 @@ export function PropertiesMap({
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedLocationKey(null)}
           initialRegion={initialRegionRef.current}
           onMapReady={() => setIsMapReady(true)}
@@ -99,7 +101,7 @@ export function PropertiesMap({
                 accessibilityLabel={
                   isGroup
                     ? `${group.properties.length} propiedades en esta ubicación`
-                    : property.name
+                    : catalogProperty?.title || "Propiedad en esta ubicación"
                 }
                 coordinate={{
                   longitude: property.geoData.locations.coordinates[0],
@@ -127,6 +129,7 @@ export function PropertiesMap({
             );
           })}
         </MapView>
+        {(!isMapReady || isLoading) && <MapLoadingIndicator />}
         {selectedGroup && (
           <View
             style={[
@@ -172,7 +175,9 @@ export function PropertiesMap({
                     key={marker._id || marker.id}
                     style={styles.unavailableProperty}
                   >
-                    <Text style={styles.panelTitle}>{marker.name}</Text>
+                    <Text style={styles.panelTitle}>
+                      {`Propiedad ${marker.id || marker._id}`}
+                    </Text>
                     <Text>
                       Esta propiedad no está disponible en el catálogo cargado.
                     </Text>

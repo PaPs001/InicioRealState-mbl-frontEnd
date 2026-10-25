@@ -112,10 +112,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
         authToken,
       )
 
-      console.log(
-        '[SelectedLeadFollowings]',
-        JSON.stringify(records, null, 2),
-      )
 
       setSelectedLeadFollowings(records)
     } catch (error) {
