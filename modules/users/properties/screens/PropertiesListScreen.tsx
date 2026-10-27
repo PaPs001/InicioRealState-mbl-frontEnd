@@ -112,8 +112,15 @@ export const PropertiesListScreen = () => {
 
       <MapsButton
         onPress={() => controller.setIsMapMode(!isMapMode)}
-        icon={
-          <icons.ActionIcon
+        icon={isMapMode ? 
+          <icons.List
+            width={13}
+            height={13}
+            color="#D7B766"
+            style={{ transform: [{ scale: 1.5 }] }}
+          />
+          : 
+          <icons.MapsIcon
             width={13}
             height={13}
             color="#D7B766"

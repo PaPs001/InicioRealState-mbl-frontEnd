@@ -22,6 +22,7 @@ import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
+import { capitalizeFirstLetter } from "../../main/utils/dashboard-formatters";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -192,9 +193,19 @@ export const PropertiesList = () => {
             </View>
           </View>
 
-          <View style={styles.propertyFeaturesContainer}>
+          {/** Aqui comienza el espacio de los objetos de la propiedad */}
+          <View style={[styles.propertyFeaturesContainer, property.bedrooms.extra ? {
+            flexWrap: 'wrap'
+          }: null]}>
             {property?.bedrooms.principal ? (
-              <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  flexShrink: 0,
+                }}
+              >
                 <PropertyMetric
                   icon={<icons.Bed width={25} height={25} />}
                   value={normalizeName(property?.bedrooms.principal)}
@@ -202,13 +213,29 @@ export const PropertiesList = () => {
                 />
 
                 {property.bedrooms.extra ? (
-                  <PropertyMetric
-                    icon={<icons.catalogMobile width={25} height={25} />}
-                    value={normalizeName(property.bedrooms.extra)}
-                    label={normalizeName(property.bedrooms.extraName)}
-                  />
+                  <>
+                    <View
+                      style={{
+                        paddingRight: 5,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          textAlign: 'center'
+                        }}
+                      >
+                        +
+                      </Text>
+                    </View>
+                    <PropertyMetric
+                      icon={<icons.Balcony width={25} height={25} strokeWidth={2}/>}
+                      value={capitalizeFirstLetter(normalizeName(property.bedrooms.extra))}
+                      label={capitalizeFirstLetter(normalizeName(property.bedrooms.extraName))}
+                    />
+                  </>
                 ) : null}
-              </>
+              </View>
             ) : null}
             {property?.bathrooms ? (
               <PropertyMetric
@@ -228,35 +255,13 @@ export const PropertiesList = () => {
             ) : null}
             {property.propertyAmenities ? (
               <View style={styles.moreFeaturesContainer}>
-                <icons.Blend />
-                <Text numberOfLines={2} style={styles.moreFeaturesText}>
+                <icons.ArmChairSe />
+                <Text adjustsFontSizeToFit numberOfLines={2} style={styles.moreFeaturesText}>
                   {property?.propertyAmenities}
                 </Text>
               </View>
             ) : null}
           </View>
-
-          {property?.bedrooms.extraName ? (
-            <View
-              style={[
-                styles.propertyFeaturesContainer,
-                {
-                  flexDirection: "column",
-                },
-              ]}
-            >
-              <View style={styles.extrasTtitleContainer}>
-                <Text style={styles.extrasTitle}>Extras </Text>
-              </View>
-              <View>
-                <PropertyMetric
-                  icon={<icons.Bed width={25} height={25} />}
-                  value={normalizeName(property?.bedrooms.extra)}
-                  label={normalizeName(property.bedrooms.extraName)}
-                />
-              </View>
-            </View>
-          ) : null}
 
           <View style={styles.detailsContainer}>
             <Text style={styles.detailsTitle}>Detalles de la propiedad</Text>
@@ -273,13 +278,10 @@ export const PropertiesList = () => {
             )}
           </View>
         </View>
-        {property.amenities.length + property.otherAmenities.length > 0 && (
+        {property.equipmentServices.length > 0 && (
           <PropertySection title="Amenidades">
             <Amenities
-              amenitiesData={[
-                ...(property?.amenities ?? []),
-                ...(property?.otherAmenities ?? []),
-              ]}
+              amenitiesData={property.equipmentServices}
             />
           </PropertySection>
         )}
@@ -367,6 +369,7 @@ export const PropertiesList = () => {
           onDate={() => {}}
           price={property?.price}
           operation={property?.operationLabel}
+          hasMantain={property?.hasMantenimiento}
         />
       </BlurView>
       <AppModal

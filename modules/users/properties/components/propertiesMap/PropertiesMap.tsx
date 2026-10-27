@@ -1,4 +1,4 @@
-import MapView, { Marker, type Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LocatedPropertyMarker } from "@/lib/types";
@@ -58,6 +58,7 @@ export function PropertiesMap({
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedLocationKey(null)}
           initialRegion={initialRegionRef.current}
@@ -175,11 +176,8 @@ export function PropertiesMap({
                     key={marker._id || marker.id}
                     style={styles.unavailableProperty}
                   >
-                    <Text style={styles.panelTitle}>
-                      {`Propiedad ${marker.id || marker._id}`}
-                    </Text>
                     <Text>
-                      Esta propiedad no está disponible en el catálogo cargado.
+                      Tuvimos problemas al cargar una propiedad 
                     </Text>
                   </View>
                 );

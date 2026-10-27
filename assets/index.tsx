@@ -83,7 +83,8 @@ import Beach from "./selectedProperties/beach.svg";
 import Restaurants from "./selectedProperties/restaurants.svg";
 import SuperMarket from "./selectedProperties/superMarket.svg";
 import Lock from "./properties/lock.svg";
-
+import Balcony from "./selectedProperties/balcony.svg"
+import ArmChairSe from "./selectedProperties/Armchair.svg"
 /// Amenities Icons
 
 import Shield from "./amenitiesIcons/chield.svg";
@@ -113,6 +114,11 @@ import MapPin from "./mainScreen/calendarSection/MapPin.svg";
 import User from "./mainScreen/calendarSection/User.svg";
 
 import Email from "./EMAIL.svg";
+
+//// Maps Icons
+import MapsIcon from "./maps/maps.svg"
+import List from "./maps/list.svg"
+
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -205,6 +211,10 @@ export const icons = {
   MapPin: MapPin,
   User: User,
   Email,
+  Balcony: Balcony,
+  MapsIcon: MapsIcon,
+  List: List,
+  ArmChairSe: ArmChairSe
 } as const;
 
 export const images = {
@@ -361,4 +371,8 @@ export {
   MapPin,
   User,
   Email,
+  Balcony,
+  MapsIcon,
+  List,
+  ArmChairSe
 };

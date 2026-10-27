@@ -120,17 +120,19 @@ export const styles = StyleSheet.create({
   },
 
   propertyFeaturesContainer: {
+    width: "100%",
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
     backgroundColor: "#FDFBF9",
     borderColor: "#00000055",
-    flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 17,
-    gap: 10,
-    justifyContent: "center",
-    overflow: 'hidden', 
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    columnGap: 15,
+    rowGap: 15,
   },
   extrasTtitleContainer: {
     justifyContent: "center",
@@ -159,6 +161,9 @@ export const styles = StyleSheet.create({
     color: textColor.softText,
   },
   moreFeaturesContainer: {
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: "100%",
     flexDirection: "row",
     gap: 5,
     alignItems: "center",
@@ -166,7 +171,7 @@ export const styles = StyleSheet.create({
   },
   moreFeaturesText: {
     flexShrink: 1,
-    fontSize: textSize.label,
+    fontSize: textSize.caption,
   },
 
   detailsContainer: {
