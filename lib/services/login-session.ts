@@ -38,27 +38,6 @@ export async function signInWithCredentials(
     throw new Error(loginResponse.error || 'La API no devolvio un token de sesion')
   }
 
-  debugLog?.({
-    level: 'success',
-    message: 'Login validado por la API. Sigue guardar la sesion local.',
-    details: {
-      emailAttempt: email.trim().toLowerCase(),
-      userId: user.id,
-      role: user.systemRole,
-      investment: user.investment,
-      tenant: user.tenant,
-      hasToken: !!token,
-      hasRefreshToken: !!refreshToken,
-    },
-  })
-
-  console.info('[auth][login-session][frontend]', {
-    emailAttempt: email.trim().toLowerCase(),
-    user,
-    hasToken: !!token,
-    hasRefreshToken: !!refreshToken,
-  })
-
   return {
     user: user as BackendUser,
     token,
