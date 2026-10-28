@@ -269,12 +269,47 @@ type PropertiesCountResponse = {
 export async function getPropertiesCount(
   token?: string,
 ): Promise<TypesOfProperties> {
-  const data = await coreApi<PropertiesCountResponse>("/users/properties/counts", {
-    method: "GET",
-    token,
-  });
+  const data = await coreApi<PropertiesCountResponse>(
+    "/users/properties/counts",
+    {
+      method: "GET",
+      token,
+    },
+  );
   return {
     rent: data.renta,
     sale: data.venta,
   };
+}
+
+export interface Filters {
+  zone?: string;
+  list?: string;
+  equiped?: string;
+}
+
+export async function getFiltersProperties(
+  propertyFilters: Filters,
+  token?: string,
+) {
+  try {
+    const params = new URLSearchParams();
+
+    Object.entries(propertyFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const path = `/users/filter/properties?${params.toString()}`;
+    const data = await coreApi<PropertyCatalogItemResponse[]>(
+      path,
+      { token },
+    );
+    if (!Array.isArray(data)) throw new Error("Filtered properties response must be an array");
+    const properties = data.map(mapApiPropertyToProperty);
+    return properties;
+  } catch (error) {
+    throw error;
+  }
 }
