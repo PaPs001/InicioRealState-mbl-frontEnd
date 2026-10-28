@@ -1,5 +1,7 @@
 import {
+  Filters,
   getCatalogPropertiesCoreAPI,
+  getFiltersProperties,
 } from '@/lib/api/endpoints/catalog'
 import type { Property } from '@/lib/types'
 
@@ -36,6 +38,10 @@ export function findPropertyById(params: {
 
 export async function loadCatalogPropertiesFromCore(token?: string): Promise<Property[]> {
   return getCatalogPropertiesCoreAPI(token)
+}
+
+export async function loadCatalogPropertiesWithFilter(filters: Filters, token?: string): Promise<Property[]>{
+  return getFiltersProperties(filters, token)
 }
 
 export function getPropertyAgentName(property?: Property | null) {

@@ -82,34 +82,6 @@ function deriveTenantFlag(permissions?: string[], tenant?: boolean): boolean {
   return normalizedPermissions.includes("TENANT");
 }
 
-export function getUserIdFromToken(token: string | null): string | null {
-  if (!token) return null;
-
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) return null;
-
-    const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const paddedPayload = normalizedPayload.padEnd(
-      normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
-      "=",
-    );
-
-    const decodedPayload = decodeBase64(paddedPayload);
-    if (!decodedPayload) return null;
-
-    const parsedPayload = JSON.parse(decodedPayload) as { userId?: string };
-    const tokenUserId = parsedPayload.userId ?? null;
-
-    return tokenUserId;
-  } catch {
-    console.warn("[auth][token-decode] failed", {
-      hasToken: true,
-    });
-    return null;
-  }
-}
-
 export function normalizeAuthUser(
   user: BackendUser | User | null,
 ): User | null {
@@ -121,7 +93,7 @@ export function normalizeAuthUser(
   );
 
   return {
-    id: user.id ?? backendUser._id ?? backendUser.userId ?? "",
+    id: user.id ?? "",
     name: user.name ?? "",
     email: user.email ?? "",
     phone: user.phone ?? "",
@@ -153,9 +125,8 @@ export function buildSessionUser(
   token: string | null,
 ): User | null {
   const normalizedUser = normalizeAuthUser(user);
-  const tokenUserId = getUserIdFromToken(token);
   const sessionUser = normalizedUser
-    ? { ...normalizedUser, id: normalizedUser.id || tokenUserId || "" }
+    ? { ...normalizedUser, id: normalizedUser.id ||  "" }
     : null;
 
   return sessionUser;

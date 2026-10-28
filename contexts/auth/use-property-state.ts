@@ -1,3 +1,4 @@
+import type { Filters } from "@/lib/api/endpoints/catalog"
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 import type { Property } from '@/lib/types'
@@ -5,6 +6,7 @@ import {
   findPropertyById,
   getAvailableProperties,
   loadCatalogPropertiesFromCore,
+  loadCatalogPropertiesWithFilter,
 } from '@/lib/services/property-domain'
 import { getUserProperties } from '@/lib/services/user-properties'
 
@@ -73,6 +75,30 @@ export function usePropertyState(params: PropertyStateParams) {
     setCatalogProperties([])
     setHasLoadedCatalog(false)
   }, [])
+
+  const loadCatalogFromFilters = useCallback(async (filters: Filters) => {
+    if (!authToken) {
+      setHasLoadedCatalog(false)
+      setCatalogProperties([])
+      return
+    }
+    if (isLoadingCatalogRef.current) return
+
+    isLoadingCatalogRef.current = true
+    setIsCatalogLoading(true)
+    try {
+      const properties = await loadCatalogPropertiesWithFilter(filters, authToken)
+      setCatalogProperties(properties)
+      setHasLoadedCatalog(true)
+    } catch (error) {
+      console.error('Error loading catalog properties:', error)
+      setCatalogProperties([])
+      setHasLoadedCatalog(false)
+    } finally {
+      setIsCatalogLoading(false)
+      isLoadingCatalogRef.current = false
+    }
+  }, [authToken])
 
   return {
     catalogProperties,

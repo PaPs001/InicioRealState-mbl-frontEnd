@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
 import { ReactNode } from "react";
-import { getSortLabel } from "../../hooks/usePropertiesScreen";
+import { FURNISHING_FILTER_OPTIONS, getSortLabel } from "../../hooks/usePropertiesScreen";
 
 type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 
@@ -80,14 +80,12 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.filterScrollOptions}
           >
-            <Text style={styles.filterFieldLab}>Zona</Text>
-            <TextInput
-              value={zoneFilter}
-              onChangeText={setZoneFilter}
-              placeholder="Ej. Temozon, Centro, Altabrisa"
-              placeholderTextColor="#717171"
-              style={styles.filterTextInput}
-            />
+            <FilterOptionGroup title="Zona">
+              {["", "Puerto Vallarta", "Bahía de Banderas"].map((zone) => (
+                <FilterValueChip key={zone} label={zone || "Todas"}
+                  active={zoneFilter === zone} onPress={() => setZoneFilter(zone)} />
+              ))}
+            </FilterOptionGroup>
 
             <View style={styles.filterPriceRow}>
               <View style={styles.filterPriceField}>
@@ -162,29 +160,20 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
               ))}
             </FilterOptionGroup>
 
-            <FilterOptionGroup title="Mobiliario">
-              <FilterValueChip
-                label="Todos"
-                active={furnishingFilter === "all"}
-                onPress={() => setFurnishingFilter("all")}
-              />
-              <FilterValueChip
-                label="Amueblados"
-                active={furnishingFilter === "furnished"}
-                onPress={() => setFurnishingFilter("furnished")}
-              />
-              <FilterValueChip
-                label="Sin amueblar"
-                active={furnishingFilter === "unfurnished"}
-                onPress={() => setFurnishingFilter("unfurnished")}
-              />
+            <FilterOptionGroup title="Equipamiento">
+              {FURNISHING_FILTER_OPTIONS.map((value) => (
+                <FilterValueChip key={value} label={value === "all" ? "Todos" : value}
+                  active={furnishingFilter === value} onPress={() => setFurnishingFilter(value)} />
+              ))}
             </FilterOptionGroup>
+            {controller.filterError ? <Text accessibilityRole="alert">{controller.filterError}</Text> : null}
 
             <Pressable
               style={styles.applyFiltersButton}
-              onPress={() => setIsFiltersVisible(false)}
+              disabled={controller.isApplyingFilters}
+              onPress={controller.applyFilters}
             >
-              <Text style={styles.applyFiltersButtonText}>Aplicar filtros</Text>
+              <Text style={styles.applyFiltersButtonText}>{controller.isApplyingFilters ? "Aplicando filtros..." : "Aplicar filtros"}</Text>
             </Pressable>
           </ScrollView>
         </Pressable>
