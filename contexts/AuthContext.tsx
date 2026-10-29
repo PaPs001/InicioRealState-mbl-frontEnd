@@ -40,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const {
     catalogProperties,
+    catalogFilters,
+    catalogError,
     isCatalogLoading,
     hasLoadedCatalog,
     userProperties,
@@ -94,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userProperties,
     availableProperties,
     catalogProperties,
+    catalogFilters,
+    catalogError,
     isCatalogLoading,
     hasLoadedCatalog,
     userLeads,
@@ -108,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authToken,
     availableProperties,
     catalogProperties,
+    catalogFilters,
+    catalogError,
     currentUser,
     getPropertyById,
     hasLoadedCatalog,

@@ -238,12 +238,22 @@ export async function getCatalogPropertiesCoreAPI(
 
 export async function getMapProperties(
   params: URLSearchParams,
+  propertyFilters: MapFilters = {},
   token?: string,
   signal?: AbortSignal,
 ): Promise<PropertyMarker[]> {
   try {
+    const query = new URLSearchParams(params.toString());
+
+    Object.entries(propertyFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        query.set(key, String(value));
+      }
+    });
+    const path = `/users/properties/bounds?${query.toString()}`;
+
     const data = await coreApi<PropertyMarker[]>(
-      `/users/properties/bounds?${params}`,
+      path,
       {
         method: "GET",
         token,
@@ -288,9 +298,16 @@ export interface Filters {
   equiped?: string;
 }
 
+export interface MapFilters extends Filters {
+  bathrooms?: number;
+  bedrooms?: number;
+  parkings?: number;
+}
+
 export async function getFiltersProperties(
   propertyFilters: Filters,
   token?: string,
+  signal?: AbortSignal,
 ) {
   try {
     const params = new URLSearchParams();
@@ -304,7 +321,7 @@ export async function getFiltersProperties(
     const path = `/users/filter/properties?${params.toString()}`;
     const data = await coreApi<PropertyCatalogItemResponse[]>(
       path,
-      { token },
+      { token, signal },
     );
     if (!Array.isArray(data)) throw new Error("Filtered properties response must be an array");
     const properties = data.map(mapApiPropertyToProperty);

@@ -18,7 +18,7 @@ import type { AppCapabilities } from "@/modules/settings";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
 import { useDashboardCalendar } from "./userDashboardCalendar";
 import { useDashboardLeads } from "./userDashboardLeads";
-import { useDashboardProperties } from "./userDashboardProperties";
+import { useAppointmentProperties } from "./useAppointmentProperties";
 import { LEAD_TRACKING_STATUSES } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import {
   findCalendarForAppointmentType,
@@ -58,7 +58,7 @@ export function useAppointmentCreateFlow({
   );
   const { appointmentLeadOptions, isLeadsLoading, loadLeads } =
     useDashboardLeads({ authToken });
-  const properties = useDashboardProperties(form.appointmentType);
+  const properties = useAppointmentProperties(form.appointmentType, visible);
   const calendar = useDashboardCalendar({
     authToken,
     capabilities,
@@ -378,6 +378,7 @@ export function useAppointmentCreateFlow({
       duplicateCheck,
       enabledSelectedCalendars: calendar.enabledSelectedCalendars,
       isCatalogLoading: properties.isCatalogLoading,
+      propertiesError: properties.error,
       isCreatingAppointment,
       isGoogleConnected:
         calendar.isGoogleConnected && !calendar.needsGoogleReconnect,

@@ -113,9 +113,7 @@ export const MapsPropertiesScreen = () => {
                   isSelected={false}
                   isSelecting={false}
                   onToggleSelection={controller.togglePropertySelection}
-                  onPress={() =>
-                    controller.handlePropertyPress(selectedProperty.id)
-                  }
+                  onPress={controller.handlePropertyPress}
                 />
               ) : (
                 <Text>

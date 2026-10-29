@@ -15,10 +15,14 @@ export const PropertyListHeader = ({
   controller,
   canUsePdfExporter,
   enabledFilters,
+  showSort = true,
+  showSearch = true,
 }: {
   controller: PropertiesController;
   canUsePdfExporter: boolean;
   enabledFilters: boolean;
+  showSort?: boolean;
+  showSearch?: boolean;
 }) => {
   const {
     listingFilter,
@@ -74,16 +78,18 @@ export const PropertyListHeader = ({
                 </View>
               ) : null}
 
-              <View style={styles.textInputContainer}>
-                <Search />
-                <TextInput
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder="Buscar por zona, nombre o ID"
-                  placeholderTextColor={"#717171"}
-                  style={styles.searchInput}
-                />
-              </View>
+              {showSearch ? (
+                <View style={styles.textInputContainer}>
+                  <Search />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Buscar por zona, nombre o ID"
+                    placeholderTextColor={"#717171"}
+                    style={styles.searchInput}
+                  />
+                </View>
+              ) : null}
 
               <View style={styles.controlRow}>
                 <Pressable
@@ -100,15 +106,17 @@ export const PropertyListHeader = ({
                     </View>
                   ) : null}
                 </Pressable>
-                <Pressable
-                  style={styles.controlButton}
-                  onPress={() => setIsSortVisible(true)}
-                >
-                  <Text style={styles.toggleText}>
-                    {getSortLabel(sortOption)}
-                  </Text>
-                  <ChevronDown size={15} color={"#0c6740"} />
-                </Pressable>
+                {showSort ? (
+                  <Pressable
+                    style={styles.controlButton}
+                    onPress={() => setIsSortVisible(true)}
+                  >
+                    <Text style={styles.toggleText}>
+                      {getSortLabel(sortOption)}
+                    </Text>
+                    <ChevronDown size={15} color={"#0c6740"} />
+                  </Pressable>
+                ) : null}
               </View>
             </View>
           </View>

@@ -53,6 +53,7 @@ type AppointmentCreateModalProps = {
   duplicateCheck: DuplicateCheckResult | null;
   enabledSelectedCalendars: SelectedGoogleCalendar[];
   isCatalogLoading: boolean;
+  propertiesError?: string | null;
   isCreatingAppointment: boolean;
   isGoogleConnected: boolean;
   needsGoogleReconnect?: boolean;
@@ -101,6 +102,7 @@ export function AppointmentCreateModal({
   duplicateCheck,
   enabledSelectedCalendars,
   isCatalogLoading,
+  propertiesError,
   isCreatingAppointment,
   isGoogleConnected,
   needsGoogleReconnect = false,
@@ -396,7 +398,7 @@ export function AppointmentCreateModal({
             <Text style={styles.calendarSettingsEmpty}>
               {isCatalogLoading
                 ? "Cargando propiedades..."
-                : "No hay propiedades disponibles."}
+                : propertiesError || "No hay propiedades disponibles."}
             </Text>
           }
           renderItem={({ item: property }) => {

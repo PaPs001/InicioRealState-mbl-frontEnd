@@ -132,8 +132,13 @@ export interface SelectedProperty extends ListingCardProperty {
   images: Images[];
 }
 
-export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & {
+export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & Partial<Pick<
+  PropertyCatalogItemResponse,
+  "name" | "priceData" | "parking" | "wc" | "urlImage" | "solarPanel" | "address"
+  | "isALand" | "bed" | "propertyView" | "zonaText"
+>> & {
   geoData?: GeoData | null;
+  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
 };
 
 export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };
