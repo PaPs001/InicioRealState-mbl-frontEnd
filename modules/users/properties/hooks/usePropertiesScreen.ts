@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, InteractionManager, useWindowDimensions } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   createAndOpenSinglePropertyPdf,
   createAndOpenTemporaryPropertyListPdf,
@@ -11,8 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useOperationMode } from "@/modules/settings";
 import { getSelectedProperty } from "../services/properties.service";
-
-import { loadCatalogPropertiesWithFilter } from "@/lib/services/property-domain";
 
 export type ListingFilter = "all" | "rent" | "sale" | "developments";
 export const FURNISHING_FILTER_OPTIONS = ["all", "Totalmente equipada", "Semiequipada", "Sin Muebles", "COCINA INTEGRAL", "Sin equipar"] as const;
@@ -115,7 +113,7 @@ export function getSortLabel(option: SortOption) {
 
 export function usePropertiesScreen() {
   const params = useLocalSearchParams<{ type?: string }>();
-  const { authToken, currentUser } = useAuth();
+  const { authToken, currentUser, isLoading: isAuthLoading } = useAuth();
   const { operationMode } = useOperationMode();
   const { width } = useWindowDimensions();
   const domain = usePropertyDomain();
@@ -147,24 +145,23 @@ export function usePropertiesScreen() {
   const [parkingFilter, setParkingFilter] = useState<number | null>(null);
   const [furnishingFilter, setFurnishingFilter] =
     useState<FurnishingFilter>("all");
-  const [remoteResults, setRemoteResults] = useState<{ list: ListingFilter; properties: Property[] } | null>(null);
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
   const filterRequestId = useRef(0);
   const [appliedFilters, setAppliedFilters] = useState({
-    zone: "", furnishing: "all" as FurnishingFilter,
+    zone: domain.catalogFilters?.zone ?? "", furnishing: FURNISHING_FILTER_OPTIONS.find(value => value === domain.catalogFilters?.equiped) ?? "all",
     min: "", max: "", bedrooms: null as number | null,
     bathrooms: null as number | null, parking: null as number | null,
   });
   useEffect(() => {
     filterRequestId.current += 1;
-    setRemoteResults(null);
     setIsApplyingFilters(false);
     setFilterError(null);
   }, [authToken]);
   useEffect(() => () => { filterRequestId.current += 1; }, []);
 
   const setIsFiltersVisible = (visible: boolean) => {
+    if (isApplyingFilters) return;
     if (visible) {
       setZoneFilter(appliedFilters.zone);
       setFurnishingFilter(appliedFilters.furnishing);
@@ -189,21 +186,37 @@ export function usePropertiesScreen() {
     const requestedList = listingFilter;
     setIsApplyingFilters(true);
     setFilterError(null);
+    if (isMapMode) {
+      setAppliedFilters(previous => ({
+        ...previous,
+        zone: zoneFilter,
+        furnishing: furnishingFilter,
+        bathrooms: bathroomsFilter,
+        bedrooms: bedroomsFilter,
+        parking: parkingFilter,
+      }));
+      updateFiltersVisible(false);
+      setIsApplyingFilters(false);
+      return;
+    }
     try {
-      const properties = await loadCatalogPropertiesWithFilter({
+      const loaded = await domain.loadCatalogProperties({
         list: requestedList === "rent" || requestedList === "sale" ? requestedList : undefined,
         zone: zoneFilter || undefined,
         equiped: furnishingFilter === "all" ? undefined : furnishingFilter,
-      }, authToken);
+      }, true);
+      if (!loaded) {
+        if (requestId === filterRequestId.current) setFilterError("No se pudieron aplicar los filtros. Intenta nuevamente.");
+        return;
+      }
       if (requestId !== filterRequestId.current) {
         return;
       }
-      setRemoteResults({ list: requestedList, properties });
       setAppliedFilters({ zone: zoneFilter, furnishing: furnishingFilter,
         min: minPriceFilter, max: maxPriceFilter, bedrooms: bedroomsFilter,
         bathrooms: bathroomsFilter, parking: parkingFilter });
       setSelectedPropertyIds([]);
-      setIsFiltersVisible(false);
+      updateFiltersVisible(false);
     } catch (error) {
       if (requestId === filterRequestId.current) setFilterError("No se pudieron aplicar los filtros. Intenta nuevamente.");
     } finally {
@@ -225,21 +238,33 @@ export function usePropertiesScreen() {
     [operationMode, params.type],
   );
 
+  const { loadCatalogProperties } = domain;
+  const retryCatalog = () => loadCatalogProperties({
+    list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
+    zone: appliedFilters.zone || undefined,
+    equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
+  }, true);
+  useFocusEffect(useCallback(() => {
+    if (!authToken || isAuthLoading || isMapMode) return;
+    void loadCatalogProperties({
+      list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
+      zone: appliedFilters.zone || undefined,
+      equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
+    });
+  }, [authToken, isAuthLoading, isMapMode, listingFilter, appliedFilters.zone, appliedFilters.furnishing, loadCatalogProperties]));
+
   const findCatalogProperty = useCallback((id?: string, backendId?: string) => {
     const matches = (property: Property) =>
       Boolean(id && (property.id === id || property._id === id)) ||
       Boolean(backendId && (property.id === backendId || property._id === backendId));
-    const property = remoteResults?.properties.find(matches) ?? domain.catalogProperties.find(matches) ??
+    const property = domain.catalogProperties.find(matches) ??
       domain.availableProperties.find(matches);
     return property ? mapProperty(property) : null;
-  }, [domain.catalogProperties, domain.availableProperties, remoteResults]);
+  }, [domain.catalogProperties, domain.availableProperties]);
 
   const listings = useMemo(
     () =>
-      (remoteResults?.list === listingFilter
-        ? remoteResults.properties
-        : domain.catalogProperties.length ? domain.catalogProperties : domain.availableProperties
-      )
+      domain.catalogProperties
         .filter((property) => {
           if (!property.title?.trim()) return false;
           const sale =
@@ -256,7 +281,7 @@ export function usePropertiesScreen() {
               : sale || rent;
         })
         .map(mapProperty),
-    [domain.availableProperties, domain.catalogProperties, listingFilter, remoteResults],
+    [domain.catalogProperties, listingFilter],
   );
 
   const filteredListings = useMemo(() => {
@@ -296,17 +321,10 @@ export function usePropertiesScreen() {
     );
   }, [
     appliedFilters,
-    bathroomsFilter,
-    bedroomsFilter,
-    furnishingFilter,
     listings,
     listingFilter,
-    maxPriceFilter,
-    minPriceFilter,
-    parkingFilter,
     searchQuery,
     sortOption,
-    zoneFilter,
   ]);
 
   const activeAdvancedFilterCount = useMemo(
@@ -377,12 +395,12 @@ export function usePropertiesScreen() {
     () => setIsSelectingProperties((value) => !value),
     [],
   );
-  const handlePropertyPress = (propertyId: string) => {
+  const handlePropertyPress = useCallback((propertyId: string) => {
     router.push({
       pathname: "/selected-property",
       params: { propertyId },
     });
-  };
+  }, []);
 
   const handleGenerateSinglePdf = useCallback(
     async (propertyId?: string | null) => {
@@ -475,6 +493,15 @@ export function usePropertiesScreen() {
   }, [handleGeneratePdf, handleGenerateSinglePdf, selectedPropertyIds]);
 
   return {
+    mapFilters: {
+      list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
+      zone: appliedFilters.zone || undefined,
+      equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
+      bathrooms: appliedFilters.bathrooms ?? undefined,
+      bedrooms: appliedFilters.bedrooms ?? undefined,
+      parkings: appliedFilters.parking ?? undefined,
+    },
+    retryCatalog,
     applyFilters,
     isApplyingFilters,
     filterError,

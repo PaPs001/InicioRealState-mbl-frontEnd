@@ -87,7 +87,7 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
               ))}
             </FilterOptionGroup>
 
-            <View style={styles.filterPriceRow}>
+            {/* <View style={styles.filterPriceRow}>
               <View style={styles.filterPriceField}>
                 <Text style={styles.filterFieldLab}>Precio minimo</Text>
                 <TextInput
@@ -110,7 +110,7 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
                   style={styles.filterTextInput}
                 />
               </View>
-            </View>
+            </View> */}
 
             <FilterOptionGroup title="Recamaras">
               <FilterValueChip
