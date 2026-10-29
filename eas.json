@@ -8,15 +8,18 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app",
-        "MAPS_ANDROID_API_KEY": "AIzaSyDrJ9LDCAWneS4hJ__XuIooghe_Z-J3MU4"
+        "EXPO_PUBLIC_API_BASE_URL": "https://apiIRS.contentforge.fyi",
+        "MAPS_ANDROID_API_KEY": "AIzaSyDrJ9LDCAWneS4hJ__XuIooghe_Z-J3MU4",
+        "MAPS_IOS_API_KEY": "AIzaSyDXzs4bqOkrAOEkZ33SnN1gB1TBvXsMj7I"
       },
       "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://core-api-smoky-ten.vercel.app",
+        "MAPS_ANDROID_API_KEY": "AIzaSyDrJ9LDCAWneS4hJ__XuIooghe_Z-J3MU4",
+        "MAPS_IOS_API_KEY": "AIzaSyDXzs4bqOkrAOEkZ33SnN1gB1TBvXsMj7I"
       },
       "android": {
         "buildType": "apk"

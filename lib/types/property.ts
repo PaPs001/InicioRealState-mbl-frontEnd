@@ -5,6 +5,15 @@
 ///// Interfaz del formato de la respuesta del servidor 
 export interface PropertyCatalogItemResponse {
   _id: string;
+  notionId?: string;
+  __v?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  notionOwnerId?: string | null;
+  ownerId?: string | null;
+  condo?: boolean | null;
+  rentStartDate?: string | null;
+  contractDate?: string | null;
   address: string;
   banner: boolean;
   bed: string | null;
@@ -123,8 +132,13 @@ export interface SelectedProperty extends ListingCardProperty {
   images: Images[];
 }
 
-export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & {
+export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & Partial<Pick<
+  PropertyCatalogItemResponse,
+  "name" | "priceData" | "parking" | "wc" | "urlImage" | "solarPanel" | "address"
+  | "isALand" | "bed" | "propertyView" | "zonaText"
+>> & {
   geoData?: GeoData | null;
+  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
 };
 
 export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };
@@ -171,6 +185,13 @@ export type AmenitiesEstructure = {
   color: string;
 };
 
+export interface PropertyEquipmentServiceResponse {
+  id: string;
+  _id: string;
+  name: string;
+  color: string;
+}
+
 export interface PropertyImageResponse {
   _id: string;
   key: string;
@@ -188,6 +209,7 @@ export interface selectedPropertyBackendData extends PropertyCatalogItemResponse
   titleApp: string | null;
   description: string | null;
   amenities: AmenitiesEstructure[] | null;
+  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
   images?: PropertyImageResponse[] | null;
   geoData: GeoData;
 }

@@ -1,6 +1,7 @@
 import type {
   AmenitiesEstructure,
   GeoData,
+  PropertyEquipmentServiceResponse,
   selectedPropertyBackendData,
 } from "@/lib/types";
 
@@ -28,6 +29,8 @@ export interface PropertyDetail {
   operationLabel: string;
   propertyAmenities: string | null;
   amenities: AmenitiesEstructure[];
+  equipmentServices: PropertyEquipmentServiceResponse[];
+  hasMantenimiento: boolean;
   status: string | null;
   price: string | null;
   otherAmenities: AmenitiesEstructure[];
@@ -85,6 +88,16 @@ export function mapApiPropertyToDetail(
   }
   const images = [...new Set([...(cover ? [cover] : []), ...galleryImages])];
   const otherAmenities: AmenitiesEstructure[] = [];
+  const equipmentServices = (data.equipmentServices ?? [])
+    .map((service) => ({
+      ...service,
+      name: service.name.trim(),
+      color: service.color.trim(),
+    }))
+    .filter((service) => service.name.length > 0);
+  const hasMantenimiento = equipmentServices.some(
+    (service) => service.name.toLowerCase() === "mantenimiento",
+  );
   if (data.pool === true) {
     otherAmenities.push({
       name: "Alberca",
@@ -129,6 +142,8 @@ export function mapApiPropertyToDetail(
       }))
       .filter((amenity) => amenity.name.length > 0),
     otherAmenities,
+    equipmentServices,
+    hasMantenimiento,
     status: data.status?.trim() || null,
     price: data.priceData?.trim() || null,
     geoData: data.geoData,
