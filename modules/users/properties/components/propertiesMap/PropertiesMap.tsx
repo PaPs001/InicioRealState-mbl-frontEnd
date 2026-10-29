@@ -1,4 +1,4 @@
-import MapView, { Marker, type Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LocatedPropertyMarker } from "@/lib/types";
@@ -9,11 +9,12 @@ import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../propertiesList/PropertyListCard";
 import { useMapProperties } from "../../hooks/useMapProperties";
 import { MapLoadingIndicator } from "./MapLoadingIndicator";
+import { mapMarkerToListing } from "../../mappers/map.mappers";
 
 type PropertiesMapProps = {
   controller: Pick<
     ReturnType<typeof usePropertiesScreen>,
-    "findCatalogProperty" | "togglePropertySelection" | "handlePropertyPress"
+    "togglePropertySelection" | "handlePropertyPress" | "mapFilters"
   >;
   initialRegion: Region;
   onRegionChange: (region: Region) => void;
@@ -24,7 +25,7 @@ export function PropertiesMap({
   initialRegion,
   onRegionChange,
 }: PropertiesMapProps) {
-  const { properties, error, isLoading, loadProperties, cancelPendingLoad } = useMapProperties();
+  const { properties, error, isLoading, loadProperties, cancelPendingLoad } = useMapProperties(controller.mapFilters);
   const [selectedLocationKey, setSelectedLocationKey] = useState<string | null>(
     null,
   );
@@ -58,6 +59,7 @@ export function PropertiesMap({
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           onRegionChange={cancelPendingLoad}
           onPress={() => setSelectedLocationKey(null)}
           initialRegion={initialRegionRef.current}
@@ -74,16 +76,8 @@ export function PropertiesMap({
           {locationGroups.map((group) => {
             const property = group.properties[0];
             const isGroup = group.properties.length > 1;
-            const catalogProperty = controller.findCatalogProperty(
-              property.id,
-              property._id,
-            );
-            const isSale =
-              catalogProperty?.status === "for_sale" ||
-              catalogProperty?.status === "pending_sale";
-            const isRent =
-              catalogProperty?.status === "for_rent" ||
-              catalogProperty?.status === "pending_rent";
+            const isSale = controller.mapFilters.list === "sale";
+            const isRent = controller.mapFilters.list === "rent";
             const markerBackgroundColor = isGroup
               ? userColors.adviser.primary
               : isSale
@@ -101,7 +95,7 @@ export function PropertiesMap({
                 accessibilityLabel={
                   isGroup
                     ? `${group.properties.length} propiedades en esta ubicación`
-                    : catalogProperty?.title || "Propiedad en esta ubicación"
+                    : property.name || "Propiedad en esta ubicación"
                 }
                 coordinate={{
                   longitude: property.geoData.locations.coordinates[0],
@@ -157,31 +151,19 @@ export function PropertiesMap({
               contentContainerStyle={selectedGroup.properties.length > 1 ? styles.propertyList : undefined}
             >
               {selectedGroup.properties.map((marker) => {
-                const property = controller.findCatalogProperty(
-                  marker.id,
-                  marker._id,
+                const property = mapMarkerToListing(
+                  marker,
+                  controller.mapFilters.list,
                 );
-                return property ? (
+                return (
                   <PropertyCard
                     key={marker._id || marker.id}
                     property={property}
                     isSelected={false}
                     isSelecting={false}
                     onToggleSelection={controller.togglePropertySelection}
-                    onPress={() => controller.handlePropertyPress(property.id)}
+                    onPress={controller.handlePropertyPress}
                   />
-                ) : (
-                  <View
-                    key={marker._id || marker.id}
-                    style={styles.unavailableProperty}
-                  >
-                    <Text style={styles.panelTitle}>
-                      {`Propiedad ${marker.id || marker._id}`}
-                    </Text>
-                    <Text>
-                      Esta propiedad no está disponible en el catálogo cargado.
-                    </Text>
-                  </View>
                 );
               })}
             </ScrollView>

@@ -37,7 +37,7 @@ export const PropertyCard = memo(function PropertyCard({
   isSelected: boolean
   isSelecting: boolean
   onToggleSelection: (propertyId: string) => void
-  onPress?: () => void
+  onPress?: (propertyId: string) => void
 }) {
   const primaryTags = property.tags.slice(0, 4)
   const detailTags = property.tags.slice(4, 6)
@@ -46,7 +46,7 @@ export const PropertyCard = memo(function PropertyCard({
   return (
     <Pressable
       style={[styles.propertyCard, isSelected && styles.propertyCardSelected]}
-      onPress={isSelecting ? () => onToggleSelection(property.id) : onPress}
+      onPress={() => isSelecting ? onToggleSelection(property.id) : onPress?.(property.id)}
     >
       <View style={styles.imageWrap}>
         {property.image ? (

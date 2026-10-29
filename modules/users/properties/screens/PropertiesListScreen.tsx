@@ -1,5 +1,5 @@
 import { fontSize, textSize } from "@/theme/typography";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View, Pressable } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
@@ -14,10 +14,9 @@ import { generalColors } from "@/theme";
 import { PropertyPdfLoadingScreen } from "../components/propertiesList/PropertyPdfLoadingScreen";
 import { PropertyPdfOptionsModal } from "../components/propertiesList/PropertyPdfOptionsModal";
 import { icons } from "@/assets";
-import { type Href, router, useFocusEffect } from "expo-router";
+import { type Href, router } from "expo-router";
 import { useCallback, useState, type ReactNode } from "react";
 import type { Region } from "react-native-maps";
-import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { PropertiesMap } from "../components/propertiesMap/PropertiesMap";
 
@@ -30,18 +29,7 @@ const INITIAL_MAP_REGION: Region = {
 
 export const PropertiesListScreen = () => {
   const controller = usePropertiesScreen();
-  const { authToken, isLoading: isAuthLoading } = useSessionDomain();
-  const { hasLoadedCatalog, loadCatalogProperties } = usePropertyDomain();
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isAuthLoading && authToken && !hasLoadedCatalog) {
-        void loadCatalogProperties();
-      }
-      // Loading/error changes do not retrigger this effect. A failed request
-      // can be attempted again on the next visit, without a retry loop.
-    }, [authToken, isAuthLoading, hasLoadedCatalog, loadCatalogProperties]),
-  );
+  const { isCatalogLoading, catalogError } = usePropertyDomain();
   const [mapRegion, setMapRegion] = useState(INITIAL_MAP_REGION);
   const {
     filteredListings,
@@ -51,9 +39,10 @@ export const PropertiesListScreen = () => {
     keyExtractor,
     selectedPropertyIds,
     togglePropertySelection,
+    handlePropertyPress,
   } = controller;
 
-  const renderProperty = ({
+  const renderProperty = useCallback(({
     item,
   }: {
     item: (typeof filteredListings)[number];
@@ -63,9 +52,9 @@ export const PropertiesListScreen = () => {
       isSelected={selectedPropertyIds.includes(item.id)}
       isSelecting={isSelectingProperties}
       onToggleSelection={togglePropertySelection}
-      onPress={() => controller.handlePropertyPress(item.id)}
+      onPress={handlePropertyPress}
     />
-  );
+  ), [selectedPropertyIds, isSelectingProperties, togglePropertySelection, handlePropertyPress]);
 
   if (isPdfCleanupMode) {
     return <PropertyPdfLoadingScreen />;
@@ -75,7 +64,13 @@ export const PropertiesListScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       {isMapMode ? (
         <>
-          <PropertyListHeader controller={controller} />
+          <PropertyListHeader
+            enabledFilters={true}
+            showSort={false}
+            showSearch={false}
+            controller={controller}
+            canUsePdfExporter={false}
+          />
           <PropertiesMap
             controller={controller}
             initialRegion={mapRegion}
@@ -87,9 +82,16 @@ export const PropertiesListScreen = () => {
           data={filteredListings}
           keyExtractor={keyExtractor}
           renderItem={renderProperty}
-          ListHeaderComponent={<PropertyListHeader controller={controller} />}
+          ListHeaderComponent={
+            <PropertyListHeader
+              enabledFilters={true}
+              controller={controller}
+              canUsePdfExporter={true}
+            />
+          }
           ItemSeparatorComponent={ListSeparator}
-          ListEmptyComponent={ListEmptyState}
+          ListFooterComponent={isCatalogLoading ? <ActivityIndicator accessibilityLabel="Cargando propiedades" /> : catalogError ? <View><Text accessibilityRole="alert">{catalogError}</Text><Pressable accessibilityRole="button" onPress={() => { void controller.retryCatalog(); }}><Text>Reintentar</Text></Pressable></View> : null}
+          ListEmptyComponent={isCatalogLoading || catalogError ? null : ListEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           drawDistance={500}
@@ -102,8 +104,15 @@ export const PropertiesListScreen = () => {
 
       <MapsButton
         onPress={() => controller.setIsMapMode(!isMapMode)}
-        icon={
-          <icons.ActionIcon
+        icon={isMapMode ? 
+          <icons.List
+            width={13}
+            height={13}
+            color="#D7B766"
+            style={{ transform: [{ scale: 1.5 }] }}
+          />
+          : 
+          <icons.MapsIcon
             width={13}
             height={13}
             color="#D7B766"
@@ -131,10 +140,7 @@ function ListEmptyState() {
 export type MapsButtonProps = {
   label: string;
   icon: ReactNode;
-} & (
-  | { route: Href; onPress?: never }
-  | { route?: never; onPress: () => void }
-);
+} & ({ route: Href; onPress?: never } | { route?: never; onPress: () => void });
 export function MapsButton({ route, onPress, label, icon }: MapsButtonProps) {
   return (
     <BlurView

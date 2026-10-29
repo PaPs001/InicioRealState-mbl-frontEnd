@@ -47,8 +47,8 @@ export const PriceCard = ({
         {hasMantain ? (
           <Text
             style={styles.maintainText}
-            numberOfLines={1}
-            //adjustsFontSizeToFit
+            numberOfLines={2}
+            adjustsFontSizeToFit
           >
             Mantenimiento incluido
           </Text>

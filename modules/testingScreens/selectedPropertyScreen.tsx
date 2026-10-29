@@ -46,6 +46,8 @@ const property: AmenitiesImages = {
     color: "",
   })),
   otherAmenities: [],
+  equipmentServices: [],
+  hasMantenimiento: false,
   status: mockProperty.status,
   price: mockProperty.priceLabel,
   images: mockProperty.images.map((urlImage) => urlImage.url),

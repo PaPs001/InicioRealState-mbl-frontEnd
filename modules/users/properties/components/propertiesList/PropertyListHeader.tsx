@@ -14,9 +14,15 @@ type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 export const PropertyListHeader = ({
   controller,
   canUsePdfExporter,
+  enabledFilters,
+  showSort = true,
+  showSearch = true,
 }: {
   controller: PropertiesController;
   canUsePdfExporter: boolean;
+  enabledFilters: boolean;
+  showSort?: boolean;
+  showSearch?: boolean;
 }) => {
   const {
     listingFilter,
@@ -42,73 +48,79 @@ export const PropertyListHeader = ({
             : "Inventario de renta y venta"}
       </Text>
       <View style={styles.headerCanvas}>
-        <View
-          style={{
-            flex: 1,
-          }}
-        >
-          <View style={styles.filterButtonsContainer}>
-            {operationMode === "both" ? (
-              <View style={styles.filterChipContainer}>
-                <FilterChip
-                  label="Renta"
-                  active={listingFilter === "rent"}
-                  activeColor={generalColors.rentColor}
-                  onPress={() => setListingFilter("rent")}
-                />
-                <FilterChip
-                  label="Venta"
-                  active={listingFilter === "sale"}
-                  activeColor={generalColors.saleColor}
-                  onPress={() => setListingFilter("sale")}
-                />
-                {/*<FilterChip
+        {enabledFilters ? (
+          <View
+            style={{
+              flex: 1,
+            }}
+          >
+            <View style={styles.filterButtonsContainer}>
+              {operationMode === "both" ? (
+                <View style={styles.filterChipContainer}>
+                  <FilterChip
+                    label="Renta"
+                    active={listingFilter === "rent"}
+                    activeColor={generalColors.rentColor}
+                    onPress={() => setListingFilter("rent")}
+                  />
+                  <FilterChip
+                    label="Venta"
+                    active={listingFilter === "sale"}
+                    activeColor={generalColors.saleColor}
+                    onPress={() => setListingFilter("sale")}
+                  />
+                  {/*<FilterChip
                 label="Desarrollos"
                 active={listingFilter === "developments"}
                 activeColor={generalColors.development}
                 onPress={() => setListingFilter("developments")}
               />*/}
-              </View>
-            ) : null}
+                </View>
+              ) : null}
 
-            <View style={styles.textInputContainer}>
-              <Search />
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Buscar por zona, nombre o ID"
-                placeholderTextColor={"#717171"}
-                style={styles.searchInput}
-              />
-            </View>
+              {showSearch ? (
+                <View style={styles.textInputContainer}>
+                  <Search />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Buscar por zona, nombre o ID"
+                    placeholderTextColor={"#717171"}
+                    style={styles.searchInput}
+                  />
+                </View>
+              ) : null}
 
-            <View style={styles.controlRow}>
-              <Pressable
-                style={styles.controlButton}
-                onPress={() => setIsFiltersVisible(true)}
-              >
-                <SlidersHorizontal size={13} color={"#0c6740"} />
-                <Text style={styles.toggleText}>Filtros</Text>
-                {activeAdvancedFilterCount > 0 ? (
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>
-                      {activeAdvancedFilterCount}
+              <View style={styles.controlRow}>
+                <Pressable
+                  style={styles.controlButton}
+                  onPress={() => setIsFiltersVisible(true)}
+                >
+                  <SlidersHorizontal size={13} color={"#0c6740"} />
+                  <Text style={styles.toggleText}>Filtros</Text>
+                  {activeAdvancedFilterCount > 0 ? (
+                    <View style={styles.filterBadge}>
+                      <Text style={styles.filterBadgeText}>
+                        {activeAdvancedFilterCount}
+                      </Text>
+                    </View>
+                  ) : null}
+                </Pressable>
+                {showSort ? (
+                  <Pressable
+                    style={styles.controlButton}
+                    onPress={() => setIsSortVisible(true)}
+                  >
+                    <Text style={styles.toggleText}>
+                      {getSortLabel(sortOption)}
                     </Text>
-                  </View>
+                    <ChevronDown size={15} color={"#0c6740"} />
+                  </Pressable>
                 ) : null}
-              </Pressable>
-              <Pressable
-                style={styles.controlButton}
-                onPress={() => setIsSortVisible(true)}
-              >
-                <Text style={styles.toggleText}>
-                  {getSortLabel(sortOption)}
-                </Text>
-                <ChevronDown size={15} color={"#0c6740"} />
-              </Pressable>
+              </View>
             </View>
           </View>
-        </View>
+        ) : null}
         {canUsePdfExporter ? (
           <View>
             <ExportPdfPanel controller={controller} />

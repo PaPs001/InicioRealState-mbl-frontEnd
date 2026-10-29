@@ -1,3 +1,4 @@
+import type { Filters } from "@/lib/api/endpoints/catalog"
 import type { BackendUser } from '@/lib/services/auth-session'
 import type { Appointment, Notification, Property, PropertyLead, User } from '@/lib/types'
 
@@ -22,13 +23,15 @@ export interface AuthContextType {
   userProperties: Property[]
   availableProperties: Property[]
   catalogProperties: Property[]
+  catalogFilters: Filters | null
+  catalogError: string | null
   isCatalogLoading: boolean
   hasLoadedCatalog: boolean
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
   getPropertyById: (id: string) => Property | undefined
-  loadCatalogProperties: () => Promise<void>
+  loadCatalogProperties: (filters?: Filters, force?: boolean) => Promise<boolean>
   markNotificationAsRead: (id: string) => void
   markAllUserNotificationsAsRead: () => void
   unreadNotificationsCount: number
@@ -60,6 +63,8 @@ export type PropertyDomain = Pick<
   | 'userProperties'
   | 'availableProperties'
   | 'catalogProperties'
+  | 'catalogFilters'
+  | 'catalogError'
   | 'isCatalogLoading'
   | 'hasLoadedCatalog'
   | 'getPropertyById'
