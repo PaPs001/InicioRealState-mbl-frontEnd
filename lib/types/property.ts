@@ -2,6 +2,9 @@
  * Tipos de Propiedades
  */
 
+///// Interfazz del formato de la respuesta del servidor de filtrado
+
+
 ///// Interfaz del formato de la respuesta del servidor 
 export interface PropertyCatalogItemResponse {
   _id: string;
@@ -51,6 +54,13 @@ export interface PropertyCatalogItemResponse {
   virtualRoute?: string | null;
   wc: string | null;
   zonaText: string | null;
+}
+
+export interface CatalogFilterResponse {
+  haveOtherPage: boolean;
+  limit: number;
+  nextCursor: string | null;
+  properties: PropertyCatalogItemResponse[];
 }
 
 /// aqui comienzan los tipos definidos para el catalogo
@@ -111,18 +121,11 @@ export interface ListingCardProperty {
   hasSolarPanel: boolean;
 }
 
-export interface DatePropertyCard extends Pick<
-  ListingCardProperty,
-  | "id"
-  | "_id"
-  | "titleListing"
-  | "price"
-  | "address"
-  | "propertyImage"
-  | "zone"
-  | "statusAmenitie"
-  | "statusProperty"
-> {}
+/** Property data used by appointment creation and editing selectors. */
+export type DatePropertyCard = Pick<
+  Property,
+  "id" | "title" | "address" | "listingType"
+>;
 
 export interface SelectedProperty extends ListingCardProperty {
   geoData: GeoData;

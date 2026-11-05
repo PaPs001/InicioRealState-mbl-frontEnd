@@ -16,7 +16,7 @@ import type {
   DuplicateLeadCandidate,
   SelectedGoogleCalendar,
 } from "@/lib/api";
-import type { Property, PropertyLead } from "@/lib/types";
+import type { DatePropertyCard, PropertyLead } from "@/lib/types";
 
 import { FilterChip } from "@/components/FilterChip";
 import {
@@ -44,12 +44,13 @@ import {
 import { Filter } from "react-native-svg";
 
 type AppointmentCreateModalProps = {
+  lockAppointmentType?: boolean;
   advisorMode: "self" | "external";
   currentUserName?: string;
   onAdvisorModeChange: (mode: "self" | "external") => void;
   appointmentLeadMode: "existing" | "provisional";
   appointmentLeadOptions: PropertyLead[];
-  appointmentPropertyOptions: Property[];
+  appointmentPropertyOptions: DatePropertyCard[];
   duplicateCheck: DuplicateCheckResult | null;
   enabledSelectedCalendars: SelectedGoogleCalendar[];
   isCatalogLoading: boolean;
@@ -65,7 +66,7 @@ type AppointmentCreateModalProps = {
   onLeadModeChange: (mode: "existing" | "provisional") => void;
   onSelectCalendar: (calendar: SelectedGoogleCalendar) => void;
   onSelectLead: (lead: PropertyLead) => void;
-  onSelectProperty: (property: Property) => void;
+  onSelectProperty: (property: DatePropertyCard) => void;
   onSelectionScreenChange: (
     screen: "lead" | "property" | "duplicate" | null,
   ) => void;
@@ -84,7 +85,7 @@ type AppointmentCreateModalProps = {
     status: LeadTrackingStatus;
   };
   selectedAppointmentLead?: PropertyLead;
-  selectedAppointmentProperty?: Property;
+  selectedAppointmentProperty?: DatePropertyCard;
   selectionScreen: "lead" | "property" | "duplicate" | null;
   testAppointmentForm: CreateGoogleCalendarDatePayload;
   visible: boolean;
@@ -93,6 +94,7 @@ type AppointmentCreateModalProps = {
 const END_HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
 export function AppointmentCreateModal({
+  lockAppointmentType = false,
   advisorMode,
   currentUserName,
   onAdvisorModeChange,
@@ -184,7 +186,7 @@ export function AppointmentCreateModal({
     : selectedTypeCalendar;
 
   const selectAppointmentType = (appointmentType: AppointmentType) => {
-    if (appointmentType === selectedAppointmentType) {
+    if (lockAppointmentType || appointmentType === selectedAppointmentType) {
       return;
     }
 
@@ -339,7 +341,7 @@ export function AppointmentCreateModal({
                 const propertyName = getPropertyDisplayName(
                   appointmentPropertyOptions.find(
                     (property) =>
-                      (property.id || property._id) === lead.propertyId,
+                      (property.id) === lead.propertyId,
                   ),
                 );
 
@@ -389,7 +391,7 @@ export function AppointmentCreateModal({
         <FlatList
           data={isCatalogLoading ? [] : appointmentPropertyOptions}
           keyExtractor={(property) =>
-            property.id || property._id || getPropertyDisplayName(property)
+            property.id || getPropertyDisplayName(property)
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.appointmentModalContent}
@@ -402,7 +404,7 @@ export function AppointmentCreateModal({
             </Text>
           }
           renderItem={({ item: property }) => {
-            const propertyId = property.id || property._id;
+            const propertyId = property.id;
             const isSelected = testAppointmentForm.propertyId === propertyId;
 
             return (
@@ -431,7 +433,7 @@ export function AppointmentCreateModal({
                     ]}
                     numberOfLines={2}
                   >
-                    {property.city || property.address || property.status}
+                    {property.address}
                   </Text>
                 </View>
                 <ChevronRight
@@ -460,7 +462,7 @@ export function AppointmentCreateModal({
           <View>
             <Text style={styles.calendarLabel}>Tipo de cita</Text>
             <View style={styles.appointmentModeRow}>
-              {getPrimaryAppointmentTypeOptions().map((type) => (
+              {getPrimaryAppointmentTypeOptions().filter((type) => !lockAppointmentType || type.value === selectedPrimaryAppointmentType).map((type) => (
                 <FilterChip
                   key={type.value}
                   label={
@@ -915,10 +917,12 @@ export function AppointmentCreateModal({
               </View>
               <View>
                 <Text style={styles.calendarLabel}>
-                  Propiedad relacionada (Opcional si es propiedad externa)
+                  {lockAppointmentType ? "Propiedad de la cita" : "Propiedad relacionada (Opcional si es propiedad externa)"}
                 </Text>
                 <TouchableOpacity
                   style={styles.appointmentPickerButton}
+                  disabled={lockAppointmentType}
+                  accessibilityState={{ disabled: lockAppointmentType }}
                   onPress={() => onSelectionScreenChange("property")}
                   activeOpacity={0.85}
                 >
@@ -938,13 +942,11 @@ export function AppointmentCreateModal({
                       {isCatalogLoading
                         ? "Cargando propiedades..."
                         : selectedAppointmentProperty
-                          ? selectedAppointmentProperty.city ||
-                            selectedAppointmentProperty.address ||
-                            selectedAppointmentProperty.status
+                          ? selectedAppointmentProperty.address
                           : `${appointmentPropertyOptions.length} propiedades disponibles`}
                     </Text>
                   </View>
-                  <ChevronRight size={17} color="#3d5a40" />
+                  {!lockAppointmentType && <ChevronRight size={17} color="#3d5a40" />}
                 </TouchableOpacity>
               </View>
             </>

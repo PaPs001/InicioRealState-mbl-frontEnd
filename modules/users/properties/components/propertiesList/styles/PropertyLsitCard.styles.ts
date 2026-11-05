@@ -5,9 +5,8 @@ import { generalColors } from "@/theme";
 export const styles = StyleSheet.create({
 propertyCard: {
     width: '100%',
-    maxWidth: 405,
     alignSelf: 'center',
-    minHeight: 150,
+    //minHeight: 150,
     borderRadius: 10,
     backgroundColor: '#ffffff',
     borderWidth: 0.5,
@@ -19,14 +18,17 @@ propertyCard: {
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'hidden',
   },
   propertyCardSelected: {
     borderColor: '#0c6740',
     borderWidth: 1,
   },
   imageWrap: {
-    width: 198,
-    minHeight: 140,
+    flex: 2.5,
+    minWidth: 0,
+    //width: 198,
+    //minHeight: 140,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ead4bc',
@@ -34,8 +36,7 @@ propertyCard: {
     borderColor: 'rgba(0,0,0,0.22)',
   },
   propertyImage: {
-    width: 198,
-    height: 220,
+    ...StyleSheet.absoluteFill
   },
   imagePlaceholder: {
     flex: 1,
@@ -117,7 +118,7 @@ propertyCard: {
     color: '#ffffff',
   },
   propertyInfo: {
-    flex: 1,
+    flex: 2,
     minWidth: 0,
     paddingLeft: 12,
     paddingTop: 1,
@@ -290,7 +291,6 @@ propertyCard: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    paddingBottom: 1,
     marginTop: 10
   },
   detailLink: {

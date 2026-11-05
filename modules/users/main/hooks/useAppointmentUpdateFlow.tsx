@@ -19,8 +19,8 @@ import { useCalendarData } from "../../date/context/CalendarDataContext";
 import { UpdateDateModal } from "../components/Advisors/UpdateDateModal";
 
 import { useDashboardLeads } from "./userDashboardLeads";
-import { useDashboardProperties } from "./userDashboardProperties";
-import type { Property, PropertyLead } from "@/lib/types";
+import { useAppointmentProperties } from "./useAppointmentProperties";
+import type { DatePropertyCard, PropertyLead } from "@/lib/types";
 import {
   canSelectCalendarManually,
   getAppointmentTypeConfig,
@@ -69,7 +69,10 @@ export function useAppointmentUpdateFlow({
     loadLeads
   } = useDashboardLeads({authToken})
   
-  const properties = useDashboardProperties(form.appointmentType);
+  const properties = useAppointmentProperties(
+    form.appointmentType ?? normalizeAppointmentType(appointment.appointmentType),
+    visible,
+  );
 
   const [selectionScreen, setSelectionScreen] = useState<SelectionScreen>(null);
   const selectedLead = useMemo(
@@ -205,7 +208,7 @@ export function useAppointmentUpdateFlow({
     [currentUser?.id],
   );
 
-  const selectProperty = useCallback((property: Property) => {
+  const selectProperty = useCallback((property: DatePropertyCard) => {
     const propertyId = getPropertyId(property);
     if (!propertyId) return;
     setForm((current) => ({ ...current, propertyId }));
@@ -422,6 +425,7 @@ export function useAppointmentUpdateFlow({
       selectionScreen,
       isLeadsLoading,
       isPropertiesLoading: properties.isCatalogLoading,
+      propertiesError: properties.error,
       onClose,
       onSubmit: () => { void submitUpdate(); },
       onUpdateField: updateField,
@@ -457,6 +461,6 @@ function normalizeAppointmentType(value?: string | null): AppointmentType {
   return isAppointmentType(normalized) ? normalized : "general";
 }
 
-function getPropertyId(property: Property) {
-  return property.id || property._id;
+function getPropertyId(property: DatePropertyCard) {
+  return property.id;
 }

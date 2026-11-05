@@ -1,16 +1,17 @@
 import {usePathname} from 'expo-router'
 
-import type {Property, PropertyLead} from '@/lib/types'
+import type {DatePropertyCard, PropertyLead} from '@/lib/types'
 import {useOperationMode} from '@/modules/settings'
 import {AppointmentCreateModal} from './AppointmentCreateModal'
 import {useAppointmentCreateFlow} from '../hooks/useAppointmentCreateFlow'
 
 type Props = {
   initialLead?: PropertyLead
-  initialProperty?: Property
+  initialProperty?: DatePropertyCard
   onClose: () => void
   onCreated?: () => void
   visible: boolean
+  lockAppointmentType?: boolean
 }
 
 export function AppointmentCreateFlow(props: Props) {

@@ -1,10 +1,17 @@
 import { fontSize, textSize } from "@/theme/typography";
-import { ActivityIndicator, StyleSheet, Text, View, Pressable } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { PropertyCard } from "../components/propertiesList/PropertyListCard";
 import { PropertyListHeader } from "../components/propertiesList/PropertyListHeader";
+import { PropertyListScrollHeader } from "../components/propertiesList/PropertyListScrollHeader";
 import {
   PropertyFiltersModal,
   PropertySortModal,
@@ -20,6 +27,9 @@ import type { Region } from "react-native-maps";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { PropertiesMap } from "../components/propertiesMap/PropertiesMap";
 
+// Set to false after previewing the footer to resume normal pagination.
+const PREVIEW_CATALOG_LOADING_FOOTER = __DEV__ && false;
+
 const INITIAL_MAP_REGION: Region = {
   latitude: 20.6937383,
   longitude: -105.24419770000002,
@@ -29,7 +39,8 @@ const INITIAL_MAP_REGION: Region = {
 
 export const PropertiesListScreen = () => {
   const controller = usePropertiesScreen();
-  const { isCatalogLoading, catalogError } = usePropertyDomain();
+  const { isCatalogLoading, catalogError, catalogResetVersion } =
+    usePropertyDomain();
   const [mapRegion, setMapRegion] = useState(INITIAL_MAP_REGION);
   const {
     filteredListings,
@@ -42,19 +53,23 @@ export const PropertiesListScreen = () => {
     handlePropertyPress,
   } = controller;
 
-  const renderProperty = useCallback(({
-    item,
-  }: {
-    item: (typeof filteredListings)[number];
-  }) => (
-    <PropertyCard
-      property={item}
-      isSelected={selectedPropertyIds.includes(item.id)}
-      isSelecting={isSelectingProperties}
-      onToggleSelection={togglePropertySelection}
-      onPress={handlePropertyPress}
-    />
-  ), [selectedPropertyIds, isSelectingProperties, togglePropertySelection, handlePropertyPress]);
+  const renderProperty = useCallback(
+    ({ item }: { item: (typeof filteredListings)[number] }) => (
+      <PropertyCard
+        property={item}
+        isSelected={selectedPropertyIds.includes(item.id)}
+        isSelecting={isSelectingProperties}
+        onToggleSelection={togglePropertySelection}
+        onPress={handlePropertyPress}
+      />
+    ),
+    [
+      selectedPropertyIds,
+      isSelectingProperties,
+      togglePropertySelection,
+      handlePropertyPress,
+    ],
+  );
 
   if (isPdfCleanupMode) {
     return <PropertyPdfLoadingScreen />;
@@ -64,13 +79,19 @@ export const PropertiesListScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       {isMapMode ? (
         <>
-          <PropertyListHeader
-            enabledFilters={true}
-            showSort={false}
-            showSearch={false}
-            controller={controller}
-            canUsePdfExporter={false}
-          />
+          <View
+            style={{
+              paddingHorizontal: 12,
+            }}
+          >
+            <PropertyListHeader
+              enabledFilters={true}
+              showSort={false}
+              showSearch={false}
+              controller={controller}
+              canUsePdfExporter={false}
+            />
+          </View>
           <PropertiesMap
             controller={controller}
             initialRegion={mapRegion}
@@ -78,24 +99,74 @@ export const PropertiesListScreen = () => {
           />
         </>
       ) : (
-        <FlashList
-          data={filteredListings}
-          keyExtractor={keyExtractor}
-          renderItem={renderProperty}
-          ListHeaderComponent={
-            <PropertyListHeader
-              enabledFilters={true}
-              controller={controller}
-              canUsePdfExporter={true}
+        <PropertyListScrollHeader
+          // A new first page resets both scroll and floating-header state; appends retain the key.
+          key={catalogResetVersion}
+          controller={controller}
+        >
+          {({ header, onScroll }) => (
+            <FlashList
+              data={filteredListings}
+              keyExtractor={keyExtractor}
+              renderItem={renderProperty}
+              ListHeaderComponent={header}
+              onScroll={onScroll}
+              onEndReached={() => {
+                if (PREVIEW_CATALOG_LOADING_FOOTER) return;
+                void controller.loadMoreCatalogProperties();
+              }}
+              onEndReachedThreshold={0.4}
+              scrollEventThrottle={16}
+              ItemSeparatorComponent={ListSeparator}
+              style={{
+                paddingHorizontal: 12,
+              }}
+              ListFooterComponent={
+                isCatalogLoading ||
+                (PREVIEW_CATALOG_LOADING_FOOTER &&
+                  filteredListings.length > 0) ? (
+                  <View
+                    style={styles.loadingFooter}
+                    accessibilityState={{ busy: true }}
+                  >
+                    <ActivityIndicator
+                      size="large"
+                      color="#0c6740"
+                      accessibilityLabel={
+                        filteredListings.length
+                          ? "Cargando más propiedades"
+                          : "Cargando propiedades"
+                      }
+                    />
+                    <Text style={styles.loadingFooterText}>
+                      {filteredListings.length
+                        ? "Cargando más propiedades..."
+                        : "Cargando propiedades..."}
+                    </Text>
+                  </View>
+                ) : catalogError ? (
+                  <View>
+                    <Text accessibilityRole="alert">{catalogError}</Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => {
+                        void controller.retryCatalog();
+                      }}
+                    >
+                      <Text>Reintentar</Text>
+                    </Pressable>
+                  </View>
+                ) : null
+              }
+              ListEmptyComponent={
+                isCatalogLoading || catalogError ? null : ListEmptyState
+              }
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              drawDistance={500}
             />
-          }
-          ItemSeparatorComponent={ListSeparator}
-          ListFooterComponent={isCatalogLoading ? <ActivityIndicator accessibilityLabel="Cargando propiedades" /> : catalogError ? <View><Text accessibilityRole="alert">{catalogError}</Text><Pressable accessibilityRole="button" onPress={() => { void controller.retryCatalog(); }}><Text>Reintentar</Text></Pressable></View> : null}
-          ListEmptyComponent={isCatalogLoading || catalogError ? null : ListEmptyState}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          drawDistance={500}
-        />
+          )}
+        </PropertyListScrollHeader>
       )}
 
       <PropertyFiltersModal controller={controller} />
@@ -104,20 +175,22 @@ export const PropertiesListScreen = () => {
 
       <MapsButton
         onPress={() => controller.setIsMapMode(!isMapMode)}
-        icon={isMapMode ? 
-          <icons.List
-            width={13}
-            height={13}
-            color="#D7B766"
-            style={{ transform: [{ scale: 1.5 }] }}
-          />
-          : 
-          <icons.MapsIcon
-            width={13}
-            height={13}
-            color="#D7B766"
-            style={{ transform: [{ scale: 1.5 }] }}
-          />
+        icon={
+          isMapMode ? (
+            <icons.List
+              width={13}
+              height={13}
+              color="#D7B766"
+              style={{ transform: [{ scale: 1.5 }] }}
+            />
+          ) : (
+            <icons.MapsIcon
+              width={13}
+              height={13}
+              color="#D7B766"
+              style={{ transform: [{ scale: 1.5 }] }}
+            />
+          )
         }
         label={isMapMode ? "Listado" : "Mapa"}
       />
@@ -176,6 +249,18 @@ const styles = StyleSheet.create({
   },
   listSeparator: {
     height: 13,
+  },
+  loadingFooter: {
+    minHeight: 88,
+    paddingVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  loadingFooterText: {
+    color: "#717171",
+    fontSize: textSize.caption,
+    textAlign: "center",
   },
   emptyContainer: {
     alignItems: "center",
