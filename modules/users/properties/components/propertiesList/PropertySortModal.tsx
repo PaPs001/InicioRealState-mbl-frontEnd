@@ -1,4 +1,4 @@
-import { textSize, platformLineHeight } from '@/theme/typography'
+import { textSize, platformLineHeight } from "@/theme/typography";
 import {
   Modal,
   Text,
@@ -10,11 +10,18 @@ import {
 } from "react-native";
 import { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
 import { ReactNode } from "react";
-import { FURNISHING_FILTER_OPTIONS, getSortLabel } from "../../hooks/usePropertiesScreen";
+import {
+  FURNISHING_FILTER_OPTIONS,
+  getSortLabel,
+} from "../../hooks/usePropertiesScreen";
 
 type PropertiesController = ReturnType<typeof usePropertiesScreen>;
 
-export const PropertyFiltersModal = ({ controller }: { controller: PropertiesController }) => {
+export const PropertyFiltersModal = ({
+  controller,
+}: {
+  controller: PropertiesController;
+}) => {
   const {
     isFiltersVisible,
     setIsFiltersVisible,
@@ -82,8 +89,12 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
           >
             <FilterOptionGroup title="Zona">
               {["", "Puerto Vallarta", "Bahía de Banderas"].map((zone) => (
-                <FilterValueChip key={zone} label={zone || "Todas"}
-                  active={zoneFilter === zone} onPress={() => setZoneFilter(zone)} />
+                <FilterValueChip
+                  key={zone}
+                  label={zone || "Todas"}
+                  active={zoneFilter === zone}
+                  onPress={() => setZoneFilter(zone)}
+                />
               ))}
             </FilterOptionGroup>
 
@@ -121,7 +132,7 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
               {[1, 2, 3, 4].map((value) => (
                 <FilterValueChip
                   key={value}
-                  label={`${value}+`}
+                  label={`${value}`}
                   active={bedroomsFilter === value}
                   onPress={() => setBedroomsFilter(value)}
                 />
@@ -137,7 +148,7 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
               {[1, 2, 3, 4].map((value) => (
                 <FilterValueChip
                   key={value}
-                  label={`${value}+`}
+                  label={`${value}`}
                   active={bathroomsFilter === value}
                   onPress={() => setBathroomsFilter(value)}
                 />
@@ -153,7 +164,7 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
               {[1, 2, 3, 4].map((value) => (
                 <FilterValueChip
                   key={value}
-                  label={`${value}+`}
+                  label={`${value}`}
                   active={parkingFilter === value}
                   onPress={() => setParkingFilter(value)}
                 />
@@ -162,18 +173,28 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
 
             <FilterOptionGroup title="Equipamiento">
               {FURNISHING_FILTER_OPTIONS.map((value) => (
-                <FilterValueChip key={value} label={value === "all" ? "Todos" : value}
-                  active={furnishingFilter === value} onPress={() => setFurnishingFilter(value)} />
+                <FilterValueChip
+                  key={value}
+                  label={value === "all" ? "Todos" : value}
+                  active={furnishingFilter === value}
+                  onPress={() => setFurnishingFilter(value)}
+                />
               ))}
             </FilterOptionGroup>
-            {controller.filterError ? <Text accessibilityRole="alert">{controller.filterError}</Text> : null}
+            {controller.filterError ? (
+              <Text accessibilityRole="alert">{controller.filterError}</Text>
+            ) : null}
 
             <Pressable
               style={styles.applyFiltersButton}
               disabled={controller.isApplyingFilters}
               onPress={controller.applyFilters}
             >
-              <Text style={styles.applyFiltersButtonText}>{controller.isApplyingFilters ? "Aplicando filtros..." : "Aplicar filtros"}</Text>
+              <Text style={styles.applyFiltersButtonText}>
+                {controller.isApplyingFilters
+                  ? "Aplicando filtros..."
+                  : "Aplicar filtros"}
+              </Text>
             </Pressable>
           </ScrollView>
         </Pressable>
@@ -182,18 +203,20 @@ export const PropertyFiltersModal = ({ controller }: { controller: PropertiesCon
   );
 };
 
-export const PropertySortModal = ({ controller }: { controller: PropertiesController }) => {
+export const PropertySortModal = ({
+  controller,
+}: {
+  controller: PropertiesController;
+}) => {
   const {
     isSortVisible,
     setIsSortVisible,
     listingFilter,
     availableSortOptions,
     setSortOption,
-    sortOption
-    
-  } = controller
+    sortOption,
+  } = controller;
 
-  
   return (
     <Modal
       visible={isSortVisible}
@@ -201,8 +224,14 @@ export const PropertySortModal = ({ controller }: { controller: PropertiesContro
       animationType="fade"
       onRequestClose={() => setIsSortVisible(false)}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.sortOptionsPanel}>
+      <Pressable
+        style={styles.modalOverlay}
+        onPress={() => setIsSortVisible(false)}
+      >
+        <Pressable
+          style={styles.sortOptionsPanel}
+          onPress={(event) => event.stopPropagation()}
+        >
           <Text style={styles.filterTitle}>Ordenar</Text>
           <Text style={styles.filterMetaText}>
             {listingFilter === "rent"
@@ -234,8 +263,8 @@ export const PropertySortModal = ({ controller }: { controller: PropertiesContro
               </Pressable>
             ))}
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
@@ -412,16 +441,15 @@ const styles = StyleSheet.create({
     gap: 7,
   },
 
-
   // segundo modal
 
   sortOptionsPanel: {
-    width: '100%',
+    width: "100%",
     maxWidth: 380,
     borderRadius: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderWidth: 0.5,
-    borderColor: '#d8d0c5',
+    borderColor: "#d8d0c5",
     paddingHorizontal: 16,
     paddingVertical: 15,
   },
@@ -433,24 +461,24 @@ const styles = StyleSheet.create({
     minHeight: 39,
     borderRadius: 8,
     borderWidth: 0.5,
-    borderColor: '#969696',
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#969696",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 12,
   },
   sortOptionButtonActive: {
-    borderColor: '#0c6740',
-    backgroundColor: '#0c6740',
+    borderColor: "#0c6740",
+    backgroundColor: "#0c6740",
   },
   sortOptionText: {
-    color: '#505050',
+    color: "#505050",
     fontSize: textSize.caption,
     lineHeight: platformLineHeight(16),
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   sortOptionTextActive: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
 });

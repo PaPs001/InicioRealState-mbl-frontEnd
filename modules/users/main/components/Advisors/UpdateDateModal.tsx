@@ -13,7 +13,7 @@ import type {
   UpdateGoogleCalendarDatePayload,
 } from "@/lib/api";
 import type { AppointmentPreviewItem } from "@/modules/users/main/types";
-import type { Property, PropertyLead } from "@/lib/types";
+import type { DatePropertyCard, PropertyLead } from "@/lib/types";
 import {
   getAppointmentEndDateTime,
   getPropertyDisplayName,
@@ -36,7 +36,7 @@ type UpdateDateModalProps = {
   form: UpdateGoogleCalendarDatePayload;
   enabledCalendars: SelectedGoogleCalendar[];
   appointmentLeadOptions: PropertyLead[];
-  appointmentPropertyOptions: Property[];
+  appointmentPropertyOptions: DatePropertyCard[];
   selectedLead?: PropertyLead;
   leadMode: "existing" | "provisional";
   newLead: { fullName: string; phone: string; email: string };
@@ -45,7 +45,7 @@ type UpdateDateModalProps = {
     field: "fullName" | "phone" | "email",
     value: string,
   ) => void;
-  selectedProperty?: Property;
+  selectedProperty?: DatePropertyCard;
   currentUserId?: string;
   currentUserName?: string;
   selectionScreen: "lead" | "property" | "duplicate" | null;
@@ -54,6 +54,7 @@ type UpdateDateModalProps = {
   onUseDuplicateLead: (candidate: DuplicateLeadCandidate) => void;
   isLeadsLoading: boolean;
   isPropertiesLoading: boolean;
+  propertiesError?: string | null;
   onClose: () => void;
   onSubmit: () => void;
   onSelectCalendar: (calendar: SelectedGoogleCalendar) => void;
@@ -62,7 +63,7 @@ type UpdateDateModalProps = {
     screen: "lead" | "property" | "duplicate" | null,
   ) => void;
   onSelectLead: (lead: PropertyLead) => void;
-  onSelectProperty: (property: Property) => void;
+  onSelectProperty: (property: DatePropertyCard) => void;
   onClearLead: () => void;
   onClearProperty: () => void;
   onAssignCurrentUser: () => void;
@@ -96,6 +97,7 @@ export function UpdateDateModal({
   onUseDuplicateLead,
   isLeadsLoading,
   isPropertiesLoading,
+  propertiesError,
   onClose,
   onSubmit,
   onSelectCalendar,
@@ -232,19 +234,19 @@ export function UpdateDateModal({
       ) : selectionScreen === "property" ? (
         <RelationSelectionList
           clearLabel="Sin propiedad relacionada"
-          emptyLabel="No hay propiedades disponibles."
+          emptyLabel={propertiesError || "No hay propiedades disponibles."}
           isLoading={isPropertiesLoading}
           loadingLabel="Cargando propiedades..."
           onClear={onClearProperty}
         >
           {appointmentPropertyOptions.map((property) => {
-            const propertyId = property.id || property._id;
+            const propertyId = property.id;
             return (
               <RelationSelectionItem
                 key={propertyId}
                 active={form.propertyId === propertyId}
                 title={getPropertyDisplayName(property)}
-                subtitle={property.city || property.address || property.status}
+                subtitle={property.address}
                 onPress={() => onSelectProperty(property)}
               />
             );

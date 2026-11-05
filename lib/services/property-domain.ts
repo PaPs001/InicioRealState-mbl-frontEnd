@@ -35,7 +35,7 @@ export function findPropertyById(params: {
   return catalogProperties.find(property => property.id === id)
 }
 
-export async function loadCatalogPropertiesWithFilter(filters: Filters, token?: string, signal?: AbortSignal): Promise<Property[]>{
+export async function loadCatalogPropertiesWithFilter(filters: Filters, token?: string, signal?: AbortSignal){
   return getFiltersProperties(filters, token, signal)
 }
 

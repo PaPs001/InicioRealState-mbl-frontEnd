@@ -134,6 +134,19 @@ export const styles = StyleSheet.create({
     columnGap: 15,
     rowGap: 15,
   },
+  shadowsContainer: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#ffffff00",
+    borderRadius: 12,
+  },
   extrasTtitleContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -176,6 +189,8 @@ export const styles = StyleSheet.create({
 
   detailsContainer: {
     gap: 5,
+    borderBottomWidth: 0.7,
+    borderColor: "#0505051f",
   },
   detailsTitle: {
     fontSize: textSize.bodyLarge,

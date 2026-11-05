@@ -1,10 +1,8 @@
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import { AdviserDashboardBottomNav } from "@/components/userAdviser/AdviserDashboardBottomNav";
-import { CalendarDataProvider } from "@/modules/users/date/context/CalendarDataContext";
 
 export default function AdviserLayout() {
   return (
-    <CalendarDataProvider>
       <Tabs
         tabBar={() => <AdviserDashboardBottomNav />}
         screenOptions={{
@@ -35,6 +33,5 @@ export default function AdviserLayout() {
           }}
         />
       </Tabs>
-    </CalendarDataProvider>
   );
 }

@@ -1,3 +1,4 @@
+import type { Filters } from "@/lib/api/endpoints/catalog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, InteractionManager, useWindowDimensions } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -13,14 +14,22 @@ import { useOperationMode } from "@/modules/settings";
 import { getSelectedProperty } from "../services/properties.service";
 
 export type ListingFilter = "all" | "rent" | "sale" | "developments";
-export const FURNISHING_FILTER_OPTIONS = ["all", "Totalmente equipada", "Semiequipada", "Sin Muebles", "COCINA INTEGRAL", "Sin equipar"] as const;
+export const FURNISHING_FILTER_OPTIONS = [
+  "all",
+  "Totalmente equipada",
+  "Semiequipada",
+  "Sin Muebles",
+  "COCINA INTEGRAL",
+  "Sin equipar",
+] as const;
 export type FurnishingFilter = (typeof FURNISHING_FILTER_OPTIONS)[number];
 export type SortOption =
-  | "price_desc"
-  | "price_asc"
+  | "desc"
+  | "asc"
   | "rent_under_10"
   | "rent_under_20"
   | "rent_over_20";
+
 export const PDF_AGENTS: PdfReportAgentName[] = [
   "AlexaDiaz",
   "JoseAntonio",
@@ -59,8 +68,6 @@ const isDisplayValue = (value?: string | null) =>
   !/^(sin dato|sin datos|sin tipo|sin vista|sin link|sin carpeta|sin descripcion|n\/a|na|null|undefined)$/i.test(
     value!.trim(),
   );
-const isRentListing = (property: ListingProperty) =>
-  property.status === "for_rent" || property.status === "pending_rent";
 
 function mapProperty(property: Property): ListingProperty {
   const amenities = property.amenities?.length
@@ -104,14 +111,24 @@ function mapProperty(property: Property): ListingProperty {
 }
 
 export function getSortLabel(option: SortOption) {
-  if (option === "price_asc") return "Menor a mayor";
-  if (option === "rent_under_10") return "Rentas menores de 10";
+  if (option === "asc") return "Menor a mayor";
+  {/*if (option === "rent_under_10") return "Rentas menores de 10";
   if (option === "rent_under_20") return "Rentas menores de 20";
-  if (option === "rent_over_20") return "Rentas mayores de 20";
-  return "Ordernar";
+  if (option === "rent_over_20") return "Rentas mayores de 20";*/}
+  return "Mayor a menor";
 }
 
 export function usePropertiesScreen() {
+  const propertyNavigationLocked = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      propertyNavigationLocked.current = false;
+      return () => {
+        propertyNavigationLocked.current = true;
+      };
+    }, []),
+  );
+
   const params = useLocalSearchParams<{ type?: string }>();
   const { authToken, currentUser, isLoading: isAuthLoading } = useAuth();
   const { operationMode } = useOperationMode();
@@ -145,20 +162,33 @@ export function usePropertiesScreen() {
   const [parkingFilter, setParkingFilter] = useState<number | null>(null);
   const [furnishingFilter, setFurnishingFilter] =
     useState<FurnishingFilter>("all");
+  const [sortOption, setSortOption] = useState<SortOption>("asc");
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
   const filterRequestId = useRef(0);
   const [appliedFilters, setAppliedFilters] = useState({
-    zone: domain.catalogFilters?.zone ?? "", furnishing: FURNISHING_FILTER_OPTIONS.find(value => value === domain.catalogFilters?.equiped) ?? "all",
-    min: "", max: "", bedrooms: null as number | null,
-    bathrooms: null as number | null, parking: null as number | null,
+    zone: domain.catalogFilters?.zone ?? "",
+    furnishing:
+      FURNISHING_FILTER_OPTIONS.find(
+        (value) => value === domain.catalogFilters?.equiped,
+      ) ?? "all",
+    min: "",
+    max: "",
+    bedrooms: null as number | null,
+    bathrooms: null as number | null,
+    parking: null as number | null,
   });
   useEffect(() => {
     filterRequestId.current += 1;
     setIsApplyingFilters(false);
     setFilterError(null);
   }, [authToken]);
-  useEffect(() => () => { filterRequestId.current += 1; }, []);
+  useEffect(
+    () => () => {
+      filterRequestId.current += 1;
+    },
+    [],
+  );
 
   const setIsFiltersVisible = (visible: boolean) => {
     if (isApplyingFilters) return;
@@ -178,16 +208,28 @@ export function usePropertiesScreen() {
     updateFiltersVisible(visible);
   };
 
+  const buildCatalogFilters = useCallback((values: typeof appliedFilters): Filters => ({
+    list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
+    zone: values.zone || undefined,
+    equiped: values.furnishing === "all" ? undefined : values.furnishing,
+    bedrooms: values.bedrooms ?? undefined,
+    bathRooms: values.bathrooms ?? undefined,
+    parkings: values.parking ?? undefined,
+    limit: 10,
+    order: sortOption,
+  }), [listingFilter, sortOption]);
+  const catalogRequestFilters = useMemo(() => buildCatalogFilters(appliedFilters),
+    [buildCatalogFilters, appliedFilters]);
+
   const applyFilters = async () => {
     if (!authToken || isApplyingFilters) {
       return;
     }
     const requestId = ++filterRequestId.current;
-    const requestedList = listingFilter;
     setIsApplyingFilters(true);
     setFilterError(null);
     if (isMapMode) {
-      setAppliedFilters(previous => ({
+      setAppliedFilters((previous) => ({
         ...previous,
         zone: zoneFilter,
         furnishing: furnishingFilter,
@@ -200,31 +242,45 @@ export function usePropertiesScreen() {
       return;
     }
     try {
-      const loaded = await domain.loadCatalogProperties({
-        list: requestedList === "rent" || requestedList === "sale" ? requestedList : undefined,
-        zone: zoneFilter || undefined,
-        equiped: furnishingFilter === "all" ? undefined : furnishingFilter,
-      }, true);
+      const loaded = await domain.loadCatalogProperties(
+        buildCatalogFilters({
+          zone: zoneFilter, furnishing: furnishingFilter,
+          min: minPriceFilter, max: maxPriceFilter,
+          bedrooms: bedroomsFilter, bathrooms: bathroomsFilter, parking: parkingFilter,
+        }),
+        true,
+      );
       if (!loaded) {
-        if (requestId === filterRequestId.current) setFilterError("No se pudieron aplicar los filtros. Intenta nuevamente.");
+        if (requestId === filterRequestId.current)
+          setFilterError(
+            "No se pudieron aplicar los filtros. Intenta nuevamente.",
+          );
         return;
       }
       if (requestId !== filterRequestId.current) {
         return;
       }
-      setAppliedFilters({ zone: zoneFilter, furnishing: furnishingFilter,
-        min: minPriceFilter, max: maxPriceFilter, bedrooms: bedroomsFilter,
-        bathrooms: bathroomsFilter, parking: parkingFilter });
+      setAppliedFilters({
+        zone: zoneFilter,
+        furnishing: furnishingFilter,
+        min: minPriceFilter,
+        max: maxPriceFilter,
+        bedrooms: bedroomsFilter,
+        bathrooms: bathroomsFilter,
+        parking: parkingFilter,
+      });
       setSelectedPropertyIds([]);
       updateFiltersVisible(false);
     } catch (error) {
-      if (requestId === filterRequestId.current) setFilterError("No se pudieron aplicar los filtros. Intenta nuevamente.");
+      if (requestId === filterRequestId.current)
+        setFilterError(
+          "No se pudieron aplicar los filtros. Intenta nuevamente.",
+        );
     } finally {
       if (requestId === filterRequestId.current) setIsApplyingFilters(false);
     }
   };
 
-  const [sortOption, setSortOption] = useState<SortOption>("price_desc");
 
   useEffect(
     () =>
@@ -239,28 +295,29 @@ export function usePropertiesScreen() {
   );
 
   const { loadCatalogProperties } = domain;
-  const retryCatalog = () => loadCatalogProperties({
-    list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
-    zone: appliedFilters.zone || undefined,
-    equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
-  }, true);
+  const retryCatalog = () => domain.catalogError
+    ? domain.retryCatalogPage()
+    : loadCatalogProperties(catalogRequestFilters, true);
   useFocusEffect(useCallback(() => {
     if (!authToken || isAuthLoading || isMapMode) return;
-    void loadCatalogProperties({
-      list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
-      zone: appliedFilters.zone || undefined,
-      equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
-    });
-  }, [authToken, isAuthLoading, isMapMode, listingFilter, appliedFilters.zone, appliedFilters.furnishing, loadCatalogProperties]));
+    void loadCatalogProperties(catalogRequestFilters);
+  }, [authToken, isAuthLoading, isMapMode, catalogRequestFilters, loadCatalogProperties]));
 
-  const findCatalogProperty = useCallback((id?: string, backendId?: string) => {
-    const matches = (property: Property) =>
-      Boolean(id && (property.id === id || property._id === id)) ||
-      Boolean(backendId && (property.id === backendId || property._id === backendId));
-    const property = domain.catalogProperties.find(matches) ??
-      domain.availableProperties.find(matches);
-    return property ? mapProperty(property) : null;
-  }, [domain.catalogProperties, domain.availableProperties]);
+  const findCatalogProperty = useCallback(
+    (id?: string, backendId?: string) => {
+      const matches = (property: Property) =>
+        Boolean(id && (property.id === id || property._id === id)) ||
+        Boolean(
+          backendId &&
+          (property.id === backendId || property._id === backendId),
+        );
+      const property =
+        domain.catalogProperties.find(matches) ??
+        domain.availableProperties.find(matches);
+      return property ? mapProperty(property) : null;
+    },
+    [domain.catalogProperties, domain.availableProperties],
+  );
 
   const listings = useMemo(
     () =>
@@ -289,43 +346,16 @@ export function usePropertiesScreen() {
     const min = parsePrice(appliedFilters.min),
       max = parsePrice(appliedFilters.max);
 
-    const result = listings
-      .filter((property) => {
-        const searchable =
-          `${property.title} ${property.code} ${property.city}`.toLowerCase();
-        return (
-          (!query || searchable.includes(query)) &&
-          (min === null || property.price >= min) &&
-          (max === null || property.price <= max) &&
-          (appliedFilters.bedrooms === null ||
-            property.bedroomsCount >= appliedFilters.bedrooms) &&
-          (appliedFilters.bathrooms === null ||
-            property.bathroomsCount >= appliedFilters.bathrooms) &&
-          (appliedFilters.parking === null || property.parkingCount >= appliedFilters.parking)
-        );
-      })
-      .filter((property) => {
-        if (listingFilter !== "rent") return true;
-        if (sortOption === "rent_under_10")
-          return isRentListing(property) && property.price < 10000;
-        if (sortOption === "rent_under_20")
-          return isRentListing(property) && property.price < 20000;
-        if (sortOption === "rent_over_20")
-          return isRentListing(property) && property.price >= 20000;
-        return true;
-      });
-    return [...result].sort((a, b) =>
-      ["price_asc", "rent_under_10", "rent_under_20"].includes(sortOption)
-        ? a.price - b.price
-        : b.price - a.price,
-    );
-  }, [
-    appliedFilters,
-    listings,
-    listingFilter,
-    searchQuery,
-    sortOption,
-  ]);
+    return listings.filter((property) => {
+      const searchable =
+        `${property.title} ${property.code} ${property.city}`.toLowerCase();
+      return (
+        (!query || searchable.includes(query)) &&
+        (min === null || property.price >= min) &&
+        (max === null || property.price <= max)
+      );
+    });
+  }, [appliedFilters.min, appliedFilters.max, listings, searchQuery]);
 
   const activeAdvancedFilterCount = useMemo(
     () =>
@@ -352,19 +382,22 @@ export function usePropertiesScreen() {
   const availableSortOptions = useMemo<SortOption[]>(
     () =>
       listingFilter === "rent"
-        ? [
-            "price_desc",
-            "price_asc",
-            "rent_under_10",
-            "rent_under_20",
-            "rent_over_20",
-          ]
-        : ["price_desc", "price_asc"],
+        ? ["asc", "desc"]
+        : ["asc", "desc"],
+        
     [listingFilter],
   );
 
+  {/**
+    In the future this will work to a new type of sort
+
+    
+    ? ["desc", "asc", "rent_under_10", "rent_under_20", "rent_over_20"]
+        : ["desc", "asc"], 
+  */}
+
   useEffect(() => {
-    if (!availableSortOptions.includes(sortOption)) setSortOption("price_desc");
+    if (!availableSortOptions.includes(sortOption)) setSortOption("asc");
   }, [availableSortOptions, sortOption]);
 
   const resetAdvancedFilters = useCallback(() => {
@@ -396,10 +429,17 @@ export function usePropertiesScreen() {
     [],
   );
   const handlePropertyPress = useCallback((propertyId: string) => {
-    router.push({
-      pathname: "/selected-property",
-      params: { propertyId },
-    });
+    if (!propertyId || propertyNavigationLocked.current) return;
+    propertyNavigationLocked.current = true;
+    try {
+      router.push({
+        pathname: "/selected-property",
+        params: { propertyId },
+      });
+    } catch (error) {
+      propertyNavigationLocked.current = false;
+      throw error;
+    }
   }, []);
 
   const handleGenerateSinglePdf = useCallback(
@@ -429,7 +469,13 @@ export function usePropertiesScreen() {
         setIsGeneratingPdf(false);
       }
     },
-    [activePropertyId, authToken, isGeneratingPdf, listingFilter, selectedPropertyIds],
+    [
+      activePropertyId,
+      authToken,
+      isGeneratingPdf,
+      listingFilter,
+      selectedPropertyIds,
+    ],
   );
 
   const handleGeneratePdf = useCallback(async () => {
@@ -494,14 +540,22 @@ export function usePropertiesScreen() {
 
   return {
     mapFilters: {
-      list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
+      list:
+        listingFilter === "rent" || listingFilter === "sale"
+          ? listingFilter
+          : undefined,
       zone: appliedFilters.zone || undefined,
-      equiped: appliedFilters.furnishing === "all" ? undefined : appliedFilters.furnishing,
+      equiped:
+        appliedFilters.furnishing === "all"
+          ? undefined
+          : appliedFilters.furnishing,
       bathrooms: appliedFilters.bathrooms ?? undefined,
       bedrooms: appliedFilters.bedrooms ?? undefined,
       parkings: appliedFilters.parking ?? undefined,
     },
     retryCatalog,
+    loadMoreCatalogProperties: domain.loadMoreCatalogProperties,
+    hasMoreCatalog: domain.hasMoreCatalog,
     applyFilters,
     isApplyingFilters,
     filterError,

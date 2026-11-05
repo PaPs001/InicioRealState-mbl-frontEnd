@@ -13,7 +13,7 @@ import {
   type DuplicateLeadCandidate,
   type SelectedGoogleCalendar,
 } from "@/lib/api";
-import type { LeadSearchIntent, Property, PropertyLead } from "@/lib/types";
+import type { LeadSearchIntent, DatePropertyCard, PropertyLead } from "@/lib/types";
 import type { AppCapabilities } from "@/modules/settings";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
 import { useDashboardCalendar } from "./userDashboardCalendar";
@@ -29,7 +29,8 @@ import {
 type Params = {
   capabilities?: AppCapabilities;
   initialLead?: PropertyLead;
-  initialProperty?: Property;
+  initialProperty?: DatePropertyCard;
+  lockAppointmentType?: boolean;
   onClose: () => void;
   onCreated?: () => void;
   returnPath?: string;
@@ -40,11 +41,16 @@ export function useAppointmentCreateFlow({
   capabilities,
   initialLead,
   initialProperty,
+  lockAppointmentType = false,
   onClose,
   onCreated,
   returnPath,
   visible,
 }: Params) {
+  const lockedType = lockAppointmentType
+    ? getInitialAppointmentType(undefined, initialProperty)
+    : undefined;
+  const lockedPropertyId = lockAppointmentType ? getPropertyId(initialProperty) : undefined;
   const { authToken, currentUser } = useSessionDomain();
   const { addAppointment } = useCalendarData();
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
@@ -58,7 +64,7 @@ export function useAppointmentCreateFlow({
   );
   const { appointmentLeadOptions, isLeadsLoading, loadLeads } =
     useDashboardLeads({ authToken });
-  const properties = useAppointmentProperties(form.appointmentType, visible);
+  const properties = useAppointmentProperties(form.appointmentType, visible && !lockAppointmentType);
   const calendar = useDashboardCalendar({
     authToken,
     capabilities,
@@ -96,7 +102,7 @@ export function useAppointmentCreateFlow({
     setForm((current) => ({
       ...createInitialForm(currentUser?.id),
       appointmentType:
-        getInitialAppointmentType(initialLead, initialProperty) ||
+        lockedType || getInitialAppointmentType(initialLead, initialProperty) ||
         current.appointmentType,
       leadId: initialLead?.id || null,
       propertyId: initialPropertyId,
@@ -115,14 +121,16 @@ export function useAppointmentCreateFlow({
     initialLead?.id,
     initialLead?.propertyId,
     initialProperty,
+    lockedType,
     currentUser?.id,
   ]);
 
   const updateForm = useCallback(
     (field: keyof CreateGoogleCalendarDatePayload, value: string | null) => {
+      if (lockAppointmentType && (field === "appointmentType" || field === "propertyId")) return;
       setForm((current) => ({ ...current, [field]: value }));
     },
-    [],
+    [lockAppointmentType],
   );
   const selectCalendar = useCallback((selected: SelectedGoogleCalendar) => {
     setForm((current) => ({
@@ -136,21 +144,22 @@ export function useAppointmentCreateFlow({
       setForm((current) => ({
         ...current,
         leadId: lead.id,
-        propertyId: lead.propertyId || current.propertyId,
+        propertyId: lockAppointmentType ? lockedPropertyId ?? null : lead.propertyId || current.propertyId,
         advisorId: lead.advisorId || lead.agentId || currentUser?.id || null,
       }));
       calendar.setAppointmentSelectionScreen(null);
     },
-    [calendar.setAppointmentSelectionScreen, currentUser?.id],
+    [calendar.setAppointmentSelectionScreen, currentUser?.id, lockAppointmentType, lockedPropertyId],
   );
   const selectProperty = useCallback(
-    (property: Property) => {
+    (property: DatePropertyCard) => {
+      if (lockAppointmentType) return;
       const propertyId = getPropertyId(property);
       if (!propertyId) return;
       setForm((current) => ({ ...current, propertyId }));
       calendar.setAppointmentSelectionScreen(null);
     },
-    [calendar.setAppointmentSelectionScreen],
+    [calendar.setAppointmentSelectionScreen, lockAppointmentType],
   );
   const changeLeadMode = useCallback(
     (mode: "existing" | "provisional") => {
@@ -163,6 +172,13 @@ export function useAppointmentCreateFlow({
 
   async function submitAppointment(payload: CreateGoogleCalendarDatePayload) {
     if (!authToken) return;
+    if (lockAppointmentType && (
+      !lockedType || !lockedPropertyId ||
+      payload.appointmentType !== lockedType || payload.propertyId !== lockedPropertyId
+    )) {
+      Alert.alert("Revisa la propiedad", "La cita debe conservar la propiedad seleccionada y su operaci?n de renta o venta.");
+      return;
+    }
 
     setIsCreatingAppointment(true);
     
@@ -367,6 +383,7 @@ export function useAppointmentCreateFlow({
     calendar,
     modalProps: {
       advisorMode,
+      lockAppointmentType,
       currentUserName: currentUser?.name,
       onAdvisorModeChange: (mode: "self" | "external") => {
         setAdvisorMode(mode);
@@ -392,7 +409,10 @@ export function useAppointmentCreateFlow({
       onSelectCalendar: selectCalendar,
       onSelectLead: selectLead,
       onSelectProperty: selectProperty,
-      onSelectionScreenChange: calendar.setAppointmentSelectionScreen,
+      onSelectionScreenChange: (screen: "lead" | "property" | "duplicate" | null) => {
+        if (lockAppointmentType && screen === "property") return;
+        calendar.setAppointmentSelectionScreen(screen);
+      },
       onUpdateProvisionalLead: calendar.updateProvisionalAppointmentLead,
       onUpdateForm: updateForm,
       provisionalLead: calendar.provisionalAppointmentLead,
@@ -439,27 +459,22 @@ function createInitialForm(
   };
 }
 
-function getPropertyId(property?: Property) {
-  return property?.id || property?._id || undefined;
+function getPropertyId(property?: DatePropertyCard) {
+  return property?.id || undefined;
 }
 
 function getInitialAppointmentType(
   initialLead?: PropertyLead,
-  initialProperty?: Property,
+  initialProperty?: DatePropertyCard,
 ) {
   if (initialLead?.searchIntent === "rent") return "renta";
   if (initialLead?.searchIntent === "sale") return "venta";
   if (
-    initialProperty?.listingType === "rent" ||
-    initialProperty?.status === "for_rent" ||
-    initialProperty?.status === "pending_rent" ||
-    initialProperty?.monthlyRent
+    initialProperty?.listingType === "rent"
   )
     return "renta";
   if (
-    initialProperty?.listingType === "sale" ||
-    initialProperty?.status === "for_sale" ||
-    initialProperty?.status === "pending_sale"
+    initialProperty?.listingType === "sale"
   )
     return "venta";
   return undefined;

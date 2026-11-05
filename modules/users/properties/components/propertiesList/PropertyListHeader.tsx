@@ -17,12 +17,14 @@ export const PropertyListHeader = ({
   enabledFilters,
   showSort = true,
   showSearch = true,
+  compact = false,
 }: {
   controller: PropertiesController;
   canUsePdfExporter: boolean;
   enabledFilters: boolean;
   showSort?: boolean;
   showSearch?: boolean;
+  compact?: boolean;
 }) => {
   const {
     listingFilter,
@@ -38,20 +40,24 @@ export const PropertyListHeader = ({
   } = controller;
 
   return (
-    <View style={[styles.listCanvas, { width: canvasWidth }]}>
-      <Text style={styles.title}>Propiedades Disponibles</Text>
-      <Text style={styles.subtitle}>
-        {operationMode === "rent"
-          ? "Inventario de renta"
-          : operationMode === "sale"
-            ? "Inventario de venta"
-            : "Inventario de renta y venta"}
-      </Text>
+    <View style={[styles.listCanvas]}>
+      {!compact ? (
+        <>
+          <Text style={styles.title}>Propiedades Disponibles</Text>
+          <Text style={styles.subtitle}>
+            {operationMode === "rent"
+              ? "Inventario de renta"
+              : operationMode === "sale"
+                ? "Inventario de venta"
+                : "Inventario de renta y venta"}
+          </Text>
+        </>
+      ) : null}
       <View style={styles.headerCanvas}>
         {enabledFilters ? (
           <View
             style={{
-              flex: 1,
+              flex: 3,
             }}
           >
             <View style={styles.filterButtonsContainer}>
@@ -122,7 +128,10 @@ export const PropertyListHeader = ({
           </View>
         ) : null}
         {canUsePdfExporter ? (
-          <View>
+          <View style={{
+            flex: 1.5,  
+            //backgroundColor: 'yellow'
+          }}>
             <ExportPdfPanel controller={controller} />
           </View>
         ) : null}
@@ -162,40 +171,30 @@ function FilterChip({
 
 const styles = StyleSheet.create({
   listCanvas: {
-    //backgroundColor: '#ffffff',
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
+    //backgroundColor: '#744b4b',
   },
   headerCanvas: {
-    paddingHorizontal: 17,
-    paddingBottom: 14,
     flexDirection: "row",
     gap: 7,
     width: "100%",
     alignItems: "flex-start",
     justifyContent: "center",
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 34,
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 10
   },
   title: {
-    marginLeft: 46,
     color: "#3D5A40",
     fontSize: appFontScale[23],
     lineHeight: platformLineHeight(25),
     fontWeight: "500",
   },
   subtitle: {
-    marginLeft: 46,
     color: "#afafaf",
     fontSize: textSize.subtitle,
   },
   filterButtonsContainer: {
-    marginTop: 22,
     gap: 11,
   },
   filterChipContainer: {

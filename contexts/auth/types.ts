@@ -22,6 +22,10 @@ export interface AuthContextType {
   setAuthSession: (user: BackendUser | User | null, token: string | null, refreshToken?: string | null) => Promise<void>
   userProperties: Property[]
   availableProperties: Property[]
+  hasMoreCatalog: boolean
+  loadMoreCatalogProperties: () => Promise<boolean>
+  retryCatalogPage: () => Promise<boolean>
+  catalogResetVersion: number
   catalogProperties: Property[]
   catalogFilters: Filters | null
   catalogError: string | null
@@ -62,6 +66,10 @@ export type PropertyDomain = Pick<
   AuthContextType,
   | 'userProperties'
   | 'availableProperties'
+  | 'hasMoreCatalog'
+  | 'loadMoreCatalogProperties'
+  | 'retryCatalogPage'
+  | 'catalogResetVersion'
   | 'catalogProperties'
   | 'catalogFilters'
   | 'catalogError'

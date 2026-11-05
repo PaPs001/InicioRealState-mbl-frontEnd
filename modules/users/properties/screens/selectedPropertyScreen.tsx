@@ -1,4 +1,5 @@
-import { useRef, useState, type ReactNode, type ComponentRef } from "react";
+import type { DatePropertyCard } from "@/lib/types";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -9,8 +10,8 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
-
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import { AppointmentCreateFlow } from "../../main/components/AppointmentCreateFlow";
+import { PropertyLocationMap } from "../components/selectedProperties/PropertyLocationMap";
 import { icons, logos } from "@/assets";
 import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
@@ -32,13 +33,27 @@ export const PropertiesList = () => {
   const normalizeName = (value?: string | null) => {
     return value?.replace(/wc|rec/gi, "").trim() ?? "";
   };
+
+  const [isAppointmentVisible, setIsAppointmentVisible] = useState(false);
+
   const propertyId = Array.isArray(params.propertyId)
     ? params.propertyId[0]
     : params.propertyId;
 
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
-  const markerRef = useRef<ComponentRef<typeof Marker>>(null);
+
+  const appointmentProperty = useMemo<DatePropertyCard | undefined>(() => {
+    if (!property || !propertyId) return undefined;
+    const operation = property.operationLabel.trim().toLowerCase();
+    return {
+      id: propertyId,
+      title: property.title,
+      address: property.geoData?.formatAddress || property.zone,
+      listingType:
+        operation === "rent" || operation === "sale" ? operation : undefined,
+    };
+  }, [property, propertyId]);
 
   const [seeGalleryImage, setSeeGalleryImages] = useState(false);
   const [descriptionPropertyId, setDescriptionPropertyId] = useState<
@@ -194,73 +209,96 @@ export const PropertiesList = () => {
           </View>
 
           {/** Aqui comienza el espacio de los objetos de la propiedad */}
-          <View style={[styles.propertyFeaturesContainer, property.bedrooms.extra ? {
-            flexWrap: 'wrap'
-          }: null]}>
-            {property?.bedrooms.principal ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                  flexShrink: 0,
-                }}
-              >
-                <PropertyMetric
-                  icon={<icons.Bed width={25} height={25} />}
-                  value={normalizeName(property?.bedrooms.principal)}
-                  label="Recámaras"
-                />
+          <View style={styles.shadowsContainer}>
+            <View
+              style={[
+                styles.propertyFeaturesContainer,
+                property.bedrooms.extra
+                  ? {
+                      flexWrap: "wrap",
+                    }
+                  : null,
+              ]}
+            >
+              {property?.bedrooms.principal ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    flexShrink: 0,
+                  }}
+                >
+                  <PropertyMetric
+                    icon={<icons.Bed width={25} height={25} />}
+                    value={normalizeName(property?.bedrooms.principal)}
+                    label="Recámaras"
+                  />
 
-                {property.bedrooms.extra ? (
-                  <>
-                    <View
-                      style={{
-                        paddingRight: 5,
-                      }}
-                    >
-                      <Text
+                  {property.bedrooms.extra ? (
+                    <>
+                      <View
                         style={{
-                          fontSize: 20,
-                          textAlign: 'center'
+                          paddingRight: 5,
                         }}
                       >
-                        +
-                      </Text>
-                    </View>
-                    <PropertyMetric
-                      icon={<icons.Balcony width={25} height={25} strokeWidth={2}/>}
-                      value={capitalizeFirstLetter(normalizeName(property.bedrooms.extra))}
-                      label={capitalizeFirstLetter(normalizeName(property.bedrooms.extraName))}
-                    />
-                  </>
-                ) : null}
-              </View>
-            ) : null}
-            {property?.bathrooms ? (
-              <PropertyMetric
-                icon={<icons.Bathroom width={25} height={25} />}
-                value={normalizeName(property?.bathrooms)}
-                label="Baños"
-              />
-            ) : null}
-            {property?.parking ? (
-              <>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            textAlign: "center",
+                          }}
+                        >
+                          +
+                        </Text>
+                      </View>
+                      <PropertyMetric
+                        icon={
+                          <icons.Balcony
+                            width={25}
+                            height={25}
+                            strokeWidth={2}
+                          />
+                        }
+                        value={capitalizeFirstLetter(
+                          normalizeName(property.bedrooms.extra),
+                        )}
+                        label={capitalizeFirstLetter(
+                          normalizeName(property.bedrooms.extraName),
+                        )}
+                      />
+                    </>
+                  ) : null}
+                </View>
+              ) : null}
+              {property?.bathrooms ? (
                 <PropertyMetric
-                  icon={<icons.Car width={25} height={25} />}
-                  value={property?.parking}
-                  label="Parkings"
+                  icon={<icons.Bathroom width={25} height={25} />}
+                  value={normalizeName(property?.bathrooms)}
+                  label="Baños"
                 />
-              </>
-            ) : null}
-            {property.propertyAmenities ? (
-              <View style={styles.moreFeaturesContainer}>
-                <icons.ArmChairSe />
-                <Text adjustsFontSizeToFit numberOfLines={2} style={styles.moreFeaturesText}>
-                  {property?.propertyAmenities}
-                </Text>
-              </View>
-            ) : null}
+              ) : null}
+              {property?.parking ? (
+                <>
+                  <PropertyMetric
+                    icon={<icons.Car width={25} height={25} />}
+                    value={property?.parking}
+                    label="Parkings"
+                  />
+                </>
+              ) : null}
+              {property.propertyAmenities ? (
+                <View style={styles.moreFeaturesContainer}>
+                  <icons.ArmChairSe />
+                  <Text
+                    adjustsFontSizeToFit
+                    numberOfLines={2}
+                    style={styles.moreFeaturesText}
+                  >
+                    {property?.propertyAmenities}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
 
           <View style={styles.detailsContainer}>
@@ -280,11 +318,10 @@ export const PropertiesList = () => {
         </View>
         {property.equipmentServices.length > 0 && (
           <PropertySection title="Amenidades">
-            <Amenities
-              amenitiesData={property.equipmentServices}
-            />
+            <Amenities amenitiesData={property.equipmentServices} />
           </PropertySection>
         )}
+        <Line />
         {property.rooms.length > 0 && (
           <PropertySection title="Donde vas a vivir">
             <PropertyCarousel
@@ -304,47 +341,16 @@ export const PropertiesList = () => {
         <PropertySection title="Dónde vas a estar">
           <View style={styles.mapPrincipalContainer}>
             <View style={styles.mapShadowContainer}>
-              <View style={styles.mapContainer}>
-                {hasValidCoordinates ? (
-                  <MapView
-                    provider={PROVIDER_GOOGLE}
-                    zoomEnabled={false}
-                    scrollEnabled={false}
-                    rotateEnabled={false}
-                    style={styles.map}
-                    initialRegion={{
-                      latitude: latitude,
-                      longitude: longitude,
-                      latitudeDelta: 0.007,
-                      longitudeDelta: 0.007,
-                    }}
-                    mapType="standard"
-                  >
-                    <Marker
-                      ref={markerRef}
-                      coordinate={{
-                        latitude: latitude,
-                        longitude: longitude,
-                      }}
-                      anchor={{ x: 0.5, y: 1 }}
-                    >
-                      <View style={styles.markerContainer}>
-                        <View
-                          style={[
-                            styles.circle,
-                            { backgroundColor: markerBackgroundColor },
-                          ]}
-                        >
-                          <logos.irsBlanco width={43} height={43} />
-                        </View>
-                        <View style={styles.triangle} />
-                      </View>
-                    </Marker>
-                  </MapView>
-                ) : (
-                  <Text>Ubicaci?n no disponible</Text>
-                )}
-              </View>
+              {hasValidCoordinates ? (
+                <PropertyLocationMap
+                  key={propertyId}
+                  latitude={latitude}
+                  longitude={longitude}
+                  markerColor={markerBackgroundColor}
+                />
+              ) : (
+                <Text>Ubicación no disponible</Text>
+              )}
             </View>
             <View style={styles.mapTextAdviseContainer}>
               <icons.Lock />
@@ -366,7 +372,9 @@ export const PropertiesList = () => {
         style={styles.priceSection}
       >
         <PriceCard
-          onDate={() => {}}
+          onDate={() => {
+            setIsAppointmentVisible(true);
+          }}
           price={property?.price}
           operation={property?.operationLabel}
           hasMantain={property?.hasMantenimiento}
@@ -387,6 +395,16 @@ export const PropertiesList = () => {
           {description}
         </Text>
       </AppModal>
+      {isAppointmentVisible && (
+        <AppointmentCreateFlow
+          visible
+          onClose={() => {
+            setIsAppointmentVisible(false);
+          }}
+          initialProperty={appointmentProperty}
+          lockAppointmentType
+        />
+      )}
     </View>
   );
 };
@@ -402,6 +420,26 @@ function PropertySection({
     <View style={[styles.sectionContainer, styles.listSection]}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {children}
+    </View>
+  );
+}
+
+function Line() {
+  return (
+    <View
+      style={{
+        flex: 1,
+        paddingHorizontal: 25,
+        paddingTop: 12,
+      }}
+    >
+      <View
+        style={{
+          borderBottomWidth: 0.7,
+          width: "100%",
+          borderColor: "#0505051f",
+        }}
+      ></View>
     </View>
   );
 }

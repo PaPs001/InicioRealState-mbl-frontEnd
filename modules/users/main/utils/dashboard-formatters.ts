@@ -96,7 +96,7 @@ export function getAppointmentEndDateTime(startDateTime: string) {
   return startDate.toISOString();
 }
 
-export function getPropertyDisplayName(property?: Property | null) {
+export function getPropertyDisplayName(property?: Pick<Property, "id" | "title" | "address"> & Partial<Pick<Property, "_id" | "city">> | null) {
   if (!property) return "";
   return (
     property.title ||
