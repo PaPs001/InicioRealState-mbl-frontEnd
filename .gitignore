@@ -54,3 +54,4 @@ ios/
 *.swp
 
 package-lock.json
+eas.json
