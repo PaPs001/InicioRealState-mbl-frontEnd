@@ -1,5 +1,7 @@
 # Revisión de código legacy — 2026-11-04
 
+Actualización 2026-11-06: se retiraron el hook anterior de propiedades y el servicio antiguo del catálogo. El estado actual y los candidatos cercanos están documentados en [la revisión de limpieza de propiedades](./property-cleanup-review.md). Este documento conserva los hallazgos de la revisión original.
+
 Revisión estática del código TypeScript/TSX de la aplicación: 343 archivos fuente analizados, referencias de importación/exportación, rutas de Expo Router y consumidores de servicios. No incluye validación visual ni llamadas al backend. Los archivos de `app/` se consideran entradas de rutas aunque no tengan importaciones desde otros archivos.
 
 Solo se modificó la limpieza autorizada de filtros en `usePropertiesScreen.ts`. Se conservaron el buscador, los precios mínimo/máximo y sus estados. Los demás hallazgos de este documento no se eliminaron.

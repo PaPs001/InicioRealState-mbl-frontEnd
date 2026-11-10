@@ -39,7 +39,7 @@ export const PropertyCard = memo(function PropertyCard({
   onToggleSelection: (propertyId: string) => void
   onPress?: (propertyId: string) => void
 }) {
-  const primaryTags = property.tags.slice(0, 4)
+  const primaryTags = property.tags.slice(0, 3)
   const detailTags = property.tags.slice(4, 6)
   const shouldShowPropertyDetails = !property.isLand
 
@@ -61,7 +61,7 @@ export const PropertyCard = memo(function PropertyCard({
           <Text style={styles.locationPillText} numberOfLines={1}>{property.city}</Text>
         </View>
         <View style={styles.availablePill}>
-          <Text style={styles.availablePillText}>Disponible</Text>
+          <Text style={styles.availablePillText}>{property.status}</Text>
         </View>
         {property.solarPanelLabel ? (
           <View style={styles.SolarPanelPill}>
@@ -83,9 +83,6 @@ export const PropertyCard = memo(function PropertyCard({
 
         <View style={styles.priceRow}>
           <Text style={styles.price}>{property.priceLabel || property.price}</Text>
-          {property.status === 'for_rent' || property.status === 'pending_rent' ? (
-            <Text style={styles.priceMeta}></Text>
-          ) : null}
         </View>
         {shouldShowPropertyDetails ? (
           <>

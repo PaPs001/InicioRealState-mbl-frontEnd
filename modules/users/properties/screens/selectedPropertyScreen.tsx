@@ -24,6 +24,7 @@ import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
 import { capitalizeFirstLetter } from "../../main/utils/dashboard-formatters";
+import { propertyStatusConfig } from "../constants/propertyConstants";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -149,6 +150,17 @@ export const PropertiesList = () => {
     latitude <= 90 &&
     longitude >= -180 &&
     longitude <= 180;
+
+  const normalizaedStatus = property.status?.trim().toLowerCase()
+  type PropertyStatus = keyof typeof propertyStatusConfig;
+
+  function isPropertyStatus(status: string): status is PropertyStatus {
+    return status in propertyStatusConfig;
+  }
+
+  const config = normalizaedStatus && isPropertyStatus(normalizaedStatus)
+    ? propertyStatusConfig[normalizaedStatus]
+    : undefined;
 
   return (
     <View style={styles.safeArea}>

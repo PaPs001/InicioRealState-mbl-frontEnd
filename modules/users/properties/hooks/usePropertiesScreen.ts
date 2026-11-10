@@ -112,9 +112,11 @@ function mapProperty(property: Property): ListingProperty {
 
 export function getSortLabel(option: SortOption) {
   if (option === "asc") return "Menor a mayor";
-  {/*if (option === "rent_under_10") return "Rentas menores de 10";
+  {
+    /*if (option === "rent_under_10") return "Rentas menores de 10";
   if (option === "rent_under_20") return "Rentas menores de 20";
-  if (option === "rent_over_20") return "Rentas mayores de 20";*/}
+  if (option === "rent_over_20") return "Rentas mayores de 20";*/
+  }
   return "Mayor a menor";
 }
 
@@ -208,18 +210,26 @@ export function usePropertiesScreen() {
     updateFiltersVisible(visible);
   };
 
-  const buildCatalogFilters = useCallback((values: typeof appliedFilters): Filters => ({
-    list: listingFilter === "rent" || listingFilter === "sale" ? listingFilter : undefined,
-    zone: values.zone || undefined,
-    equiped: values.furnishing === "all" ? undefined : values.furnishing,
-    bedrooms: values.bedrooms ?? undefined,
-    bathRooms: values.bathrooms ?? undefined,
-    parkings: values.parking ?? undefined,
-    limit: 10,
-    order: sortOption,
-  }), [listingFilter, sortOption]);
-  const catalogRequestFilters = useMemo(() => buildCatalogFilters(appliedFilters),
-    [buildCatalogFilters, appliedFilters]);
+  const buildCatalogFilters = useCallback(
+    (values: typeof appliedFilters): Filters => ({
+      list:
+        listingFilter === "rent" || listingFilter === "sale"
+          ? listingFilter
+          : undefined,
+      zone: values.zone || undefined,
+      equiped: values.furnishing === "all" ? undefined : values.furnishing,
+      bedrooms: values.bedrooms ?? undefined,
+      bathRooms: values.bathrooms ?? undefined,
+      parkings: values.parking ?? undefined,
+      limit: 10,
+      order: sortOption,
+    }),
+    [listingFilter, sortOption],
+  );
+  const catalogRequestFilters = useMemo(
+    () => buildCatalogFilters(appliedFilters),
+    [buildCatalogFilters, appliedFilters],
+  );
 
   const applyFilters = async () => {
     if (!authToken || isApplyingFilters) {
@@ -244,9 +254,13 @@ export function usePropertiesScreen() {
     try {
       const loaded = await domain.loadCatalogProperties(
         buildCatalogFilters({
-          zone: zoneFilter, furnishing: furnishingFilter,
-          min: minPriceFilter, max: maxPriceFilter,
-          bedrooms: bedroomsFilter, bathrooms: bathroomsFilter, parking: parkingFilter,
+          zone: zoneFilter,
+          furnishing: furnishingFilter,
+          min: minPriceFilter,
+          max: maxPriceFilter,
+          bedrooms: bedroomsFilter,
+          bathrooms: bathroomsFilter,
+          parking: parkingFilter,
         }),
         true,
       );
@@ -281,7 +295,6 @@ export function usePropertiesScreen() {
     }
   };
 
-
   useEffect(
     () =>
       setListingFilter(
@@ -295,13 +308,22 @@ export function usePropertiesScreen() {
   );
 
   const { loadCatalogProperties } = domain;
-  const retryCatalog = () => domain.catalogError
-    ? domain.retryCatalogPage()
-    : loadCatalogProperties(catalogRequestFilters, true);
-  useFocusEffect(useCallback(() => {
-    if (!authToken || isAuthLoading || isMapMode) return;
-    void loadCatalogProperties(catalogRequestFilters);
-  }, [authToken, isAuthLoading, isMapMode, catalogRequestFilters, loadCatalogProperties]));
+  const retryCatalog = () =>
+    domain.catalogError
+      ? domain.retryCatalogPage()
+      : loadCatalogProperties(catalogRequestFilters, true);
+  useFocusEffect(
+    useCallback(() => {
+      if (!authToken || isAuthLoading || isMapMode) return;
+      void loadCatalogProperties(catalogRequestFilters);
+    }, [
+      authToken,
+      isAuthLoading,
+      isMapMode,
+      catalogRequestFilters,
+      loadCatalogProperties,
+    ]),
+  );
 
   const findCatalogProperty = useCallback(
     (id?: string, backendId?: string) => {
@@ -322,23 +344,9 @@ export function usePropertiesScreen() {
   const listings = useMemo(
     () =>
       domain.catalogProperties
-        .filter((property) => {
-          if (!property.title?.trim()) return false;
-          const sale =
-            property.status === "for_sale" ||
-            property.status === "pending_sale";
-          const rent =
-            property.status === "for_rent" ||
-            property.status === "pending_rent" ||
-            Boolean(property.monthlyRent);
-          return listingFilter === "sale"
-            ? sale
-            : listingFilter === "rent"
-              ? rent
-              : sale || rent;
-        })
+        .filter((property) => Boolean(property.title?.trim()))
         .map(mapProperty),
-    [domain.catalogProperties, listingFilter],
+    [domain.catalogProperties],
   );
 
   const filteredListings = useMemo(() => {
@@ -380,21 +388,20 @@ export function usePropertiesScreen() {
   );
 
   const availableSortOptions = useMemo<SortOption[]>(
-    () =>
-      listingFilter === "rent"
-        ? ["asc", "desc"]
-        : ["asc", "desc"],
-        
+    () => (listingFilter === "rent" ? ["asc", "desc"] : ["asc", "desc"]),
+
     [listingFilter],
   );
 
-  {/**
+  {
+    /**
     In the future this will work to a new type of sort
 
     
     ? ["desc", "asc", "rent_under_10", "rent_under_20", "rent_over_20"]
         : ["desc", "asc"], 
-  */}
+  */
+  }
 
   useEffect(() => {
     if (!availableSortOptions.includes(sortOption)) setSortOption("asc");

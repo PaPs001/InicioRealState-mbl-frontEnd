@@ -65,16 +65,25 @@ export function mapApiPropertyToDetail(
   const cover = data.urlImage?.trim();
 
   for (const image of data.images ?? []) {
-    const url = resolvedImages.get(image.key) || (!image.encrypted ? image.url?.trim() : undefined);
+    const url = resolvedImages.get(image.key) || undefined;
+    {
+      /*(!image.encrypted ? image.url?.trim() : undefined);*/
+    }
     if (!url) continue;
     galleryImages.add(url);
-
-    const amenitieName = image.amenitieName?.trim();
     const zone = image.zone?.trim();
-    const name = amenitieName || zone;
+
+    const isAmenity = zone?.startsWith("Amenidades");
+
+    const name = isAmenity
+      ? zone?.replace(/^Amenidades\s*-\s*/, "").trim()
+      : zone;
+
     if (!name) continue;
-    const groups = amenitieName ? amenityGroups : roomGroups;
+
+    const groups = isAmenity ? amenityGroups : roomGroups;
     const existingRoom = groups.get(name);
+    
     if (existingRoom) {
       if (!existingRoom.images.includes(url)) existingRoom.images.push(url);
     } else {

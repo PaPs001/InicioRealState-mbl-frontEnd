@@ -108,6 +108,11 @@ export const statusColors = {
   disabled: '#969696',
 }
 
+export const propertieStatusColors = {
+  reserved: '#3753a2',
+  available: '#064b38'
+}
+
 export const borderColor = {
   borderSoft: '#969696',
 }

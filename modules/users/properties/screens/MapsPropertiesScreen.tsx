@@ -61,16 +61,8 @@ export const MapsPropertiesScreen = () => {
           style={styles.mapView}
         >
           {properties.map((property) => {
-            const catalogProperty = controller.findCatalogProperty(
-              property.id,
-              property._id,
-            );
-            const isSale =
-              catalogProperty?.status === "for_sale" ||
-              catalogProperty?.status === "pending_sale";
-            const isRent =
-              catalogProperty?.status === "for_rent" ||
-              catalogProperty?.status === "pending_rent";
+            const isSale = property.list === "sale";
+            const isRent = property.list === "rent";
             const markerBackgroundColor = isSale
               ? generalColors.saleColor
               : isRent

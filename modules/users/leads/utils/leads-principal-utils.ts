@@ -36,7 +36,7 @@ export function buildPropertyOptions(catalogProperties: Property[], availablePro
       city: property.city || '',
       price: property.monthlyRent ?? property.price ?? 0,
       image: property.images?.[0],
-      status: property.status,
+      status: property.status ?? undefined,
     })
   })
 

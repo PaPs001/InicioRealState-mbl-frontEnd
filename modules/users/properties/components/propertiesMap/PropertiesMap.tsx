@@ -76,8 +76,8 @@ export function PropertiesMap({
           {locationGroups.map((group) => {
             const property = group.properties[0];
             const isGroup = group.properties.length > 1;
-            const isSale = controller.mapFilters.list === "sale";
-            const isRent = controller.mapFilters.list === "rent";
+            const isSale = property.list === "sale";
+            const isRent = property.list === "rent";
             const markerBackgroundColor = isGroup
               ? userColors.adviser.primary
               : isSale
@@ -151,10 +151,7 @@ export function PropertiesMap({
               contentContainerStyle={selectedGroup.properties.length > 1 ? styles.propertyList : undefined}
             >
               {selectedGroup.properties.map((marker) => {
-                const property = mapMarkerToListing(
-                  marker,
-                  controller.mapFilters.list,
-                );
+                const property = mapMarkerToListing(marker);
                 return (
                   <PropertyCard
                     key={marker._id || marker.id}

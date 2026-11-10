@@ -9,7 +9,7 @@
  * const result = await api.auth.registerUser({ ... })
  * 
  * // Catalog
- * const properties = await api.catalog.getCatalogPropertiesCoreAPI(token)
+ * const { properties } = await api.catalog.getFiltersProperties({ list: 'rent' }, token)
  * 
  * // User Properties
  * await api.properties.createUserProperty(payload, token)
@@ -80,7 +80,6 @@ export {
 } from './endpoints/auth'
 
 export {
-  getCatalogPropertiesCoreAPI,
   mapApiPropertyToProperty,
 } from './endpoints/catalog'
 

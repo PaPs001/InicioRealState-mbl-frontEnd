@@ -2,9 +2,6 @@
  * Tipos de Propiedades
  */
 
-///// Interfazz del formato de la respuesta del servidor de filtrado
-
-
 ///// Interfaz del formato de la respuesta del servidor 
 export interface PropertyCatalogItemResponse {
   _id: string;
@@ -65,16 +62,10 @@ export interface CatalogFilterResponse {
 
 /// aqui comienzan los tipos definidos para el catalogo
 export type PropertyType = "house" | "apartment" | "land";
-export type PropertyStatus =
-  | "owned"
-  | "for_sale"
-  | "for_rent"
-  | "rented"
-  | "available"
-  | "pending_sale"
-  | "pending_rent";
+export type PropertyStatus = PropertyCatalogItemResponse["status"];
 
-export type TypeListProperty = "rent" | "sale";
+export type TypeListProperty = "rent" | "sale" | undefined;
+
 export type Images = {
   key: string;
   url: string;
@@ -140,6 +131,8 @@ export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & Partial<P
   "name" | "priceData" | "parking" | "wc" | "urlImage" | "solarPanel" | "address"
   | "isALand" | "bed" | "propertyView" | "zonaText"
 >> & {
+  list: PropertyCatalogItemResponse["list"];
+  status: PropertyCatalogItemResponse["status"];
   geoData?: GeoData | null;
   equipmentServices?: PropertyEquipmentServiceResponse[] | null;
 };
@@ -200,11 +193,8 @@ export interface PropertyImageResponse {
   key: string;
   url: string;
   zone?: string | null;
-  amenitieName?: string | null;
   contentType: string;
-  size: number;
   originalName: string;
-  encrypted: boolean;
   category: string;
 }
 
@@ -216,6 +206,8 @@ export interface selectedPropertyBackendData extends PropertyCatalogItemResponse
   images?: PropertyImageResponse[] | null;
   geoData: GeoData;
 }
+
+
 
 export interface PropertyEarnings {
   propertyId: string;
@@ -332,6 +324,5 @@ export type ListingProperty = {
   propertyDescription?: string;
   titlePropertie?: string;
 };
-
 
 //// aqui terminan las interfaces

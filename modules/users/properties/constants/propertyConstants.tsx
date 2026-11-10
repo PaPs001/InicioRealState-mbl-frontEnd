@@ -2,6 +2,7 @@ import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-form
 import { icons } from "@/assets";
 import { ComponentType } from "react";
 import { SvgProps } from "react-native-svg";
+import { propertieStatusColors } from "@/theme";
 
 type AmenityConfig = {
     label: string,
@@ -43,3 +44,16 @@ export const amenitiesConfigSelectedProperty: Record<string, AmenityConfig>={
     }
 
 }
+
+export const propertyStatusConfig = {
+  apartada: {
+    label: "Apartada",
+    color: propertieStatusColors.reserved,
+  },
+  disponible: {
+    label: "Disponible",
+    color: propertieStatusColors.available
+  }
+} as const
+
+export type PropertyCatalogStatus = keyof typeof propertieStatusColors
