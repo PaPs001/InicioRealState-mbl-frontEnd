@@ -47,7 +47,7 @@ export function useSelectedProperty(propertyId?: string) {
 
         const resolvedImages = new Map<string, string>();
         await Promise.all((data.images ?? []).map(async (image) => {
-          if (!image.key || !image.encrypted) return;
+          if (!image.key) return;
           try {
             const localUri = await cacheUploadedFile({
               storageKey: image.key,

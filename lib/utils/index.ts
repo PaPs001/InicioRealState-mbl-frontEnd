@@ -112,11 +112,21 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Extrae un numero de un string
+ * Convierte textos y numeros a texto sin aceptar otros tipos.
  */
-export function extractNumber(value: string | null | undefined): number {
-  if (!value) return 0;
-  const match = value.match(/(\d+(\.\d+)?)/);
+export function normalizeValueToText(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return undefined;
+}
+
+/**
+ * Extrae el primer numero de un texto o valor numerico.
+ */
+export function extractNumber(value: unknown): number {
+  const textValue = normalizeValueToText(value);
+  if (!textValue) return 0;
+  const match = textValue.match(/(\d+(\.\d+)?)/);
   return match ? Number(match[1]) : 0;
 }
 

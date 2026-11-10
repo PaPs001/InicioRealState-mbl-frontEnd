@@ -5,18 +5,11 @@ import type { DatePropertyCard, Property } from "@/lib/types";
 import { getPropertyDisplayName } from "../utils/dashboard-formatters";
 
 export function mapPropertyToDatePropertyCard(property: Property): DatePropertyCard {
-  const listingType = property.listingType ?? (
-    property.status === "for_rent" || property.status === "pending_rent" || property.monthlyRent
-      ? "rent"
-      : property.status === "for_sale" || property.status === "pending_sale"
-        ? "sale"
-        : undefined
-  );
   return {
     id: property.id || property._id || "",
     title: getPropertyDisplayName(property),
-    address: property.city || property.address || property.status,
-    listingType,
+    address: property.city || property.address || "",
+    listingType: property.listingType,
   };
 }
 

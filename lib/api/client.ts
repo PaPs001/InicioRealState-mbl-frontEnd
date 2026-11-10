@@ -1,16 +1,21 @@
 import { getGoogleCalendarAuthError } from './google-calendar-errors'
 
-const DEFAULT_CORE_API_URL = 'https://core-api-smoky-ten.vercel.app'
+const CORE_API_URL = process.env.EXPO_PUBLIC_API_BASE_URL?.trim()
+
+if (!CORE_API_URL) {
+  throw new Error(
+    'Falta configurar EXPO_PUBLIC_API_BASE_URL. Define la URL base de la API principal en el entorno de Expo.',
+  )
+}
 
 export const API_URLS = {
-  CORE: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || DEFAULT_CORE_API_URL,
+  CORE: CORE_API_URL,
   NOTIFICATIONS: 'https://inicio-notifications-service.vercel.app',
 } as const
 
 export const API_BUILD_CONFIG = {
-  expoPublicApiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? null,
+  expoPublicApiBaseUrl: CORE_API_URL,
   resolvedCoreUrl: API_URLS.CORE,
-  fallbackCoreUrl: DEFAULT_CORE_API_URL,
   notificationsUrl: API_URLS.NOTIFICATIONS,
 } as const
 

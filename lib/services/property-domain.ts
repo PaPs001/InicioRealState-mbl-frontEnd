@@ -8,22 +8,14 @@ type AvailablePropertiesParams = {
   catalogProperties: Property[]
   currentUserId?: string | null
   hasLoadedCatalog: boolean
-  isAdmin: boolean
-  isAgent: boolean
 }
 
 export function getAvailableProperties(params: AvailablePropertiesParams): Property[] {
-  const { catalogProperties, currentUserId, hasLoadedCatalog, isAdmin, isAgent } = params
+  const { catalogProperties, currentUserId, hasLoadedCatalog } = params
 
   const propertySource = hasLoadedCatalog ? catalogProperties : []
 
-  return propertySource.filter(property => {
-    if (property.ownerId === currentUserId) return false
-    if (!isAgent && !isAdmin && (property.status === 'pending_sale' || property.status === 'pending_rent')) {
-      return false
-    }
-    return true
-  })
+  return propertySource.filter(property => property.ownerId !== currentUserId)
 }
 
 export function findPropertyById(params: {

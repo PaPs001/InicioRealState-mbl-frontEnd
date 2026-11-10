@@ -27,8 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const propertyDomain = usePropertyState({
     authToken,
     currentUserId: currentUser?.id,
-    isAdmin: isStaffCoordinator,
-    isAgent,
   })
   const activityDomain = useActivityState({
     authToken,

@@ -1,34 +1,50 @@
-import type { ListingProperty, PropertyMarker, TypeListProperty } from "@/lib/types";
+import type { ListingProperty, PropertyMarker } from "@/lib/types";
+import {
+  normalizeBooleanFlag,
+  normalizeListingType,
+} from "@/lib/utils/property-catalog";
 
 const text = (value?: string | null) => {
   const normalized = value?.trim();
-  return normalized && !/^(sin dato|sin datos|n\/a|null|undefined)$/i.test(normalized)
+  return normalized &&
+    !/^(sin dato|sin datos|n\/a|null|undefined)$/i.test(normalized)
     ? normalized
     : undefined;
 };
 
-export function mapMarkerToListing(
-  marker: PropertyMarker,
-  list?: TypeListProperty,
-): ListingProperty {
-  const tags = [...new Set((marker.equipmentServices ?? [])
-    .map(service => text(service.name))
-    .filter((name): name is string => Boolean(name)))].slice(0, 6);
+export function mapMarkerToListing2(marker: PropertyMarker){
+  
+}
+
+export function mapMarkerToListing(marker: PropertyMarker): ListingProperty {
+  const tags = [
+    ...new Set(
+      (marker.equipmentServices ?? [])
+        .map((service) => text(service.name))
+        .filter((name): name is string => Boolean(name)),
+    ),
+  ].slice(0, 6);
   const solarPanel = text(marker.solarPanel);
-  const isLand = /^(true|1|si|sí|yes)$/i.test(String(marker.isALand ?? "").trim());
+  const isLand = normalizeBooleanFlag(marker.isALand);
   return {
     id: marker.id || marker._id,
     title: text(marker.name) || "Propiedad disponible",
     code: text(marker.address) || text(marker.geoData?.formatAddress) || "",
-    city: text(marker.zonaText) || text(marker.geoData?.place) || "Zona sin asignar",
+    city:
+      text(marker.zonaText) ||
+      text(marker.geoData?.place) ||
+      "Zona sin asignar",
     view: text(marker.propertyView),
     price: 0,
     priceLabel: text(marker.priceData) || "Precio no disponible",
-    listingType: list,
-    status: list === "sale" ? "for_sale" : list === "rent" ? "for_rent" : "available",
+    listingType: normalizeListingType(marker.list),
+    status: marker.status ?? null,
     image: text(marker.urlImage),
     geoData: marker.geoData,
-    solarPanelLabel: solarPanel && !/^(no|false|0)$/i.test(solarPanel) ? solarPanel : undefined,
+    solarPanelLabel:
+      solarPanel && !/^(no|false|0)$/i.test(solarPanel)
+        ? solarPanel
+        : undefined,
     bedrooms: text(marker.bed) || "—",
     bedroomsCount: Number.parseFloat(marker.bed ?? "") || 0,
     bathrooms: text(marker.wc) || "—",
