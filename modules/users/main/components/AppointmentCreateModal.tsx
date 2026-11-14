@@ -91,8 +91,6 @@ type AppointmentCreateModalProps = {
   visible: boolean;
 };
 
-const END_HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
-
 export function AppointmentCreateModal({
   lockAppointmentType = false,
   advisorMode,
@@ -720,7 +718,6 @@ export function AppointmentCreateModal({
                 onClose={() => setIsEndDateTimePickerVisible(false)}
                 value={testAppointmentForm.endDateTime}
                 minimumDateTime={testAppointmentForm.startDateTime}
-                hourOptions={END_HOUR_OPTIONS}
                 selectionLabel="de terminacion"
                 onChange={(value) => {
                   onUpdateForm("endDateTime", value);

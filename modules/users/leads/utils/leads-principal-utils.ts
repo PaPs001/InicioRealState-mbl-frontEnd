@@ -1,7 +1,6 @@
-import type { LeadStatus, Property, PropertyLead } from '@/lib/types'
+import type { LeadStatus, PropertyLead } from '@/lib/types'
 import type {
   AgentLeadGroup,
-  LeadPropertyOption,
   LeadV2Alert,
   LeadV2Metric,
   LeadV2ViewModel,
@@ -21,45 +20,20 @@ export function getParamValue(value?: string | string[]) {
   return value ?? ''
 }
 
-export function buildPropertyOptions(catalogProperties: Property[], availableProperties: Property[]): LeadPropertyOption[] {
-  const source = catalogProperties.length > 0 ? catalogProperties : availableProperties
-  const byId = new Map<string, LeadPropertyOption>()
-
-  source.forEach((property) => {
-    const id = property.id || property._id
-    if (!id || byId.has(id)) return
-
-    byId.set(id, {
-      id,
-      title: property.title || 'Propiedad disponible',
-      address: property.address || '',
-      city: property.city || '',
-      price: property.monthlyRent ?? property.price ?? 0,
-      image: property.images?.[0],
-      status: property.status ?? undefined,
-    })
-  })
-
-  return Array.from(byId.values()).sort((current, next) =>
-    current.title.localeCompare(next.title, 'es'),
-  )
-}
-
-export function formatPropertyPrice(property: LeadPropertyOption) {
-  if (!property.price) return 'Precio pendiente'
-  return `$${Math.round(property.price).toLocaleString('es-MX')} MXN`
+export function getLeadPropertyLabel(lead: Pick<PropertyLead, 'propertyId'>): string {
+  const id = lead.propertyId?.trim()
+  return id && id !== 'manual-lead' ? `ID de propiedad: ${id}` : 'Sin propiedad asignada'
 }
 
 export function mapPropertyLeadToLeadV2ViewModel(
   lead: PropertyLead,
   _mode: LeadV2ScreenMode,
-  propertyName?: string,
 ): LeadV2ViewModel {
   return {
     id: lead.id,
     rawLead: lead,
     name: lead.name,
-    propertyName: propertyName || 'Sin propiedad asignada',
+    propertyName: getLeadPropertyLabel(lead),
     agentName: lead.assignedAgentName || 'Sin asesor',
     phone: lead.phone,
     email: lead.email,

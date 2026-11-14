@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Region } from "react-native-maps";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMapProperties, type MapFilters } from "@/lib/api/endpoints/catalog";
-import type { LocatedPropertyMarker, PropertyMarker } from "@/lib/types";
+import type { PropertyMarkerCard } from "../types/Property/property.model";
+import type { PropertyMarkerResponse } from "../types/Property/property.response";
+
+import { mapApiMarkerToCard } from "../mappers/catalog.map";
 
 function hasValidCoordinates(
-  property: PropertyMarker,
-): property is LocatedPropertyMarker {
+  property: PropertyMarkerResponse,
+) {
   const location = property.geoData?.locations;
   if (location?.type !== "Point" || !Array.isArray(location.coordinates))
     return false;
@@ -33,13 +36,14 @@ type Bounds = { west: number; south: number; east: number; north: number };
 type CachedArea = {
   filtersKey: string;
   bounds: Bounds;
-  properties: LocatedPropertyMarker[];
+  properties: PropertyMarkerCard[];
   expiresAt: number;
 };
 
 // Shared across map mounts, but never reused with a different session token.
-let cacheToken: string | null = null;
 let cachedAreas: CachedArea[] = [];
+
+let cacheToken: string | null = null;
 let lastRequestStartedAt = -Infinity;
 let debugRequestCount = 0;
 
@@ -77,8 +81,10 @@ export function useMapProperties(filters: MapFilters = {}) {
     bedrooms: filters.bedrooms,
     parkings: filters.parkings,
   });
+
+  const [properties, setProperties] = useState<PropertyMarkerCard[]>([]);
+
   const { authToken } = useAuth();
-  const [properties, setProperties] = useState<LocatedPropertyMarker[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef(0);
@@ -120,6 +126,7 @@ export function useMapProperties(filters: MapFilters = {}) {
       if (requestId !== requestIdRef.current || cacheToken !== authToken) return;
       // Recheck the shared limit when the timer fires (another map may have loaded).
       const wait = Math.max(readyAt, lastRequestStartedAt + MIN_REQUEST_INTERVAL_MS) - Date.now();
+
       if (wait > 0) {
         logMap("Esperando límite entre solicitudes", { esperaMs: wait });
         timerRef.current = setTimeout(() => { void run(); }, wait);
@@ -145,19 +152,26 @@ export function useMapProperties(filters: MapFilters = {}) {
       logMap("Solicitud al servidor", { solicitud: debugRequestId, limites: bounds });
       try {
         const result = await getMapProperties(params, JSON.parse(filtersKey) as MapFilters, authToken, controller.signal);
+
         if (controller.signal.aborted || requestId !== requestIdRef.current || cacheToken !== authToken) return;
+
         if (!Array.isArray(result)) throw new Error("Invalid map response");
-        const locatedProperties = result.filter(hasValidCoordinates);
+
+        const locatedProperties = result.filter(hasValidCoordinates).map(mapApiMarkerToCard);
+
         logMap("Respuesta recibida", {
           solicitud: debugRequestId,
           duracionMs: Date.now() - startedAt,
           propiedades: locatedProperties.length,
         });
+
         cachedAreas = [
           { bounds, filtersKey, properties: locatedProperties, expiresAt: Date.now() + CACHE_TTL_MS },
           ...cachedAreas.filter((area) => area.expiresAt > Date.now()),
         ].slice(0, MAX_CACHED_AREAS);
+
         setProperties(locatedProperties);
+
       } catch {
         if (!controller.signal.aborted && requestId === requestIdRef.current && cacheToken === authToken) {
           logMap("Error al cargar zona", { solicitud: debugRequestId });

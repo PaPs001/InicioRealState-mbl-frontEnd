@@ -4,7 +4,6 @@ import type { PropertyDomain } from './types'
 export function usePropertyDomain(): PropertyDomain {
   const {
     userProperties,
-    availableProperties,
     catalogProperties,
     catalogResetVersion,
     hasMoreCatalog,
@@ -14,13 +13,11 @@ export function usePropertyDomain(): PropertyDomain {
     catalogError,
     isCatalogLoading,
     hasLoadedCatalog,
-    getPropertyById,
     loadCatalogProperties,
   } = useAuth()
 
   return {
     userProperties,
-    availableProperties,
     catalogProperties,
     catalogResetVersion,
     hasMoreCatalog,
@@ -30,7 +27,6 @@ export function usePropertyDomain(): PropertyDomain {
     catalogError,
     isCatalogLoading,
     hasLoadedCatalog,
-    getPropertyById,
     loadCatalogProperties,
   }
 }

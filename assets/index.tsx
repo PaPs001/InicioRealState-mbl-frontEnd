@@ -119,6 +119,15 @@ import Email from "./EMAIL.svg";
 import MapsIcon from "./maps/maps.svg"
 import List from "./maps/list.svg"
 
+/// Amenities in the card of properties
+import AirConditioner from "./properties/amenities/air-vent.svg"
+import BedDouble from "./properties/amenities/bed-double.svg"
+import Dresser from "./properties/amenities/Dresser.svg"
+import Droplets from "./properties/amenities/droplets.svg"
+import PoolAmenitie from "./properties/amenities/Pool.svg"
+import WifiConnection from "./properties/amenities/wifi_conection.svg"
+import WifiAmenitie from "./properties/amenities/Wifi.svg"
+
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -214,7 +223,14 @@ export const icons = {
   Balcony: Balcony,
   MapsIcon: MapsIcon,
   List: List,
-  ArmChairSe: ArmChairSe
+  ArmChairSe: ArmChairSe,
+  AirConditioner: AirConditioner,
+  BedDouble: BedDouble,
+  Dresser: Dresser,
+  Droplets: Droplets,
+  PoolAmenitie: PoolAmenitie,
+  WifiConnection: WifiConnection,
+  WifiAmenitie: WifiAmenitie 
 } as const;
 
 export const images = {
@@ -374,5 +390,12 @@ export {
   Balcony,
   MapsIcon,
   List,
-  ArmChairSe
+  ArmChairSe,
+  AirConditioner,
+  BedDouble,
+  Droplets,
+  Dresser,
+  PoolAmenitie,
+  WifiConnection,
+  WifiAmenitie,
 };

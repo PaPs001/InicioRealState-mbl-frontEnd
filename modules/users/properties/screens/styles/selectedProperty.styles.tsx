@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   propertyListContent: {
-    paddingBottom: 92,
+    paddingBottom: 105,
   },
   listSection: {
     paddingHorizontal: 20,

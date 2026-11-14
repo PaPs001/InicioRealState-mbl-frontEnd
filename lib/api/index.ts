@@ -80,12 +80,6 @@ export {
 } from './endpoints/auth'
 
 export {
-  mapApiPropertyToProperty,
-} from './endpoints/catalog'
-
-export type { PropertyCatalogItemResponse } from '@/lib/types/property'
-
-export {
   createGoogleCalendarDate,
   deleteGoogleCalendarDate,
   disconnectGoogleCalendar,

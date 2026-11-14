@@ -690,7 +690,6 @@ export function UpdateDateModal({
               visible
               value={endDateTime || getAppointmentEndDateTime(startDateTime)}
               minimumDateTime={startDateTime}
-              hourOptions={Array.from({ length: 24 }, (_, hour) => hour)}
               selectionLabel="de terminación"
               onClose={() => setIsEndDateTimePickerVisible(false)}
               onChange={(value) => onUpdateField("endDateTime", value)}

@@ -61,32 +61,22 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
     customLeadStatuses,
     errorMessage,
     filteredAgentGroups,
-    filteredPropertyOptions,
-    getPropertyById,
     isAssistantOpen,
-    isCatalogLoading,
     isCreateLeadModalOpen,
     isCreatingLead,
     isLoadingCustomLeadStatuses,
     isLoadingLeads,
-    isSelectingProperty,
     loadLeads,
     metrics,
     openCreateLeadModal,
     paginatedLeads,
-    propertyOptions,
-    propertySearchQuery,
     searchQuery,
     selectAgentGroup,
-    selectPropertyForLead,
     selectedAgentGroup,
     selectedChannel,
     selectedLead,
-    selectedProperty,
     setIsAssistantOpen,
-    setIsSelectingProperty,
     setLeadPage,
-    setPropertySearchQuery,
     setSearchQuery,
     setSelectedChannel,
     setSelectedLead,
@@ -105,7 +95,6 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
         {selectedLead ? (
           <LeadDetailScreen
             customLeadStatuses={customLeadStatuses}
-            getPropertyName={(propertyId) => getPropertyById(propertyId)?.title}
             isLoadingCustomLeadStatuses={isLoadingCustomLeadStatuses}
             lead={selectedLead.rawLead}
             mode={mode}
@@ -484,20 +473,11 @@ export function LeadsPrincipalScreen({ mode }: LeadsPrincipalScreenProps) {
 
         <LeadCreateModal
           createError={createLeadError}
-          filteredPropertyOptions={filteredPropertyOptions}
           form={createLeadForm}
           isCreating={isCreatingLead}
-          isLoadingProperties={isCatalogLoading && propertyOptions.length === 0}
-          isSelectingProperty={isSelectingProperty}
-          onBackFromPropertyPicker={() => setIsSelectingProperty(false)}
           onClose={closeCreateLeadModal}
-          onOpenPropertyPicker={() => setIsSelectingProperty(true)}
-          onPropertySearchChange={setPropertySearchQuery}
-          onSelectProperty={selectPropertyForLead}
           onSubmit={submitCreateLead}
           onUpdateField={updateCreateLeadField}
-          propertySearchQuery={propertySearchQuery}
-          selectedProperty={selectedProperty}
           visible={isCreateLeadModalOpen}
         />
       </View>

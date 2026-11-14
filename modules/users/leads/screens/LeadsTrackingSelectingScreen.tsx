@@ -17,7 +17,7 @@ import type { PropertyLead } from "@/lib/types";
 
 import { useEffect, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
+import { getLeadPropertyLabel } from "../utils/leads-principal-utils";
 import { useLeadTrackingRecords } from "../hooks/useLeadTrackingRecords";
 import { useLeadTrackingRoutes } from "../hooks/useLeadTrackingRoutes";
 import {
@@ -56,7 +56,6 @@ export const LeadsTrackingSelectingScreen = () => {
     (Array.isArray(params.status) ? params.status[0] : params.status) ||
     "LEAD NUEVO";
   const { leads, isLoading, error, reload } = useLeadTrackingRecords();
-  const { getPropertyById } = usePropertyDomain();
   const originParam = Array.isArray(params.origin)
     ? params.origin[0]
     : params.origin;
@@ -252,8 +251,7 @@ export const LeadsTrackingSelectingScreen = () => {
               lead={lead}
               onOptions={() => setActionLead(lead)}
               propertyName={
-                getPropertyById(lead.propertyId)?.title ||
-                "Sin propiedad registrada"
+                getLeadPropertyLabel(lead)
               }
               onOpen={() =>
                 router.push({

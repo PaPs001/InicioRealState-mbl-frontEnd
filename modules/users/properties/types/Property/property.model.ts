@@ -1,7 +1,6 @@
-import {
-  PropertyCatalogItemResponse,
-  TypeListProperty,
-} from "../../../../../lib/types/property";
+import type { PropertyCatalogItemResponse } from "./property.response";
+
+export type TypeListProperty = "rent" | "sale" | undefined;
 
 export type PropertieImagesMapped = {
   key: string;
@@ -17,12 +16,12 @@ export type AmenitiesMapped = {
 };
 
 ///// Interface para la tarjeta de propiedad mapeada
-export interface PropertyCard {
-  id?: string;
+export interface PropertyCard2 {
+  id: string;
   _id?: string;
   title?: string;
   address?: string;
-  price?: number;
+  price?: string;
   bedrooms?: number;
   bathrooms?: number;
   parkings?: number;
@@ -36,7 +35,8 @@ export interface PropertyCard {
   propertyView?: string;
   hasSolarPanel?: boolean;
   flex?: number;
-  balcony?: number
+  balcony?: number;
+  hasMantenance?: boolean;
 }
 
 ////// interface de propiedad seleccionada para mapear
@@ -59,4 +59,13 @@ export interface GeoData {
   placeId: string | null;
   locations: LocationsData;
   formatAddress: string | null;
+}
+
+export type PropertyMarkerCard = PropertyCard2 & { geoData: GeoData };
+
+export interface CatalogPropertyPage {
+  properties: PropertyCard2[];
+  cursor: string | null;
+  haveOtherPage: boolean;
+  limit: number;
 }

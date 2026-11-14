@@ -45,11 +45,11 @@ propertyCard: {
     justifyContent: 'center',
   },
   locationPill: {
-    position: 'absolute',
-    left: 5,
-    top: 7,
+    //position: 'absolute',
+      //left: 5,
+      //top: 7,
     height: 17,
-    maxWidth: 84,
+    maxWidth: 105,
     borderRadius: 7,
     backgroundColor: '#f6efe3',
     flexDirection: 'row',
@@ -58,9 +58,9 @@ propertyCard: {
     paddingHorizontal: 5,
   },
   SolarPanelPill: {
-    position: 'absolute',
-    left: 5,
-    top: 30,
+    //position: 'absolute',
+    //left: 5,
+    //top: 30,
     height: 17,
     maxWidth: 84,
     borderRadius: 7,
@@ -69,6 +69,27 @@ propertyCard: {
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 5,
+    justifyContent: 'center'
+  },
+  mantenancePill: {
+    //position: 'absolute',
+    //left: 5,
+    //top: 30,
+    height: 17,
+    maxWidth: 84,
+    borderRadius: 7,
+    backgroundColor: '#474747',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 5,
+    justifyContent: 'center'
+  },
+  mantenancePillText: {
+    flexShrink: 1,
+    color: '#f6f3f3',
+    fontSize: textSize.tiny,
+    fontWeight: '600',
   },
   locationPillText: {
     flexShrink: 1,
@@ -189,7 +210,7 @@ propertyCard: {
     flexShrink: 1,
     color: '#0c6740',
     fontSize: textSize.micro,
-    fontWeight: '400',
+    fontWeight: '800',
   },
   featureLabel: {
     color: '#929594',
@@ -283,9 +304,9 @@ propertyCard: {
     flex: 1
   },
   viewText:{
-    fontSize: appFontScale[5],
+    fontSize: appFontScale[6],
     flexShrink: 1,
-    color: generalColors.greenTitle
+    color: generalColors.greenTitle,
   },
   cardFooter: {
     flexDirection: 'row',

@@ -1,12 +1,9 @@
 import { coreApi } from "@/lib/api";
-import { mapApiPropertyToProperty } from "@/lib/api/endpoints/catalog";
 import type {
-  Property,
-  PropertyCatalogItemResponse,
   selectedPropertyBackendData,
 } from "@/lib/types/property";
 
-const AVAILABLE_PROPERTIES_ENDPOINT = "/users/properties/available";
+
 const SELECTED_PROPERTY = "/users/properties/";
 const detailCache = new Map<
   string,
@@ -23,34 +20,6 @@ export function getCachedSelectedProperty(propertyId: string, token: string) {
   }
   const entry = detailCache.get(propertyId);
   return entry && entry.expires > Date.now() ? entry.data : null;
-}
-
-export async function getAvailableModuleProperties(
-  token?: string | null,
-): Promise<Property[]> {
-  const data = await coreApi<PropertyCatalogItemResponse[]>(
-    AVAILABLE_PROPERTIES_ENDPOINT,
-    {
-      method: "GET",
-      token: token ?? undefined,
-    },
-  );
-
-  return data.map((item) => {
-    const property = mapApiPropertyToProperty(item);
-    const parkingAmenity = item.parking
-      ? `Estacionamiento ${item.parking}`
-      : null;
-    const amenities = parkingAmenity
-      ? [...property.amenities, parkingAmenity]
-      : property.amenities;
-
-    return {
-      ...property,
-      amenities,
-      features: amenities,
-    };
-  });
 }
 
 export async function getSelectedProperty(

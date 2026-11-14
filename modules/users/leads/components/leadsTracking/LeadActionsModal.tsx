@@ -3,7 +3,6 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { AppModal } from "@/components/AppModal";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
-import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import {
   deleteBackendLeadV2Records,
   setBackendLeadV2Status,
@@ -15,12 +14,7 @@ import {
   LeadFormField,
   LeadLastContactDateField,
   LeadOptionField,
-  PropertyPickerView,
 } from "../LeadPrincipalScreen/LeadCreateModal";
-import {
-  buildPropertyOptions,
-  normalizeSearch,
-} from "../../utils/leads-principal-utils";
 import { LEAD_ORIGINS } from "../../constants/lead-origins";
 
 import { leadTrackingStatusCards } from "../../constants/lead-tracking-layout";
@@ -33,7 +27,6 @@ function getForm(lead: PropertyLead) {
     fullName: lead.name,
     phone: lead.phone,
     email: lead.email || "",
-    propertyOfInterestId: lead.propertyId,
     origin: lead.source,
     operation:
       lead.operation || (lead.searchIntent === "rent" ? "renta" : "venta"),
@@ -63,21 +56,14 @@ export function LeadActionsModal({
   onChanged: () => Promise<void>;
 }) {
   const { authToken } = useSessionDomain();
-  const { catalogProperties, availableProperties, isCatalogLoading } =
-    usePropertyDomain();
-  const properties = useMemo(
-    () => buildPropertyOptions(catalogProperties, availableProperties),
-    [catalogProperties, availableProperties],
-  );
   const initial = useMemo(() => getForm(lead), [lead]);
   const [form, setForm] = useState(initial);
   const [mode, setMode] = useState<
-    "menu" | "delete" | "edit" | "status" | "property"
+    "menu" | "delete" | "edit" | "status"
   >("menu");
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [error, setError] = useState<string | null>(null);
-  const [propertySearch, setPropertySearch] = useState("");
 
   const update = (key: keyof typeof form, value: string) =>
     setForm((previous) => ({ ...previous, [key]: value }));
@@ -144,7 +130,6 @@ export function LeadActionsModal({
           "fullName",
           "phone",
           "email",
-          "propertyOfInterestId",
           "origin",
           "operation",
           "status",
@@ -213,7 +198,7 @@ export function LeadActionsModal({
       closeDisabled={busy}
       position="bottom"
       animationType="slide"
-      size={mode === "edit" || mode === "property" ? "large" : "medium"}
+      size={mode === "edit" ? "large" : "medium"}
       scrollable
       keyboardAvoiding
       showCloseButton
@@ -229,11 +214,11 @@ export function LeadActionsModal({
       subtitle={lead.name}
       onBack={
         mode !== "menu" && !busy
-          ? () => navigate(mode === "property" ? "edit" : "menu")
+          ? () => navigate("menu")
           : undefined
       }
       footer={
-        mode !== "menu" && mode !== "property" ? (
+        mode !== "menu" ? (
           <View style={styles.actions}>
             {error ? (
               <Text accessibilityRole="alert" style={styles.error}>
@@ -270,23 +255,6 @@ export function LeadActionsModal({
           </Text>
         ) : mode === "status" ? (
           statusPicker
-        ) : mode === "property" ? (
-          <PropertyPickerView
-            isLoading={isCatalogLoading}
-            onBack={() => navigate("edit")}
-            onSearchChange={setPropertySearch}
-            onSelectProperty={(property) => {
-              update("propertyOfInterestId", property.id);
-              navigate("edit");
-            }}
-            properties={properties.filter((property) =>
-              normalizeSearch(
-                [property.title, property.address, property.city].join(" "),
-              ).includes(normalizeSearch(propertySearch)),
-            )}
-            searchQuery={propertySearch}
-            selectedPropertyId={form.propertyOfInterestId}
-          />
         ) : (
           <>
             <LeadFormField
@@ -317,17 +285,6 @@ export function LeadActionsModal({
               value={form.estimatedBudget}
               onChangeText={(value) => update("estimatedBudget", value)}
             />
-            {action(
-              properties.find(
-                (property) => property.id === form.propertyOfInterestId,
-              )?.title || "Seleccionar propiedad",
-              () => navigate("property"),
-            )}
-            {form.propertyOfInterestId
-              ? action("Quitar propiedad", () =>
-                  update("propertyOfInterestId", ""),
-                )
-              : null}
             <LeadLastContactDateField
               value={form.lastContactDate}
               onChange={(value) => update("lastContactDate", value)}

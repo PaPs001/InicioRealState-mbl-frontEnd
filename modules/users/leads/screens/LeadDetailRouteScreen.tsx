@@ -25,7 +25,6 @@ export default function LeadDetailRouteScreen() {
           lead={lead.rawLead}
           mode={routes.mode}
           canManageLead
-          getPropertyName={(id) => flow.getPropertyById(id)?.title}
           customLeadStatuses={flow.customLeadStatuses}
           isLoadingCustomLeadStatuses={flow.isLoadingCustomLeadStatuses}
           onApplyCustomStatus={flow.applyCustomLeadStatus}

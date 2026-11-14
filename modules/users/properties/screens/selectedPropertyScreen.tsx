@@ -199,12 +199,21 @@ export const PropertiesList = () => {
           <View style={styles.propertyInformation}>
             <Text style={styles.propertyTitle}>{property?.title}</Text>
             <View style={styles.propertyAddressView}>
+              {property.zone ? (
               <View style={styles.propertyAddress}>
                 <icons.Place height={20} width={20} />
                 <Text style={styles.addressText} numberOfLines={2}>
                   {property?.zone}
                 </Text>
               </View>
+              ): (
+                <View style={styles.propertyAddress}>
+                  <icons.Place height={20} width={20} />
+                  <Text style={styles.addressText} numberOfLines={2}>
+                    PROPIEDAD SIN DIRECCION
+                  </Text>
+                </View>
+              )} 
               {property.view ? (
                 <View style={styles.propertyView}>
                   <icons.Place width={15} height={15} />
@@ -361,7 +370,13 @@ export const PropertiesList = () => {
                   markerColor={markerBackgroundColor}
                 />
               ) : (
-                <Text>Ubicación no disponible</Text>
+                <View style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1
+                }}>
+                  <Text numberOfLines={2} adjustsFontSizeToFit>No hemos logrado ubicar esta propiedad</Text>
+                </View>
               )}
             </View>
             <View style={styles.mapTextAdviseContainer}>

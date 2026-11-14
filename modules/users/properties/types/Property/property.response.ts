@@ -1,8 +1,8 @@
-import {
-  AmenitiesEstructure,
+import type {
+  AmenitiesMapped as AmenitiesEstructure,
   GeoData,
   TypeListProperty,
-} from "../../../../../lib/types/property";
+} from "./property.model";
 
 export interface PropertyEquipmentServiceResponse {
   id: string;
@@ -105,4 +105,11 @@ export interface PropertyMarkerResponse extends Pick<
   | "propertyAmenities"
 > {
   geoData: GeoData;
+}
+
+export interface CatalogFilterResponse {
+  haveOtherPage: boolean;
+  limit: number;
+  nextCursor: string | null;
+  properties: PropertyCatalogItemResponse[];
 }

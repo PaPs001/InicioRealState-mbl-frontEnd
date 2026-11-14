@@ -7,11 +7,11 @@ import {
   createAndOpenTemporaryPropertyListPdf,
   type PdfReportAgentName,
 } from "@/lib/api";
-import type { ListingProperty, Property } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePropertyDomain } from "@/contexts/auth/use-property-domain";
 import { useOperationMode } from "@/modules/settings";
-import { getSelectedProperty } from "../services/properties.service";
+
+import type { PropertyCard2 } from "../types/Property/property.model";
 
 export type ListingFilter = "all" | "rent" | "sale" | "developments";
 export const FURNISHING_FILTER_OPTIONS = [
@@ -63,53 +63,6 @@ const parsePrice = (value: string) => {
   const price = Number(value.replace(/[^\d.]/g, ""));
   return Number.isFinite(price) && price > 0 ? price : null;
 };
-const isDisplayValue = (value?: string | null) =>
-  Boolean(value?.trim()) &&
-  !/^(sin dato|sin datos|sin tipo|sin vista|sin link|sin carpeta|sin descripcion|n\/a|na|null|undefined)$/i.test(
-    value!.trim(),
-  );
-
-function mapProperty(property: Property): ListingProperty {
-  const amenities = property.amenities?.length
-    ? property.amenities
-    : (property.features ?? []);
-  const parkingMatch = amenities
-    .find((value) => /estac|parking|auto/i.test(value))
-    ?.match(/\d+/);
-  const parking = property.parking ?? Number(parkingMatch?.[0] ?? 2);
-  return {
-    id: property.id || property._id || property.title,
-    title: property.title || "Propiedad disponible",
-    code: property.address || property.city || "Inventario de renta",
-    city: property.city || "Zona sin asignar",
-    price: property.monthlyRent ?? property.price ?? 0,
-    priceLabel: property.priceLabel,
-    listingType: property.listingType,
-    view: property.view,
-    description: property.description,
-    solarPanelLabel: property.solarPanelLabel,
-    propertyType: property.type,
-    googleDriveImages: property.googleDriveImages,
-    locationUrl: property.locationUrl,
-    geoData: property.geoData,
-    bedrooms: String(property.bedrooms ?? 0),
-    bedroomsCount: property.bedrooms ?? 0,
-    bathrooms: String(property.bathrooms ?? 0),
-    bathroomsCount: property.bathrooms ?? 0,
-    parking: String(parking),
-    parkingCount: parking,
-    isFurnished:
-      property.isFurnished ?? amenities.some((value) => /amuebl/i.test(value)),
-    furnishedLabel: property.furnishedLabel,
-    isLand: property.type === "land",
-    image: property.images?.[0],
-    tags: amenities.filter(isDisplayValue).slice(0, 6),
-    status: property.status,
-    propertyDescription: property.propertyDescription,
-    titlePropertie: property.titlePropertie,
-  };
-}
-
 export function getSortLabel(option: SortOption) {
   if (option === "asc") return "Menor a mayor";
   {
@@ -325,45 +278,33 @@ export function usePropertiesScreen() {
     ]),
   );
 
-  const findCatalogProperty = useCallback(
-    (id?: string, backendId?: string) => {
-      const matches = (property: Property) =>
-        Boolean(id && (property.id === id || property._id === id)) ||
-        Boolean(
-          backendId &&
-          (property.id === backendId || property._id === backendId),
-        );
-      const property =
-        domain.catalogProperties.find(matches) ??
-        domain.availableProperties.find(matches);
-      return property ? mapProperty(property) : null;
-    },
-    [domain.catalogProperties, domain.availableProperties],
-  );
-
   const listings = useMemo(
     () =>
       domain.catalogProperties
-        .filter((property) => Boolean(property.title?.trim()))
-        .map(mapProperty),
+        .filter((property) => Boolean(property.title?.trim())),
     [domain.catalogProperties],
   );
 
   const filteredListings = useMemo(() => {
     const query = normalizeText(searchQuery);
-    const min = parsePrice(appliedFilters.min),
-      max = parsePrice(appliedFilters.max);
+    // Filtro local por rango de precio pendiente de revisar.
+    // const min = parsePrice(appliedFilters.min),
+    //   max = parsePrice(appliedFilters.max);
 
     return listings.filter((property) => {
       const searchable =
-        `${property.title} ${property.code} ${property.city}`.toLowerCase();
+        `${property.title} ${property.zone} ${property.address}`.toLowerCase();
       return (
-        (!query || searchable.includes(query)) &&
-        (min === null || property.price >= min) &&
-        (max === null || property.price <= max)
+        (!query || searchable.includes(query))
+        // && (
+        //   property.price === undefined || (
+        //     (min === null || property.price >= min) &&
+        //     (max === null || property.price <= max)
+        //   )
+        // )
       );
     });
-  }, [appliedFilters.min, appliedFilters.max, listings, searchQuery]);
+  }, [listings, searchQuery]);
 
   const activeAdvancedFilterCount = useMemo(
     () =>
@@ -425,7 +366,7 @@ export function usePropertiesScreen() {
     [],
   );
   const keyExtractor = useCallback(
-    (property: ListingProperty) => property.id,
+    (property: PropertyCard2) => property.id,
     [],
   );
   const openPdfOptions = useCallback(() => {
@@ -569,7 +510,6 @@ export function usePropertiesScreen() {
     operationMode,
     canvasWidth: Math.min(width, 440),
     filteredListings,
-    findCatalogProperty,
     keyExtractor,
     shouldSkipPdfAgentList: Boolean(currentUser?.agentPresentationKey),
     searchQuery,

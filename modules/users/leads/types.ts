@@ -1,4 +1,4 @@
-import type { LeadStatus, Property, PropertyLead } from '@/lib/types'
+import type { LeadStatus, PropertyLead } from '@/lib/types'
 import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from './constants/lead-tracking-statuses'
 import { LEAD_ORIGINS, type LeadOrigin } from './constants/lead-origins'
 
@@ -47,7 +47,6 @@ export type LeadV2CreateForm = {
   phone: string
   email: string
   status: LeadTrackingStatus
-  propertyOfInterestId: string
   lastContactDate: string
   estimatedBudget: string
   origin: LeadOrigin | ''
@@ -58,7 +57,6 @@ export function isLeadV2CreateFormValid(form: LeadV2CreateForm) {
   return [
     form.fullName,
     form.phone,
-    form.propertyOfInterestId,
     form.lastContactDate,
     form.estimatedBudget,
     form.origin,
@@ -66,16 +64,6 @@ export function isLeadV2CreateFormValid(form: LeadV2CreateForm) {
   ].every((value) => value.trim().length > 0) &&
     (LEAD_TRACKING_STATUSES as readonly string[]).includes(form.status) &&
     (LEAD_ORIGINS as readonly string[]).includes(form.origin)
-}
-
-export type LeadPropertyOption = {
-  id: string
-  title: string
-  address: string
-  city: string
-  price: number
-  image?: string
-  status?: string
 }
 
 export type LeadsV2RouteParams = {
@@ -104,14 +92,8 @@ export const emptyLeadV2CreateForm: LeadV2CreateForm = {
   phone: '',
   email: '',
   status: 'LEAD NUEVO',
-  propertyOfInterestId: '',
   lastContactDate: '',
   estimatedBudget: '',
   origin: '',
   operation: '',
-}
-
-export type LeadV2PropertySources = {
-  availableProperties: Property[]
-  catalogProperties: Property[]
 }
