@@ -1,6 +1,7 @@
 import type { Filters } from "@/lib/api/endpoints/catalog"
 import type { BackendUser } from '@/lib/services/auth-session'
 import type { Appointment, Notification, Property, PropertyLead, User } from '@/lib/types'
+import type { PropertyCard2 } from "@/modules/users/properties/types/Property/property.model"
 
 export interface AuthContextType {
   currentUser: User | null
@@ -21,12 +22,11 @@ export interface AuthContextType {
   setCurrentUser: (user: BackendUser | User | null) => void
   setAuthSession: (user: BackendUser | User | null, token: string | null, refreshToken?: string | null) => Promise<void>
   userProperties: Property[]
-  availableProperties: Property[]
   hasMoreCatalog: boolean
   loadMoreCatalogProperties: () => Promise<boolean>
   retryCatalogPage: () => Promise<boolean>
   catalogResetVersion: number
-  catalogProperties: Property[]
+  catalogProperties: PropertyCard2[]
   catalogFilters: Filters | null
   catalogError: string | null
   isCatalogLoading: boolean
@@ -34,7 +34,6 @@ export interface AuthContextType {
   userLeads: PropertyLead[]
   userAppointments: Appointment[]
   notifications: Notification[]
-  getPropertyById: (id: string) => Property | undefined
   loadCatalogProperties: (filters?: Filters, force?: boolean) => Promise<boolean>
   markNotificationAsRead: (id: string) => void
   markAllUserNotificationsAsRead: () => void
@@ -65,7 +64,6 @@ export type SessionDomain = Pick<
 export type PropertyDomain = Pick<
   AuthContextType,
   | 'userProperties'
-  | 'availableProperties'
   | 'hasMoreCatalog'
   | 'loadMoreCatalogProperties'
   | 'retryCatalogPage'
@@ -75,7 +73,6 @@ export type PropertyDomain = Pick<
   | 'catalogError'
   | 'isCatalogLoading'
   | 'hasLoadedCatalog'
-  | 'getPropertyById'
   | 'loadCatalogProperties'
 >
 

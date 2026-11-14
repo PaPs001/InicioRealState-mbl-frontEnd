@@ -1,17 +1,13 @@
 import type { Filters } from "@/lib/api/endpoints/catalog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { Property } from "@/lib/types";
-import {
-  findPropertyById,
-  getAvailableProperties,
-  loadCatalogPropertiesWithFilter,
-} from "@/lib/services/property-domain";
+import { loadCatalogPropertiesWithFilter } from "@/lib/services/property-domain";
 import { getUserProperties } from "@/lib/services/user-properties";
+import type { PropertyCard2 } from "@/modules/users/properties/types/Property/property.model";
 
 type CatalogCacheEntry = {
   key: string;
-  properties: Property[];
+  properties: PropertyCard2[];
   cursor: string | null;
   haveOtherPage: boolean;
 };
@@ -23,7 +19,7 @@ type PropertyStateParams = {
 
 export function usePropertyState(params: PropertyStateParams) {
   const { authToken, currentUserId } = params;
-  const [catalogProperties, setCatalogProperties] = useState<Property[]>([]);
+  const [catalogProperties, setCatalogProperties] = useState<PropertyCard2[]>([]);
   const [catalogResetVersion, setCatalogResetVersion] = useState(0);
   const [isCatalogLoading, setIsCatalogLoading] = useState(false);
   const [hasLoadedCatalog, setHasLoadedCatalog] = useState(false);
@@ -37,7 +33,7 @@ export function usePropertyState(params: PropertyStateParams) {
   const lastRequest = useRef<{ filters: Filters; append: boolean } | null>(
     null,
   );
-  // Keep properties and their matching continuation cursor together.
+  
   const catalogCache = useRef<
     Partial<Record<"rent" | "sale", CatalogCacheEntry>>
   >({});
@@ -50,25 +46,6 @@ export function usePropertyState(params: PropertyStateParams) {
   const userProperties = useMemo(
     () => getUserProperties(currentUserId),
     [currentUserId],
-  );
-
-  const availableProperties = useMemo(
-    () =>
-      getAvailableProperties({
-        catalogProperties,
-        currentUserId,
-        hasLoadedCatalog,
-      }),
-    [catalogProperties, currentUserId, hasLoadedCatalog],
-  );
-
-  const getPropertyById = useCallback(
-    (id: string) =>
-      findPropertyById({
-        id,
-        catalogProperties,
-      }),
-    [catalogProperties],
   );
 
   const resetPropertyState = useCallback(() => {
@@ -268,8 +245,6 @@ export function usePropertyState(params: PropertyStateParams) {
     isCatalogLoading,
     hasLoadedCatalog,
     userProperties,
-    availableProperties,
-    getPropertyById,
     loadCatalogProperties,
     resetPropertyState,
   };

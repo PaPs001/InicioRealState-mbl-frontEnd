@@ -16,7 +16,7 @@ import { useHideBottomNav } from "@/lib/navigation/bottom-nav-visibility";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 
 import type { PropertyLead } from "@/lib/types";
-import { formatLeadStatus } from "../utils/leads-principal-utils";
+import { formatLeadStatus, getLeadPropertyLabel } from "../utils/leads-principal-utils";
 import { styles } from "./styles/LeadsDetailsScreen";
 import { BackendLeadV2FollowingRecord } from "@/lib/api";
 import { isFollowingImageAttachment } from "@/modules/users/leads/hooks/useFollowingAttachmentImage";
@@ -44,7 +44,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 type LeadDetailScreenProps = {
   customLeadStatuses?: string[];
-  getPropertyName: (propertyId: string) => string | undefined;
   isLoadingCustomLeadStatuses?: boolean;
   lead: PropertyLead;
   mode?: "coordinator" | "advisor";
@@ -68,7 +67,6 @@ type LeadDetailScreenProps = {
 
 export function LeadDetailScreen({
   customLeadStatuses = [],
-  getPropertyName,
   isLoadingCustomLeadStatuses = false,
   lead,
   mode = "coordinator",
@@ -114,7 +112,7 @@ export function LeadDetailScreen({
   };
 
   const propertyName =
-    getPropertyName(lead.propertyId) || "Sin propiedad asignada";
+    getLeadPropertyLabel(lead);
   const statusCard = leadTrackingStatusCards.find(card => isLeadStatus(lead.status, card.title));
   const statusBackground = statusCard?.color ?? "#fa7878";
   const statusAccent = statusCard?.iconFill ?? statusCard?.iconColor ?? statusCard?.countColor ?? "#b12d2d";

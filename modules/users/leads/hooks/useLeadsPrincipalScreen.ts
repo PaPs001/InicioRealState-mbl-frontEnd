@@ -5,7 +5,6 @@ import { useLeadTrackingRoutes } from './useLeadTrackingRoutes'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { usePropertyDomain } from '@/contexts/auth/use-property-domain'
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import {
   createBackendLeadV2Record,
@@ -26,7 +25,6 @@ import {
   isLeadV2CreateFormValid,
   type AgentLeadGroup,
   type CoordinatorLeadV2Channel,
-  type LeadPropertyOption,
   type LeadV2CreateForm,
   type LeadV2ViewModel,
 } from '@/modules/users/leads/types'
@@ -34,8 +32,6 @@ import {
   buildAgentLeadGroups,
   buildLeadV2Alerts,
   buildLeadV2Metrics,
-  buildPropertyOptions,
-  formatPropertyPrice,
   mapPropertyLeadToLeadV2ViewModel,
   normalizeSearch,
 } from '../utils/leads-principal-utils'
@@ -53,12 +49,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
   const selectedLeadIdParam = getParamValue(routeParams.selectedLeadId)
   const trackingOpenedAt = getParamValue(routeParams.trackingOpenedAt)
   const { authToken } = useSessionDomain()
-  const {
-    availableProperties,
-    catalogProperties,
-    getPropertyById,
-    isCatalogLoading,
-  } = usePropertyDomain()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<CoordinatorLeadV2Channel>('Todos')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
@@ -79,12 +69,9 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
   const [createLeadForm, setCreateLeadForm] = useState<LeadV2CreateForm>(emptyLeadV2CreateForm)
   const [isCreatingLead, setIsCreatingLead] = useState(false)
   const [createLeadError, setCreateLeadError] = useState<string | null>(null)
-  const [isSelectingProperty, setIsSelectingProperty] = useState(false)
-  const [propertySearchQuery, setPropertySearchQuery] = useState('')
   const [dismissedRouteLeadId, setDismissedRouteLeadId] = useState<string | null>(null)
   const hasLoadedInitialLeadsRef = useRef(false)
   const hasLoadedInitialStatusesRef = useRef(false)
-  const propertyOptions = useMemo(() => buildPropertyOptions(catalogProperties, availableProperties), [availableProperties, catalogProperties])
 
   const [selectedLeadFollowings, setSelectedLeadFollowings] = useState<BackendLeadV2FollowingRecord[]>([])
 
@@ -135,12 +122,8 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
 
   const mapLeadRecord = useCallback((lead: Parameters<typeof mapPropertyLeadToLeadV2ViewModel>[0]) => {
     const screenMode = isAdviserRoute ? 'advisor' : 'coordinator'
-    const property = lead.propertyId
-      ? getPropertyById(lead.propertyId) ?? propertyOptions.find((item) => item.id === lead.propertyId)
-      : null
-    const propertyName = property?.title || property?.address || property?.city
-    return mapPropertyLeadToLeadV2ViewModel(lead, screenMode, propertyName)
-  }, [getPropertyById, isAdviserRoute, propertyOptions])
+    return mapPropertyLeadToLeadV2ViewModel(lead, screenMode)
+  }, [isAdviserRoute])
 
   const replaceLeadRecord = useCallback((lead: Parameters<typeof mapLeadRecord>[0]) => {
     const nextLead = mapLeadRecord(lead)
@@ -285,24 +268,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
   const currentLeadPage = Math.min(leadPage, totalLeadPages)
   const leadPageStart = (currentLeadPage - 1) * LEADS_PAGE_SIZE
   const paginatedLeads = filteredLeads.slice(leadPageStart, leadPageStart + LEADS_PAGE_SIZE)
-  const selectedProperty = useMemo(
-    () => propertyOptions.find((property) => property.id === createLeadForm.propertyOfInterestId) ?? null,
-    [createLeadForm.propertyOfInterestId, propertyOptions],
-  )
-  const filteredPropertyOptions = useMemo(() => {
-    const query = normalizeSearch(propertySearchQuery)
-    if (!query) return propertyOptions
-
-    return propertyOptions.filter((property) =>
-      [
-        property.title,
-        property.address,
-        property.city,
-        formatPropertyPrice(property),
-      ].some((value) => normalizeSearch(String(value ?? '')).includes(query)),
-    )
-  }, [propertyOptions, propertySearchQuery])
-
   const selectAgentGroup = (group: AgentLeadGroup) => {
     setSelectedAgentName(group.name)
     setSearchQuery('')
@@ -332,14 +297,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     setIsCreateLeadModalOpen(false)
     setCreateLeadForm(emptyLeadV2CreateForm)
     setCreateLeadError(null)
-    setIsSelectingProperty(false)
-    setPropertySearchQuery('')
-  }
-
-  const selectPropertyForLead = (property: LeadPropertyOption) => {
-    updateCreateLeadField('propertyOfInterestId', property.id)
-    setIsSelectingProperty(false)
-    setPropertySearchQuery('')
   }
 
   const createCustomLeadStatus = useCallback(async (status: string) => {
@@ -392,7 +349,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
         phone: createLeadForm.phone,
         email: createLeadForm.email,
         status: createLeadForm.status,
-        propertyOfInterestId: createLeadForm.propertyOfInterestId,
         lastContactDate: createLeadForm.lastContactDate || undefined,
         estimatedBudget: createLeadForm.estimatedBudget ? Number.parseInt(createLeadForm.estimatedBudget, 10) : undefined,
         origin: createLeadForm.origin,
@@ -524,33 +480,23 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     deleteCustomLeadStatus,
     errorMessage,
     filteredAgentGroups,
-    filteredPropertyOptions,
-    getPropertyById,
-    isCatalogLoading,
     isAssistantOpen,
     isCreateLeadModalOpen,
     isCreatingLead,
     isLoadingCustomLeadStatuses,
     isLoadingLeads,
-    isSelectingProperty,
     loadCustomLeadStatuses,
     loadLeads,
     metrics,
     openCreateLeadModal,
     paginatedLeads,
-    propertyOptions,
-    propertySearchQuery,
     searchQuery,
     selectAgentGroup,
-    selectPropertyForLead,
     selectedAgentGroup,
     selectedChannel,
     selectedLead,
-    selectedProperty,
     setIsAssistantOpen,
-    setIsSelectingProperty,
     setLeadPage,
-    setPropertySearchQuery,
     setSearchQuery,
     setSelectedChannel,
     setSelectedLead,

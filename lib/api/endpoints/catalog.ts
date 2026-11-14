@@ -1,18 +1,14 @@
 import { coreApi } from "../client";
-import { mapApiPropertyToProperty } from "@/lib/utils/property-catalog";
-import type {
-  CatalogFilterResponse,
-  PropertyMarker,
-} from "@/lib/types/property";
-
-export { mapApiPropertyToProperty } from "@/lib/utils/property-catalog";
+import type { CatalogFilterResponse, PropertyMarkerResponse } from "@/modules/users/properties/types/Property/property.response";
+import type { CatalogPropertyPage } from "@/modules/users/properties/types/Property/property.model";
+import { mapApiPropertyToCard } from "@/modules/users/properties/mappers/catalog.map";
 
 export async function getMapProperties(
   params: URLSearchParams,
   propertyFilters: MapFilters = {},
   token?: string,
   signal?: AbortSignal,
-): Promise<PropertyMarker[]> {
+): Promise<PropertyMarkerResponse[]> {
   try {
     const query = new URLSearchParams(params.toString());
 
@@ -23,7 +19,7 @@ export async function getMapProperties(
     });
     const path = `/users/properties/bounds?${query.toString()}`;
 
-    const data = await coreApi<PropertyMarker[]>(path, {
+    const data = await coreApi<PropertyMarkerResponse[]>(path, {
       method: "GET",
       token,
       signal,
@@ -89,7 +85,7 @@ export async function getFiltersProperties(
   propertyFilters: Filters,
   token?: string,
   signal?: AbortSignal,
-) {
+): Promise<CatalogPropertyPage> {
   try {
     const params = new URLSearchParams();
     const filters = {
@@ -111,7 +107,7 @@ export async function getFiltersProperties(
 
     if (!Array.isArray(data.properties))
       throw new Error("Filtered properties response must be an array");
-    const properties = data.properties.map(mapApiPropertyToProperty);
+    const properties = data.properties.map(mapApiPropertyToCard);
     const cursor = data.nextCursor;
     const haveOtherPage = data.haveOtherPage;
     return { properties, cursor, haveOtherPage, limit: data.limit };

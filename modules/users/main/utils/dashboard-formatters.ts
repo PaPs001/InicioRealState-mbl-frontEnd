@@ -81,7 +81,7 @@ export function formatCurrentDashboardDate() {
 
 export function getDefaultAppointmentStartDateTime() {
   const date = new Date();
-  date.setHours(12, 0, 0, 0);
+  date.setHours(14, 30, 0, 0);
   return date.toISOString();
 }
 

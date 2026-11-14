@@ -1,70 +1,25 @@
+import type {
+  PropertyCatalogItemResponse,
+  PropertyEquipmentServiceResponse,
+  PropertyImageResponse,
+} from "@/modules/users/properties/types/Property/property.response";
+import type { GeoData, TypeListProperty } from "@/modules/users/properties/types/Property/property.model";
+
+// Shared types still used by the property detail flow.
+export type {
+  PropertyEquipmentServiceResponse,
+  PropertyImageResponse,
+} from "@/modules/users/properties/types/Property/property.response";
+export type { GeoData } from "@/modules/users/properties/types/Property/property.model";
+
 /**
  * Tipos de Propiedades
  */
-
-///// Interfaz del formato de la respuesta del servidor 
-export interface PropertyCatalogItemResponse {
-  _id: string;
-  notionId?: string;
-  __v?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  notionOwnerId?: string | null;
-  ownerId?: string | null;
-  condo?: boolean | null;
-  rentStartDate?: string | null;
-  contractDate?: string | null;
-  address: string;
-  banner: boolean;
-  bed: string | null;
-  editedPhotos: string | null;
-  googleDriveImages: string | null;
-  id: string;
-  isALand: boolean | string | number | null;
-  isLand?: boolean | string | number | null;
-  list: "sale" | "rent" | string;
-  locationUrl: string | null;
-  geoData?: GeoData | null;
-  maxPrice: number | null;
-  minPrice: number | null;
-  name: string;
-  offer: boolean;
-  originalPhotos: string | null;
-  owner: string | null;
-  parking: string | null;
-  priceData: string | null;
-  priceSpecial: number | null;
-  propertyAmenities: string | null;
-  propertyArea: string | null;
-  propertyDescription: string | null;
-  propertyDimensions: string | null;
-  propertyInformation: string | null;
-  propertyPayment: string | null;
-  propertyType?: string | null;
-  propertyView: string | null;
-  pool?: boolean | null;
-  residentialDevelopment?: string | null;
-  security24_7?: boolean | null;
-  solarPanel?: string | null;
-  status: string | null;
-  urlImage: string | null;
-  virtualRoute?: string | null;
-  wc: string | null;
-  zonaText: string | null;
-}
-
-export interface CatalogFilterResponse {
-  haveOtherPage: boolean;
-  limit: number;
-  nextCursor: string | null;
-  properties: PropertyCatalogItemResponse[];
-}
 
 /// aqui comienzan los tipos definidos para el catalogo
 export type PropertyType = "house" | "apartment" | "land";
 export type PropertyStatus = PropertyCatalogItemResponse["status"];
 
-export type TypeListProperty = "rent" | "sale" | undefined;
 
 export type Images = {
   key: string;
@@ -79,18 +34,6 @@ export type Images = {
 
 
 ///// aqui empiezan las interfaces
-
-export interface LocationsData {
-  type: "Point";
-  /** GeoJSON order: [longitude, latitude]. */
-  coordinates: [number, number];
-}
-export interface GeoData {
-  place: string | null;
-  placeId: string | null;
-  locations: LocationsData;
-  formatAddress: string | null;
-}
 
 export interface ListingCardProperty {
   id: string;
@@ -125,19 +68,6 @@ export interface SelectedProperty extends ListingCardProperty {
   hasMantenimiento: boolean;
   images: Images[];
 }
-
-export type PropertyMarker = Pick<ListingCardProperty, "_id" | "id"> & Partial<Pick<
-  PropertyCatalogItemResponse,
-  "name" | "priceData" | "parking" | "wc" | "urlImage" | "solarPanel" | "address"
-  | "isALand" | "bed" | "propertyView" | "zonaText"
->> & {
-  list: PropertyCatalogItemResponse["list"];
-  status: PropertyCatalogItemResponse["status"];
-  geoData?: GeoData | null;
-  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
-};
-
-export type LocatedPropertyMarker = PropertyMarker & { geoData: GeoData };
 
 export interface Property {
   id: string;
@@ -181,24 +111,8 @@ export type AmenitiesEstructure = {
   color: string;
 };
 
-export interface PropertyEquipmentServiceResponse {
-  id: string;
-  _id: string;
-  name: string;
-  color: string;
-}
-
-export interface PropertyImageResponse {
-  _id: string;
-  key: string;
-  url: string;
-  zone?: string | null;
-  contentType: string;
-  originalName: string;
-  category: string;
-}
-
-export interface selectedPropertyBackendData extends PropertyCatalogItemResponse {
+export interface selectedPropertyBackendData extends Omit<PropertyCatalogItemResponse, "equipmentServices" | "list"> {
+  list: string;
   titleApp: string | null;
   description: string | null;
   amenities: AmenitiesEstructure[] | null;
@@ -293,36 +207,5 @@ export interface SaleRentRegistration {
   reviewedBy?: string;
   notes?: string;
 }
-
-export type ListingProperty = {
-  id: string;
-  title: string;
-  code: string;
-  city: string;
-  price: number;
-  priceLabel?: string;
-  listingType?: Property["listingType"];
-  view?: string;
-  description?: string;
-  solarPanelLabel?: string;
-  propertyType: Property["type"];
-  googleDriveImages?: string;
-  locationUrl?: string;
-  geoData?: GeoData | null;
-  bedrooms: string;
-  bedroomsCount: number;
-  bathrooms: string;
-  bathroomsCount: number;
-  parking: string;
-  parkingCount: number;
-  isFurnished: boolean;
-  furnishedLabel?: string;
-  isLand: boolean;
-  image?: string;
-  tags: string[];
-  status: Property["status"];
-  propertyDescription?: string;
-  titlePropertie?: string;
-};
 
 //// aqui terminan las interfaces

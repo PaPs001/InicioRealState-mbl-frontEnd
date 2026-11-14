@@ -3,6 +3,14 @@ import { borderColor, generalColors, userColors } from "@/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  timePickerHandle: {
+    width: 50,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#d4d4d4',
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
   appointmentModalGestureRoot: {
     flex: 1,
   },
@@ -17,7 +25,7 @@ export const styles = StyleSheet.create({
     alignContent: 'center',
   },
   title:{
-    fontSize: appFontScale[23],
+    fontSize: appFontScale[25],
     color: generalColors.greenTitle
   },
   subtitle:{
@@ -144,44 +152,6 @@ export const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: textSize.body,
     fontWeight: '700',
-  },
-  timeContainer:{
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-  },
-  timeSelectorContainer:{
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appointmentDatePickerSectionTitle: {
-    color: '#3d5a40',
-    fontSize: textSize.label,
-    fontWeight: '700',
-  },
-  appointmentDatePickerOptionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    backgroundColor: 'red',
-    paddingVertical: 7,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    borderWidth: 1
-  },
-  appointmentDatePickerFooter: {
-    gap: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectionButtonContainer:{
-    flexDirection: 'row',
-    gap: 6
-  },
-  appointmentDatePickerValue: {
-    color: '#232323',
-    fontSize: textSize.subtitle,
-    fontWeight: '600',
   },
 
 })

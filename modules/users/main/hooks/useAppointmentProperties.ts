@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { getFiltersProperties } from "@/lib/api/endpoints/catalog";
 import { useSessionDomain } from "@/contexts/auth/use-session-domain";
-import type { DatePropertyCard, Property } from "@/lib/types";
+import type { DatePropertyCard } from "@/lib/types";
+import type { PropertyCard2 } from "@/modules/users/properties/types/Property/property.model";
 import { getPropertyDisplayName } from "../utils/dashboard-formatters";
 
-export function mapPropertyToDatePropertyCard(property: Property): DatePropertyCard {
+export function mapPropertyToDatePropertyCard(property: PropertyCard2): DatePropertyCard {
   return {
     id: property.id || property._id || "",
-    title: getPropertyDisplayName(property),
-    address: property.city || property.address || "",
-    listingType: property.listingType,
+    title: property.title || property.address || property.id || property._id || "Propiedad",
+    address: property.zone || property.address || "",
+    listingType: property.typeListProperty,
   };
 }
 

@@ -1,7 +1,6 @@
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { LocatedPropertyMarker } from "@/lib/types";
 import type { usePropertiesScreen } from "../../hooks/usePropertiesScreen";
 import { styles } from "./PropertiesMap.styles";
 import { logos } from "@/assets";
@@ -9,7 +8,7 @@ import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../propertiesList/PropertyListCard";
 import { useMapProperties } from "../../hooks/useMapProperties";
 import { MapLoadingIndicator } from "./MapLoadingIndicator";
-import { mapMarkerToListing } from "../../mappers/map.mappers";
+import type { PropertyMarkerCard } from "../../types/Property/property.model";
 
 type PropertiesMapProps = {
   controller: Pick<
@@ -30,7 +29,7 @@ export function PropertiesMap({
     null,
   );
   const locationGroups = useMemo(() => {
-    const groups = new Map<string, LocatedPropertyMarker[]>();
+    const groups = new Map<string, PropertyMarkerCard[]>();
     for (const property of properties) {
       const key = property.geoData.locations.coordinates.join(",");
       const group = groups.get(key) ?? [];
@@ -76,8 +75,8 @@ export function PropertiesMap({
           {locationGroups.map((group) => {
             const property = group.properties[0];
             const isGroup = group.properties.length > 1;
-            const isSale = property.list === "sale";
-            const isRent = property.list === "rent";
+            const isSale = property.typeListProperty === "sale";
+            const isRent = property.typeListProperty === "rent";
             const markerBackgroundColor = isGroup
               ? userColors.adviser.primary
               : isSale
@@ -95,7 +94,7 @@ export function PropertiesMap({
                 accessibilityLabel={
                   isGroup
                     ? `${group.properties.length} propiedades en esta ubicación`
-                    : property.name || "Propiedad en esta ubicación"
+                    : property.title || "Propiedad en esta ubicación"
                 }
                 coordinate={{
                   longitude: property.geoData.locations.coordinates[0],
@@ -150,19 +149,16 @@ export function PropertiesMap({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={selectedGroup.properties.length > 1 ? styles.propertyList : undefined}
             >
-              {selectedGroup.properties.map((marker) => {
-                const property = mapMarkerToListing(marker);
-                return (
-                  <PropertyCard
-                    key={marker._id || marker.id}
-                    property={property}
-                    isSelected={false}
-                    isSelecting={false}
-                    onToggleSelection={controller.togglePropertySelection}
-                    onPress={controller.handlePropertyPress}
-                  />
-                );
-              })}
+              {selectedGroup.properties.map((property) => (
+                <PropertyCard
+                  key={property._id || property.id}
+                  property={property}
+                  isSelected={false}
+                  isSelecting={false}
+                  onToggleSelection={controller.togglePropertySelection}
+                  onPress={controller.handlePropertyPress}
+                />
+              ))}
             </ScrollView>
           </View>
         )}

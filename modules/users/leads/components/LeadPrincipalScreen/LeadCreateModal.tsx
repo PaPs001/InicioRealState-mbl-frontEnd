@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,19 +13,12 @@ import {
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import {
-  CalendarDays,
-  ChevronRight,
-  Clock3,
-  Search,
-} from "lucide-react-native";
+import { CalendarDays } from "lucide-react-native";
 import { styles } from "../styles/LeadCreateModal.styles";
 import {
   isLeadV2CreateFormValid,
-  type LeadPropertyOption,
   type LeadV2CreateForm,
 } from "@/modules/users/leads/types";
-import { formatPropertyPrice } from "@/modules/users/leads/utils/leads-principal-utils";
 import { AppModal } from "@/components/AppModal";
 import { LEAD_TRACKING_STATUSES } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import { LEAD_ORIGINS } from "@/modules/users/leads/constants/lead-origins";
@@ -37,39 +29,21 @@ const leadOperationOptions = [
 
 type LeadCreateModalProps = {
   createError: string | null;
-  filteredPropertyOptions: LeadPropertyOption[];
   form: LeadV2CreateForm;
   isCreating: boolean;
-  isLoadingProperties: boolean;
-  isSelectingProperty: boolean;
-  onBackFromPropertyPicker: () => void;
   onClose: () => void;
-  onOpenPropertyPicker: () => void;
-  onPropertySearchChange: (value: string) => void;
-  onSelectProperty: (property: LeadPropertyOption) => void;
   onSubmit: () => void;
   onUpdateField: (field: keyof LeadV2CreateForm, value: string) => void;
-  propertySearchQuery: string;
-  selectedProperty: LeadPropertyOption | null;
   visible: boolean;
 };
 
 export function LeadCreateModal({
   createError,
-  filteredPropertyOptions,
   form,
   isCreating,
-  isLoadingProperties,
-  isSelectingProperty,
-  onBackFromPropertyPicker,
   onClose,
-  onOpenPropertyPicker,
-  onPropertySearchChange,
-  onSelectProperty,
   onSubmit,
   onUpdateField,
-  propertySearchQuery,
-  selectedProperty,
   visible,
 }: LeadCreateModalProps) {
   const isFormValid = isLeadV2CreateFormValid(form);
@@ -103,89 +77,70 @@ export function LeadCreateModal({
         </Pressable>
       }
     >
-      {isSelectingProperty ? (
-        <PropertyPickerView
-          isLoading={isLoadingProperties}
-          onBack={onBackFromPropertyPicker}
-          onSearchChange={onPropertySearchChange}
-          onSelectProperty={onSelectProperty}
-          properties={filteredPropertyOptions}
-          searchQuery={propertySearchQuery}
-          selectedPropertyId={form.propertyOfInterestId}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <LeadFormField
+          label="Nombre completo"
+          placeholder="Nombre del lead"
+          value={form.fullName}
+          onChangeText={(value) => onUpdateField("fullName", value)}
         />
-      ) : (
-        <> 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <LeadFormField
-              label="Nombre completo"
-              placeholder="Nombre del lead"
-              value={form.fullName}
-              onChangeText={(value) => onUpdateField("fullName", value)}
-            />
-            <LeadOptionField
-              label="Estatus del lead"
-              options={LEAD_TRACKING_STATUSES.map((status) => ({ label: status, value: status }))}
-              selectedValue={form.status}
-              onSelect={(value) => onUpdateField("status", value)}
-            />
-            <LeadFormField
-              label="Telefono"
-              placeholder="Numero de telefono"
-              value={form.phone}
-              onChangeText={(value) => onUpdateField("phone", value)}
-              keyboardType="phone-pad"
-            />
-            <LeadFormField
-              label="Correo"
-              placeholder="correo@ejemplo.com"
-              value={form.email}
-              onChangeText={(value) => onUpdateField("email", value)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <LeadFormField
-              label="Presupuesto Estimado"
-              placeholder="Ej. 250000"
-              value={form.estimatedBudget}
-              onChangeText={(value) =>
-                onUpdateField("estimatedBudget", value.replace(/[^0-9]/g, ""))
-              }
-              keyboardType="numeric"
-            />
-            <PropertySelectField
-              property={selectedProperty}
-              propertyId={form.propertyOfInterestId}
-              onPress={onOpenPropertyPicker}
-            />
-            <LeadLastContactDateField
-              value={form.lastContactDate}
-              onChange={(value) => onUpdateField("lastContactDate", value)}
-            />
-            <LeadOptionField
-              label="Origen"
-              options={LEAD_ORIGINS.map((option) => ({
-                label: option,
-                value: option,
-              }))}
-              selectedValue={form.origin}
-              onSelect={(value) => onUpdateField("origin", value)}
-            />
-            <LeadOptionField
-              label="Operacion"
-              options={leadOperationOptions}
-              selectedValue={form.operation}
-              onSelect={(value) => onUpdateField("operation", value)}
-            />
+        <LeadOptionField
+          label="Estatus del lead"
+          options={LEAD_TRACKING_STATUSES.map((status) => ({ label: status, value: status }))}
+          selectedValue={form.status}
+          onSelect={(value) => onUpdateField("status", value)}
+        />
+        <LeadFormField
+          label="Telefono"
+          placeholder="Numero de telefono"
+          value={form.phone}
+          onChangeText={(value) => onUpdateField("phone", value)}
+          keyboardType="phone-pad"
+        />
+        <LeadFormField
+          label="Correo"
+          placeholder="correo@ejemplo.com"
+          value={form.email}
+          onChangeText={(value) => onUpdateField("email", value)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <LeadFormField
+          label="Presupuesto Estimado"
+          placeholder="Ej. 250000"
+          value={form.estimatedBudget}
+          onChangeText={(value) =>
+            onUpdateField("estimatedBudget", value.replace(/[^0-9]/g, ""))
+          }
+          keyboardType="numeric"
+        />
+        <LeadLastContactDateField
+          value={form.lastContactDate}
+          onChange={(value) => onUpdateField("lastContactDate", value)}
+        />
+        <LeadOptionField
+          label="Origen"
+          options={LEAD_ORIGINS.map((option) => ({
+            label: option,
+            value: option,
+          }))}
+          selectedValue={form.origin}
+          onSelect={(value) => onUpdateField("origin", value)}
+        />
+        <LeadOptionField
+          label="Operacion"
+          options={leadOperationOptions}
+          selectedValue={form.operation}
+          onSelect={(value) => onUpdateField("operation", value)}
+        />
 
-            {createError ? (
-              <Text style={styles.modalErrorText}>{createError}</Text>
-            ) : null}
-          </ScrollView>
-        </>
-      )}
+        {createError ? (
+          <Text style={styles.modalErrorText}>{createError}</Text>
+        ) : null}
+      </ScrollView>
     </AppModal>
   );
 }
@@ -297,184 +252,6 @@ export function LeadOptionField({
         })}
       </View>
     </View>
-  );
-}
-
-function PropertySelectField({
-  onPress,
-  property,
-  propertyId,
-}: {
-  onPress: () => void;
-  property: LeadPropertyOption | null;
-  propertyId: string;
-}) {
-  return (
-    <View style={styles.formField}>
-      <Text style={styles.formLabel}>Propiedad/interes</Text>
-      <TouchableOpacity
-        style={styles.propertySelectButton}
-        activeOpacity={0.85}
-        onPress={onPress}
-      >
-        <View style={styles.propertySelectCopy}>
-          <Text style={styles.propertySelectTitle} numberOfLines={1}>
-            {property?.title || "Seleccionar propiedad"}
-          </Text>
-          <Text style={styles.propertySelectMeta} numberOfLines={1}>
-            {property
-              ? [property.address, property.city].filter(Boolean).join(" - ") ||
-                "Propiedad seleccionada"
-              : propertyId
-                ? "Propiedad seleccionada"
-                : "Toca para escoger del listado"}
-          </Text>
-        </View>
-        <ChevronRight size={17} color="#0f362b" />
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-export function PropertyPickerView({
-  isLoading,
-  onBack,
-  onSearchChange,
-  onSelectProperty,
-  properties,
-  searchQuery,
-  selectedPropertyId,
-}: {
-  isLoading: boolean;
-  onBack: () => void;
-  onSearchChange: (value: string) => void;
-  onSelectProperty: (property: LeadPropertyOption) => void;
-  properties: LeadPropertyOption[];
-  searchQuery: string;
-  selectedPropertyId: string;
-}) {
-  return (
-    <>
-      <View style={styles.modalHeader}>
-        <View>
-          <Text style={styles.modalTitle}>Escoger propiedad</Text>
-          <Text style={styles.modalSubtitle}>
-            Selecciona una propiedad del listado
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.modalCloseButton}
-          activeOpacity={0.85}
-          onPress={onBack}
-        >
-          <Text style={styles.modalCloseText}>Volver</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.propertySearchRow}>
-        <Search size={16} color="#837f7c" />
-        <TextInput
-          style={styles.propertySearchInput}
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          placeholder="Buscar por nombre o zona"
-          placeholderTextColor="#9a9188"
-        />
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {isLoading ? (
-          <View style={styles.emptyState}>
-            <Clock3 size={24} color="#c8c1b8" />
-            <Text style={styles.emptyStateText}>Cargando propiedades...</Text>
-          </View>
-        ) : properties.length > 0 ? (
-          <View style={styles.propertyPickerList}>
-            {properties.map((property) => (
-              <PropertyPickerCard
-                isSelected={property.id === selectedPropertyId}
-                key={property.id}
-                property={property}
-                onPress={() => onSelectProperty(property)}
-              />
-            ))}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Search size={24} color="#c8c1b8" />
-            <Text style={styles.emptyStateText}>
-              Sin propiedades para este filtro
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </>
-  );
-}
-
-function PropertyPickerCard({
-  isSelected,
-  onPress,
-  property,
-}: {
-  isSelected: boolean;
-  onPress: () => void;
-  property: LeadPropertyOption;
-}) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.propertyPickerCard,
-        isSelected && styles.propertyPickerCardSelected,
-      ]}
-      activeOpacity={0.85}
-      onPress={onPress}
-    >
-      {property.image ? (
-        <Image
-          source={{ uri: property.image }}
-          style={styles.propertyPickerImage}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.propertyPickerImagePlaceholder}>
-          <Text style={styles.propertyPickerImageText}>
-            {property.title.slice(0, 1).toUpperCase()}
-          </Text>
-        </View>
-      )}
-      <View style={styles.propertyPickerBody}>
-        <Text style={styles.propertyPickerTitle} numberOfLines={1}>
-          {property.title}
-        </Text>
-        <Text style={styles.propertyPickerAddress} numberOfLines={1}>
-          {property.address || property.city || "Sin ubicacion registrada"}
-        </Text>
-        <View style={styles.propertyPickerMetaRow}>
-          <Text style={styles.propertyPickerPrice} numberOfLines={1}>
-            {formatPropertyPrice(property)}
-          </Text>
-        </View>
-      </View>
-      <View
-        style={[
-          styles.propertyPickerPill,
-          isSelected && styles.propertyPickerPillSelected,
-        ]}
-      >
-        <Text
-          style={[
-            styles.propertyPickerPillText,
-            isSelected && styles.propertyPickerPillTextSelected,
-          ]}
-        >
-          {isSelected ? "Lista" : "Elegir"}
-        </Text>
-      </View>
-    </TouchableOpacity>
   );
 }
 

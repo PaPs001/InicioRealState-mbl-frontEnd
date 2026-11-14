@@ -6,8 +6,6 @@ import MapView, {
 import { ScrollView, Text, View } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { PropertyMarker } from "@/lib/types";
-import { PropertyListHeader } from "../components/propertiesList/PropertyListHeader";
 import { usePropertiesScreen } from "../hooks/usePropertiesScreen";
 import { styles } from "./styles/MapsProperties.styles";
 import { MapsButton } from "./PropertiesListScreen";
@@ -16,6 +14,7 @@ import { generalColors, userColors } from "@/theme";
 import { PropertyCard } from "../components/propertiesList/PropertyListCard";
 import { useMapProperties } from "../hooks/useMapProperties";
 import { MapLoadingIndicator } from "../components/propertiesMap/MapLoadingIndicator";
+import type { PropertyMarkerCard } from "../types/Property/property.model";
 
 const INITIAL_REGION: Region = {
   latitude: 20.6937383,
@@ -28,12 +27,9 @@ export const MapsPropertiesScreen = () => {
   const controller = usePropertiesScreen();
   const { properties, error, isLoading, loadProperties, cancelPendingLoad } =
     useMapProperties();
-  const [selectedMarker, setSelectedMarker] = useState<PropertyMarker | null>(
+  const [selectedMarker, setSelectedMarker] = useState<PropertyMarkerCard | null>(
     null,
   );
-  const selectedProperty = selectedMarker
-    ? controller.findCatalogProperty(selectedMarker.id, selectedMarker._id)
-    : null;
   const [isMapReady, setIsMapReady] = useState(false);
   const regionRef = useRef(INITIAL_REGION);
 
@@ -43,7 +39,6 @@ export const MapsPropertiesScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/*<PropertyListHeader canUsePdfExporter={false} controller={controller} />*/}
       {error && <Text accessibilityRole="alert">{error}</Text>}
       <View style={styles.container}>
         <MapView
@@ -61,8 +56,8 @@ export const MapsPropertiesScreen = () => {
           style={styles.mapView}
         >
           {properties.map((property) => {
-            const isSale = property.list === "sale";
-            const isRent = property.list === "rent";
+            const isSale = property.typeListProperty === "sale";
+            const isRent = property.typeListProperty === "rent";
             const markerBackgroundColor = isSale
               ? generalColors.saleColor
               : isRent
@@ -99,19 +94,13 @@ export const MapsPropertiesScreen = () => {
         {selectedMarker && (
           <View style={styles.selectedPropertyCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedProperty ? (
-                <PropertyCard
-                  property={selectedProperty}
-                  isSelected={false}
-                  isSelecting={false}
-                  onToggleSelection={controller.togglePropertySelection}
-                  onPress={controller.handlePropertyPress}
-                />
-              ) : (
-                <Text>
-                  Esta propiedad no esta disponible en el catologo cargado.
-                </Text>
-              )}
+              <PropertyCard
+                property={selectedMarker}
+                isSelected={false}
+                isSelecting={false}
+                onToggleSelection={controller.togglePropertySelection}
+                onPress={controller.handlePropertyPress}
+              />
             </ScrollView>
           </View>
         )}

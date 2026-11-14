@@ -42,7 +42,6 @@ export const amenitiesConfigSelectedProperty: Record<string, AmenityConfig>={
         icon: icons.Barbell,
         label: "gimnasio"
     }
-
 }
 
 export const propertyStatusConfig = {

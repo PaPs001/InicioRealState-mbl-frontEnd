@@ -1,5 +1,4 @@
-import type { Property, PropertyCatalogItemResponse, PropertyMarker } from "@/lib/types/property";
-import { extractNumber, normalizeValueToText } from "./index";
+import { AmenitiesMapped } from "@/modules/users/properties/types/Property/property.model";
 
 export function formatPriceData(item: string): number | undefined {
   if (!item) return undefined;
@@ -11,12 +10,14 @@ export function formatPriceData(item: string): number | undefined {
   return Number.isFinite(amount) ? amount : undefined;
 }
 
-export function extractBoolean(value: string | undefined): boolean | undefined {
-  if(!value) return undefined;
-
-  const normalizeText = value.toLowerCase();
-
-  return normalizeText === "si" ? true : false
+export function extractBoolean(value: string | null | undefined): boolean {
+  return (
+    value
+      ?.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase() === "si"
+  );
 }
 
 export function formatText(value?: string | null): string {
@@ -31,7 +32,10 @@ export function formatText(value?: string | null): string {
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-export function extractBefore(item: string, keyword: RegExp): number | undefined {
+export function extractBefore(
+  item: string,
+  keyword: RegExp,
+): number | undefined {
   const match = item.match(new RegExp(`(\\d+)\\s*${keyword.source}`, "i"));
   return match ? Number(match[1]) : undefined;
 }
@@ -59,192 +63,49 @@ export function formattedBed(value: string | null): FormattedBed {
   };
 }
 
+export function extractMaintining(item: AmenitiesMapped[] | undefined): boolean | undefined{
+  if(!item) return undefined 
 
-function normalizeOptionalText(value: unknown): string | undefined {
-  const normalizedValue = normalizeValueToText(value)?.trim();
-  if (!normalizedValue) return undefined;
-  if (/^(sin dato|sin datos|n\/a|na|null|undefined)$/i.test(normalizedValue))
-    return undefined;
-  return normalizedValue;
+  const hasMaintenance = item.some((amenitie) => amenitie.name.trim().toLowerCase() === "mantenimiento")
+
+  return hasMaintenance;
 }
 
-function isStringValue(value: string | undefined): value is string {
-  return Boolean(value);
-}
+const generalPrhases = [
+  "totalmente equipada", 
+  "cocina integral",
+  "semiequipada",
+  "sin muebles",
+  "cocina y closets",
+  "semiamueblada",
+  "sin equipar"
+]
 
-export function normalizeListingType(
-  list: PropertyCatalogItemResponse["list"],
-): Property["listingType"] {
-  if (list === "rent") return "rent";
-  if (list === "sale") return "sale";
-  return undefined;
-}
+const expulsedPrhases = [
+  "no aplica",
+  "paneles solares"
+]
 
-function normalizeStatus(text: string | null) {
-  if (text) {
-    const cleaned = text
-      .replace(/\p{Extended_Pictographic}/gu, "")
-      .replace(/\uFE0F|\u200D/gu, "")
-      .trim()
-      .toLowerCase();
-    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  }
-  return null;
-}
+export function extractAmenities(item: AmenitiesMapped[]){
+  const amenities: AmenitiesMapped[] = []
+  let hasMantenance = false
+  let statusAmenities = ""
 
-export function normalizeBooleanFlag(value: unknown): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value === 1;
-
-  const normalizedValue = normalizeOptionalText(value)?.toLowerCase();
-  return (
-    normalizedValue === "true" ||
-    normalizedValue === "1" ||
-    normalizedValue === "si" ||
-    normalizedValue === "sí" ||
-    normalizedValue === "yes"
-  );
-}
-
-function getPropertyTypeText(item: PropertyCatalogItemResponse): string {
-  return [
-    normalizeOptionalText(item.propertyType),
-    normalizeOptionalText(item.propertyInformation),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-}
-
-function isLandProperty(item: PropertyCatalogItemResponse): boolean {
-  if (normalizeBooleanFlag(item.isALand) || normalizeBooleanFlag(item.isLand))
-    return true;
-
-  const normalizedType = getPropertyTypeText(item);
-
-  return normalizedType.includes("terreno") || normalizedType.includes("land");
-}
-
-function getPropertyType(item: PropertyCatalogItemResponse): Property["type"] {
-  const normalizedType = getPropertyTypeText(item);
-
-  if (isLandProperty(item)) {
-    return "land";
+  for(const service of item){
+    if(service.name.trim().toLowerCase() === "mantenimiento"){
+      hasMantenance = true
+    } else if(generalPrhases.some(prhase => service.name.trim().toLowerCase().includes(prhase))){
+      statusAmenities = service.name.trim()
+    } else {
+      if(!expulsedPrhases.some(prhase => service.name.trim().toLowerCase().includes(prhase))){
+        amenities.push(service)
+      }
+    }
   }
 
-  if (normalizedType.includes("casa") || normalizedType.includes("house")) {
-    return "house";
-  }
-
-  return "apartment";
-}
-
-function isFurnishedProperty(item: PropertyCatalogItemResponse): boolean {
-  const searchableText = [
-    item.propertyAmenities,
-    item.propertyInformation,
-    item.propertyDescription,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/sin muebles|no amuebl/i.test(searchableText)) {
-    return false;
-  }
-
-  return /amuebl|mueble|equipad/i.test(searchableText);
-}
-
-function getFurnishedLabel(
-  item: PropertyCatalogItemResponse,
-): string | undefined {
-  const values = [
-    item.propertyAmenities,
-    item.propertyInformation,
-    item.propertyDescription,
-  ]
-    .map(normalizeOptionalText)
-    .filter(isStringValue);
-
-  return values.find((value) => /amuebl|mueble|equipad/i.test(value));
-}
-
-function buildAmenities(item: PropertyCatalogItemResponse): string[] {
-  const amenities = (normalizeOptionalText(item.propertyAmenities) || "")
-    .split(/,|\n/)
-    .map(normalizeOptionalText)
-    .filter(isStringValue);
-
-  if (item.pool) {
-    amenities.push("Alberca");
-  }
-
-  if (item.security24_7) {
-    amenities.push("Seguridad 24/7");
-  }
-
-  const solarPanel = normalizeOptionalText(item.solarPanel);
-  if (solarPanel && solarPanel.toLowerCase() !== "no") {
-    amenities.push("Panel solar");
-  }
-
-  const residentialDevelopment = normalizeOptionalText(
-    item.residentialDevelopment,
-  );
-  if (residentialDevelopment) {
-    amenities.push(residentialDevelopment);
-  }
-
-  return Array.from(new Set(amenities));
-}
-
-export function mapApiPropertyToProperty(
-  item: PropertyCatalogItemResponse,
-): Property {
-  const parsedPrice = item.minPrice ?? item.maxPrice ?? item.priceSpecial ?? 0;
-  const area =
-    extractNumber(item.propertyArea) || extractNumber(item.propertyDimensions);
-  const bedrooms = extractNumber(item.bed);
-  const bathrooms = extractNumber(item.wc);
-  const parking = extractNumber(item.parking);
-  const amenities = buildAmenities(item);
-  const listingType = normalizeListingType(item.list);
-  const isLand = isLandProperty(item);
-  const status = normalizeStatus(item.status);
   return {
-    _id: item._id,
-    id: item.id,
-    title: item.name || "Propiedad sin titulo",
-    address: item.address || "Sin direccion",
-    city: item.zonaText || "Sin ubicacion",
-    price: parsedPrice,
-    priceLabel: normalizeOptionalText(item.priceData),
-    monthlyRent: item.list === "rent" ? parsedPrice : undefined,
-    type: getPropertyType(item),
-    listingType,
-    bedrooms: isLand ? 0 : bedrooms,
-    bathrooms: isLand ? 0 : bathrooms,
-    parking: isLand ? 0 : parking,
-    view: normalizeOptionalText(item.propertyView),
-    isFurnished: isFurnishedProperty(item),
-    furnishedLabel: getFurnishedLabel(item),
-    solarPanelLabel:
-      normalizeOptionalText(item.solarPanel)?.toLowerCase() === "no"
-        ? undefined
-        : normalizeOptionalText(item.solarPanel),
-    sqMeters: area,
-    size: area,
-    images: item.urlImage ? [item.urlImage] : [],
-    googleDriveImages: normalizeOptionalText(item.googleDriveImages),
-    locationUrl: normalizeOptionalText(item.locationUrl),
-    geoData: item.geoData,
-    status,
-    description:
-      normalizeOptionalText(item.propertyDescription) ||
-      normalizeOptionalText(item.name),
     amenities,
-    features: amenities,
-    createdAt: new Date().toISOString(),
-  };
+    hasMantenance,
+    statusAmenities
+  }
 }
