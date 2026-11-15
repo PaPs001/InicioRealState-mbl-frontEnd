@@ -147,48 +147,81 @@ export const PropertyCard = memo(function PropertyCard({
         ) : null}
         {amenities?.length ? (
           <View
-            style={[{
-              height: 40,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderBottomWidth: 0.5,
-              borderBottomColor: "#d8d0c5",
-              gap: 3,
-              paddingHorizontal: 3,
-            }, hasOne && {
-              justifyContent: 'center'
-            }]}
+            style={[
+              {
+                height: 40,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottomWidth: 0.5,
+                borderBottomColor: "#d8d0c5",
+                paddingHorizontal: 3,
+              },
+              hasOne && {
+                justifyContent: "center",
+              },
+            ]}
           >
-            {amenities?.map((amenitie) => (
-              <View
-                style={[hasOne && {
-                  width: "100%",
-                  flex: 1,
-                },{
-                  width: "30%",
-                  minWidth: 0,
-                  alignItems: "center",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                }]}
-              >
-                <icons.ActionIcon />
-                <Text
-                  style={{
-                    color: "#929594",
-                    fontSize: appFontScale[6],
-                    lineHeight: platformLineHeight(8),
-                    textAlign: 'center',
-                  }}
-                  key={amenitie.name}
-                  adjustsFontSizeToFit
-                  numberOfLines={2}
+            {amenities?.map((amenitie) => {
+              const AmenityIcon = amenitie.icons;
+
+              return (
+                <View
+                  style={[
+                    hasOne && {
+                      width: "100%",
+                      flex: 1,
+                    },
+                    {
+                      width: "30%",
+                      minWidth: 0,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      gap: 5,
+                    },
+                  ]}
                 >
-                  {formatText(amenitie.name)}
-                </Text>
-              </View>
-            ))}
+                  {AmenityIcon ? (
+                    <AmenityIcon
+                      width={12}
+                      height={12}
+                      style={{
+                        transform: [
+                          {
+                            scale: 1.5,
+                          },
+                        ],
+                      }}
+                    />
+                  ) : (
+                    <icons.ArmChairSe
+                      width={12}
+                      height={12}
+                      style={{
+                        transform: [
+                          {
+                            scale: 1.5,
+                          },
+                        ],
+                      }}
+                    />
+                  )}
+                  <Text
+                    style={{
+                      color: "#929594",
+                      fontSize: appFontScale[6],
+                      lineHeight: platformLineHeight(8),
+                    }}
+                    key={amenitie.name}
+                    adjustsFontSizeToFit
+                    numberOfLines={2}
+                  >
+                    {formatText(amenitie.name)}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         ) : null}
         <View

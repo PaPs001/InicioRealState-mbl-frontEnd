@@ -1,15 +1,15 @@
 import { coreApi } from "@/lib/api";
 import type {
-  selectedPropertyBackendData,
-} from "@/lib/types/property";
+  SelectedPropertyResponse,
+} from "../types/Property/property.response";
 
 
 const SELECTED_PROPERTY = "/users/properties/";
 const detailCache = new Map<
   string,
-  { data: selectedPropertyBackendData; expires: number }
+  { data: SelectedPropertyResponse; expires: number }
 >();
-const pendingDetails = new Map<string, Promise<selectedPropertyBackendData>>();
+const pendingDetails = new Map<string, Promise<SelectedPropertyResponse>>();
 let cacheToken: string | null | undefined;
 
 export function getCachedSelectedProperty(propertyId: string, token: string) {
@@ -26,12 +26,12 @@ export async function getSelectedProperty(
   propertyId: string,
   token?: string | null,
   refresh = false,
-): Promise<selectedPropertyBackendData> {
+): Promise<SelectedPropertyResponse> {
   const cached = getCachedSelectedProperty(propertyId, token ?? "");
   if (cached && !refresh) return cached;
   const pending = pendingDetails.get(propertyId);
   if (pending) return pending;
-  const request = coreApi<selectedPropertyBackendData>(
+  const request = coreApi<SelectedPropertyResponse>(
     `${SELECTED_PROPERTY}${encodeURIComponent(propertyId)}`,
     {
       method: "GET",

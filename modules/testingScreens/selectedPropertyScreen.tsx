@@ -19,38 +19,30 @@ import { PriceCard } from "@/modules/users/properties/components/PriceCard";
 import { styles } from "@/modules/testingScreens/styles/SelectedPropertyStyles";
 import { mockProperty } from "@/modules/users/properties/temporalMock";
 import type {
-  PropertyDetail,
-  PropertyDetailRoom,
-} from "@/modules/users/properties/mappers/detail.mappers";
+  SelectedPropertyMapped,
+} from "@/modules/users/properties/types/Property/property.model";
+import { extractAmenities } from "@/lib/utils/property-catalog";
 
-interface AmenitiesImages extends Omit<PropertyDetail, "previewImages" | "amenitiesImages"> {
-  amenitiesImages: PropertyDetailRoom[] | null | undefined;
-}
-
-const property: AmenitiesImages = {
+const property: SelectedPropertyMapped = {
+  id: "mock-property",
   title: mockProperty.title,
   zone: mockProperty.address,
-  description: mockProperty.description,
-  bedrooms: {
-    principal: String(mockProperty.bedrooms),
-    extra: null,
-    extraName: null,
-  },
-  bathrooms: String(mockProperty.bathrooms),
-  parking: String(mockProperty.parking),
-  view: mockProperty.view.label,
-  operationLabel: mockProperty.operation === "renta" ? "rent" : "sale",
-  propertyAmenities: mockProperty.moreInformation.label,
-  amenities: mockProperty.propertyAmenities.map((name) => ({
+  descriptionProperty: mockProperty.description,
+  bedrooms: mockProperty.bedrooms,
+  bathrooms: mockProperty.bathrooms,
+  parkings: mockProperty.parking,
+  propertyView: mockProperty.view.label,
+  typeListProperty: mockProperty.operation === "renta" ? "rent" : "sale",
+  statusAmenitie: mockProperty.moreInformation.label,
+  amenities: extractAmenities(mockProperty.propertyAmenities.map((name) => ({
     name,
     color: "",
-  })),
-  otherAmenities: [],
-  equipmentServices: [],
-  hasMantenimiento: false,
-  status: mockProperty.status,
+  }))).amenities,
+  hasMantenance: false,
+  statusProperty: mockProperty.status,
   price: mockProperty.priceLabel,
   images: mockProperty.images.map((urlImage) => urlImage.url),
+  previewImages: mockProperty.images.map((urlImage) => urlImage.url),
   rooms: mockProperty.images
     .filter((image) => image.zone)
     .map((room, index) => ({
@@ -80,23 +72,20 @@ const property: AmenitiesImages = {
 import { generalColors } from "@/theme";
 
 export const PropertiesList = () => {
-  const normalizeName = (value?: string | null) => {
-    return value?.replace(/wc|rec/gi, "").trim() ?? "";
-  };
   const markerRef = useRef<ComponentRef<typeof Marker>>(null);
 
   const [seeGalleryImage, setSeeGalleryImages] = useState(false);
   const operationLabel =
-    property?.operationLabel.toLowerCase() === "sale"
+    property.typeListProperty === "sale"
       ? "Venta por INICIO Real Estate"
       : "Renta por INICIO Real Estate";
 
   const OperationLogo =
-    property?.operationLabel.toLowerCase() === "sale"
+    property.typeListProperty === "sale"
       ? logos.logoMiniSale
       : logos.logoMiniRent;
   const markerBackgroundColor =
-    property?.operationLabel.trim().toLowerCase() === "sale"
+    property.typeListProperty === "sale"
       ? generalColors.saleColor
       : generalColors.rentColor;
 
@@ -135,7 +124,7 @@ export const PropertiesList = () => {
             if (property.images.length > 1) setSeeGalleryImages(true);
           }}
           images={property.images}
-          status={property?.status}
+          status={property.statusProperty}
         />
         <View style={styles.container}>
           <View style={styles.operationContainer}>
@@ -161,7 +150,7 @@ export const PropertiesList = () => {
                   {property?.zone}
                 </Text>
               </View>
-              {property.view ? (
+              {property.propertyView ? (
                 <View style={styles.propertyView}>
                   <icons.Place width={15} height={15} />
                   <Text
@@ -169,7 +158,7 @@ export const PropertiesList = () => {
                     adjustsFontSizeToFit
                     numberOfLines={1}
                   >
-                    {property?.view}
+                    {property.propertyView}
                   </Text>
                 </View>
               ) : null}
@@ -178,39 +167,39 @@ export const PropertiesList = () => {
 
           <View style={styles.propertyFeaturesContainer}>
             <View style={styles.leftFeaturesContainer}>
-              {property?.bedrooms.principal ? (
+              {property.bedrooms ? (
                 <PropertyMetric
                   icon={<icons.Bed width={25} height={25} />}
-                  value={normalizeName(property?.bedrooms.principal)}
+                  value={property.bedrooms}
                   label="Recámaras"
                 />
               ) : null}
               {property?.bathrooms ? (
                 <PropertyMetric
                   icon={<icons.Bathroom width={25} height={25} />}
-                  value={normalizeName(property?.bathrooms)}
+                  value={property.bathrooms}
                   label="Baños"
                 />
               ) : null}
-              {property?.parking ? (
+              {property.parkings ? (
                 <PropertyMetric
                   icon={<icons.Car width={25} height={25} />}
-                  value={property?.parking}
+                  value={property.parkings}
                   label="Parkings"
                 />
               ) : null}
             </View>
-            {property.propertyAmenities ? (
+            {property.statusAmenitie ? (
               <View style={styles.rightFeaturesContainer}>
                 <icons.Blend />
                 <Text numberOfLines={2} style={styles.moreFeaturesText}>
-                  {property?.propertyAmenities}
+                  {property.statusAmenitie}
                 </Text>
               </View>
             ) : null}
           </View>
 
-          {property?.bedrooms.extraName ? (
+          {property.flex || property.balcony ? (
             <View
               style={[
                 styles.propertyFeaturesContainer,
@@ -223,11 +212,12 @@ export const PropertiesList = () => {
                 <Text style={styles.extrasTitle}>Extras </Text>
               </View>
               <View>
-                <PropertyMetric
-                  icon={<icons.Bed width={25} height={25} />}
-                  value={normalizeName(property?.bedrooms.extra)}
-                  label={normalizeName(property.bedrooms.extraName)}
-                />
+                {property.flex ? (
+                  <PropertyMetric icon={<icons.Bed width={25} height={25} />} value={property.flex} label="Flex" />
+                ) : null}
+                {property.balcony ? (
+                  <PropertyMetric icon={<icons.Balcony width={25} height={25} />} value={property.balcony} label="Balcón" />
+                ) : null}
               </View>
             </View>
           ) : null}
@@ -235,18 +225,15 @@ export const PropertiesList = () => {
           <View style={styles.detailsContainer}>
             <Text style={styles.detailsTitle}>Detalles de la propiedad</Text>
             <Text style={styles.detailsInformation}>
-              {property?.description ??
+              {property.descriptionProperty ??
                 "No hay una descripcion para esta propiedad"}
             </Text>
           </View>
         </View>
-        {property.amenities.length + property.otherAmenities.length > 0 && (
+        {property.amenities.length > 0 && (
           <PropertySection title="Amenidades">
             <Amenities
-              amenitiesData={[
-                ...(property?.amenities ?? []),
-                ...(property?.otherAmenities ?? []),
-              ]}
+              amenitiesData={property.amenities}
             />
           </PropertySection>
         )}
@@ -323,7 +310,7 @@ export const PropertiesList = () => {
           onDate={() => {}}
           hasMantain={mockProperty.maintainIncluded}
           price={property?.price}
-          operation={property?.operationLabel}
+          operation={property.typeListProperty}
         />
       </BlurView>
     </View>

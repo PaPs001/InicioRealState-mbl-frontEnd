@@ -1,4 +1,6 @@
+import { amenitiesConfigProperty } from "@/modules/users/properties/constants/propertyConstants";
 import { AmenitiesMapped } from "@/modules/users/properties/types/Property/property.model";
+import { AmenitiesResponse } from "@/modules/users/properties/types/Property/property.response";
 
 export function formatPriceData(item: string): number | undefined {
   if (!item) return undefined;
@@ -43,8 +45,8 @@ export function extractBefore(
 export function parseCount(item: string | null): number | undefined {
   if (!item) return undefined;
 
-  const match = item.match(/\d+/);
-  return match ? Number(match[0]) : undefined;
+  const match = item.match(/\d+(?:[.,]\d+)?/);
+  return match ? Number(match[0].replace(",", ".")) : undefined;
 }
 
 export type FormattedBed = {
@@ -56,49 +58,68 @@ export type FormattedBed = {
 export function formattedBed(value: string | null): FormattedBed {
   if (!value) return {};
 
+  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   return {
-    bedrooms: extractBefore(value, /REC/),
-    flex: extractBefore(value, /FLEX/),
-    balcony: extractBefore(value, /BALCON(?:ES)?/),
+    bedrooms: extractBefore(normalized, /REC/) ?? parseCount(normalized),
+    flex: extractBefore(normalized, /FLEX/) ?? (/(?:^|\+)\s*FLEX\b/i.test(normalized) ? 1 : undefined),
+    balcony: extractBefore(normalized, /BALCON(?:ES)?/) ?? (/(?:^|\+)\s*BALCON(?:ES)?\b/i.test(normalized) ? 1 : undefined),
   };
 }
 
-export function extractMaintining(item: AmenitiesMapped[] | undefined): boolean | undefined{
-  if(!item) return undefined 
+export function extractMaintining(
+  item: AmenitiesMapped[] | undefined,
+): boolean | undefined {
+  if (!item) return undefined;
 
-  const hasMaintenance = item.some((amenitie) => amenitie.name.trim().toLowerCase() === "mantenimiento")
+  const hasMaintenance = item.some(
+    (amenitie) => amenitie.name.trim().toLowerCase() === "mantenimiento",
+  );
 
   return hasMaintenance;
 }
 
 const generalPrhases = [
-  "totalmente equipada", 
+  "totalmente equipada",
   "cocina integral",
   "semiequipada",
   "sin muebles",
   "cocina y closets",
   "semiamueblada",
-  "sin equipar"
-]
+  "sin equipar",
+];
 
-const expulsedPrhases = [
-  "no aplica",
-  "paneles solares"
-]
+const expulsedPrhases = ["no aplica", "paneles solares"];
 
-export function extractAmenities(item: AmenitiesMapped[]){
-  const amenities: AmenitiesMapped[] = []
-  let hasMantenance = false
-  let statusAmenities = ""
+export function extractAmenities(item: AmenitiesResponse[]) {
+  const amenities: AmenitiesMapped[] = [];
+  let hasMantenance = false;
+  let statusAmenities = "";
 
-  for(const service of item){
-    if(service.name.trim().toLowerCase() === "mantenimiento"){
-      hasMantenance = true
-    } else if(generalPrhases.some(prhase => service.name.trim().toLowerCase().includes(prhase))){
-      statusAmenities = service.name.trim()
+  for (const service of item) {
+    if (!service.name.trim()) continue;
+    if (service.name.trim().toLowerCase() === "mantenimiento") {
+      hasMantenance = true;
+    } else if (
+      generalPrhases.some((prhase) =>
+        service.name.trim().toLowerCase().includes(prhase),
+      )
+    ) {
+      statusAmenities = service.name.trim();
     } else {
-      if(!expulsedPrhases.some(prhase => service.name.trim().toLowerCase().includes(prhase))){
-        amenities.push(service)
+      if (
+        !expulsedPrhases.some((prhase) =>
+          service.name.trim().toLowerCase().includes(prhase),
+        )
+      ) {
+        const name = service.name.trim().toLowerCase();
+        const match = Object.entries(amenitiesConfigProperty).find(
+          ([keyword]) => name.includes(keyword.trim().toLowerCase()),
+        );
+
+        amenities.push({
+          ...service,
+          icons: match?.[1].icon,
+        });
       }
     }
   }
@@ -106,6 +127,6 @@ export function extractAmenities(item: AmenitiesMapped[]){
   return {
     amenities,
     hasMantenance,
-    statusAmenities
-  }
+    statusAmenities,
+  };
 }

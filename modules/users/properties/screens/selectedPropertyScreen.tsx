@@ -16,24 +16,17 @@ import { icons, logos } from "@/assets";
 import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
 import { ImagesRoulette } from "../components/selectedProperties/ImagesRoulette";
-import { PropertyImage } from "../components/selectedProperties/PropertyImage";
 import { PropertyCarousel } from "../components/selectedProperties/PropertyCarousel";
 import { PriceCard } from "../components/PriceCard";
 import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
-import { capitalizeFirstLetter } from "../../main/utils/dashboard-formatters";
-import { propertyStatusConfig } from "../constants/propertyConstants";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
     propertyId?: string | string[];
   }>();
-
-  const normalizeName = (value?: string | null) => {
-    return value?.replace(/wc|rec/gi, "").trim() ?? "";
-  };
 
   const [isAppointmentVisible, setIsAppointmentVisible] = useState(false);
 
@@ -46,13 +39,11 @@ export const PropertiesList = () => {
 
   const appointmentProperty = useMemo<DatePropertyCard | undefined>(() => {
     if (!property || !propertyId) return undefined;
-    const operation = property.operationLabel.trim().toLowerCase();
     return {
       id: propertyId,
-      title: property.title,
-      address: property.geoData?.formatAddress || property.zone,
-      listingType:
-        operation === "rent" || operation === "sale" ? operation : undefined,
+      title: property.titleApp || property.title || "",
+      address: property.geoData?.formatAddress || property.zone || property.address || "",
+      listingType: property.typeListProperty,
     };
   }, [property, propertyId]);
 
@@ -61,16 +52,16 @@ export const PropertiesList = () => {
     string | null
   >(null);
   const operationLabel =
-    property?.operationLabel.toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? "Venta por INICIO Real Estate"
       : "Renta por INICIO Real Estate";
 
   const OperationLogo =
-    property?.operationLabel.toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? logos.logoMiniSale
       : logos.logoMiniRent;
   const markerBackgroundColor =
-    property?.operationLabel.trim().toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? generalColors.saleColor
       : generalColors.rentColor;
 
@@ -127,7 +118,7 @@ export const PropertiesList = () => {
   }
 
   const description =
-    property.description?.trim() ||
+    property.descriptionProperty?.trim() ||
     "No hay una descripcion para esta propiedad";
 
   const firstPeriod = description.indexOf(".");
@@ -151,17 +142,6 @@ export const PropertiesList = () => {
     longitude >= -180 &&
     longitude <= 180;
 
-  const normalizaedStatus = property.status?.trim().toLowerCase()
-  type PropertyStatus = keyof typeof propertyStatusConfig;
-
-  function isPropertyStatus(status: string): status is PropertyStatus {
-    return status in propertyStatusConfig;
-  }
-
-  const config = normalizaedStatus && isPropertyStatus(normalizaedStatus)
-    ? propertyStatusConfig[normalizaedStatus]
-    : undefined;
-
   return (
     <View style={styles.safeArea}>
       <ScrollView
@@ -179,7 +159,7 @@ export const PropertiesList = () => {
             if (property.images.length > 1) setSeeGalleryImages(true);
           }}
           images={property.previewImages}
-          status={property?.status}
+          status={property.statusProperty}
         />
         <View style={styles.container}>
           <View style={styles.operationContainer}>
@@ -197,7 +177,7 @@ export const PropertiesList = () => {
           </View>
 
           <View style={styles.propertyInformation}>
-            <Text style={styles.propertyTitle}>{property?.title}</Text>
+            <Text style={styles.propertyTitle}>{property.titleApp || property.title}</Text>
             <View style={styles.propertyAddressView}>
               {property.zone ? (
               <View style={styles.propertyAddress}>
@@ -214,7 +194,7 @@ export const PropertiesList = () => {
                   </Text>
                 </View>
               )} 
-              {property.view ? (
+              {property.propertyView ? (
                 <View style={styles.propertyView}>
                   <icons.Place width={15} height={15} />
                   <Text
@@ -222,7 +202,7 @@ export const PropertiesList = () => {
                     adjustsFontSizeToFit
                     numberOfLines={1}
                   >
-                    {property?.view}
+                    {property.propertyView}
                   </Text>
                 </View>
               ) : null}
@@ -234,14 +214,14 @@ export const PropertiesList = () => {
             <View
               style={[
                 styles.propertyFeaturesContainer,
-                property.bedrooms.extra
+                property.flex || property.balcony
                   ? {
                       flexWrap: "wrap",
                     }
                   : null,
               ]}
             >
-              {property?.bedrooms.principal ? (
+              {property.bedrooms ? (
                 <View
                   style={{
                     flexDirection: "row",
@@ -252,11 +232,11 @@ export const PropertiesList = () => {
                 >
                   <PropertyMetric
                     icon={<icons.Bed width={25} height={25} />}
-                    value={normalizeName(property?.bedrooms.principal)}
+                    value={property.bedrooms}
                     label="Recámaras"
                   />
 
-                  {property.bedrooms.extra ? (
+                  {property.flex || property.balcony ? (
                     <>
                       <View
                         style={{
@@ -272,21 +252,20 @@ export const PropertiesList = () => {
                           +
                         </Text>
                       </View>
-                      <PropertyMetric
-                        icon={
-                          <icons.Balcony
-                            width={25}
-                            height={25}
-                            strokeWidth={2}
-                          />
-                        }
-                        value={capitalizeFirstLetter(
-                          normalizeName(property.bedrooms.extra),
-                        )}
-                        label={capitalizeFirstLetter(
-                          normalizeName(property.bedrooms.extraName),
-                        )}
-                      />
+                      {property.flex ? (
+                        <PropertyMetric
+                          icon={<icons.Bed width={25} height={25} />}
+                          value={property.flex}
+                          label="Flex"
+                        />
+                      ) : null}
+                      {property.balcony ? (
+                        <PropertyMetric
+                          icon={<icons.Balcony width={25} height={25} strokeWidth={2} />}
+                          value={property.balcony}
+                          label="Balcón"
+                        />
+                      ) : null}
                     </>
                   ) : null}
                 </View>
@@ -294,20 +273,20 @@ export const PropertiesList = () => {
               {property?.bathrooms ? (
                 <PropertyMetric
                   icon={<icons.Bathroom width={25} height={25} />}
-                  value={normalizeName(property?.bathrooms)}
+                  value={property.bathrooms}
                   label="Baños"
                 />
               ) : null}
-              {property?.parking ? (
+              {property.parkings ? (
                 <>
                   <PropertyMetric
                     icon={<icons.Car width={25} height={25} />}
-                    value={property?.parking}
+                    value={property.parkings}
                     label="Parkings"
                   />
                 </>
               ) : null}
-              {property.propertyAmenities ? (
+              {property.statusAmenitie ? (
                 <View style={styles.moreFeaturesContainer}>
                   <icons.ArmChairSe />
                   <Text
@@ -315,7 +294,7 @@ export const PropertiesList = () => {
                     numberOfLines={2}
                     style={styles.moreFeaturesText}
                   >
-                    {property?.propertyAmenities}
+                    {property.statusAmenitie}
                   </Text>
                 </View>
               ) : null}
@@ -337,9 +316,9 @@ export const PropertiesList = () => {
             )}
           </View>
         </View>
-        {property.equipmentServices.length > 0 && (
+        {property.amenities.length > 0 && (
           <PropertySection title="Amenidades">
-            <Amenities amenitiesData={property.equipmentServices} />
+            <Amenities amenitiesData={property.amenities} />
           </PropertySection>
         )}
         <Line />
@@ -403,8 +382,8 @@ export const PropertiesList = () => {
             setIsAppointmentVisible(true);
           }}
           price={property?.price}
-          operation={property?.operationLabel}
-          hasMantain={property?.hasMantenimiento}
+          operation={property.typeListProperty}
+          hasMantain={property.hasMantenance}
         />
       </BlurView>
       <AppModal

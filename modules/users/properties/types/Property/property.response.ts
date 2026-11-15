@@ -1,5 +1,4 @@
 import type {
-  AmenitiesMapped as AmenitiesEstructure,
   GeoData,
   TypeListProperty,
 } from "./property.model";
@@ -20,6 +19,11 @@ export interface PropertyImageResponse {
   originalName: string;
   category: string;
 }
+
+export type AmenitiesResponse = {
+  name: string;
+  color: string;
+};
 
 ///// interace de respuesta del servicio del catalogo
 export interface PropertyCatalogItemResponse {
@@ -75,10 +79,12 @@ export interface PropertyCatalogItemResponse {
 
 ///// interface para el endpoint de la propiedad seleccionada
 
-export interface SelectedPropertyResponse extends PropertyCatalogItemResponse {
+export interface SelectedPropertyResponse extends Omit<PropertyCatalogItemResponse, "equipmentServices"> {
   titleApp: string | null;
   description: string | null;
-  amenities: AmenitiesEstructure[] | null;
+  amenities: AmenitiesResponse[] | null;
+  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
+  images?: PropertyImageResponse[] | null;
   Images?: PropertyImageResponse[] | null;
   geoData: GeoData;
 }

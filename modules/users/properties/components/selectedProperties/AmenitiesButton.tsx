@@ -1,11 +1,9 @@
 import { Text, View } from "react-native";
 import {styles} from './styles/AmenitiesButton.style'
 import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
-import { amenitiesConfigSelectedProperty } from "../../constants/propertyConstants";
-import { AmenitiesEstructure } from "@/lib/types";
+import type { AmenitiesMapped } from "../../types/Property/property.model";
 type AmenitiesButtonProps = {
-  amenitiesData?: AmenitiesEstructure[],
-  //icon: SvgProps,
+  amenitiesData?: AmenitiesMapped[],
 }
 export const Amenities = ({
  amenitiesData 
@@ -14,8 +12,7 @@ export const Amenities = ({
     <View style={styles.amenitiesContainer}>
       {amenitiesData?.map((amenity, index) => {
         const key = amenity.name.toLocaleLowerCase();
-        const amenityConfig = amenitiesConfigSelectedProperty[key]
-        const AmenityIcon = amenityConfig?.icon
+        const AmenityIcon = amenity.icons
 
         return(
           <View
@@ -30,7 +27,6 @@ export const Amenities = ({
               {capitalizeFirstLetter(amenity.name)}
             </Text>
           </View>
-
         )
       })}
     </View>

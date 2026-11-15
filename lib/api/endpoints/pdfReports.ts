@@ -59,6 +59,10 @@ export type GenerateSinglePropertyPdfPayload = {
   sales: boolean
 }
 
+export type DirectReportFile = {
+  
+}
+
 export type TemporaryPdfReport = {
   url?: string
   filename: string

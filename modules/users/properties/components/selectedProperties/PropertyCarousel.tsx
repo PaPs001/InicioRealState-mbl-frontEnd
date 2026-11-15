@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import type { PropertyDetailRoom } from "../../mappers/detail.mappers";
+import type { PropertyDetailRoom } from "../../types/Property/property.model";
 import { ImagePreviewModal } from "../ImagePreviewModal";
 import { PropertyImage } from "./PropertyImage";
 import { styles } from "./styles/RoomsRow.style";
