@@ -68,11 +68,6 @@ export const PropertyCard = memo(function PropertyCard({
               <Text style={styles.locationPillText}>Paneles Solares</Text>
             </View>
           ) : null}
-          {property.hasMantenance ? (
-            <View style={[styles.mantenancePill]}>
-              <Text style={styles.mantenancePillText}>Mantenimiento</Text>
-            </View>
-          ) : null}
         </View>
         <View style={styles.availablePill}>
           <Text style={styles.availablePillText}>

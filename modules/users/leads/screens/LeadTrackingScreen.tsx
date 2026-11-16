@@ -29,6 +29,9 @@ import {
   searchTrackingLeadsByName,
 } from "../utils/lead-tracking";
 import { FilterChip } from "@/components/FilterChip";
+import { Plus } from "lucide-react-native";
+import { LeadCreateModal } from "../components/LeadPrincipalScreen/LeadCreateModal";
+import { useCreateLead } from "../hooks/useCreateLead";
 
 export const LeadTrackingScreen = () => {
   const routes = useLeadTrackingRoutes();
@@ -36,6 +39,16 @@ export const LeadTrackingScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [actionLead, setActionLead] = useState<PropertyLead | null>(null);
   const { leads: records, isLoading, error, reload } = useLeadTrackingRecords();
+  const {
+    createLeadError,
+    createLeadForm,
+    isCreatingLead,
+    isCreateLeadModalOpen,
+    openCreateLeadModal,
+    closeCreateLeadModal,
+    updateCreateLeadField,
+    submitCreateLead,
+  } = useCreateLead({ mode: routes.mode, onCreated: reload });
   const isSearching = Boolean(searchQuery.trim());
   
   const [operationFilter, setOperationFilter] = useState<"all" | "rent" | "sale">("all")
@@ -46,6 +59,7 @@ export const LeadTrackingScreen = () => {
   const searchResults = searchTrackingLeadsByName(filteredRecords, searchQuery);
 
   const groups = buildLeadTrackingGroups(filteredRecords);
+
   /// solamente se encargan de obtener el conteo especifico para dos categorias
   const priorityCount = groups
     .filter((group) => group.type === "ALTA PRIORIDAD")
@@ -460,6 +474,24 @@ export const LeadTrackingScreen = () => {
           onChanged={reload}
         />
       ) : null}
+      <Pressable
+        style={styles.createLeadButton}
+        accessibilityRole="button"
+        accessibilityLabel="Crear nuevo lead"
+        onPress={openCreateLeadModal}
+      >
+        <Plus stroke={"#fff"}/>
+      </Pressable>
+
+      <LeadCreateModal
+        createError={createLeadError}
+        form={createLeadForm}
+        isCreating={isCreatingLead}
+        visible={isCreateLeadModalOpen}
+        onClose={closeCreateLeadModal}
+        onSubmit={submitCreateLead}
+        onUpdateField={updateCreateLeadField}
+      />
     </SafeAreaView>
   );
 };

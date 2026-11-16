@@ -64,7 +64,7 @@ propertyCard: {
     height: 17,
     maxWidth: 84,
     borderRadius: 7,
-    backgroundColor: '#f5f106',
+    backgroundColor: '#f7f45c',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -93,7 +93,7 @@ propertyCard: {
   },
   locationPillText: {
     flexShrink: 1,
-    color: '#505050',
+    color: '#363636',
     fontSize: textSize.tiny,
     fontWeight: '600',
   },
