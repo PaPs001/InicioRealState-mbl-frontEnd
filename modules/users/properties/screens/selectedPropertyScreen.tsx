@@ -22,6 +22,8 @@ import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
+import { usePropertyCatalogImage } from "../hooks/useFileProperties";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -34,6 +36,8 @@ export const PropertiesList = () => {
     ? params.propertyId[0]
     : params.propertyId;
 
+  const { generateAndOpenImage, isGeneratingImage } = usePropertyCatalogImage(propertyId);
+
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
 
@@ -42,7 +46,11 @@ export const PropertiesList = () => {
     return {
       id: propertyId,
       title: property.titleApp || property.title || "",
-      address: property.geoData?.formatAddress || property.zone || property.address || "",
+      address:
+        property.geoData?.formatAddress ||
+        property.zone ||
+        property.address ||
+        "",
       listingType: property.typeListProperty,
     };
   }, [property, propertyId]);
@@ -154,7 +162,7 @@ export const PropertiesList = () => {
         <ImagesRoulette
           onBack={() => router.back()}
           onFavorite={() => {}}
-          onShare={() => {}}
+          onShare={() => generateAndOpenImage()}
           onOpenGallery={() => {
             if (property.images.length > 1) setSeeGalleryImages(true);
           }}
@@ -177,23 +185,25 @@ export const PropertiesList = () => {
           </View>
 
           <View style={styles.propertyInformation}>
-            <Text style={styles.propertyTitle}>{property.titleApp || property.title}</Text>
+            <Text style={styles.propertyTitle}>
+              {property.titleApp || property.title}
+            </Text>
             <View style={styles.propertyAddressView}>
               {property.zone ? (
-              <View style={styles.propertyAddress}>
-                <icons.Place height={20} width={20} />
-                <Text style={styles.addressText} numberOfLines={2}>
-                  {property?.zone}
-                </Text>
-              </View>
-              ): (
+                <View style={styles.propertyAddress}>
+                  <icons.Place height={20} width={20} />
+                  <Text style={styles.addressText} numberOfLines={2}>
+                    {property?.zone}
+                  </Text>
+                </View>
+              ) : (
                 <View style={styles.propertyAddress}>
                   <icons.Place height={20} width={20} />
                   <Text style={styles.addressText} numberOfLines={2}>
                     PROPIEDAD SIN DIRECCION
                   </Text>
                 </View>
-              )} 
+              )}
               {property.propertyView ? (
                 <View style={styles.propertyView}>
                   <icons.Place width={15} height={15} />
@@ -261,7 +271,13 @@ export const PropertiesList = () => {
                       ) : null}
                       {property.balcony ? (
                         <PropertyMetric
-                          icon={<icons.Balcony width={25} height={25} strokeWidth={2} />}
+                          icon={
+                            <icons.Balcony
+                              width={25}
+                              height={25}
+                              strokeWidth={2}
+                            />
+                          }
                           value={property.balcony}
                           label="Balcón"
                         />
@@ -349,12 +365,16 @@ export const PropertiesList = () => {
                   markerColor={markerBackgroundColor}
                 />
               ) : (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1
-                }}>
-                  <Text numberOfLines={2} adjustsFontSizeToFit>No hemos logrado ubicar esta propiedad</Text>
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flex: 1,
+                  }}
+                >
+                  <Text numberOfLines={2} adjustsFontSizeToFit>
+                    No hemos logrado ubicar esta propiedad
+                  </Text>
                 </View>
               )}
             </View>
@@ -411,6 +431,7 @@ export const PropertiesList = () => {
           lockAppointmentType
         />
       )}
+      <LoadingOverlay visible={isGeneratingImage} />
     </View>
   );
 };
