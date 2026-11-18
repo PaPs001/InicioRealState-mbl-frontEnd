@@ -3,7 +3,7 @@ import { icons } from "@/assets";
 import { styles } from "./styles/PropertyLsitCard.styles";
 import { memo } from "react";
 import type { ReactNode } from "react";
-import { Home } from "lucide-react-native";
+import { Home, SolarPanel } from "lucide-react-native";
 import type { PropertyCard2 } from "../../types/Property/property.model";
 import {
   fontScale as appFontScale,
@@ -65,6 +65,7 @@ export const PropertyCard = memo(function PropertyCard({
           ) : null}
           {property.hasSolarPanel ? (
             <View style={styles.SolarPanelPill}>
+              <SolarPanel width={13} height={13} stroke={'#626262'}/>
               <Text style={styles.locationPillText}>Paneles Solares</Text>
             </View>
           ) : null}
@@ -97,9 +98,9 @@ export const PropertyCard = memo(function PropertyCard({
         <Text style={styles.propertyTitle} numberOfLines={1}>
           {property.title}
         </Text>
-        {property.address ? (
+        {property.development ? (
           <Text style={styles.propertyCode} numberOfLines={1}>
-            {property.address}
+            {property.development}
           </Text>
         ) : null}
         <View style={styles.priceRow}>
@@ -144,7 +145,7 @@ export const PropertyCard = memo(function PropertyCard({
           <View
             style={[
               {
-                height: 40,
+                height: 50,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -171,8 +172,7 @@ export const PropertyCard = memo(function PropertyCard({
                       width: "30%",
                       minWidth: 0,
                       alignItems: "center",
-                      flexDirection: "row",
-                      justifyContent: "center",
+                      flexDirection: "column",
                       gap: 5,
                     },
                   ]}
@@ -207,6 +207,8 @@ export const PropertyCard = memo(function PropertyCard({
                       color: "#929594",
                       fontSize: appFontScale[6],
                       lineHeight: platformLineHeight(8),
+                      textAlign: 'center',
+                      fontWeight: "bold"
                     }}
                     key={amenitie.name}
                     adjustsFontSizeToFit
@@ -225,16 +227,17 @@ export const PropertyCard = memo(function PropertyCard({
             property.isAland && styles.landPropertyCar,
           ]}
         >
-          {property.propertyView ? (
+          {property.propertyType ? (
             <>
               <View style={styles.viewBlock}>
                 <icons.Fluid />
                 <Text
-                  adjustsFontSizeToFit={Boolean(!property.statusAmenitie)}
-                  numberOfLines={1}
+                  //adjustsFontSizeToFit={Boolean(!property.statusAmenitie)}
                   style={styles.viewText}
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
                 >
-                  {property.propertyView}
+                  {property.propertyType}
                 </Text>
               </View>
             </>
@@ -244,9 +247,8 @@ export const PropertyCard = memo(function PropertyCard({
               <icons.FullyFurnished />
               {property.statusAmenitie ? (
                 <Text
-                  adjustsFontSizeToFit={Boolean(!property.propertyView)}
-                  style={styles.viewText}
-                  numberOfLines={1}
+                  //adjustsFontSizeToFit={Boolean(!property.propertyView)}
+                  style={styles.amenitieText}
                 >
                   {property.statusAmenitie}
                 </Text>

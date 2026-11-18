@@ -130,3 +130,24 @@ export function extractAmenities(item: AmenitiesResponse[]) {
     statusAmenities,
   };
 }
+
+export const normalizeText = (text: string): string => {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
+
+export const containText = (text: string) => {
+  const namePropertie = text.replace(/-.*/, "").trim()
+  const desarrollo = text.replace(/.*-/,"").trim()
+
+
+  return {
+    namePropertie,
+    desarrollo
+  }
+
+}

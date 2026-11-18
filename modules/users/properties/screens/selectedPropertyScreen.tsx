@@ -36,7 +36,8 @@ export const PropertiesList = () => {
     ? params.propertyId[0]
     : params.propertyId;
 
-  const { generateAndOpenImage, isGeneratingImage } = usePropertyCatalogImage(propertyId);
+  const { generateAndOpenImage, isGeneratingImage } =
+    usePropertyCatalogImage(propertyId);
 
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
@@ -119,7 +120,7 @@ export const PropertiesList = () => {
           images={property.images}
           onClose={() => setSeeGalleryImages(false)}
           onFavorite={() => {}}
-          onShare={() => {}}
+          onShare={() => generateAndOpenImage()}
         />
       </View>
     );
@@ -129,13 +130,29 @@ export const PropertiesList = () => {
     property.descriptionProperty?.trim() ||
     "No hay una descripcion para esta propiedad";
 
-  const firstPeriod = description.indexOf(".");
+  const amenities = property.developmentAmenities;
+  //const descriptionPreview = firstPeriod === -1 ? description : description.slice(0, firstPeriod + 1);
 
-  const descriptionPreview =
-    firstPeriod === -1 ? description : description.slice(0, firstPeriod + 1);
+  const descriptionPreview = description.slice(0, 400);
 
   const hasMoreDescription =
     description.slice(descriptionPreview.length).trim().length > 0;
+
+  const numberToCutAmenities = 13
+  const amenitiesPreview = amenities.slice(0, numberToCutAmenities);
+  const hasMoreAmenities = amenities.length > numberToCutAmenities ? true : false;
+
+  const numberLastest = amenities.length - numberToCutAmenities
+
+  const textNumberAmenities = numberLastest > 1 ? "amenidades" : "amenidad" 
+
+  const amenitiesToShow = [
+    ...amenitiesPreview,
+    ...(hasMoreAmenities ? [{
+      name: `+ ${numberLastest} ${textNumberAmenities}`, color: "#699e35", last: true
+    }] : [])
+  ]
+
 
   const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
 
@@ -327,14 +344,22 @@ export const PropertiesList = () => {
                 onPress={() => setDescriptionPropertyId(propertyId ?? null)}
                 style={styles.descriptionAction}
               >
-                <Text style={styles.descriptionActionText}>Mostrar todo</Text>
+                <Text style={styles.descriptionActionText}>...Leer Más</Text>
               </Pressable>
             )}
           </View>
         </View>
-        {property.amenities.length > 0 && (
-          <PropertySection title="Amenidades">
-            <Amenities amenitiesData={property.amenities} />
+        {property.detailedEquipment.length > 0 && (
+          <>
+            <PropertySection title="Equipamientos de la propiedad">
+              <Amenities amenitiesData={property.detailedEquipment} />
+            </PropertySection>
+            <Line />
+          </>
+        )}
+        {property.developmentAmenities.length > 0 && (
+          <PropertySection title="Amenidades Del Desarrollo">
+            <Amenities amenitiesData={amenitiesToShow} />
           </PropertySection>
         )}
         <Line />

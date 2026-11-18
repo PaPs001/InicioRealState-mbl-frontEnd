@@ -114,6 +114,7 @@ export type CreateBackendLeadV2Payload = {
   origin?: string;
   operation?: string;
   statusSource?: "advisor" | "coordinator" | "system" | "notion" | "manychat";
+  nationality?: string;
 };
 
 export type UpdateBackendLeadV2Payload = Partial<{
@@ -392,20 +393,23 @@ export async function createBackendLeadV2Record(
   token?: string | null,
 ): Promise<PropertyLead> {
   const propertyOfInterestId =
-    payload.propertyOfInterestId?.trim() || "manual-lead";
+    payload.propertyOfInterestId?.trim() || undefined;
   const lead = await coreApi<BackendLead>("/leads-v2", {
     method: "POST",
     token: token ?? undefined,
     body: {
       ...payload,
       propertyOfInterestId,
-      fullName: payload.fullName?.trim() || undefined,
+      fullName: payload.fullName?.trim() || null,
       phone: payload.phone?.trim() || undefined,
       email: payload.email?.trim() || undefined,
       origin: payload.origin?.trim() || "app",
       statusSource: payload.statusSource || "advisor",
+      nationality: payload.nationality 
     },
   });
+
+  console.log(payload)
 
   return mapBackendLeadToPropertyLead(lead);
 }

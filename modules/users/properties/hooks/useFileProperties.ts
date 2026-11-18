@@ -5,7 +5,7 @@ import {
 } from "@/lib/api/endpoints/pdfReports";
 import { useCallback, useRef, useState } from "react";
 import { File } from "expo-file-system";
-import { Alert } from "react-native";
+import { Alert, Linking, Platform } from "react-native";
 
 export function usePropertyCatalogImage(propertyId: string | undefined) {
   const { authToken } = useSessionDomain();
@@ -21,11 +21,17 @@ export function usePropertyCatalogImage(propertyId: string | undefined) {
         setIsGeneratingImage(true);
         const generatedImage = await createPropertyImageToSend(authToken, propertyId);
 
-        if (generatedImage.localUri) {
+        if (!generatedImage.localUri) {
+          throw new Error("No se recibio la ruta de la imagen generada.");
+        }
+
+        if (Platform.OS === "android") {
           const localImageFile = new File(generatedImage.localUri);
           const imageContentUri = localImageFile.contentUri;
 
-          await openFileWithIntent(imageContentUri, "image/png");
+          await openFileWithIntent(imageContentUri, generatedImage.contentType);
+        } else {
+          await Linking.openURL(generatedImage.localUri);
         }
       } catch (imageGenerationError: any) {
         Alert.alert(

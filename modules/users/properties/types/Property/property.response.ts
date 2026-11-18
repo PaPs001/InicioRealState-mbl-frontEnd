@@ -30,6 +30,7 @@ export interface PropertyCatalogItemResponse {
   _id: string;
   notionId?: string;
   __v?: number;
+  amenities: AmenitiesResponse[] | null;
   createdAt?: string;
   updatedAt?: string;
   notionOwnerId?: string | null;
@@ -74,6 +75,9 @@ export interface PropertyCatalogItemResponse {
   virtualRoute?: string | null;
   wc: string | null;
   zonaText: string | null;
+  development: string;
+  developmentAmenities: PropertyEquipmentServiceResponse[];
+  detailedEquipment: PropertyEquipmentServiceResponse[];
   equipmentServices: PropertyEquipmentServiceResponse[];
 }
 
@@ -109,6 +113,9 @@ export interface PropertyMarkerResponse extends Pick<
   | "equipmentServices"
   | "isALand"
   | "propertyAmenities"
+  | "amenities"
+  | "propertyType"
+  | "development"
 > {
   geoData: GeoData;
 }

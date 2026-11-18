@@ -62,10 +62,17 @@ export function useCreateLead({ mode, onCreated }: UseCreateLeadParams) {
         origin: createLeadForm.origin,
         operation: createLeadForm.operation,
         statusSource: mode,
+        nationality: createLeadForm.nationality
       }, authToken)
     } catch (error) {
-      console.warn('No se pudo crear el lead v2:', error)
-      setCreateLeadError('No se pudo crear el lead. Revisa la conexion e intenta de nuevo.')
+      const message = error && typeof error === 'object' && 'message' in error
+        ? error.message
+        : undefined
+
+      const errorMessage = Array.isArray(message)
+        ? message.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).join('\n')
+        : typeof message === 'string' ? message.trim() : ''
+      setCreateLeadError(errorMessage || 'No se pudo crear el lead. Revisa la conexion e intenta de nuevo.')
       return
     } finally {
       creatingRef.current = false

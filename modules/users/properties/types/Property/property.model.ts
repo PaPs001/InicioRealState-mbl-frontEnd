@@ -14,6 +14,8 @@ export type AmenitiesMapped = {
   name: string;
   color: string;
   icons?: ComponentType<SvgProps>;
+  last?: boolean;
+  onPress?: () => void
 };
 
 ///// Interface para la tarjeta de propiedad mapeada
@@ -33,11 +35,14 @@ export interface PropertyCard2 {
   statusProperty?: string;
   zone?: string;
   amenities?: AmenitiesMapped[];
+  equipmentServices?: AmenitiesMapped[];
   propertyView?: string;
   hasSolarPanel?: boolean;
   flex?: number;
   balcony?: number;
   hasMantenance?: boolean;
+  propertyType?: string;
+  development?: string 
 }
 
 ////// interface de propiedad seleccionada para mapear
@@ -50,6 +55,8 @@ export interface SelectedPropertyMapped extends PropertyCard2 {
   amenitiesImages: PropertyDetailRoom[];
   images: string[];
   previewImages: string[];
+  developmentAmenities: AmenitiesMapped[];
+  detailedEquipment: AmenitiesMapped[];
 }
 
 //// Para el mapa y ubicacion de las propiedades

@@ -8,28 +8,31 @@ type AmenityConfig = {
 }
 
 export const amenitiesConfigProperty: Record<string, AmenityConfig> = {
-    internet: {
-        icon: icons.WifiAmenitie,
-    },
-    agua: {
-        icon: icons.Droplets,
-    },
     "a/c": {
         icon: icons.AirConditioner,
     },
-    "agua anual": {
-        icon: icons.Droplets,
-    },
-    closets: {
-        icon: icons.Dresser,
-    },
-    "alberca privada": {
+    "alberca": {
         icon: icons.PoolAmenitie,
     },
-    cama: {
-        icon: icons.BedDouble
-    }
 }
+
+export const roullete = [
+    "recamara principal",
+    "recamara 2",
+    "flex",
+    "baño recamara",
+    "sala",
+    "comedor",
+    "cocina",
+    "baño",
+    "fachada",
+    "balcon",
+    "area de lavado",
+    "patio",
+    "area comun",
+    "estacionamiento",
+    "terraza"
+]
 
 export const propertyStatusConfig = {
   apartada: {

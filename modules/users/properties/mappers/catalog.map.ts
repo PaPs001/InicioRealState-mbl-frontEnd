@@ -1,3 +1,4 @@
+import { roullete } from "../constants/propertyConstants";
 import type {
   PropertyCard2,
   PropertyMarkerCard,
@@ -11,20 +12,31 @@ import type {
 } from "../types/Property/property.response";
 import * as normalizeFunctions from "@/lib/utils/property-catalog";
 
-type CardSource = Omit<PropertyMarkerResponse, "geoData" | "equipmentServices"> & {
+type CardSource = Omit<
+  PropertyMarkerResponse,
+  "geoData" | "equipmentServices"
+> & {
   equipmentServices?: PropertyMarkerResponse["equipmentServices"] | null;
 };
 
 function mapBaseCard(item: CardSource): PropertyCard2 {
   const bed = normalizeFunctions.formattedBed(item.bed);
-  const { hasMantenance, amenities, statusAmenities } =
-    normalizeFunctions.extractAmenities(item.equipmentServices ?? []);
+  const {
+    hasMantenance,
+    amenities: equipmentServices,
+    statusAmenities,
+  } = normalizeFunctions.extractAmenities(item.equipmentServices ?? []);
+  const { amenities } = normalizeFunctions.extractAmenities(
+    item.amenities ?? [],
+  );
   const statusAmen = normalizeFunctions.formatText(item.propertyAmenities);
+  const { namePropertie, desarrollo } = normalizeFunctions.containText(item.name)
   return {
     _id: item._id,
     id: item.id,
-    title: item.name,
+    title: namePropertie,
     address: item.address,
+    development: desarrollo,
     price: item.priceData, //// al final no
     bedrooms: bed.bedrooms, //// aqui si se formateo por numero
     bathrooms: normalizeFunctions.parseCount(item.wc),
@@ -37,11 +49,13 @@ function mapBaseCard(item: CardSource): PropertyCard2 {
     statusProperty: normalizeFunctions.formatText(item.status),
     zone: normalizeFunctions.formatText(item.zonaText),
     amenities: amenities,
+    equipmentServices,
     propertyView: normalizeFunctions.formatText(item.propertyView),
     hasSolarPanel: normalizeFunctions.extractBoolean(item.solarPanel),
     flex: bed.flex,
     balcony: bed.balcony,
     hasMantenance: hasMantenance,
+    propertyType: item.propertyType || undefined
   };
 }
 
@@ -68,6 +82,7 @@ export function mapSelectedProperty(
   const roomGroups = new Map<string, PropertyDetailRoom>();
   const amenityGroup = new Map<string, PropertyDetailRoom>();
   const cover = item.urlImage?.trim();
+  
 
   for (const image of item.images ?? item.Images ?? []) {
     const url = resolvedImages.get(image.key) || undefined;
@@ -90,8 +105,8 @@ export function mapSelectedProperty(
     if (existingRoom) {
       if (!existingRoom.images.includes(url)) existingRoom.images.push(url);
     } else {
-      groups.set(name, {
-        id: name,
+      groups.set(normalizeFunctions.normalizeText(name), {
+        id: normalizeFunctions.normalizeText(name),
         name,
         image: url,
         images: [url],
@@ -100,6 +115,14 @@ export function mapSelectedProperty(
   }
 
   const images = [...new Set([...(cover ? [cover] : []), ...galleryImages])];
+
+  const newSortRooms = new Map<string, PropertyDetailRoom>();
+  for (const name of roullete) {
+    const room = roomGroups.get(normalizeFunctions.normalizeText(name));
+    if (room) {
+      newSortRooms.set(name, room);
+    }
+  }
 
   const property = mapBaseCard(item);
   return {
@@ -110,8 +133,10 @@ export function mapSelectedProperty(
     zone: normalizeFunctions.formatText(item.zonaText?.trim() || item.address),
     descriptionProperty: item.description?.trim() || undefined,
     images,
-    rooms: [...roomGroups.values()],
+    rooms: [...newSortRooms.values()],
     amenitiesImages: [...amenityGroup.values()],
     previewImages: images,
+    developmentAmenities: item.developmentAmenities ?? [],
+    detailedEquipment: item.detailedEquipment ?? [],
   };
 }

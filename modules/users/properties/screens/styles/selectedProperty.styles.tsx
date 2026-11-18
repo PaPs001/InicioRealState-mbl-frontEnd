@@ -79,7 +79,7 @@ export const styles = StyleSheet.create({
     //color: textColor.softText,
   },
   propertyTitle: {
-    fontSize: textSize.displaySmall,
+    fontSize: 27,
     flexShrink: 1,
     lineHeight: platformLineHeight(35),
   },
@@ -203,7 +203,7 @@ export const styles = StyleSheet.create({
     lineHeight: platformLineHeight(15),
   },
   descriptionAction: {
-    alignSelf: "flex-start",
+    alignSelf: "flex-end",
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 8,
