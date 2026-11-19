@@ -27,7 +27,11 @@ import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
 import { usePropertyCatalogImage } from "../hooks/useFileProperties";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
-import { ArrowBigRight, ArrowBigRightDashIcon, LucideArrowBigRight } from "lucide-react-native";
+import {
+  ArrowBigRight,
+  ArrowBigRightDashIcon,
+  LucideArrowBigRight,
+} from "lucide-react-native";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -379,9 +383,12 @@ export const PropertiesList = () => {
           </>
         )}
         {property.equipmentServices?.length ? (
-          <PropertySection title="Servicios Incluidos">
-            <Amenities amenitiesData={property.equipmentServices} />
-          </PropertySection>
+          <>
+            <PropertySection title="Servicios Incluidos">
+              <Amenities amenitiesData={property.equipmentServices} />
+            </PropertySection>
+            <Line />
+          </>
         ) : null}
         {property.developmentAmenities.length > 0 && (
           <PropertySection title="Amenidades Del Desarrollo">
@@ -440,8 +447,8 @@ export const PropertiesList = () => {
                 gap: 16,
                 alignItems: "center",
                 width: "100%",
-                justifyContent: 'center',
-                backgroundColor: '#356b2d'
+                justifyContent: "center",
+                backgroundColor: "#356b2d",
               }}
               disabled={!property.locationURL}
               onPress={async () => {
@@ -452,19 +459,23 @@ export const PropertiesList = () => {
                 }
               }}
             >
-              <View style={{
-                backgroundColor: "#fff",
-                borderRadius: 99,
-                paddingHorizontal: 3,
-                paddingVertical: 3
-              }}>
-                <Google_Maps width={25} height={25} style={{
-
-                }} />
+              <View
+                style={{
+                  backgroundColor: "#fff",
+                  borderRadius: 99,
+                  paddingHorizontal: 3,
+                  paddingVertical: 3,
+                }}
+              >
+                <Google_Maps width={25} height={25} style={{}} />
               </View>
-              <Text style={{
-                color: '#f1f1f1'
-              }} adjustsFontSizeToFit numberOfLines={1}>
+              <Text
+                style={{
+                  color: "#f1f1f1",
+                }}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
                 Abrir en Google Maps
               </Text>
             </Pressable>
