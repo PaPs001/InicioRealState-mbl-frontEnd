@@ -49,10 +49,10 @@ export function PropertyLocationMap({
           ? regionRef.current
           : { latitude, longitude, latitudeDelta: 0.007, longitudeDelta: 0.007 }
       }
-      zoomEnabled={interactive}
-      scrollEnabled={interactive}
-      pitchEnabled={false}
-      rotateEnabled={false}
+      zoomEnabled={true}
+      scrollEnabled={true}
+      pitchEnabled={true}
+      rotateEnabled={true}
       mapType="standard"
       toolbarEnabled={false}
       onMapLoaded={interactive ? () => setMapLoaded(true) : undefined}

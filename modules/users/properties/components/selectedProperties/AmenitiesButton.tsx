@@ -2,6 +2,7 @@ import { Text, View, Pressable } from "react-native";
 import { styles } from "./styles/AmenitiesButton.style";
 import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
 import type { AmenitiesMapped } from "../../types/Property/property.model";
+import { textColor } from "@/theme";
 type AmenitiesButtonProps = {
   amenitiesData?: AmenitiesMapped[];
 };
@@ -16,7 +17,7 @@ export const Amenities = ({ amenitiesData }: AmenitiesButtonProps) => {
           <>
             {AmenityIcon && <AmenityIcon width={15} height={15} />}
             <Text style={[styles.amenitieText, amenity.last && {
-              color: "#323232"
+              color: textColor.titleGreen
             }]} adjustsFontSizeToFit>
               {capitalizeFirstLetter(amenity.name)}
             </Text>
@@ -28,7 +29,7 @@ export const Amenities = ({ amenitiesData }: AmenitiesButtonProps) => {
             key={`${key}-${index}`}
             accessibilityRole="button"
             onPress={amenity.onPress}
-            style={[styles.amenitieCard, { backgroundColor: amenity.color }]}
+            style={[styles.amenitieCard, { borderColor: textColor.titleGreen }]}
           >
             {content}
           </Pressable>

@@ -57,6 +57,8 @@ export interface SelectedPropertyMapped extends PropertyCard2 {
   previewImages: string[];
   developmentAmenities: AmenitiesMapped[];
   detailedEquipment: AmenitiesMapped[];
+  titleCode: string;
+  locationURL: string;
 }
 
 //// Para el mapa y ubicacion de las propiedades

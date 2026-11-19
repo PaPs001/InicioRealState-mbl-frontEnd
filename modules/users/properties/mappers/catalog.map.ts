@@ -138,5 +138,7 @@ export function mapSelectedProperty(
     previewImages: images,
     developmentAmenities: item.developmentAmenities ?? [],
     detailedEquipment: item.detailedEquipment ?? [],
+    titleCode: item.name,
+    locationURL: item.locationUrl ?? ""
   };
 }

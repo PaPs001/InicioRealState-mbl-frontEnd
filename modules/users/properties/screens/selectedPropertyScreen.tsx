@@ -7,12 +7,15 @@ import {
   Pressable,
   Text,
   View,
+  Image,
+  Linking,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
 import { AppointmentCreateFlow } from "../../main/components/AppointmentCreateFlow";
 import { PropertyLocationMap } from "../components/selectedProperties/PropertyLocationMap";
-import { icons, logos } from "@/assets";
+import { Google_Maps, icons, logos, Place } from "@/assets";
 import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
 import { ImagesRoulette } from "../components/selectedProperties/ImagesRoulette";
@@ -24,6 +27,7 @@ import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
 import { usePropertyCatalogImage } from "../hooks/useFileProperties";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { ArrowBigRight, ArrowBigRightDashIcon, LucideArrowBigRight } from "lucide-react-native";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -41,6 +45,8 @@ export const PropertiesList = () => {
 
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
+
+  const previewImage = property?.propertyImage;
 
   const appointmentProperty = useMemo<DatePropertyCard | undefined>(() => {
     if (!property || !propertyId) return undefined;
@@ -138,21 +144,27 @@ export const PropertiesList = () => {
   const hasMoreDescription =
     description.slice(descriptionPreview.length).trim().length > 0;
 
-  const numberToCutAmenities = 13
+  const numberToCutAmenities = 13;
   const amenitiesPreview = amenities.slice(0, numberToCutAmenities);
-  const hasMoreAmenities = amenities.length > numberToCutAmenities ? true : false;
+  const hasMoreAmenities =
+    amenities.length > numberToCutAmenities ? true : false;
 
-  const numberLastest = amenities.length - numberToCutAmenities
+  const numberLastest = amenities.length - numberToCutAmenities;
 
-  const textNumberAmenities = numberLastest > 1 ? "amenidades" : "amenidad" 
+  const textNumberAmenities = numberLastest > 1 ? "amenidades" : "amenidad";
 
   const amenitiesToShow = [
     ...amenitiesPreview,
-    ...(hasMoreAmenities ? [{
-      name: `+ ${numberLastest} ${textNumberAmenities}`, color: "#699e35", last: true
-    }] : [])
-  ]
-
+    ...(hasMoreAmenities
+      ? [
+          {
+            name: `+ ${numberLastest} ${textNumberAmenities}`,
+            color: "",
+            last: true,
+          },
+        ]
+      : []),
+  ];
 
   const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
 
@@ -198,42 +210,26 @@ export const PropertiesList = () => {
             >
               {operationLabel}
             </Text>
-            <icons.SealChek height={25} width={25} />
+            <icons.SealChek
+              style={{
+                marginLeft: -5,
+              }}
+              height={25}
+              width={25}
+            />
           </View>
 
           <View style={styles.propertyInformation}>
             <Text style={styles.propertyTitle}>
               {property.titleApp || property.title}
             </Text>
-            <View style={styles.propertyAddressView}>
-              {property.zone ? (
-                <View style={styles.propertyAddress}>
-                  <icons.Place height={20} width={20} />
-                  <Text style={styles.addressText} numberOfLines={2}>
-                    {property?.zone}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.propertyAddress}>
-                  <icons.Place height={20} width={20} />
-                  <Text style={styles.addressText} numberOfLines={2}>
-                    PROPIEDAD SIN DIRECCION
-                  </Text>
-                </View>
-              )}
-              {property.propertyView ? (
-                <View style={styles.propertyView}>
-                  <icons.Place width={15} height={15} />
-                  <Text
-                    style={styles.viewText}
-                    adjustsFontSizeToFit
-                    numberOfLines={1}
-                  >
-                    {property.propertyView}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+            {property.zone ? (
+              <View style={styles.propertyAddress}>
+                <Text style={styles.addressText} numberOfLines={2}>
+                  {property?.titleCode}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/** Aqui comienza el espacio de los objetos de la propiedad */}
@@ -263,43 +259,21 @@ export const PropertiesList = () => {
                     label="Recámaras"
                   />
 
-                  {property.flex || property.balcony ? (
-                    <>
-                      <View
-                        style={{
-                          paddingRight: 5,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            textAlign: "center",
-                          }}
-                        >
-                          +
-                        </Text>
-                      </View>
-                      {property.flex ? (
-                        <PropertyMetric
-                          icon={<icons.Bed width={25} height={25} />}
-                          value={property.flex}
-                          label="Flex"
-                        />
-                      ) : null}
-                      {property.balcony ? (
-                        <PropertyMetric
-                          icon={
-                            <icons.Balcony
-                              width={25}
-                              height={25}
-                              strokeWidth={2}
-                            />
-                          }
-                          value={property.balcony}
-                          label="Balcón"
-                        />
-                      ) : null}
-                    </>
+                  {property.flex ? (
+                    <PropertyMetric
+                      icon={<icons.Bed width={25} height={25} />}
+                      value={property.flex}
+                      label="Flex"
+                    />
+                  ) : null}
+                  {property.balcony ? (
+                    <PropertyMetric
+                      icon={
+                        <icons.Balcony width={25} height={25} strokeWidth={2} />
+                      }
+                      value={property.balcony}
+                      label="Balcón"
+                    />
                   ) : null}
                 </View>
               ) : null}
@@ -319,7 +293,7 @@ export const PropertiesList = () => {
                   />
                 </>
               ) : null}
-              {property.statusAmenitie ? (
+              {/*{property.statusAmenitie ? (
                 <View style={styles.moreFeaturesContainer}>
                   <icons.ArmChairSe />
                   <Text
@@ -330,10 +304,57 @@ export const PropertiesList = () => {
                     {property.statusAmenitie}
                   </Text>
                 </View>
-              ) : null}
+              ) : null}*/}
             </View>
           </View>
 
+          <View style={styles.developmentSummaryContainer}>
+            <View style={[styles.developmentCardShadow]}>
+              <View style={styles.developmentCard}>
+                {property.propertyImage ? (
+                  <View style={styles.developmentImageContainer}>
+                    <Image
+                      style={styles.developmentImage}
+                      source={{ uri: property.propertyImage }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ) : null}
+                <View style={styles.developmentTextContainer}>
+                  <Text style={styles.developmentName} numberOfLines={2}>
+                    {property.development}
+                  </Text>
+                  <Text
+                    style={styles.developmentLabel}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    Desarrollo Inmobiliario
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.developmentBadgesContainer}>
+              <View style={styles.developmentBadge}>
+                <Text
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={styles.badgeText}
+                >
+                  {property.statusAmenitie}
+                </Text>
+              </View>
+              <View style={styles.developmentBadge}>
+                <Text
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={styles.badgeText}
+                >
+                  {property.propertyView}
+                </Text>
+              </View>
+            </View>
+          </View>
           <View style={styles.detailsContainer}>
             <Text style={styles.detailsTitle}>Detalles de la propiedad</Text>
             <Text style={styles.detailsInformation}>{descriptionPreview}</Text>
@@ -351,12 +372,17 @@ export const PropertiesList = () => {
         </View>
         {property.detailedEquipment.length > 0 && (
           <>
-            <PropertySection title="Equipamientos de la propiedad">
+            <PropertySection title="Equipamiento">
               <Amenities amenitiesData={property.detailedEquipment} />
             </PropertySection>
             <Line />
           </>
         )}
+        {property.equipmentServices?.length ? (
+          <PropertySection title="Servicios Incluidos">
+            <Amenities amenitiesData={property.equipmentServices} />
+          </PropertySection>
+        ) : null}
         {property.developmentAmenities.length > 0 && (
           <PropertySection title="Amenidades Del Desarrollo">
             <Amenities amenitiesData={amenitiesToShow} />
@@ -403,7 +429,46 @@ export const PropertiesList = () => {
                 </View>
               )}
             </View>
-            <View style={styles.mapTextAdviseContainer}>
+            <Pressable
+              style={{
+                borderRadius: 19,
+                borderWidth: 0.6,
+                borderColor: "#46893c",
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                flexDirection: "row",
+                gap: 16,
+                alignItems: "center",
+                width: "100%",
+                justifyContent: 'center',
+                backgroundColor: '#356b2d'
+              }}
+              disabled={!property.locationURL}
+              onPress={async () => {
+                try {
+                  await Linking.openURL(property.locationURL);
+                } catch {
+                  Alert.alert("No se pudo abrir el enlace");
+                }
+              }}
+            >
+              <View style={{
+                backgroundColor: "#fff",
+                borderRadius: 99,
+                paddingHorizontal: 3,
+                paddingVertical: 3
+              }}>
+                <Google_Maps width={25} height={25} style={{
+
+                }} />
+              </View>
+              <Text style={{
+                color: '#f1f1f1'
+              }} adjustsFontSizeToFit numberOfLines={1}>
+                Abrir en Google Maps
+              </Text>
+            </Pressable>
+            {/*<View style={styles.mapTextAdviseContainer}>
               <icons.Lock />
               <Text
                 numberOfLines={2}
@@ -412,7 +477,7 @@ export const PropertiesList = () => {
               >
                 La ubicación exacta se comparte al confirmar la visita
               </Text>
-            </View>
+            </View>*/}
           </View>
         </PropertySection>
       </ScrollView>
