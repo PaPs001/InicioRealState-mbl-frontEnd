@@ -62,9 +62,9 @@ propertyCard: {
     //left: 5,
     //top: 30,
     height: 17,
-    maxWidth: 84,
+    maxWidth: 100,
     borderRadius: 7,
-    backgroundColor: '#f5f106',
+    backgroundColor: '#f5f389',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -93,7 +93,7 @@ propertyCard: {
   },
   locationPillText: {
     flexShrink: 1,
-    color: '#505050',
+    color: '#363636',
     fontSize: textSize.tiny,
     fontWeight: '600',
   },
@@ -148,26 +148,28 @@ propertyCard: {
   propertyTitle: {
     color: '#0c6740',
     fontSize: textSize.bodySmall,
-    lineHeight: platformLineHeight(16),
-    fontWeight: '500',
+    //lineHeight: platformLineHeight(16),
+    fontWeight: 'bold',
+    textDecorationStyle: "solid",
   },
   propertyCode: {
-    marginTop: 2,
     color: '#929594',
-    fontSize: textSize.micro,
-    lineHeight: platformLineHeight(12),
+    fontSize: 11,
+    lineHeight: platformLineHeight(13),
+    fontWeight: 'bold'
   },
   priceRow: {
     marginTop: 5,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: 8,
+    justifyContent: 'center'
   },
   price: {
     color: '#0c6740',
-    fontSize: textSize.body,
+    fontSize: 17,
     lineHeight: platformLineHeight(18),
-    fontWeight: '400',
+    fontWeight: 'bold',
   },
   priceMeta: {
     color: '#c59b55',
@@ -209,7 +211,7 @@ propertyCard: {
   featureValue: {
     flexShrink: 1,
     color: '#0c6740',
-    fontSize: textSize.micro,
+    fontSize: 11,
     fontWeight: '800',
   },
   featureLabel: {
@@ -286,7 +288,7 @@ propertyCard: {
     alignContent: 'center',
     justifyContent: 'center',
     gap: 5,
-    paddingHorizontal: 5,
+    paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 10,
     flex: 1
@@ -294,19 +296,24 @@ propertyCard: {
   furnishedBlock:{
     backgroundColor: '#c59c55a6',
     flexDirection: 'row',
-    alignItems: 'center',
     alignContent: 'center',
-    justifyContent: 'center',
+    alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 5,
+    paddingHorizontal: 3,
     paddingVertical: 3,
     borderRadius: 10,
     flex: 1
   },
   viewText:{
     fontSize: appFontScale[6],
-    flexShrink: 1,
     color: generalColors.greenTitle,
+    fontWeight: 'bold'
+  },
+  amenitieText:{
+    fontSize: appFontScale[6],
+    color: generalColors.greenTitle,
+    fontWeight: 'bold',
+    flex: 1,
   },
   cardFooter: {
     flexDirection: 'row',

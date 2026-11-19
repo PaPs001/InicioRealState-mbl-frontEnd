@@ -82,12 +82,12 @@ const styles = StyleSheet.create({
   },
   priceCardText: {
     fontSize: textSize.subtitleLarge,
-    color: generalColors.black,
+    color: textColor.titleGreen,
     fontWeight: 'bold'
   },
   textCard: {
     fontSize: textSize.body,
-    color: generalColors.black,
+    color: textColor.titleGreen,
     fontWeight: 'bold'
   },
   maintainText: {

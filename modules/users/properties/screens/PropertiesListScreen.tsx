@@ -100,7 +100,6 @@ export const PropertiesListScreen = () => {
         </>
       ) : (
         <PropertyListScrollHeader
-          // A new first page resets both scroll and floating-header state; appends retain the key.
           key={catalogResetVersion}
           controller={controller}
         >

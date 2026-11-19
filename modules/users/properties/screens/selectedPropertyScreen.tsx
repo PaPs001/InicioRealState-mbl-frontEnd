@@ -7,33 +7,36 @@ import {
   Pressable,
   Text,
   View,
+  Image,
+  Linking,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
 import { AppointmentCreateFlow } from "../../main/components/AppointmentCreateFlow";
 import { PropertyLocationMap } from "../components/selectedProperties/PropertyLocationMap";
-import { icons, logos } from "@/assets";
+import { Google_Maps, icons, logos, Place } from "@/assets";
 import { Amenities } from "../components/selectedProperties/AmenitiesButton";
 import { GalleryImages } from "../components/selectedProperties/GalleryImages";
 import { ImagesRoulette } from "../components/selectedProperties/ImagesRoulette";
-import { PropertyImage } from "../components/selectedProperties/PropertyImage";
 import { PropertyCarousel } from "../components/selectedProperties/PropertyCarousel";
 import { PriceCard } from "../components/PriceCard";
 import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
 import { generalColors } from "@/theme";
 import { AppModal } from "@/components/AppModal";
-import { capitalizeFirstLetter } from "../../main/utils/dashboard-formatters";
-import { propertyStatusConfig } from "../constants/propertyConstants";
+import { usePropertyCatalogImage } from "../hooks/useFileProperties";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import {
+  ArrowBigRight,
+  ArrowBigRightDashIcon,
+  LucideArrowBigRight,
+} from "lucide-react-native";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
     propertyId?: string | string[];
   }>();
-
-  const normalizeName = (value?: string | null) => {
-    return value?.replace(/wc|rec/gi, "").trim() ?? "";
-  };
 
   const [isAppointmentVisible, setIsAppointmentVisible] = useState(false);
 
@@ -41,18 +44,25 @@ export const PropertiesList = () => {
     ? params.propertyId[0]
     : params.propertyId;
 
+  const { generateAndOpenImage, isGeneratingImage } =
+    usePropertyCatalogImage(propertyId);
+
   const { property, isLoading, error, errorCode, isRefreshing, refresh } =
     useSelectedProperty(propertyId);
 
+  const previewImage = property?.propertyImage;
+
   const appointmentProperty = useMemo<DatePropertyCard | undefined>(() => {
     if (!property || !propertyId) return undefined;
-    const operation = property.operationLabel.trim().toLowerCase();
     return {
       id: propertyId,
-      title: property.title,
-      address: property.geoData?.formatAddress || property.zone,
-      listingType:
-        operation === "rent" || operation === "sale" ? operation : undefined,
+      title: property.titleApp || property.title || "",
+      address:
+        property.geoData?.formatAddress ||
+        property.zone ||
+        property.address ||
+        "",
+      listingType: property.typeListProperty,
     };
   }, [property, propertyId]);
 
@@ -61,16 +71,16 @@ export const PropertiesList = () => {
     string | null
   >(null);
   const operationLabel =
-    property?.operationLabel.toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? "Venta por INICIO Real Estate"
       : "Renta por INICIO Real Estate";
 
   const OperationLogo =
-    property?.operationLabel.toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? logos.logoMiniSale
       : logos.logoMiniRent;
   const markerBackgroundColor =
-    property?.operationLabel.trim().toLowerCase() === "sale"
+    property?.typeListProperty === "sale"
       ? generalColors.saleColor
       : generalColors.rentColor;
 
@@ -120,23 +130,45 @@ export const PropertiesList = () => {
           images={property.images}
           onClose={() => setSeeGalleryImages(false)}
           onFavorite={() => {}}
-          onShare={() => {}}
+          onShare={() => generateAndOpenImage()}
         />
       </View>
     );
   }
 
   const description =
-    property.description?.trim() ||
+    property.descriptionProperty?.trim() ||
     "No hay una descripcion para esta propiedad";
 
-  const firstPeriod = description.indexOf(".");
+  const amenities = property.developmentAmenities;
+  //const descriptionPreview = firstPeriod === -1 ? description : description.slice(0, firstPeriod + 1);
 
-  const descriptionPreview =
-    firstPeriod === -1 ? description : description.slice(0, firstPeriod + 1);
+  const descriptionPreview = description.slice(0, 400);
 
   const hasMoreDescription =
     description.slice(descriptionPreview.length).trim().length > 0;
+
+  const numberToCutAmenities = 13;
+  const amenitiesPreview = amenities.slice(0, numberToCutAmenities);
+  const hasMoreAmenities =
+    amenities.length > numberToCutAmenities ? true : false;
+
+  const numberLastest = amenities.length - numberToCutAmenities;
+
+  const textNumberAmenities = numberLastest > 1 ? "amenidades" : "amenidad";
+
+  const amenitiesToShow = [
+    ...amenitiesPreview,
+    ...(hasMoreAmenities
+      ? [
+          {
+            name: `+ ${numberLastest} ${textNumberAmenities}`,
+            color: "",
+            last: true,
+          },
+        ]
+      : []),
+  ];
 
   const [longitude, latitude] = property.geoData?.locations?.coordinates ?? [];
 
@@ -151,17 +183,6 @@ export const PropertiesList = () => {
     longitude >= -180 &&
     longitude <= 180;
 
-  const normalizaedStatus = property.status?.trim().toLowerCase()
-  type PropertyStatus = keyof typeof propertyStatusConfig;
-
-  function isPropertyStatus(status: string): status is PropertyStatus {
-    return status in propertyStatusConfig;
-  }
-
-  const config = normalizaedStatus && isPropertyStatus(normalizaedStatus)
-    ? propertyStatusConfig[normalizaedStatus]
-    : undefined;
-
   return (
     <View style={styles.safeArea}>
       <ScrollView
@@ -174,12 +195,12 @@ export const PropertiesList = () => {
         <ImagesRoulette
           onBack={() => router.back()}
           onFavorite={() => {}}
-          onShare={() => {}}
+          onShare={() => generateAndOpenImage()}
           onOpenGallery={() => {
             if (property.images.length > 1) setSeeGalleryImages(true);
           }}
           images={property.previewImages}
-          status={property?.status}
+          status={property.statusProperty}
         />
         <View style={styles.container}>
           <View style={styles.operationContainer}>
@@ -193,40 +214,26 @@ export const PropertiesList = () => {
             >
               {operationLabel}
             </Text>
-            <icons.SealChek height={25} width={25} />
+            <icons.SealChek
+              style={{
+                marginLeft: -5,
+              }}
+              height={25}
+              width={25}
+            />
           </View>
 
           <View style={styles.propertyInformation}>
-            <Text style={styles.propertyTitle}>{property?.title}</Text>
-            <View style={styles.propertyAddressView}>
-              {property.zone ? (
+            <Text style={styles.propertyTitle}>
+              {property.titleApp || property.title}
+            </Text>
+            {property.zone ? (
               <View style={styles.propertyAddress}>
-                <icons.Place height={20} width={20} />
                 <Text style={styles.addressText} numberOfLines={2}>
-                  {property?.zone}
+                  {property?.titleCode}
                 </Text>
               </View>
-              ): (
-                <View style={styles.propertyAddress}>
-                  <icons.Place height={20} width={20} />
-                  <Text style={styles.addressText} numberOfLines={2}>
-                    PROPIEDAD SIN DIRECCION
-                  </Text>
-                </View>
-              )} 
-              {property.view ? (
-                <View style={styles.propertyView}>
-                  <icons.Place width={15} height={15} />
-                  <Text
-                    style={styles.viewText}
-                    adjustsFontSizeToFit
-                    numberOfLines={1}
-                  >
-                    {property?.view}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+            ) : null}
           </View>
 
           {/** Aqui comienza el espacio de los objetos de la propiedad */}
@@ -234,14 +241,14 @@ export const PropertiesList = () => {
             <View
               style={[
                 styles.propertyFeaturesContainer,
-                property.bedrooms.extra
+                property.flex || property.balcony
                   ? {
                       flexWrap: "wrap",
                     }
                   : null,
               ]}
             >
-              {property?.bedrooms.principal ? (
+              {property.bedrooms ? (
                 <View
                   style={{
                     flexDirection: "row",
@@ -252,62 +259,45 @@ export const PropertiesList = () => {
                 >
                   <PropertyMetric
                     icon={<icons.Bed width={25} height={25} />}
-                    value={normalizeName(property?.bedrooms.principal)}
+                    value={property.bedrooms}
                     label="Recámaras"
                   />
 
-                  {property.bedrooms.extra ? (
-                    <>
-                      <View
-                        style={{
-                          paddingRight: 5,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            textAlign: "center",
-                          }}
-                        >
-                          +
-                        </Text>
-                      </View>
-                      <PropertyMetric
-                        icon={
-                          <icons.Balcony
-                            width={25}
-                            height={25}
-                            strokeWidth={2}
-                          />
-                        }
-                        value={capitalizeFirstLetter(
-                          normalizeName(property.bedrooms.extra),
-                        )}
-                        label={capitalizeFirstLetter(
-                          normalizeName(property.bedrooms.extraName),
-                        )}
-                      />
-                    </>
+                  {property.flex ? (
+                    <PropertyMetric
+                      icon={<icons.Bed width={25} height={25} />}
+                      value={property.flex}
+                      label="Flex"
+                    />
+                  ) : null}
+                  {property.balcony ? (
+                    <PropertyMetric
+                      icon={
+                        <icons.Balcony width={25} height={25} strokeWidth={2} />
+                      }
+                      value={property.balcony}
+                      label="Balcón"
+                    />
                   ) : null}
                 </View>
               ) : null}
               {property?.bathrooms ? (
                 <PropertyMetric
                   icon={<icons.Bathroom width={25} height={25} />}
-                  value={normalizeName(property?.bathrooms)}
+                  value={property.bathrooms}
                   label="Baños"
                 />
               ) : null}
-              {property?.parking ? (
+              {property.parkings ? (
                 <>
                   <PropertyMetric
                     icon={<icons.Car width={25} height={25} />}
-                    value={property?.parking}
+                    value={property.parkings}
                     label="Parkings"
                   />
                 </>
               ) : null}
-              {property.propertyAmenities ? (
+              {/*{property.statusAmenitie ? (
                 <View style={styles.moreFeaturesContainer}>
                   <icons.ArmChairSe />
                   <Text
@@ -315,13 +305,60 @@ export const PropertiesList = () => {
                     numberOfLines={2}
                     style={styles.moreFeaturesText}
                   >
-                    {property?.propertyAmenities}
+                    {property.statusAmenitie}
                   </Text>
                 </View>
-              ) : null}
+              ) : null}*/}
             </View>
           </View>
 
+          <View style={styles.developmentSummaryContainer}>
+            <View style={[styles.developmentCardShadow]}>
+              <View style={styles.developmentCard}>
+                {property.propertyImage ? (
+                  <View style={styles.developmentImageContainer}>
+                    <Image
+                      style={styles.developmentImage}
+                      source={{ uri: property.propertyImage }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ) : null}
+                <View style={styles.developmentTextContainer}>
+                  <Text style={styles.developmentName} numberOfLines={2}>
+                    {property.development}
+                  </Text>
+                  <Text
+                    style={styles.developmentLabel}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    Desarrollo Inmobiliario
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.developmentBadgesContainer}>
+              <View style={styles.developmentBadge}>
+                <Text
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={styles.badgeText}
+                >
+                  {property.statusAmenitie}
+                </Text>
+              </View>
+              <View style={styles.developmentBadge}>
+                <Text
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={styles.badgeText}
+                >
+                  {property.propertyView}
+                </Text>
+              </View>
+            </View>
+          </View>
           <View style={styles.detailsContainer}>
             <Text style={styles.detailsTitle}>Detalles de la propiedad</Text>
             <Text style={styles.detailsInformation}>{descriptionPreview}</Text>
@@ -332,14 +369,30 @@ export const PropertiesList = () => {
                 onPress={() => setDescriptionPropertyId(propertyId ?? null)}
                 style={styles.descriptionAction}
               >
-                <Text style={styles.descriptionActionText}>Mostrar todo</Text>
+                <Text style={styles.descriptionActionText}>...Leer Más</Text>
               </Pressable>
             )}
           </View>
         </View>
-        {property.equipmentServices.length > 0 && (
-          <PropertySection title="Amenidades">
-            <Amenities amenitiesData={property.equipmentServices} />
+        {property.detailedEquipment.length > 0 && (
+          <>
+            <PropertySection title="Equipamiento">
+              <Amenities amenitiesData={property.detailedEquipment} />
+            </PropertySection>
+            <Line />
+          </>
+        )}
+        {property.equipmentServices?.length ? (
+          <>
+            <PropertySection title="Servicios Incluidos">
+              <Amenities amenitiesData={property.equipmentServices} />
+            </PropertySection>
+            <Line />
+          </>
+        ) : null}
+        {property.developmentAmenities.length > 0 && (
+          <PropertySection title="Amenidades Del Desarrollo">
+            <Amenities amenitiesData={amenitiesToShow} />
           </PropertySection>
         )}
         <Line />
@@ -370,16 +423,63 @@ export const PropertiesList = () => {
                   markerColor={markerBackgroundColor}
                 />
               ) : (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1
-                }}>
-                  <Text numberOfLines={2} adjustsFontSizeToFit>No hemos logrado ubicar esta propiedad</Text>
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flex: 1,
+                  }}
+                >
+                  <Text numberOfLines={2} adjustsFontSizeToFit>
+                    No hemos logrado ubicar esta propiedad
+                  </Text>
                 </View>
               )}
             </View>
-            <View style={styles.mapTextAdviseContainer}>
+            <Pressable
+              style={{
+                borderRadius: 19,
+                borderWidth: 0.6,
+                borderColor: "#46893c",
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                flexDirection: "row",
+                gap: 16,
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "center",
+                backgroundColor: "#356b2d",
+              }}
+              disabled={!property.locationURL}
+              onPress={async () => {
+                try {
+                  await Linking.openURL(property.locationURL);
+                } catch {
+                  Alert.alert("No se pudo abrir el enlace");
+                }
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "#fff",
+                  borderRadius: 99,
+                  paddingHorizontal: 3,
+                  paddingVertical: 3,
+                }}
+              >
+                <Google_Maps width={25} height={25} style={{}} />
+              </View>
+              <Text
+                style={{
+                  color: "#f1f1f1",
+                }}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                Abrir en Google Maps
+              </Text>
+            </Pressable>
+            {/*<View style={styles.mapTextAdviseContainer}>
               <icons.Lock />
               <Text
                 numberOfLines={2}
@@ -388,7 +488,7 @@ export const PropertiesList = () => {
               >
                 La ubicación exacta se comparte al confirmar la visita
               </Text>
-            </View>
+            </View>*/}
           </View>
         </PropertySection>
       </ScrollView>
@@ -403,8 +503,8 @@ export const PropertiesList = () => {
             setIsAppointmentVisible(true);
           }}
           price={property?.price}
-          operation={property?.operationLabel}
-          hasMantain={property?.hasMantenimiento}
+          operation={property.typeListProperty}
+          hasMantain={property.hasMantenance}
         />
       </BlurView>
       <AppModal
@@ -432,6 +532,7 @@ export const PropertiesList = () => {
           lockAppointmentType
         />
       )}
+      <LoadingOverlay visible={isGeneratingImage} />
     </View>
   );
 };

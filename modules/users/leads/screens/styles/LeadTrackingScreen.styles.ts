@@ -1,5 +1,5 @@
-import { fontScale as appFontScale, textSize } from '@/theme/typography'
-import { generalColors, textColor } from "@/theme";
+import { fontScale as appFontScale, textSize } from "@/theme/typography";
+import { buttonColor, generalColors, textColor } from "@/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   container: {
     gap: 10,
     paddingHorizontal: 12,
-    paddingBottom: 80
+    paddingBottom: 80,
   },
   logoContainer: {
     alignSelf: "center",
@@ -92,7 +92,7 @@ export const styles = StyleSheet.create({
   },
   clasificationContainer: {
     gap: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingTop: 15,
     paddingBottom: 30,
     paddingHorizontal: 12,
@@ -111,7 +111,7 @@ export const styles = StyleSheet.create({
     paddingRight: 10,
     borderRadius: 12,
     gap: 8,
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   leftContainer: {
     flexDirection: "row",
@@ -124,20 +124,20 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
-    justifyContent: 'flex-end',
-    flexShrink: 0
+    justifyContent: "flex-end",
+    flexShrink: 0,
   },
-  numberLeadContainer:{
+  numberLeadContainer: {
     paddingVertical: 4,
     paddingHorizontal: 12,
-    borderRadius: 17
+    borderRadius: 17,
   },
-  textCardContainer:{
+  textCardContainer: {
     flex: 1,
-    minWidth: 0
+    minWidth: 0,
   },
-  timeContainer:{
-    backgroundColor: '#FBDDE0',
+  timeContainer: {
+    backgroundColor: "#FBDDE0",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 15,
@@ -145,27 +145,38 @@ export const styles = StyleSheet.create({
 
   //// textos
 
-  titleCardLead:{
+  titleCardLead: {
     fontSize: textSize.bodyLarge,
-    fontWeight:'900',
+    fontWeight: "900",
     flexShrink: 1,
   },
-  subtitleCardLead:{
+  subtitleCardLead: {
     fontSize: textSize.label,
-    fontWeight: '400',
-    flexWrap: 'wrap',
-    flexShrink: 1
+    fontWeight: "400",
+    flexWrap: "wrap",
+    flexShrink: 1,
   },
-  numberLeads:{
+  numberLeads: {
     fontSize: textSize.caption,
-    fontWeight: '400'
+    fontWeight: "400",
   },
-  clasificationTitleText:{
+  clasificationTitleText: {
     fontSize: textSize.subtitleLarge,
   },
-  timeText:{
+  timeText: {
     fontSize: textSize.captionSmall,
     color: "#AF474A",
-    fontWeight: '400'
-  }
+    fontWeight: "400",
+  },
+  createLeadButton: {
+    position: "absolute",
+    bottom: 80,
+    right: 20,
+    backgroundColor: buttonColor.buttonGreen,
+    borderRadius: 99,
+    justifyContent: "center",
+    alignItems: "center",
+    width: 65,
+    height: 65,
+  },
 });

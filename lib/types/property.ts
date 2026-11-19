@@ -1,15 +1,8 @@
 import type {
   PropertyCatalogItemResponse,
-  PropertyEquipmentServiceResponse,
-  PropertyImageResponse,
 } from "@/modules/users/properties/types/Property/property.response";
-import type { GeoData, TypeListProperty } from "@/modules/users/properties/types/Property/property.model";
+import type { GeoData } from "@/modules/users/properties/types/Property/property.model";
 
-// Shared types still used by the property detail flow.
-export type {
-  PropertyEquipmentServiceResponse,
-  PropertyImageResponse,
-} from "@/modules/users/properties/types/Property/property.response";
 export type { GeoData } from "@/modules/users/properties/types/Property/property.model";
 
 /**
@@ -21,53 +14,16 @@ export type PropertyType = "house" | "apartment" | "land";
 export type PropertyStatus = PropertyCatalogItemResponse["status"];
 
 
-export type Images = {
-  key: string;
-  url: string;
-  contentType: string;
-  zone: string;
-  name: string;
-};
-
-
 //// aqui terminan los tipos
 
 
 ///// aqui empiezan las interfaces
-
-export interface ListingCardProperty {
-  id: string;
-  _id: string;
-  titleListing: string;
-  address: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  parkings: number;
-  isAland: boolean | null;
-  typeListProperty: TypeListProperty;
-  propertyImage: string;
-  statusAmenitie: string;
-  statusProperty: string;
-  zone: string;
-  amenities: string[];
-  propertyView: string;
-  hasSolarPanel: boolean;
-}
 
 /** Property data used by appointment creation and editing selectors. */
 export type DatePropertyCard = Pick<
   Property,
   "id" | "title" | "address" | "listingType"
 >;
-
-export interface SelectedProperty extends ListingCardProperty {
-  geoData: GeoData;
-  titleApp: string;
-  descriptionProperty: string;
-  hasMantenimiento: boolean;
-  images: Images[];
-}
 
 export interface Property {
   id: string;
@@ -104,21 +60,6 @@ export interface Property {
   createdAt: string;
   propertyDescription?: string;
   titlePropertie?: string;
-}
-
-export type AmenitiesEstructure = {
-  name: string;
-  color: string;
-};
-
-export interface selectedPropertyBackendData extends Omit<PropertyCatalogItemResponse, "equipmentServices" | "list"> {
-  list: string;
-  titleApp: string | null;
-  description: string | null;
-  amenities: AmenitiesEstructure[] | null;
-  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
-  images?: PropertyImageResponse[] | null;
-  geoData: GeoData;
 }
 
 

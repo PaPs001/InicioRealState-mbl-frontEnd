@@ -5,15 +5,13 @@ import {
 import { useEffect, useState } from "react";
 import { cacheUploadedFile } from "@/lib/services/uploaded-file-cache";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  mapApiPropertyToDetail,
-  type PropertyDetail,
-} from "../mappers/detail.mappers";
+import { mapSelectedProperty } from "../mappers/catalog.map";
+import type { SelectedPropertyMapped } from "../types/Property/property.model";
 
 export function useSelectedProperty(propertyId?: string) {
   const { authToken } = useAuth();
 
-  const [property, setProperty] = useState<PropertyDetail | null>(null);
+  const [property, setProperty] = useState<SelectedPropertyMapped | null>(null);
   const [isLoading, setIsloading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -42,11 +40,11 @@ export function useSelectedProperty(propertyId?: string) {
       try {
         const cached = getCachedSelectedProperty(id, token);
         setIsloading(!cached);
-        setProperty(cached ? mapApiPropertyToDetail(cached) : null);
+        setProperty(cached ? mapSelectedProperty(cached) : null);
         const data = await getSelectedProperty(id, token, refreshVersion > 0);
 
         const resolvedImages = new Map<string, string>();
-        await Promise.all((data.images ?? []).map(async (image) => {
+        await Promise.all((data.images ?? data.Images ?? []).map(async (image) => {
           if (!image.key) return;
           try {
             const localUri = await cacheUploadedFile({
@@ -61,7 +59,7 @@ export function useSelectedProperty(propertyId?: string) {
           }
         }));
 
-        if (active) setProperty(mapApiPropertyToDetail(data, resolvedImages));
+        if (active) setProperty(mapSelectedProperty(data, resolvedImages));
       } catch (error) {
         if (active) {
           const failure = error && typeof error === "object" ? error : null;

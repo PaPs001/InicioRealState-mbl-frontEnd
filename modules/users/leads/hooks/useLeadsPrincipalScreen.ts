@@ -2,12 +2,12 @@ import { router, useLocalSearchParams } from 'expo-router'
 import type { LeadsV2RouteParams } from '@/modules/users/leads/types'
 import { getParamValue } from '../utils/leads-principal-utils'
 import { useLeadTrackingRoutes } from './useLeadTrackingRoutes'
+import { useCreateLead } from './useCreateLead'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 import {
-  createBackendLeadV2Record,
   createBackendLeadV2Status,
   deleteBackendLeadV2Status,
   deleteBackendLeadV2Records,
@@ -21,11 +21,8 @@ import {
 import {
   LEADS_PAGE_SIZE,
   coordinatorLeadV2Channels,
-  emptyLeadV2CreateForm,
-  isLeadV2CreateFormValid,
   type AgentLeadGroup,
   type CoordinatorLeadV2Channel,
-  type LeadV2CreateForm,
   type LeadV2ViewModel,
 } from '@/modules/users/leads/types'
 import {
@@ -65,10 +62,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
   const [isLoadingCustomLeadStatuses, setIsLoadingCustomLeadStatuses] = useState(false)
   const [isLoadingLeads, setIsLoadingLeads] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [isCreateLeadModalOpen, setIsCreateLeadModalOpen] = useState(false)
-  const [createLeadForm, setCreateLeadForm] = useState<LeadV2CreateForm>(emptyLeadV2CreateForm)
-  const [isCreatingLead, setIsCreatingLead] = useState(false)
-  const [createLeadError, setCreateLeadError] = useState<string | null>(null)
   const [dismissedRouteLeadId, setDismissedRouteLeadId] = useState<string | null>(null)
   const hasLoadedInitialLeadsRef = useRef(false)
   const hasLoadedInitialStatusesRef = useRef(false)
@@ -282,22 +275,16 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     setLeadPage(1)
   }
 
-  const updateCreateLeadField = (field: keyof LeadV2CreateForm, value: string) => {
-    setCreateLeadForm((current) => ({ ...current, [field]: value }))
-    setCreateLeadError(null)
-  }
-
-  const openCreateLeadModal = () => {
-    setCreateLeadError(null)
-    setIsCreateLeadModalOpen(true)
-  }
-
-  const closeCreateLeadModal = () => {
-    if (isCreatingLead) return
-    setIsCreateLeadModalOpen(false)
-    setCreateLeadForm(emptyLeadV2CreateForm)
-    setCreateLeadError(null)
-  }
+  const {
+    createLeadError,
+    createLeadForm,
+    isCreatingLead,
+    isCreateLeadModalOpen,
+    openCreateLeadModal,
+    closeCreateLeadModal,
+    updateCreateLeadField,
+    submitCreateLead,
+  } = useCreateLead({ mode, onCreated: loadLeads })
 
   const createCustomLeadStatus = useCallback(async (status: string) => {
     if (!authToken) return []
@@ -330,41 +317,6 @@ export function useLeadsPrincipalScreen({ mode, trackingFlow = false }: UseLeads
     const updatedLead = await setBackendLeadV2NextAction(leadId, { nextAction, nextActionAt }, authToken)
     return replaceLeadRecord(updatedLead)
   }, [authToken, replaceLeadRecord])
-  const submitCreateLead = async () => {
-    if (!isLeadV2CreateFormValid(createLeadForm)) {
-      setCreateLeadError('Completa todos los campos obligatorios para guardar el lead.')
-      return
-    }
-
-    if (!authToken) {
-      setCreateLeadError('No hay sesion activa para crear el lead.')
-      return
-    }
-
-    setIsCreatingLead(true)
-    setCreateLeadError(null)
-    try {
-      await createBackendLeadV2Record({
-        fullName: createLeadForm.fullName,
-        phone: createLeadForm.phone,
-        email: createLeadForm.email,
-        status: createLeadForm.status,
-        lastContactDate: createLeadForm.lastContactDate || undefined,
-        estimatedBudget: createLeadForm.estimatedBudget ? Number.parseInt(createLeadForm.estimatedBudget, 10) : undefined,
-        origin: createLeadForm.origin,
-        operation: createLeadForm.operation,
-      }, authToken)
-      setIsCreateLeadModalOpen(false)
-      setCreateLeadForm(emptyLeadV2CreateForm)
-      await loadLeads()
-    } catch (error) {
-      console.warn('No se pudo crear el lead v2:', error)
-      setCreateLeadError('No se pudo crear el lead. Revisa la conexion e intenta de nuevo.')
-    } finally {
-      setIsCreatingLead(false)
-    }
-  }
-
   const startLeadSelection = () => {
     setIsAssistantOpen(false)
     setSelectedDeleteIds([])

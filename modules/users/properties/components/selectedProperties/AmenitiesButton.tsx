@@ -1,39 +1,44 @@
-import { Text, View } from "react-native";
-import {styles} from './styles/AmenitiesButton.style'
+import { Text, View, Pressable } from "react-native";
+import { styles } from "./styles/AmenitiesButton.style";
 import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
-import { amenitiesConfigSelectedProperty } from "../../constants/propertyConstants";
-import { AmenitiesEstructure } from "@/lib/types";
+import type { AmenitiesMapped } from "../../types/Property/property.model";
+import { textColor } from "@/theme";
 type AmenitiesButtonProps = {
-  amenitiesData?: AmenitiesEstructure[],
-  //icon: SvgProps,
-}
-export const Amenities = ({
- amenitiesData 
-}: AmenitiesButtonProps) => {
-  return(
+  amenitiesData?: AmenitiesMapped[];
+};
+export const Amenities = ({ amenitiesData }: AmenitiesButtonProps) => {
+  return (
     <View style={styles.amenitiesContainer}>
       {amenitiesData?.map((amenity, index) => {
         const key = amenity.name.toLocaleLowerCase();
-        const amenityConfig = amenitiesConfigSelectedProperty[key]
-        const AmenityIcon = amenityConfig?.icon
+        const AmenityIcon = amenity.icons;
 
-        return(
-          <View
-            key={`${key}-${index}`}
-            style={styles.amenitieCard}
-          >
+        const content = (
+          <>
             {AmenityIcon && <AmenityIcon width={15} height={15} />}
-            <Text 
-              style={styles.amenitieText}
-              adjustsFontSizeToFit
-            >
+            <Text style={[styles.amenitieText, amenity.last && {
+              color: textColor.titleGreen
+            }]} adjustsFontSizeToFit>
               {capitalizeFirstLetter(amenity.name)}
             </Text>
-          </View>
+          </>
+        );
 
-        )
+        return amenity.last ? (
+          <Pressable
+            key={`${key}-${index}`}
+            accessibilityRole="button"
+            onPress={amenity.onPress}
+            style={[styles.amenitieCard, { borderColor: textColor.titleGreen }]}
+          >
+            {content}
+          </Pressable>
+        ) : (
+          <View key={`${key}-${index}`} style={styles.amenitieCard}>
+            {content}
+          </View>
+        );
       })}
     </View>
-  )
-}
-
+  );
+};

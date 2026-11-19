@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import type { PropertyDetailRoom } from "../../mappers/detail.mappers";
+import type { PropertyDetailRoom } from "../../types/Property/property.model";
 import { ImagePreviewModal } from "../ImagePreviewModal";
 import { PropertyImage } from "./PropertyImage";
 import { styles } from "./styles/RoomsRow.style";
+import { capitalizeFirstLetter } from "@/modules/users/main/utils/dashboard-formatters";
+import { normalizeText } from "@/lib/utils/property-catalog";
+import { capitalizeWords } from "@/lib/utils";
 
 export function PropertyCarousel({ items }: { items: PropertyDetailRoom[] }) {
   const listRef = useRef<FlatList<PropertyDetailRoom>>(null);
@@ -81,7 +84,7 @@ export function PropertyCarousel({ items }: { items: PropertyDetailRoom[] }) {
                 style={styles.roomImage}
               />
               <View style={styles.roomTextContainer}>
-                <Text style={styles.roomTitle}>{item.name}</Text>
+                <Text style={styles.roomTitle}>{capitalizeWords(item.name)}</Text>
               </View>
             </Pressable>
           )}

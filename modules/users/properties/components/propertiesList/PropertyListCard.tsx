@@ -3,7 +3,7 @@ import { icons } from "@/assets";
 import { styles } from "./styles/PropertyLsitCard.styles";
 import { memo } from "react";
 import type { ReactNode } from "react";
-import { Home } from "lucide-react-native";
+import { Home, SolarPanel } from "lucide-react-native";
 import type { PropertyCard2 } from "../../types/Property/property.model";
 import {
   fontScale as appFontScale,
@@ -65,12 +65,8 @@ export const PropertyCard = memo(function PropertyCard({
           ) : null}
           {property.hasSolarPanel ? (
             <View style={styles.SolarPanelPill}>
+              <SolarPanel width={13} height={13} stroke={'#626262'}/>
               <Text style={styles.locationPillText}>Paneles Solares</Text>
-            </View>
-          ) : null}
-          {property.hasMantenance ? (
-            <View style={[styles.mantenancePill]}>
-              <Text style={styles.mantenancePillText}>Mantenimiento</Text>
             </View>
           ) : null}
         </View>
@@ -102,9 +98,9 @@ export const PropertyCard = memo(function PropertyCard({
         <Text style={styles.propertyTitle} numberOfLines={1}>
           {property.title}
         </Text>
-        {property.address ? (
+        {property.development ? (
           <Text style={styles.propertyCode} numberOfLines={1}>
-            {property.address}
+            {property.development}
           </Text>
         ) : null}
         <View style={styles.priceRow}>
@@ -147,48 +143,82 @@ export const PropertyCard = memo(function PropertyCard({
         ) : null}
         {amenities?.length ? (
           <View
-            style={[{
-              height: 40,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderBottomWidth: 0.5,
-              borderBottomColor: "#d8d0c5",
-              gap: 3,
-              paddingHorizontal: 3,
-            }, hasOne && {
-              justifyContent: 'center'
-            }]}
+            style={[
+              {
+                height: 50,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottomWidth: 0.5,
+                borderBottomColor: "#d8d0c5",
+                paddingHorizontal: 3,
+              },
+              hasOne && {
+                justifyContent: "center",
+              },
+            ]}
           >
-            {amenities?.map((amenitie) => (
-              <View
-                style={[hasOne && {
-                  width: "100%",
-                  flex: 1,
-                },{
-                  width: "30%",
-                  minWidth: 0,
-                  alignItems: "center",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                }]}
-              >
-                <icons.ActionIcon />
-                <Text
-                  style={{
-                    color: "#929594",
-                    fontSize: appFontScale[6],
-                    lineHeight: platformLineHeight(8),
-                    textAlign: 'center',
-                  }}
-                  key={amenitie.name}
-                  adjustsFontSizeToFit
-                  numberOfLines={2}
+            {amenities?.map((amenitie) => {
+              const AmenityIcon = amenitie.icons;
+
+              return (
+                <View
+                  style={[
+                    hasOne && {
+                      width: "100%",
+                      flex: 1,
+                    },
+                    {
+                      width: "30%",
+                      minWidth: 0,
+                      alignItems: "center",
+                      flexDirection: "column",
+                      gap: 5,
+                    },
+                  ]}
                 >
-                  {formatText(amenitie.name)}
-                </Text>
-              </View>
-            ))}
+                  {AmenityIcon ? (
+                    <AmenityIcon
+                      width={12}
+                      height={12}
+                      style={{
+                        transform: [
+                          {
+                            scale: 1.5,
+                          },
+                        ],
+                      }}
+                    />
+                  ) : (
+                    <icons.ArmChairSe
+                      width={12}
+                      height={12}
+                      style={{
+                        transform: [
+                          {
+                            scale: 1.5,
+                          },
+                        ],
+                      }}
+                    />
+                  )}
+                  <Text
+                    style={{
+                      color: "#929594",
+                      fontSize: appFontScale[6],
+                      lineHeight: platformLineHeight(8),
+                      textAlign: 'center',
+                      fontWeight: "bold"
+                    }}
+                    key={amenitie.name}
+                    adjustsFontSizeToFit
+                    numberOfLines={2}
+                  >
+                    {formatText(amenitie.name)}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         ) : null}
         <View
@@ -197,16 +227,17 @@ export const PropertyCard = memo(function PropertyCard({
             property.isAland && styles.landPropertyCar,
           ]}
         >
-          {property.propertyView ? (
+          {property.propertyType ? (
             <>
               <View style={styles.viewBlock}>
                 <icons.Fluid />
                 <Text
-                  adjustsFontSizeToFit={Boolean(!property.statusAmenitie)}
-                  numberOfLines={1}
+                  //adjustsFontSizeToFit={Boolean(!property.statusAmenitie)}
                   style={styles.viewText}
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
                 >
-                  {property.propertyView}
+                  {property.propertyType}
                 </Text>
               </View>
             </>
@@ -216,9 +247,8 @@ export const PropertyCard = memo(function PropertyCard({
               <icons.FullyFurnished />
               {property.statusAmenitie ? (
                 <Text
-                  adjustsFontSizeToFit={Boolean(!property.propertyView)}
-                  style={styles.viewText}
-                  numberOfLines={1}
+                  //adjustsFontSizeToFit={Boolean(!property.propertyView)}
+                  style={styles.amenitieText}
                 >
                   {property.statusAmenitie}
                 </Text>

@@ -128,6 +128,7 @@ import PoolAmenitie from "./properties/amenities/Pool.svg"
 import WifiConnection from "./properties/amenities/wifi_conection.svg"
 import WifiAmenitie from "./properties/amenities/Wifi.svg"
 
+import Google_Maps from "./properties/google-maps.svg"
 export const logos = {
   inicioGris: LogoInicioSVGris,
   inicioNegro: LogoInicioSVGNegro,
@@ -230,7 +231,8 @@ export const icons = {
   Droplets: Droplets,
   PoolAmenitie: PoolAmenitie,
   WifiConnection: WifiConnection,
-  WifiAmenitie: WifiAmenitie 
+  WifiAmenitie: WifiAmenitie,
+  Google_Maps: Google_Maps
 } as const;
 
 export const images = {
@@ -398,4 +400,5 @@ export {
   PoolAmenitie,
   WifiConnection,
   WifiAmenitie,
+  Google_Maps
 };

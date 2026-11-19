@@ -1,5 +1,4 @@
 import type {
-  AmenitiesMapped as AmenitiesEstructure,
   GeoData,
   TypeListProperty,
 } from "./property.model";
@@ -21,11 +20,17 @@ export interface PropertyImageResponse {
   category: string;
 }
 
+export type AmenitiesResponse = {
+  name: string;
+  color: string;
+};
+
 ///// interace de respuesta del servicio del catalogo
 export interface PropertyCatalogItemResponse {
   _id: string;
   notionId?: string;
   __v?: number;
+  amenities: AmenitiesResponse[] | null;
   createdAt?: string;
   updatedAt?: string;
   notionOwnerId?: string | null;
@@ -70,15 +75,20 @@ export interface PropertyCatalogItemResponse {
   virtualRoute?: string | null;
   wc: string | null;
   zonaText: string | null;
+  development: string;
+  developmentAmenities: PropertyEquipmentServiceResponse[];
+  detailedEquipment: PropertyEquipmentServiceResponse[];
   equipmentServices: PropertyEquipmentServiceResponse[];
 }
 
 ///// interface para el endpoint de la propiedad seleccionada
 
-export interface SelectedPropertyResponse extends PropertyCatalogItemResponse {
+export interface SelectedPropertyResponse extends Omit<PropertyCatalogItemResponse, "equipmentServices"> {
   titleApp: string | null;
   description: string | null;
-  amenities: AmenitiesEstructure[] | null;
+  amenities: AmenitiesResponse[] | null;
+  equipmentServices?: PropertyEquipmentServiceResponse[] | null;
+  images?: PropertyImageResponse[] | null;
   Images?: PropertyImageResponse[] | null;
   geoData: GeoData;
 }
@@ -103,6 +113,9 @@ export interface PropertyMarkerResponse extends Pick<
   | "equipmentServices"
   | "isALand"
   | "propertyAmenities"
+  | "amenities"
+  | "propertyType"
+  | "development"
 > {
   geoData: GeoData;
 }

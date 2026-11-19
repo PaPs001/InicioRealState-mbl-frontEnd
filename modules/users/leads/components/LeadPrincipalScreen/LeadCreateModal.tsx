@@ -94,6 +94,12 @@ export function LeadCreateModal({
           onSelect={(value) => onUpdateField("status", value)}
         />
         <LeadFormField
+          label="Nacionalidad"
+          placeholder="nacionalidad del lead"
+          value={form.nationality}
+          onChangeText={(value) => onUpdateField("nationality", value)}
+        />
+        <LeadFormField
           label="Telefono"
           placeholder="Numero de telefono"
           value={form.phone}

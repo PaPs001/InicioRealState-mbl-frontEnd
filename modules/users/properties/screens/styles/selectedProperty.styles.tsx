@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
   },
   operationContainer: {
     flexDirection: "row",
-    gap: 6,
+    gap: 2,
     alignContent: "center",
     alignItems: "center",
   },
@@ -76,10 +76,11 @@ export const styles = StyleSheet.create({
   },
   operationText: {
     fontSize: textSize.caption,
+    color: textColor.titleGreen
     //color: textColor.softText,
   },
   propertyTitle: {
-    fontSize: textSize.displaySmall,
+    fontSize: 27,
     flexShrink: 1,
     lineHeight: platformLineHeight(35),
   },
@@ -97,11 +98,13 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    alignSelf: "center"
   },
   addressText: {
     flex: 1,
     fontSize: textSize.bodySmall,
     color: textColor.softText,
+    textAlign: 'center'
   },
   propertyView: {
     flexDirection: "row",
@@ -138,20 +141,95 @@ export const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 1,
     borderWidth: 1,
     borderColor: "#ffffff00",
     borderRadius: 12,
+  },
+  developmentSummaryContainer: {
+    flexDirection: "row",
+    gap: 5,
+    minHeight: 50,
+  },
+  developmentCardShadow: {
+    flex: 2,
+    minWidth: 0,
+    borderWidth: 0,
+    borderRadius: 14,
+    backgroundColor: "#FDFBF9",
+  },
+  developmentCard: {
+    flex: 1,
+    flexDirection: "row",
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 0.6,
+    borderColor: "#00000052",
+    backgroundColor: "#FDFBF9",
+  },
+  developmentImageContainer: {
+    flex: 1.4,
+    minWidth: 0,
+    overflow: "hidden",
+  },
+  developmentImage: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  developmentTextContainer: {
+    flex: 2,
+    minWidth: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    gap: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  developmentName: {
+    fontSize: textSize.bodySmall,
+    fontWeight: "bold",
+    color: textColor.titleGreen,
+    textAlign: "center",
+  },
+  developmentLabel: {
+    fontSize: 11,
+    color: textColor.softText,
+    textAlign: "center",
+    fontWeight: 'bold'
+  },
+  developmentBadgesContainer: {
+    gap: 6,
+    flexShrink: 1,
+  },
+  developmentBadge: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    borderRadius: 8,
+    overflow: "hidden",
+    borderWidth: 0.6,
+    borderColor: "#00000052",
+    backgroundColor: "#FDFBF9",
+    paddingHorizontal: 5,
+  },
+  badgeText:{
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: textColor.titleGreen
   },
   extrasTtitleContainer: {
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
   },
+
   extrasTitle: {
     fontSize: textSize.body,
   },
@@ -203,7 +281,7 @@ export const styles = StyleSheet.create({
     lineHeight: platformLineHeight(15),
   },
   descriptionAction: {
-    alignSelf: "flex-start",
+    alignSelf: "flex-end",
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 8,

@@ -1,18 +1,21 @@
-import type { PropertyCatalogItemResponse } from "./property.response";
+import { SvgProps } from "react-native-svg";
+import { ComponentType } from "react";
+
+export type PropertyDetailRoom = {
+  id: string;
+  name: string;
+  image: string;
+  images: string[];
+};
 
 export type TypeListProperty = "rent" | "sale" | undefined;
-
-export type PropertieImagesMapped = {
-  key: string;
-  url: string;
-  contentType: string;
-  zone: string;
-  name: string;
-};
 
 export type AmenitiesMapped = {
   name: string;
   color: string;
+  icons?: ComponentType<SvgProps>;
+  last?: boolean;
+  onPress?: () => void
 };
 
 ///// Interface para la tarjeta de propiedad mapeada
@@ -32,20 +35,30 @@ export interface PropertyCard2 {
   statusProperty?: string;
   zone?: string;
   amenities?: AmenitiesMapped[];
+  equipmentServices?: AmenitiesMapped[];
   propertyView?: string;
   hasSolarPanel?: boolean;
   flex?: number;
   balcony?: number;
   hasMantenance?: boolean;
+  propertyType?: string;
+  development?: string 
 }
 
 ////// interface de propiedad seleccionada para mapear
-export interface SelectedPropertyMapped extends PropertyCatalogItemResponse {
-  geoData: GeoData;
-  titleApp: string;
-  descriptionProperty: string;
-  hasMantenimiento: boolean;
-  Images: PropertieImagesMapped[];
+export interface SelectedPropertyMapped extends PropertyCard2 {
+  geoData?: GeoData;
+  amenities: AmenitiesMapped[];
+  titleApp?: string;
+  descriptionProperty?: string;
+  rooms: PropertyDetailRoom[];
+  amenitiesImages: PropertyDetailRoom[];
+  images: string[];
+  previewImages: string[];
+  developmentAmenities: AmenitiesMapped[];
+  detailedEquipment: AmenitiesMapped[];
+  titleCode: string;
+  locationURL: string;
 }
 
 //// Para el mapa y ubicacion de las propiedades

@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { PropertyImage } from './PropertyImage'
 import { styles } from './styles/RoomsRow.style'
-import type { PropertyDetailRoom } from '../../mappers/detail.mappers'
+import type { PropertyDetailRoom } from '../../types/Property/property.model'
 
 
 type RoomsRowProps = {
