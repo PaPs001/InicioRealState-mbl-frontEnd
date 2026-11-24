@@ -23,15 +23,11 @@ import { PropertyCarousel } from "../components/selectedProperties/PropertyCarou
 import { PriceCard } from "../components/PriceCard";
 import { styles } from "./styles/selectedProperty.styles";
 import { useSelectedProperty } from "../hooks/useSelectedProperty";
-import { generalColors } from "@/theme";
+import { generalColors, textColor } from "@/theme";
 import { AppModal } from "@/components/AppModal";
 import { usePropertyCatalogImage } from "../hooks/useFileProperties";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
-import {
-  ArrowBigRight,
-  ArrowBigRightDashIcon,
-  LucideArrowBigRight,
-} from "lucide-react-native";
+import { Ruler, Scaling } from "lucide-react-native";
 
 export const PropertiesList = () => {
   const params = useLocalSearchParams<{
@@ -83,6 +79,9 @@ export const PropertiesList = () => {
     property?.typeListProperty === "sale"
       ? generalColors.saleColor
       : generalColors.rentColor;
+
+  const equipmentTitle = property?.isAland ? "Caracteristicas" : "Equipamiento";
+  const typeText = property?.isAland ? "Colonia" : "Desarrollo inmobiliario";
 
   if (isLoading || !property) {
     return (
@@ -183,6 +182,16 @@ export const PropertiesList = () => {
     longitude >= -180 &&
     longitude <= 180;
 
+  const measurements = (property.propertyDimension ?? "")
+    .split(/\s*[x×]\s*/i)
+    .map((measurement) => measurement.trim().replace(/\s*m\s*$/i, ""))
+    .filter(Boolean)
+    .slice(0, 4);
+  const dimensionRows = [
+    measurements.slice(0, 2).join(" / "),
+    measurements.slice(2, 4).join(" / "),
+  ].filter(Boolean);
+
   return (
     <View style={styles.safeArea}>
       <ScrollView
@@ -211,12 +220,12 @@ export const PropertiesList = () => {
               adjustsFontSizeToFit
               numberOfLines={1}
               style={styles.operationText}
-            >
+            > 
               {operationLabel}
             </Text>
             <icons.SealChek
               style={{
-                marginLeft: -5,
+                marginLeft: -2,
               }}
               height={25}
               width={25}
@@ -241,74 +250,128 @@ export const PropertiesList = () => {
             <View
               style={[
                 styles.propertyFeaturesContainer,
-                property.flex || property.balcony
+                !property.isAland && (property.flex || property.balcony)
                   ? {
                       flexWrap: "wrap",
                     }
                   : null,
+                property.isAland && styles.landFeaturesContainer,
               ]}
             >
-              {property.bedrooms ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
-                    flexShrink: 0,
-                  }}
-                >
-                  <PropertyMetric
-                    icon={<icons.Bed width={25} height={25} />}
-                    value={property.bedrooms}
-                    label="Recámaras"
-                  />
-
-                  {property.flex ? (
-                    <PropertyMetric
-                      icon={<icons.Bed width={25} height={25} />}
-                      value={property.flex}
-                      label="Flex"
-                    />
-                  ) : null}
-                  {property.balcony ? (
-                    <PropertyMetric
-                      icon={
-                        <icons.Balcony width={25} height={25} strokeWidth={2} />
-                      }
-                      value={property.balcony}
-                      label="Balcón"
-                    />
-                  ) : null}
-                </View>
-              ) : null}
-              {property?.bathrooms ? (
-                <PropertyMetric
-                  icon={<icons.Bathroom width={25} height={25} />}
-                  value={property.bathrooms}
-                  label="Baños"
-                />
-              ) : null}
-              {property.parkings ? (
+              {property.isAland ? (
                 <>
-                  <PropertyMetric
-                    icon={<icons.Car width={25} height={25} />}
-                    value={property.parkings}
-                    label="Parkings"
-                  />
+                  {property.propertyArea ? (
+                    <View style={styles.landMetricContainer}>
+                      <View style={styles.landMetricHead}>
+                        <Scaling size={28} color={textColor.accentGolden} />
+                        <Text
+                          adjustsFontSizeToFit
+                          numberOfLines={1}
+                          style={styles.landAreaValue}
+                        >
+                          {property.propertyArea}
+                        </Text>
+                      </View>
+                      <Text adjustsFontSizeToFit numberOfLines={1} style={styles.landMetricLabel}>
+                        Superficie del terreno
+                      </Text>
+                    </View>
+                  ) : null}
+                  {property.propertyArea && dimensionRows.length > 0 ? (
+                    <View style={styles.landMetricDivider} />
+                  ) : null}
+                  {dimensionRows.length > 0 ? (
+                    <View style={styles.landMetricContainer}>
+                      <View style={styles.landMetricHead}>
+                        <Ruler size={28} color={textColor.accentGolden} />
+                        <View style={styles.metricDimensions}>
+                          {dimensionRows.map((row, index) => (
+                            <Text
+                              key={index}
+                              adjustsFontSizeToFit
+                              numberOfLines={1}
+                              style={styles.landDimensionValue}
+                            >
+                              {row} m
+                            </Text>
+                          ))}
+                        </View>
+                      </View>
+                      <Text adjustsFontSizeToFit numberOfLines={1} style={styles.landMetricLabel}>
+                        Medidas de los {measurements.length} lados
+                      </Text>
+                    </View>
+                  ) : null}
                 </>
-              ) : null}
-              {/*{property.statusAmenitie ? (
-                <View style={styles.moreFeaturesContainer}>
-                  <icons.ArmChairSe />
-                  <Text
-                    adjustsFontSizeToFit
-                    numberOfLines={2}
-                    style={styles.moreFeaturesText}
-                  >
-                    {property.statusAmenitie}
-                  </Text>
-                </View>
-              ) : null}*/}
+              ) : (
+                <>
+                  {property.bedrooms ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <PropertyMetric
+                        icon={<icons.Bed width={25} height={25} />}
+                        value={property.bedrooms}
+                        label="Recámaras"
+                      />
+
+                      {property.flex ? (
+                        <PropertyMetric
+                          icon={<icons.Bed width={25} height={25} />}
+                          value={property.flex}
+                          label="Flex"
+                        />
+                      ) : null}
+                      {property.balcony ? (
+                        <PropertyMetric
+                          icon={
+                            <icons.Balcony
+                              width={25}
+                              height={25}
+                              strokeWidth={2}
+                            />
+                          }
+                          value={property.balcony}
+                          label="Balcón"
+                        />
+                      ) : null}
+                    </View>
+                  ) : null}
+                  {property?.bathrooms ? (
+                    <PropertyMetric
+                      icon={<icons.Bathroom width={25} height={25} />}
+                      value={property.bathrooms}
+                      label="Baños"
+                    />
+                  ) : null}
+                  {property.parkings ? (
+                    <>
+                      <PropertyMetric
+                        icon={<icons.Car width={25} height={25} />}
+                        value={property.parkings}
+                        label="Parkings"
+                      />
+                    </>
+                  ) : null}
+                  {/*{property.statusAmenitie ? (
+                  <View style={styles.moreFeaturesContainer}>
+                    <icons.ArmChairSe />
+                    <Text
+                      adjustsFontSizeToFit
+                      numberOfLines={2}
+                      style={styles.moreFeaturesText}
+                    >
+                      {property.statusAmenitie}
+                    </Text>
+                  </View>
+                ) : null}*/}
+                </>
+              )}
             </View>
           </View>
 
@@ -333,7 +396,7 @@ export const PropertiesList = () => {
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    Desarrollo Inmobiliario
+                    {typeText}
                   </Text>
                 </View>
               </View>
@@ -376,7 +439,7 @@ export const PropertiesList = () => {
         </View>
         {property.detailedEquipment.length > 0 && (
           <>
-            <PropertySection title="Equipamiento">
+            <PropertySection title={equipmentTitle}>
               <Amenities amenitiesData={property.detailedEquipment} />
             </PropertySection>
             <Line />
@@ -391,11 +454,13 @@ export const PropertiesList = () => {
           </>
         ) : null}
         {property.developmentAmenities.length > 0 && (
-          <PropertySection title="Amenidades Del Desarrollo">
-            <Amenities amenitiesData={amenitiesToShow} />
-          </PropertySection>
+          <>
+            <PropertySection title="Amenidades Del Desarrollo">
+              <Amenities amenitiesData={amenitiesToShow} />
+            </PropertySection>
+            <Line />
+          </>
         )}
-        <Line />
         {property.rooms.length > 0 && (
           <PropertySection title="Donde vas a vivir">
             <PropertyCarousel
@@ -585,13 +650,13 @@ function PropertyMetric({
     <View style={styles.propertyMetricContainer}>
       <View style={styles.propertyMetricHead}>
         {icon}
-        <Text
-          adjustsFontSizeToFit
-          numberOfLines={1}
-          style={styles.metricNumber}
-        >
-          {value}
-        </Text>
+          <Text
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            style={styles.metricNumber}
+          >
+            {value}
+          </Text>
       </View>
       <Text adjustsFontSizeToFit numberOfLines={1} style={styles.metricText}>
         {label}

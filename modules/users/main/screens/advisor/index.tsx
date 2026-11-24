@@ -205,7 +205,7 @@ export function UserDashboardScreen({ area }: UserDashboardScreenProps) {
           visibleCalendarAppointments={visibleCalendarAppointments}
           isCalendarLoading={isCalendarLoading}
           calendarMessage={calendarMessage}
-          onRefresh={() => loadGoogleCalendarAppointments({ sync: true })}
+          onRefresh={() => loadGoogleCalendarAppointments()}
           onViewCalendar={openCalendarScreen}
           onAddAppointment={handleOpenAppointmentModal}
           styles={styles}

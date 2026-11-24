@@ -10,6 +10,7 @@ import type { AppCapabilities } from "@/modules/settings";
 import { LEAD_TRACKING_STATUSES, type LeadTrackingStatus } from "@/modules/users/leads/constants/lead-tracking-statuses";
 import { useCalendarData } from "@/modules/users/date/context/CalendarDataContext";
 import { LeadSearchIntent } from "@/lib/types";
+import { useSessionDomain } from "@/contexts/auth/use-session-domain";
 
 type UseDashboardCalendarParams = {
   authToken: string | null;
@@ -33,13 +34,14 @@ export type ProvisionalAppointmentLead = {
 };
 
 const DEFAULT_CALENDAR_MESSAGE =
-  "Conecta Google Calendar para cargar tus citas reales.";
+  "No hay citas para esta semana.";
 
 export function useDashboardCalendar({
   authToken,
   capabilities,
   returnPath,
 }: UseDashboardCalendarParams) {
+  const { isCoordinator } = useSessionDomain();
   const [calendarMessage, setCalendarMessage] = useState(
     DEFAULT_CALENDAR_MESSAGE,
   );
@@ -51,7 +53,7 @@ export function useDashboardCalendar({
     isAppointmentsLoading: isCalendarLoading,
     isSettingsLoading: isCalendarSettingsLoading,
     isSavingSelection: isSavingCalendarSelection,
-    clearCalendarData,
+    appointmentsError,
     loadAppointments,
     loadSettings,
     markPrimaryCalendar,
@@ -117,7 +119,7 @@ export function useDashboardCalendar({
       fullName: "",
       phone: "",
       email: "",
-      status: "LEAD NUEVO",
+      status: "LEAD NUEVO🥳",
       operation: "sale",
     });
   const calendarAppointments = useMemo(
@@ -134,60 +136,29 @@ export function useDashboardCalendar({
       setCalendarMessage("Inicia sesion para cargar tus citas reales.");
       return;
     }
-    if (googleConnectionStatus?.status === "requires_reconnect") {
-      setCalendarMessage("Reconecta Google Calendar para recuperar tus citas.");
+    setCalendarMessage(
+      appointmentsError ?? (calendarAppointments.length ? "" : DEFAULT_CALENDAR_MESSAGE),
+    );
+  }, [authToken, appointmentsError, calendarAppointments.length]);
+
+  const loadGoogleCalendarAppointments = useCallback(async () => {
+    if (!authToken) {
+      setCalendarMessage("Inicia sesion para cargar tus citas reales.");
       return;
     }
-    if (calendarAppointments.length) {
-      setCalendarMessage("");
-      return;
+
+    try {
+      await loadAppointments();
+    } catch (error) {
+      console.warn("No se pudieron cargar las citas:", error);
+      setCalendarMessage("No se pudieron cargar las citas. Intenta de nuevo.");
     }
-    if (googleConnectionStatus?.connected) {
-      setCalendarMessage("No hay citas de Google para esta semana.");
-    }
-  }, [authToken, calendarAppointments.length, googleConnectionStatus]);
-
-  const loadGoogleCalendarAppointments = useCallback(
-    async (options: { sync?: boolean } = {}) => {
-      if (!authToken) {
-        setCalendarMessage("Inicia sesion para cargar tus citas reales.");
-        return;
-      }
-
-      try {
-        const dates = await loadAppointments(options);
-        const appointments = dates
-          .map(mapGoogleDateToAppointment)
-          .filter(isAppointmentFromCurrentWeek)
-          .sort((current, next) => current.sortTime - next.sortTime);
-
-        setCalendarMessage(
-          appointments.length ? "" : "No hay citas de Google para esta semana.",
-        );
-      } catch (error) {
-        console.warn(
-          "No se pudieron cargar las citas de Google Calendar:",
-          error,
-        );
-        try {
-          await loadSettings();
-          setCalendarMessage(
-            googleConnectionStatus?.status === "requires_reconnect"
-              ? "Reconecta Google Calendar para recuperar tus citas."
-              : DEFAULT_CALENDAR_MESSAGE,
-          );
-        } catch {
-          setCalendarMessage(DEFAULT_CALENDAR_MESSAGE);
-        }
-      }
-    },
-    [authToken, googleConnectionStatus?.status, loadAppointments, loadSettings],
-  );
+  }, [authToken, loadAppointments]);
 
   const loadGoogleCalendarSettings = loadSettings;
 
   const connectGoogleCalendar = useCallback(async () => {
-    if (!authToken || isConnectingCalendar) return;
+    if (!authToken || !isCoordinator || isConnectingCalendar) return;
 
     setIsConnectingCalendar(true);
     try {
@@ -201,7 +172,7 @@ export function useDashboardCalendar({
       if (result.type === "success") {
         await Promise.all([
           loadGoogleCalendarSettings(),
-          loadGoogleCalendarAppointments({ sync: true }),
+          loadGoogleCalendarAppointments(),
         ]);
       }
     } catch (error) {
@@ -212,17 +183,18 @@ export function useDashboardCalendar({
   }, [
     authToken,
     isConnectingCalendar,
+    isCoordinator,
     loadGoogleCalendarAppointments,
     loadGoogleCalendarSettings,
     returnPath,
   ]);
 
   const disconnectCalendar = useCallback(() => {
-    if (!authToken || isDisconnectingCalendar) return;
+    if (!authToken || !isCoordinator || isDisconnectingCalendar) return;
 
     Alert.alert(
       "Desconectar Google",
-      "Quieres desconectar la cuenta de Google de esta sesion?",
+      "Quieres desconectar la cuenta global de Google Calendar?",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -232,8 +204,7 @@ export function useDashboardCalendar({
             setIsDisconnectingCalendar(true);
             try {
               await disconnectGoogleCalendar(authToken);
-              clearCalendarData();
-              setCalendarMessage("Google Calendar fue desconectado.");
+              await loadSettings();
             } catch (error) {
               console.warn("No se pudo desconectar Google Calendar:", error);
             } finally {
@@ -243,7 +214,7 @@ export function useDashboardCalendar({
         },
       ],
     );
-  }, [authToken, clearCalendarData, isDisconnectingCalendar]);
+  }, [authToken, isDisconnectingCalendar, loadSettings, isCoordinator]);
 
   const getCalendarSelection = useCallback(
     (calendarId?: string) =>
@@ -257,13 +228,13 @@ export function useDashboardCalendar({
   const markPrimaryGoogleCalendar = markPrimaryCalendar;
 
   const saveGoogleCalendarSelection = useCallback(async () => {
-    if (!authToken || isSavingCalendarSelection) return;
+    if (!authToken || !isCoordinator || isSavingCalendarSelection) return;
 
     try {
       await saveCalendarSelection();
       Alert.alert(
         "Calendarios guardados",
-        "La seleccion fue guardada y las citas fueron sincronizadas.",
+        "La seleccion de calendarios fue guardada.",
       );
     } catch (error) {
       console.warn("No se pudo guardar la seleccion de calendarios:", error);
@@ -271,6 +242,7 @@ export function useDashboardCalendar({
   }, [
     authToken,
     isSavingCalendarSelection,
+    isCoordinator,
     saveCalendarSelection,
     selectedGoogleCalendars,
   ]);

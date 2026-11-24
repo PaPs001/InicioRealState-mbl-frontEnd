@@ -95,7 +95,7 @@ export const emptyLeadV2CreateForm: LeadV2CreateForm = {
   fullName: "",
   phone: "",
   email: "",
-  status: "LEAD NUEVO",
+  status: "LEAD NUEVO🥳",
   lastContactDate: "",
   estimatedBudget: "",
   origin: "",

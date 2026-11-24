@@ -226,9 +226,17 @@ export interface GoogleCalendarSyncResponse {
   skipped: number;
 }
 
+export interface GoogleCalendarSessionCalendar extends SelectedGoogleCalendar {
+  syncStatus?: string | null;
+  disconnectedAt?: string | null;
+}
+
 export interface GoogleCalendarConnectionStatus {
   status: "connected" | "disconnected" | "requires_reconnect";
   connected: boolean;
+  accountEmail?: string | null;
+  calendars: GoogleCalendarSessionCalendar[];
+  lastSyncAt?: string | null;
   selectedCalendarsCount: number;
   enabledCalendarsCount: number;
 }
@@ -252,22 +260,82 @@ export function getGoogleCalendarDates(
   filters: GoogleCalendarDateFilters = {},
 ) {
   const query = buildQuery(filters);
-
   return coreApi<GoogleCalendarDate[]>(`/dates/dates${query}`, {
     token: token ?? undefined,
   });
 }
 
-export function createGoogleCalendarDate(
+export async function createGoogleCalendarDate(
   token: string | null | undefined,
   payload: CreateGoogleCalendarDatePayload,
 ) {
-  // TEMP: revisar los datos enviados al crear una cita.
-  return coreApi<CreateGoogleCalendarDateResponse>("/dates/dates", {
+  const startedAt = Date.now();
+  const attemptId = `appointment-${startedAt}-${Math.random().toString(36).slice(2, 8)}`;
+  const context = {
+    attemptId,
     method: "POST",
-    token: token ?? undefined,
-    body: payload,
+    path: "/dates/dates",
+    appointmentType: payload.appointmentType,
+    subtypeCalendar: payload.subtypeCalendar,
+    calendarId: payload.calendarId,
+  };
+  console.info("[AppointmentCreate][request]", {
+    ...context,
+    timestamp: new Date(startedAt).toISOString(),
+    payload: {
+      appointmentType: payload.appointmentType,
+      subtypeCalendar: payload.subtypeCalendar,
+      calendarId: payload.calendarId,
+      colorId: payload.colorId,
+      startDateTime: payload.startDateTime,
+      endDateTime: payload.endDateTime,
+      timeZone: payload.timeZone,
+      leadId: payload.leadId,
+      propertyId: payload.propertyId,
+      advisorId: payload.advisorId,
+      createLead: payload.createLead,
+      confirmDuplicate: payload.confirmDuplicate,
+      hasTitle: Boolean(payload.title?.trim()),
+      hasExternalAdvisor: Boolean(payload.externalAdvisorName?.trim()),
+      lead: payload.lead ? {
+        hasFullName: Boolean(payload.lead.fullName?.trim()),
+        hasPhone: Boolean(payload.lead.phone?.trim()),
+        hasEmail: Boolean(payload.lead.email?.trim()),
+        status: payload.lead.status,
+        operation: payload.lead.operation,
+      } : null,
+    },
   });
+  try {
+    const response = await coreApi<CreateGoogleCalendarDateResponse>("/dates/dates", {
+      method: "POST",
+      token: token ?? undefined,
+      body: payload,
+    });
+    console.info("[AppointmentCreate][response]", {
+      ...context,
+      durationMs: Date.now() - startedAt,
+      dateId: response.date?._id,
+      savedAppointmentType: response.date?.appointmentType,
+      savedSubtypeCalendar: response.date?.subtypeCalendar,
+      googleCalendarId: response.date?.googleCalendarId,
+      googleEventId: response.date?.googleEventId,
+      syncStatus: response.date?.syncStatus,
+      status: response.date?.status,
+      leadResolution: response.leadResolution,
+    });
+    return response;
+  } catch (error) {
+    const apiError = error as { status?: number; message?: string; path?: string } | null;
+    console.warn("[AppointmentCreate][error]", {
+      ...context,
+      durationMs: Date.now() - startedAt,
+      status: apiError?.status,
+      message: apiError?.message ?? String(error),
+      path: apiError?.path ?? context.path,
+    });
+    throw error;
+  }
 }
 
 export function deleteGoogleCalendarDate(

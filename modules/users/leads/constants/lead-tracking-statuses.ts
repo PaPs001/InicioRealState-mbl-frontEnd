@@ -1,17 +1,17 @@
 export const LEAD_TRACKING_STATUSES = [
   "EN PERFILAMIENTO",
-  "APARTADO",
+  "APARTADO 🔷",
   "EN SEGUIMIENTO",
-  "LEAD NUEVO",
+  "LEAD NUEVO🥳",
   "REASIGNADO",
   "CONTACTADO",
-  "VENTA",
+  "VENTA ♦️",
   "SIN RESPUESTA",
   "NO PUEDE COMPRAR",
   "COMPRO OTRO PROYECTO",
-  "CANCELO",
-  "SPAM",
-  "RENTA",
+  "CANCELO ❌",
+  "SPAM⚠️",
+  "RENTA ✳️",
 ] as const;
 
 export type LeadTrackingStatus = (typeof LEAD_TRACKING_STATUSES)[number];

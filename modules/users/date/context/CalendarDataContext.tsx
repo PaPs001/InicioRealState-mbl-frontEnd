@@ -1,4 +1,3 @@
-import { getGoogleCalendarAuthError } from '@/lib/api/google-calendar-errors'
 import {
   createContext,
   type PropsWithChildren,
@@ -16,10 +15,8 @@ import {
   deleteGoogleCalendarDate,
   getGoogleCalendarConnectionStatus,
   getGoogleCalendarDates,
-  getGoogleCalendars,
   getSelectedGoogleCalendars,
   saveSelectedGoogleCalendars,
-  syncGoogleCalendars,
   updateGoogleCalendarDate,
   type GoogleCalendarConnectionStatus,
   type GoogleCalendarDate,
@@ -27,10 +24,6 @@ import {
   type SelectedGoogleCalendar,
 } from '@/lib/api'
 import type { AppointmentType, UpdateGoogleCalendarDatePayload } from '@/lib/api/endpoints/dates'
-
-type LoadAppointmentsOptions = {
-  sync?: boolean
-}
 
 type CalendarDataContextValue = {
   appointments: GoogleCalendarDate[]
@@ -44,7 +37,7 @@ type CalendarDataContextValue = {
   addAppointment: (appointment: GoogleCalendarDate) => void
   assignCalendarType: (calendar: GoogleCalendarOption, appointmentType: AppointmentType) => void
   clearCalendarData: () => void
-  loadAppointments: (options?: LoadAppointmentsOptions) => Promise<GoogleCalendarDate[]>
+  loadAppointments: () => Promise<GoogleCalendarDate[]>
   loadSettings: () => Promise<void>
   markPrimaryCalendar: (calendar: GoogleCalendarOption) => void
   saveCalendarSelection: () => Promise<void>
@@ -88,7 +81,7 @@ function mergeAppointments(
 }
 
 export function CalendarDataProvider({ children }: PropsWithChildren) {
-  const { authToken } = useAuth()
+  const { authToken, isCoordinator } = useAuth()
   const loadedTokenRef = useRef<string | null>(null)
   const [appointments, setAppointments] = useState<GoogleCalendarDate[]>([])
   const [calendars, setCalendars] = useState<GoogleCalendarOption[]>([])
@@ -108,9 +101,7 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     setAppointmentsError(null)
   }, [])
 
-  const loadAppointments = useCallback(async (
-    options: LoadAppointmentsOptions = {},
-  ) => {
+  const loadAppointments = useCallback(async () => {
     if (!authToken) {
       setAppointments([])
       return []
@@ -119,8 +110,9 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
     setIsAppointmentsLoading(true)
     setAppointmentsError(null)
     try {
+      // Read stored appointments without triggering Google synchronization.
       const dates = await getGoogleCalendarDates(authToken, {
-        sync: options.sync,
+        sync: false,
       })
       setAppointments(dates)
       return dates
@@ -142,32 +134,20 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
 
     setIsSettingsLoading(true)
     try {
-      const status = await getGoogleCalendarConnectionStatus(authToken)
-      setConnectionStatus(status)
-
-      if (!status.connected) {
-        setCalendars([])
-        setSelectedCalendars([])
+      if (!isCoordinator) {
+        setSelectedCalendars(await getSelectedGoogleCalendars(authToken))
         return
       }
 
-      const [availableCalendars, savedCalendars] = await Promise.all([
-        getGoogleCalendars(authToken),
-        getSelectedGoogleCalendars(authToken),
-      ])
-      setCalendars(availableCalendars)
-      setSelectedCalendars(savedCalendars)
-      setConnectionStatus(await getGoogleCalendarConnectionStatus(authToken))
-    } catch (error) {
-      try {
-        setConnectionStatus(await getGoogleCalendarConnectionStatus(authToken))
-      } catch {
-      }
-      throw error
+      const status = await getGoogleCalendarConnectionStatus(authToken)
+      setConnectionStatus(status)
+      const sessionCalendars = status.calendars ?? []
+      setCalendars(sessionCalendars)
+      setSelectedCalendars(sessionCalendars)
     } finally {
       setIsSettingsLoading(false)
     }
-  }, [authToken])
+  }, [authToken, isCoordinator])
 
   useEffect(() => {
     if (!authToken) {
@@ -182,47 +162,15 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
 
     const initializeCalendar = async (canRetry: boolean) => {
       try {
-        const status = await getGoogleCalendarConnectionStatus(authToken)
-        if (cancelled) return
-        setConnectionStatus(status)
-
-        if (status.connected) {
-          await syncGoogleCalendars(authToken)
-          if (cancelled) return
-        }
-
-        await Promise.all([loadSettings(), loadAppointments()])
+        await loadAppointments()
         if (!cancelled) loadedTokenRef.current = authToken
       } catch (error) {
         if (cancelled) return
-        console.warn('No se pudo inicializar Google Calendar:', error)
-
-        const googleAuthError = getGoogleCalendarAuthError(error)
-        let requiresReconnect = googleAuthError !== null
-        try {
-          const status = await getGoogleCalendarConnectionStatus(authToken)
-          if (cancelled) return
-          setConnectionStatus(status)
-          requiresReconnect = requiresReconnect || status.status === 'requires_reconnect'
-        } catch {
-        }
-
-        await loadAppointments().catch(() => undefined)
-        if (cancelled) return
-        if (requiresReconnect) {
-          loadedTokenRef.current = authToken
-          setAppointmentsError(
-            googleAuthError === 'unauthorized_client' || googleAuthError === 'invalid_client'
-              ? 'Google rechazo la configuracion de la conexion. Revisa las credenciales OAuth del backend.'
-              : 'Vuelve a conectar Google Calendar para sincronizar las citas.',
-          )
-        } else {
-          setAppointmentsError('No se pudo sincronizar Google Calendar. Intenta cargar de nuevo.')
-          if (canRetry) {
-            retryTimer = setTimeout(() => {
-              void initializeCalendar(false)
-            }, 2000)
-          }
+        console.warn('No se pudieron cargar las citas:', error)
+        if (canRetry) {
+          retryTimer = setTimeout(() => {
+            void initializeCalendar(false)
+          }, 2000)
         }
       }
     }
@@ -232,7 +180,7 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
       cancelled = true
       if (retryTimer) clearTimeout(retryTimer)
     }
-  }, [authToken, clearCalendarData, loadAppointments, loadSettings])
+  }, [authToken, clearCalendarData, loadAppointments])
 
   const addAppointment = useCallback((appointment: GoogleCalendarDate) => {
     setAppointments(current => mergeAppointments(current, [appointment]))
@@ -335,7 +283,7 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
   }, [])
 
   const saveCalendarSelection = useCallback(async () => {
-    if (!authToken || isSavingSelection) return
+    if (!authToken || !isCoordinator || isSavingSelection) return
 
     setIsSavingSelection(true)
     try {
@@ -350,12 +298,11 @@ export function CalendarDataProvider({ children }: PropsWithChildren) {
         primaryForCreate: calendar.primaryForCreate,
       })))
 
-      await syncGoogleCalendars(authToken)
-      await Promise.all([loadSettings(), loadAppointments()])
+      await loadSettings()
     } finally {
       setIsSavingSelection(false)
     }
-  }, [authToken, isSavingSelection, loadAppointments, loadSettings, selectedCalendars])
+  }, [authToken, isCoordinator, isSavingSelection, loadSettings, selectedCalendars])
 
   const updateAppointment = useCallback(
     async(

@@ -56,8 +56,6 @@ type AppointmentCreateModalProps = {
   isCatalogLoading: boolean;
   propertiesError?: string | null;
   isCreatingAppointment: boolean;
-  isGoogleConnected: boolean;
-  needsGoogleReconnect?: boolean;
   isLeadsLoading: boolean;
   onClose: () => void;
   onCreateAppointment: () => void;
@@ -104,8 +102,6 @@ export function AppointmentCreateModal({
   isCatalogLoading,
   propertiesError,
   isCreatingAppointment,
-  isGoogleConnected,
-  needsGoogleReconnect = false,
   isLeadsLoading,
   onClose,
   onCreateAppointment,
@@ -531,11 +527,7 @@ export function AppointmentCreateModal({
           </Text>
           {enabledSelectedCalendars.length === 0 ? (
             <Text style={styles.calendarSettingsEmpty}>
-              {needsGoogleReconnect
-                ? "Reconecta Google Calendar desde configuracion antes de crear citas."
-                : isGoogleConnected
-                  ? "Activa y guarda al menos un calendario antes de crear citas."
-                  : "Conecta Google Calendar desde configuracion antes de crear citas."}
+              Pide al coordinador que configure al menos un calendario para crear citas.
             </Text>
           ) : shouldSelectCalendarManually &&
             manuallySelectableCalendars.length === 0 ? (

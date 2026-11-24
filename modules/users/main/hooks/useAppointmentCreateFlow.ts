@@ -113,7 +113,7 @@ export function useAppointmentCreateFlow({
         null,
     }));
     calendar.changeAppointmentLeadMode("existing");
-    calendar.updateProvisionalAppointmentLead("status", "LEAD NUEVO");
+    calendar.updateProvisionalAppointmentLead("status", "LEAD NUEVO🥳");
     calendar.setAppointmentSelectionScreen(null);
     void calendar.loadGoogleCalendarSettings();
   }, [
@@ -171,11 +171,21 @@ export function useAppointmentCreateFlow({
   );
 
   async function submitAppointment(payload: CreateGoogleCalendarDatePayload) {
-    if (!authToken) return;
+    if (!authToken) {
+      console.warn("[AppointmentCreate][blocked]", { reason: "missing_session" });
+      return;
+    }
     if (lockAppointmentType && (
       !lockedType || !lockedPropertyId ||
       payload.appointmentType !== lockedType || payload.propertyId !== lockedPropertyId
     )) {
+      console.warn("[AppointmentCreate][blocked]", {
+        reason: "locked_property_mismatch",
+        appointmentType: payload.appointmentType,
+        propertyId: payload.propertyId,
+        lockedType,
+        lockedPropertyId,
+      });
       Alert.alert("Revisa la propiedad", "La cita debe conservar la propiedad seleccionada y su operaci?n de renta o venta.");
       return;
     }
@@ -192,7 +202,7 @@ export function useAppointmentCreateFlow({
       onCreated?.();
       onClose();
       void Promise.all([
-        calendar.loadGoogleCalendarAppointments({ sync: true }),
+        calendar.loadGoogleCalendarAppointments(),
         loadLeads(),
       ]).catch((error) => {
         console.warn(
@@ -203,6 +213,12 @@ export function useAppointmentCreateFlow({
     } catch (error) {
       const conflict = getDuplicateCheck(error);
       if (conflict && payload.confirmDuplicate !== true) {
+        console.warn("[AppointmentCreate][duplicate]", {
+          appointmentType: payload.appointmentType,
+          subtypeCalendar: payload.subtypeCalendar,
+          candidateCount: conflict.candidates.length,
+          requiresConfirmation: conflict.requiresConfirmation,
+        });
         setDuplicateCheck(conflict);
         setPendingDuplicatePayload(payload);
         Alert.alert(
@@ -256,7 +272,12 @@ export function useAppointmentCreateFlow({
   };
 
   const createAppointment = useCallback(async () => {
-    if (!authToken || isCreatingAppointment) return;
+    if (!authToken || isCreatingAppointment) {
+      console.warn("[AppointmentCreate][blocked]", {
+        reason: !authToken ? "missing_session" : "already_creating",
+      });
+      return;
+    }
     const normalizedAppointmentType = form.appointmentType
       ?.trim()
       .toLowerCase();
@@ -277,12 +298,41 @@ export function useAppointmentCreateFlow({
     const effectiveConfig = subdivision ?? appointmentTypeConfig;
     const acceptsLead = effectiveConfig.lead !== "none";
     const acceptsProperty = effectiveConfig.property !== "none";
+    const calendarForType = appointmentType
+      ? findCalendarForAppointmentType(calendar.enabledSelectedCalendars, appointmentType)
+      : undefined;
+    const context = {
+      appointmentType: form.appointmentType,
+      normalizedAppointmentType: appointmentType,
+      subtypeCalendar: form.subtypeCalendar,
+      validSubdivision: Boolean(subdivision),
+      calendarSelection: appointmentTypeConfig.calendarSelection,
+      calendarId: form.calendarId,
+      calendarForTypeId: calendarForType?.calendarId,
+      calendarIdMatchesType: form.calendarId === calendarForType?.calendarId,
+      enabledCalendars: calendar.enabledSelectedCalendars.map((item) => ({
+        calendarId: item.calendarId,
+        appointmentType: item.appointmentType,
+      })),
+      leadMode: calendar.appointmentLeadMode,
+      leadId: form.leadId,
+      propertyId: form.propertyId,
+      advisorMode,
+      startDateTime: form.startDateTime,
+      endDateTime: form.endDateTime,
+      timeZone: form.timeZone,
+    };
+    console.info("[AppointmentCreate][attempt]", context);
+    const validationAlert = (title: string, message: string) => {
+      console.warn("[AppointmentCreate][validation]", { ...context, reason: title });
+      return Alert.alert(title, message);
+    };
     if (
       !form.title.trim() ||
       !form.startDateTime.trim() ||
       !form.endDateTime.trim()
     )
-      return Alert.alert(
+      return validationAlert(
         "Faltan datos",
         "Titulo, inicio y terminacion son obligatorios.",
       );
@@ -294,14 +344,14 @@ export function useAppointmentCreateFlow({
       Number.isNaN(endDateTime.getTime()) ||
       endDateTime <= startDateTime
     )
-      return Alert.alert(
+      return validationAlert(
         "Hora de terminacion invalida",
         "La cita debe terminar despues de la hora de inicio.",
       );
 
       ///// mira mano esto es para crear una cita venta obligando a seleccionar el tipo de cita ventaa (desarrollo o mercado abierto)
     if (appointmentTypeConfig.hasSubdivision && !subdivision) {
-      return Alert.alert(
+      return validationAlert(
         "Falta tipo de venta",
         "Selecciona mercado abierto o desarrollos.",
       );
@@ -312,7 +362,7 @@ export function useAppointmentCreateFlow({
       calendar.appointmentLeadMode === "existing" &&
       !form.leadId
     )
-      return Alert.alert(
+      return validationAlert(
         "Falta lead",
         "Selecciona el lead al que se le agendara la cita.",
       );
@@ -322,14 +372,14 @@ export function useAppointmentCreateFlow({
       calendar.appointmentLeadMode === "provisional" &&
       !calendar.provisionalAppointmentLead.fullName.trim()
     )
-      return Alert.alert(
+      return validationAlert(
         "Falta nombre",
         "Escribe el nombre del lead provisional para crear la cita.",
       );
 
     if (acceptsLead && calendar.appointmentLeadMode === "provisional" &&
       !(LEAD_TRACKING_STATUSES as readonly string[]).includes(calendar.provisionalAppointmentLead.status)) {
-      return Alert.alert("Falta estatus", "Selecciona un estatus valido para el nuevo lead.");
+      return validationAlert("Falta estatus", "Selecciona un estatus valido para el nuevo lead.");
     }
     const canResolveCalendarByType =
       appointmentTypeConfig.calendarSelection !== "manual" &&
@@ -342,14 +392,14 @@ export function useAppointmentCreateFlow({
       );
 
     if (!form.calendarId && !canResolveCalendarByType)
-      return Alert.alert(
+      return validationAlert(
         "Falta calendario",
         "Selecciona o configura el calendario donde quieres crear la cita.",
       );
 
     const useExternalAdvisor = advisorMode === "external";
     if (useExternalAdvisor && !form.externalAdvisorName?.trim()) {
-      return Alert.alert("Falta asesor", "Escribe el nombre del asesor encargado.");
+      return validationAlert("Falta asesor", "Escribe el nombre del asesor encargado.");
     }
     const base = {
       ...form,
@@ -368,8 +418,8 @@ export function useAppointmentCreateFlow({
             confirmDuplicate: false,
             lead: {
               fullName: calendar.provisionalAppointmentLead.fullName.trim(),
-              phone: calendar.provisionalAppointmentLead.phone.trim() || null,
-              email: calendar.provisionalAppointmentLead.email.trim() || null,
+              phone: calendar.provisionalAppointmentLead.phone.trim(),
+              email: calendar.provisionalAppointmentLead.email.trim(),
               status: calendar.provisionalAppointmentLead.status,
               operation: leadOperation,
             },
@@ -397,9 +447,6 @@ export function useAppointmentCreateFlow({
       isCatalogLoading: properties.isCatalogLoading,
       propertiesError: properties.error,
       isCreatingAppointment,
-      isGoogleConnected:
-        calendar.isGoogleConnected && !calendar.needsGoogleReconnect,
-      needsGoogleReconnect: calendar.needsGoogleReconnect,
       isLeadsLoading,
       onClose,
       onCreateAppointment: createAppointment,

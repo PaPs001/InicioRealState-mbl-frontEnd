@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'react-native'
 import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
@@ -8,6 +8,7 @@ import {
   getGoogleCalendarAuthUrl,
 } from '@/lib/api'
 import { useCalendarData } from '@/modules/users/date/context/CalendarDataContext'
+import { useSessionDomain } from '@/contexts/auth/use-session-domain'
 
 type UseGoogleCalendarSettingsOptions = {
   authToken?: string | null
@@ -18,6 +19,7 @@ export function useGoogleCalendarSettings({
   authToken,
   returnPath,
 }: UseGoogleCalendarSettingsOptions) {
+  const { isCoordinator } = useSessionDomain()
   const {
     calendars,
     selectedCalendars,
@@ -25,7 +27,6 @@ export function useGoogleCalendarSettings({
     isSettingsLoading,
     isSavingSelection,
     assignCalendarType,
-    clearCalendarData,
     loadSettings,
     saveCalendarSelection,
     toggleCalendar,
@@ -33,22 +34,33 @@ export function useGoogleCalendarSettings({
   const [isConnecting, setIsConnecting] = useState(false)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
 
+  const reload = useCallback(async () => {
+    if (!authToken || !isCoordinator) return
+    await loadSettings()
+  }, [authToken, isCoordinator, loadSettings])
+
+  useEffect(() => {
+    void reload().catch(error => {
+      console.warn('No se pudo cargar la configuracion global de Google Calendar:', error)
+    })
+  }, [reload])
+
   const saveSelection = useCallback(async () => {
-    if (!authToken || isSavingSelection) return
+    if (!authToken || !isCoordinator || isSavingSelection) return
 
     try {
       await saveCalendarSelection()
       Alert.alert(
         'Calendarios guardados',
-        'La seleccion fue guardada y los calendarios fueron sincronizados.',
+        'La seleccion de calendarios fue guardada.',
       )
     } catch (error) {
       console.warn('No se pudo guardar la seleccion de calendarios:', error)
     }
-  }, [authToken, isSavingSelection, saveCalendarSelection])
+  }, [authToken, isCoordinator, isSavingSelection, saveCalendarSelection])
 
   const connect = useCallback(async () => {
-    if (!authToken || isConnecting) return
+    if (!authToken || !isCoordinator || isConnecting) return
 
     setIsConnecting(true)
     try {
@@ -61,14 +73,14 @@ export function useGoogleCalendarSettings({
     } finally {
       setIsConnecting(false)
     }
-  }, [authToken, isConnecting, loadSettings, returnPath])
+  }, [authToken, isCoordinator, isConnecting, loadSettings, returnPath])
 
   const disconnect = useCallback(() => {
-    if (!authToken || isDisconnecting) return
+    if (!authToken || !isCoordinator || isDisconnecting) return
 
     Alert.alert(
       'Desconectar Google',
-      'Quieres desconectar la cuenta de Google de esta sesion?',
+      'Quieres desconectar la cuenta global de Google Calendar?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -78,7 +90,7 @@ export function useGoogleCalendarSettings({
             setIsDisconnecting(true)
             try {
               await disconnectGoogleCalendar(authToken)
-              clearCalendarData()
+              await loadSettings()
             } catch (error) {
               console.warn('No se pudo desconectar Google Calendar:', error)
             } finally {
@@ -88,7 +100,7 @@ export function useGoogleCalendarSettings({
         },
       ],
     )
-  }, [authToken, clearCalendarData, isDisconnecting])
+  }, [authToken, isCoordinator, isDisconnecting, loadSettings])
 
   const isConnected = connectionStatus?.connected === true
   const needsReconnect = connectionStatus?.status === 'requires_reconnect'
@@ -102,7 +114,7 @@ export function useGoogleCalendarSettings({
     isConnecting,
     isDisconnecting,
     isSaving: isSavingSelection,
-    reload: loadSettings,
+    reload,
     toggleCalendar,
     saveSelection,
     connect,
@@ -118,7 +130,7 @@ export function useGoogleCalendarSettings({
     isDisconnecting,
     isSavingSelection,
     isSettingsLoading,
-    loadSettings,
+    reload,
     needsReconnect,
     saveSelection,
     selectedCalendars,
