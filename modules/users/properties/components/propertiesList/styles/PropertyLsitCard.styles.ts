@@ -327,6 +327,5 @@ propertyCard: {
     fontWeight: '500',
   },
   landPropertyCar:{
-    marginTop: 100
   }    
 })

@@ -224,7 +224,6 @@ export const PropertyCard = memo(function PropertyCard({
         <View
           style={[
             styles.amenitiesSpace,
-            property.isAland && styles.landPropertyCar,
           ]}
         >
           {property.propertyType ? (

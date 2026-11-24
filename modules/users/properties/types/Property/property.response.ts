@@ -91,6 +91,7 @@ export interface SelectedPropertyResponse extends Omit<PropertyCatalogItemRespon
   images?: PropertyImageResponse[] | null;
   Images?: PropertyImageResponse[] | null;
   geoData: GeoData;
+  development: string
 }
 
 ///// interface para el endpoint de los markers del mapa

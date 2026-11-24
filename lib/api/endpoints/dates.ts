@@ -226,9 +226,17 @@ export interface GoogleCalendarSyncResponse {
   skipped: number;
 }
 
+export interface GoogleCalendarSessionCalendar extends SelectedGoogleCalendar {
+  syncStatus?: string | null;
+  disconnectedAt?: string | null;
+}
+
 export interface GoogleCalendarConnectionStatus {
   status: "connected" | "disconnected" | "requires_reconnect";
   connected: boolean;
+  accountEmail?: string | null;
+  calendars: GoogleCalendarSessionCalendar[];
+  lastSyncAt?: string | null;
   selectedCalendarsCount: number;
   enabledCalendarsCount: number;
 }
@@ -252,7 +260,6 @@ export function getGoogleCalendarDates(
   filters: GoogleCalendarDateFilters = {},
 ) {
   const query = buildQuery(filters);
-
   return coreApi<GoogleCalendarDate[]>(`/dates/dates${query}`, {
     token: token ?? undefined,
   });

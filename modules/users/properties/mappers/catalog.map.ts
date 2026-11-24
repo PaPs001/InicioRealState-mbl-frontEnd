@@ -36,7 +36,7 @@ function mapBaseCard(item: CardSource): PropertyCard2 {
     id: item.id,
     title: namePropertie,
     address: item.address,
-    development: desarrollo,
+    development: item.development,
     price: item.priceData, //// al final no
     bedrooms: bed.bedrooms, //// aqui si se formateo por numero
     bathrooms: normalizeFunctions.parseCount(item.wc),
@@ -139,6 +139,9 @@ export function mapSelectedProperty(
     developmentAmenities: item.developmentAmenities ?? [],
     detailedEquipment: item.detailedEquipment ?? [],
     titleCode: item.name,
-    locationURL: item.locationUrl ?? ""
+    locationURL: item.locationUrl ?? "",
+    developmentName: item.development,
+    propertyArea: item.propertyArea || undefined,
+    propertyDimension: item.propertyDimensions || undefined
   };
 }

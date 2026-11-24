@@ -54,7 +54,7 @@ export const LeadsTrackingSelectingScreen = () => {
   }>();
   const status =
     (Array.isArray(params.status) ? params.status[0] : params.status) ||
-    "LEAD NUEVO";
+    "LEAD NUEVO🥳";
   const { leads, isLoading, error, reload } = useLeadTrackingRecords();
   const originParam = Array.isArray(params.origin)
     ? params.origin[0]

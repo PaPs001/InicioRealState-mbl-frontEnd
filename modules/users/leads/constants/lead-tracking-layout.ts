@@ -83,7 +83,7 @@ export const leadTrackingStatusCards: LeadsTypes[] = [
     type: "ALTA PRIORIDAD",
   },
   {
-    title: "LEAD NUEVO",
+    title: "LEAD NUEVO🥳",
     subtitle: "Nuevos prospectos por contactar",
     numberLeads: 0,
     color: "#FFF2CF",

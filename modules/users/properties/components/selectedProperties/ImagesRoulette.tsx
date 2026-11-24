@@ -91,9 +91,8 @@ export const ImagesRoulette = ({
           <Pressable
             accessibilityLabel={isLastVisibleImage ? `Abrir las ${imageCount} fotos` : undefined}
             accessibilityRole={isLastVisibleImage ? 'button' : undefined}
-            disabled={!isLastVisibleImage}
             key={`${image}-${index}`}
-            onPress={isLastVisibleImage ? onOpenGallery : undefined}
+            onPress={onOpenGallery}
             style={styles.imagesContainer}
           >
             <PropertyImage

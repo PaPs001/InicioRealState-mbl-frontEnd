@@ -113,7 +113,7 @@ export function useAppointmentCreateFlow({
         null,
     }));
     calendar.changeAppointmentLeadMode("existing");
-    calendar.updateProvisionalAppointmentLead("status", "LEAD NUEVO");
+    calendar.updateProvisionalAppointmentLead("status", "LEAD NUEVO🥳");
     calendar.setAppointmentSelectionScreen(null);
     void calendar.loadGoogleCalendarSettings();
   }, [
@@ -202,7 +202,7 @@ export function useAppointmentCreateFlow({
       onCreated?.();
       onClose();
       void Promise.all([
-        calendar.loadGoogleCalendarAppointments({ sync: true }),
+        calendar.loadGoogleCalendarAppointments(),
         loadLeads(),
       ]).catch((error) => {
         console.warn(
@@ -314,8 +314,6 @@ export function useAppointmentCreateFlow({
         calendarId: item.calendarId,
         appointmentType: item.appointmentType,
       })),
-      isGoogleConnected: calendar.isGoogleConnected,
-      needsGoogleReconnect: calendar.needsGoogleReconnect,
       leadMode: calendar.appointmentLeadMode,
       leadId: form.leadId,
       propertyId: form.propertyId,
@@ -449,9 +447,6 @@ export function useAppointmentCreateFlow({
       isCatalogLoading: properties.isCatalogLoading,
       propertiesError: properties.error,
       isCreatingAppointment,
-      isGoogleConnected:
-        calendar.isGoogleConnected && !calendar.needsGoogleReconnect,
-      needsGoogleReconnect: calendar.needsGoogleReconnect,
       isLeadsLoading,
       onClose,
       onCreateAppointment: createAppointment,

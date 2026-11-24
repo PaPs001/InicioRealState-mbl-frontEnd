@@ -137,6 +137,49 @@ export const styles = StyleSheet.create({
     columnGap: 15,
     rowGap: 15,
   },
+  landFeaturesContainer: {
+    flexWrap: "nowrap",
+    alignItems: "stretch",
+    columnGap: 10,
+  },
+  landMetricContainer: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+  },
+  landMetricHead: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: 42,
+  },
+  landMetricDivider: {
+    width: 1,
+    backgroundColor: "#00000055",
+    marginVertical: 2,
+  },
+  landAreaValue: {
+    flexShrink: 1,
+    fontSize: 28,
+    fontWeight: "800",
+    color: userColors.adviser.primaryDark,
+  },
+  landDimensionValue: {
+    maxWidth: "100%",
+    fontSize: 17,
+    fontWeight: "800",
+    color: userColors.adviser.primaryDark,
+  },
+  landMetricLabel: {
+    maxWidth: "100%",
+    fontSize: 12,
+    color: generalColors.textDark,
+    textAlign: "center",
+  },
   shadowsContainer: {
     shadowColor: "#000",
     shadowOffset: {
@@ -242,6 +285,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     justifyContent: "center",
+  },
+  metricDimensions: {
+    alignItems: "center",
+    flexShrink: 1,
+    minWidth: 0,
   },
   metricNumber: {
     fontSize: textSize.titleSmall,
